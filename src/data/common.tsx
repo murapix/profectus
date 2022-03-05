@@ -3,25 +3,25 @@ import {
     ClickableOptions,
     createClickable,
     GenericClickable
-} from "@/features/clickables/clickable";
-import { GenericConversion } from "@/features/conversion";
-import { CoercableComponent, jsx, Replace, setDefault } from "@/features/feature";
-import { displayResource } from "@/features/resources/resource";
+} from "features/clickables/clickable";
+import { GenericConversion } from "features/conversion";
+import { CoercableComponent, jsx, Replace, setDefault } from "features/feature";
+import { displayResource } from "features/resources/resource";
 import {
     createTreeNode,
     GenericTree,
     GenericTreeNode,
     TreeNode,
     TreeNodeOptions
-} from "@/features/trees/tree";
-import player from "@/game/player";
-import Decimal from "@/util/bignum";
+} from "features/trees/tree";
+import player from "game/player";
+import Decimal from "util/bignum";
 import {
     Computable,
     GetComputableTypeWithDefault,
     processComputable,
     ProcessedComputable
-} from "@/util/computed";
+} from "util/computed";
 import { computed, Ref, unref } from "vue";
 
 export interface ResetButtonOptions extends ClickableOptions {
@@ -104,6 +104,9 @@ export function createResetButton<T extends ClickableOptions & ResetButtonOption
 
         const onClick = resetButton.onClick;
         resetButton.onClick = function () {
+            if (!unref(resetButton.canClick)) {
+                return;
+            }
             resetButton.conversion.convert();
             resetButton.tree.reset(resetButton.treeNode);
             onClick?.();
