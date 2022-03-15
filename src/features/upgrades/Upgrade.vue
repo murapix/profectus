@@ -1,6 +1,5 @@
 <template>
     <button
-        v-if="unref(visibility) !== Visibility.None"
         :style="[
             {
                 visibility: unref(visibility) === Visibility.Hidden ? 'hidden' : undefined
@@ -28,13 +27,14 @@
 import "components/common/features.css";
 import LinkNode from "components/links/LinkNode.vue";
 import MarkNode from "components/MarkNode.vue";
-import { jsx, StyleValue, Visibility } from "features/feature";
+import { CoercableComponent, jsx, StyleValue, Visibility } from "features/feature";
 import { displayResource, Resource } from "features/resources/resource";
 import { GenericUpgrade } from "features/upgrades/upgrade";
 import { DecimalSource } from "lib/break_eternity";
 import { coerceComponent, isCoercableComponent, processedPropType, unwrapRef } from "util/vue";
 import {
     Component,
+    computed,
     defineComponent,
     PropType,
     shallowRef,
@@ -43,6 +43,9 @@ import {
     UnwrapRef,
     watchEffect
 } from "vue";
+import TooltipVue from "components/Tooltip.vue";
+import { gatherTooltipProps, Tooltip } from "features/tooltip";
+import { ProcessedComputable } from "util/computed";
 
 export default defineComponent({
     props: {
@@ -56,6 +59,7 @@ export default defineComponent({
         },
         style: processedPropType<StyleValue>(String, Object, Array),
         classes: processedPropType<Record<string, boolean>>(Object),
+        tooltip: processedPropType<CoercableComponent | Tooltip>(String, Object, Function),
         resource: Object as PropType<Resource>,
         cost: processedPropType<DecimalSource>(String, Object, Number),
         canPurchase: {
@@ -77,13 +81,35 @@ export default defineComponent({
         }
     },
     components: {
+        Tooltip: TooltipVue,
         LinkNode,
         MarkNode
     },
     setup(props) {
-        const { display, cost } = toRefs(props);
+        const { display, tooltip, cost } = toRefs(props);
 
         const component = shallowRef<Component | string>("");
+        const tooltipDisplay = shallowRef<ProcessedComputable<CoercableComponent> | undefined>(
+            undefined
+        );
+
+        watchEffect(() => {
+            const currTooltip = unwrapRef(tooltip);
+
+            if (typeof currTooltip === "object" && !isCoercableComponent(currTooltip)) {
+                tooltipDisplay.value = currTooltip.display;
+                return;
+            }
+            tooltipDisplay.value = currTooltip;
+        });
+        const tooltipToBind = computed(() => {
+            const currTooltip = unwrapRef(tooltip);
+
+            if (typeof currTooltip === "object" && !isCoercableComponent(currTooltip)) {
+                return currTooltip;
+            }
+            return null;
+        });
 
         watchEffect(() => {
             const currDisplay = unwrapRef(display);
@@ -128,6 +154,9 @@ export default defineComponent({
 
         return {
             component,
+            tooltipDisplay,
+            tooltipToBind,
+            gatherTooltipProps,
             unref,
             Visibility
         };

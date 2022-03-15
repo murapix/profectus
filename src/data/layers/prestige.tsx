@@ -1,5 +1,5 @@
 import { main } from "data/projEntry";
-import { createCumulativeConversion, createExponentialScaling } from "features/conversion";
+import { createCumulativeConversion, createPolynomialScaling } from "features/conversion";
 import { jsx } from "features/feature";
 import { createReset } from "features/reset";
 import MainDisplay from "features/resources/MainDisplay.vue";
@@ -16,8 +16,8 @@ const layer = createLayer(() => {
     const points = createResource<DecimalSource>(0, "prestige points");
 
     const conversion = createCumulativeConversion(() => ({
-        scaling: createExponentialScaling(10, 5, 0.5),
-        baseResource: main.points,
+        scaling: createPolynomialScaling(10, 0.5),
+        baseResource: points,
         gainResource: points,
         roundUpCost: true
     }));

@@ -39,6 +39,7 @@ export interface UpgradeOptions {
               effectDisplay?: CoercableComponent;
           }
     >;
+    tooltip?: Computable<CoercableComponent>;
     mark?: Computable<boolean | string>;
     cost?: Computable<DecimalSource>;
     resource?: Resource;
@@ -63,6 +64,7 @@ export type Upgrade<T extends UpgradeOptions> = Replace<
         classes: GetComputableType<T["classes"]>;
         style: GetComputableType<T["style"]>;
         display: GetComputableType<T["display"]>;
+        tooltip: GetComputableType<T["tooltip"]>;
         mark: GetComputableType<T["mark"]>;
         cost: GetComputableType<T["cost"]>;
         canAfford: GetComputableTypeWithDefault<T["canAfford"], Ref<boolean>>;

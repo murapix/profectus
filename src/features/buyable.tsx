@@ -38,6 +38,7 @@ export interface BuyableOptions {
     visibility?: Computable<Visibility>;
     cost?: Computable<DecimalSource>;
     resource?: Resource;
+    isFree?: Computable<boolean>;
     canPurchase?: Computable<boolean>;
     purchaseLimit?: Computable<DecimalSource>;
     classes?: Computable<Record<string, boolean>>;
@@ -67,6 +68,7 @@ export type Buyable<T extends BuyableOptions> = Replace<
         visibility: GetComputableTypeWithDefault<T["visibility"], Visibility.Visible>;
         cost: GetComputableType<T["cost"]>;
         resource: GetComputableType<T["resource"]>;
+        isFree: GetComputableTypeWithDefault<T["isFree"], false>;
         canPurchase: GetComputableTypeWithDefault<T["canPurchase"], Ref<boolean>>;
         purchaseLimit: GetComputableTypeWithDefault<T["purchaseLimit"], 1>;
         classes: GetComputableType<T["classes"]>;
@@ -141,6 +143,7 @@ export function createBuyable<T extends BuyableOptions>(
             }
             return currClasses;
         });
+        processComputable(buyable as T, "isFree");
         processComputable(buyable as T, "canPurchase");
         buyable.canClick = buyable.canPurchase as ProcessedComputable<boolean>;
         buyable.onClick = buyable.purchase = function () {
@@ -153,7 +156,8 @@ export function createBuyable<T extends BuyableOptions>(
                 return;
             }
             const cost = unref(genericBuyable.cost);
-            genericBuyable.resource.value = Decimal.sub(genericBuyable.resource.value, cost);
+            if (!unref(genericBuyable.isFree))
+                genericBuyable.resource.value = Decimal.sub(genericBuyable.resource.value, cost);
             genericBuyable.amount.value = Decimal.add(genericBuyable.amount.value, 1);
             this.onPurchase?.(cost);
         };

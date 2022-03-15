@@ -132,7 +132,7 @@ export function createLinearScaling(
 
 // Gain formula is (baseResource / base) ^ exponent
 // e.g. if exponent is 0.5 and base is 10, then having 10 points makes gain 1, and 40 points is 2
-export function createExponentialScaling(
+export function createPolynomialScaling(
     base: DecimalSource | Ref<DecimalSource>,
     exponent: DecimalSource | Ref<DecimalSource>
 ): ScalingFunction {
@@ -156,6 +156,39 @@ export function createExponentialScaling(
             let next = Decimal.add(unref(conversion.currentGain), 1)
                 .root(unref(exponent))
                 .times(unref(base))
+                .max(unref(base));
+            if (conversion.roundUpCost) next = next.ceil();
+            return next;
+        }
+    };
+}
+
+// Gain formula is log_base(baseResource / coefficient)
+// e.g. if coefficient is 2 and base is 10, then having 20 points makes gain 1, and 200 points is 2
+export function createExponentialScaling(
+    base: DecimalSource | Ref<DecimalSource>,
+    coefficient: DecimalSource | Ref<DecimalSource>
+): ScalingFunction {
+    return {
+        currentGain(conversion) {
+            let gain = Decimal.div(conversion.baseResource.value, unref(coefficient))
+                .log(unref(base))
+                .floor()
+                .max(0);
+
+            if (gain.isNan()) {
+                return new Decimal(0);
+            }
+
+            if (!conversion.buyMax) {
+                gain = gain.min(1);
+            }
+            return gain;
+        },
+        nextAt(conversion) {
+            let next = Decimal.add(unref(conversion.currentGain), 1)
+                .pow_base(unref(base))
+                .times(unref(coefficient))
                 .max(unref(base));
             if (conversion.roundUpCost) next = next.ceil();
             return next;
@@ -201,18 +234,32 @@ export function createIndependentConversion<S extends ConversionOptions>(
     });
 }
 
-export function setupPassiveGeneration(
+export function setupPassiveGeneration_Cumulative(
     layer: GenericLayer,
     conversion: GenericConversion,
     rate: ProcessedComputable<DecimalSource> = 1
 ): void {
     layer.on("preUpdate", (diff: Decimal) => {
-        const currRate = isRef(rate) ? rate.value : rate;
+        const currRate = unref(rate);
         if (Decimal.neq(currRate, 0)) {
             conversion.gainResource.value = Decimal.add(
                 conversion.gainResource.value,
                 Decimal.times(currRate, diff).times(unref(conversion.currentGain))
             );
+        }
+    });
+}
+
+export function setupPassiveGeneration_Independent(
+    layer: GenericLayer,
+    conversion: GenericConversion,
+    active: ProcessedComputable<boolean> = true
+): void {
+    layer.on("preUpdate", (diff: Decimal) => {
+        if (unref(active)) {
+            let rate = unref(conversion.currentGain);
+            if (!conversion.buyMax) rate = Decimal.min(rate, 1);
+            conversion.gainResource.value = Decimal.add(conversion.gainResource.value, rate);
         }
     });
 }
