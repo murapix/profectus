@@ -9,6 +9,9 @@ import { computed, toRaw } from "vue";
 import entangled from "./layers/entangled";
 import skyrmion from "./layers/skyrmion";
 
+/**
+ * @hidden
+ */
 export const main = createLayer(() => {
     const tree = createTree(() => ({
         nodes: [[skyrmion.treeNode], [entangled.treeNode]],

@@ -1,5 +1,5 @@
 import Decimal, { DecimalSource, format, formatWhole } from "util/bignum";
-import { computed, ComputedRef, ref, Ref, watch } from "vue";
+import { computed, ComputedRef, isRef, ref, Ref, watch } from "vue";
 import { globalBus } from "game/events";
 import { State, persistent } from "game/persistence";
 
@@ -15,7 +15,9 @@ export function createResource<T extends State>(
     precision = 0,
     small = undefined
 ): Resource<T> {
-    const resource: Partial<Resource<T>> = persistent(defaultValue);
+    const resource: Partial<Resource<T>> = isRef(defaultValue)
+        ? defaultValue
+        : persistent(defaultValue);
     resource.displayName = displayName;
     resource.precision = precision;
     resource.small = small;
@@ -42,6 +44,8 @@ export function trackTotal(resource: Resource): Ref<DecimalSource> {
     return total;
 }
 
+const tetra8 = new Decimal("10^^8");
+const e100 = new Decimal("1e100");
 export function trackOOMPS(
     resource: Resource,
     pointGain?: ComputedRef<DecimalSource>
@@ -52,7 +56,7 @@ export function trackOOMPS(
 
     globalBus.on("update", diff => {
         oompsMag.value = 0;
-        if (Decimal.lte(resource.value, 1e100)) {
+        if (Decimal.lte(resource.value, e100)) {
             lastPoints.value = resource.value;
             return;
         }
@@ -61,7 +65,7 @@ export function trackOOMPS(
         let prev = lastPoints.value;
         lastPoints.value = curr;
         if (Decimal.gt(curr, prev)) {
-            if (Decimal.gte(curr, "10^^8")) {
+            if (Decimal.gte(curr, tetra8)) {
                 curr = Decimal.slog(curr, 1e10);
                 prev = Decimal.slog(prev, 1e10);
                 oomps.value = curr.sub(prev).div(diff);

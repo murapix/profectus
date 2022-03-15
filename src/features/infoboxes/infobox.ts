@@ -17,7 +17,7 @@ import {
     ProcessedComputable
 } from "util/computed";
 import { createLazyProxy } from "util/proxies";
-import { Ref } from "vue";
+import { Ref, unref } from "vue";
 import { Persistent, makePersistent, PersistentState } from "game/persistence";
 
 export const InfoboxType = Symbol("Infobox");
@@ -33,7 +33,7 @@ export interface InfoboxOptions {
     display: Computable<CoercableComponent>;
 }
 
-interface BaseInfobox extends Persistent<boolean> {
+export interface BaseInfobox extends Persistent<boolean> {
     id: string;
     collapsed: Ref<boolean>;
     type: typeof InfoboxType;
@@ -103,7 +103,7 @@ export function createInfobox<T extends InfoboxOptions>(
                 title,
                 color,
                 collapsed,
-                style,
+                style: unref(style),
                 titleStyle,
                 bodyStyle,
                 classes,

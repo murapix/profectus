@@ -9,7 +9,7 @@ import {
     StyleValue,
     Visibility
 } from "features/feature";
-import { DecimalSource } from "lib/break_eternity";
+import { DecimalSource } from "util/bignum";
 import {
     Computable,
     GetComputableType,
@@ -18,6 +18,7 @@ import {
     ProcessedComputable
 } from "util/computed";
 import { createLazyProxy } from "util/proxies";
+import { unref } from "vue";
 
 export const BarType = Symbol("Bar");
 
@@ -45,7 +46,7 @@ export interface BarOptions {
     mark?: Computable<boolean | string>;
 }
 
-interface BaseBar {
+export interface BaseBar {
     id: string;
     type: typeof BarType;
     [Component]: typeof BarComponent;
@@ -124,7 +125,7 @@ export function createBar<T extends BarOptions>(optionsFunc: () => T & ThisType<
                 direction,
                 display,
                 visibility,
-                style,
+                style: unref(style),
                 classes,
                 borderStyle,
                 textStyle,

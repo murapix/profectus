@@ -8,7 +8,6 @@ import {
     StyleValue
 } from "features/feature";
 import { Link } from "features/links";
-import Decimal from "util/bignum";
 import {
     Computable,
     GetComputableType,
@@ -25,11 +24,11 @@ import player from "./player";
 
 export interface LayerEvents {
     // Generation
-    preUpdate: (diff: Decimal) => void;
+    preUpdate: (diff: number) => void;
     // Actions (e.g. automation)
-    update: (diff: Decimal) => void;
+    update: (diff: number) => void;
     // Effects (e.g. milestones)
-    postUpdate: (diff: Decimal) => void;
+    postUpdate: (diff: number) => void;
 }
 
 export const layers: Record<string, Readonly<GenericLayer> | undefined> = {};
@@ -90,14 +89,18 @@ export type GenericLayer = Replace<
     }
 >;
 
-export function createLayer<T extends LayerOptions>(optionsFunc: () => T): Layer<T> {
+export function createLayer<T extends LayerOptions>(
+    optionsFunc: (() => T) & ThisType<BaseLayer>
+): Layer<T> {
     return createLazyProxy(() => {
-        const layer = optionsFunc() as T & Partial<BaseLayer>;
+        const layer = {} as T & Partial<BaseLayer>;
         const emitter = (layer.emitter = createNanoEvents<LayerEvents>());
         layer.on = emitter.on.bind(emitter);
         layer.emit = emitter.emit.bind(emitter);
 
         layer.minimized = persistent(false);
+
+        Object.assign(layer, optionsFunc.call(layer));
 
         processComputable(layer as T, "color");
         processComputable(layer as T, "display");

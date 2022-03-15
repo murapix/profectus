@@ -18,6 +18,7 @@ import player from "game/player";
 import Decimal from "util/bignum";
 import {
     Computable,
+    GetComputableType,
     GetComputableTypeWithDefault,
     processComputable,
     ProcessedComputable
@@ -34,7 +35,7 @@ export interface ResetButtonOptions extends ClickableOptions {
     canClick?: Computable<boolean>;
 }
 
-type ResetButton<T extends ResetButtonOptions> = Replace<
+export type ResetButton<T extends ResetButtonOptions> = Replace<
     Clickable<T>,
     {
         resetDescription: GetComputableTypeWithDefault<T["resetDescription"], Ref<string>>;
@@ -118,22 +119,32 @@ export function createResetButton<T extends ClickableOptions & ResetButtonOption
 
 export interface LayerTreeNodeOptions extends TreeNodeOptions {
     layerID: string;
-    color: string;
-    append?: boolean;
+    color: Computable<string>; // marking as required
+    display?: Computable<string>;
+    append?: Computable<boolean>;
 }
 export type LayerTreeNode<T extends LayerTreeNodeOptions> = Replace<
     TreeNode<T>,
     {
-        append: ProcessedComputable<boolean>;
+        display: GetComputableTypeWithDefault<T["display"], T["layerID"]>;
+        append: GetComputableType<T["append"]>;
     }
 >;
-export type GenericLayerTreeNode = LayerTreeNode<LayerTreeNodeOptions>;
+export type GenericLayerTreeNode = Replace<
+    LayerTreeNode<LayerTreeNodeOptions>,
+    {
+        display: ProcessedComputable<string>;
+        append?: ProcessedComputable<boolean>;
+    }
+>;
 
 export function createLayerTreeNode<T extends LayerTreeNodeOptions>(
     optionsFunc: () => T
 ): LayerTreeNode<T> {
     return createTreeNode(() => {
         const options = optionsFunc();
+        processComputable(options as T, "display");
+        setDefault(options, "display", options.layerID);
         processComputable(options as T, "append");
         return {
             display: options.layerID,

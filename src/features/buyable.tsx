@@ -26,7 +26,7 @@ import {
 
 export const BuyableType = Symbol("Buyable");
 
-type BuyableDisplay =
+export type BuyableDisplay =
     | CoercableComponent
     | {
           title?: CoercableComponent;
@@ -49,7 +49,7 @@ export interface BuyableOptions {
     onPurchase?: (cost: DecimalSource) => void;
 }
 
-interface BaseBuyable extends Persistent<DecimalSource> {
+export interface BaseBuyable extends Persistent<DecimalSource> {
     id: string;
     amount: Ref<DecimalSource>;
     maxed: Ref<boolean>;
@@ -70,7 +70,7 @@ export type Buyable<T extends BuyableOptions> = Replace<
         resource: GetComputableType<T["resource"]>;
         isFree: GetComputableTypeWithDefault<T["isFree"], false>;
         canPurchase: GetComputableTypeWithDefault<T["canPurchase"], Ref<boolean>>;
-        purchaseLimit: GetComputableTypeWithDefault<T["purchaseLimit"], 1>;
+        purchaseLimit: GetComputableTypeWithDefault<T["purchaseLimit"], Decimal>;
         classes: GetComputableType<T["classes"]>;
         style: GetComputableType<T["style"]>;
         mark: GetComputableType<T["mark"]>;
@@ -176,6 +176,16 @@ export function createBuyable<T extends BuyableOptions>(
                 const Title = coerceComponent(currDisplay.title || "", "h3");
                 const Description = coerceComponent(currDisplay.description);
                 const EffectDisplay = coerceComponent(currDisplay.effectDisplay || "");
+                const amountDisplay =
+                    unref(genericBuyable.purchaseLimit) === Decimal.dInf ? (
+                        <>Amount: {formatWhole(genericBuyable.amount.value)}</>
+                    ) : (
+                        <>
+                            Amount: {formatWhole(genericBuyable.amount.value)} /{" "}
+                            {formatWhole(unref(genericBuyable.purchaseLimit))}
+                        </>
+                    );
+
                 return (
                     <span>
                         {currDisplay.title ? (
@@ -186,8 +196,7 @@ export function createBuyable<T extends BuyableOptions>(
                         <Description />
                         <div>
                             <br />
-                            Amount: {formatWhole(genericBuyable.amount.value)} /{" "}
-                            {formatWhole(unref(genericBuyable.purchaseLimit))}
+                            {amountDisplay}
                         </div>
                         {currDisplay.effectDisplay ? (
                             <div>
@@ -213,7 +222,7 @@ export function createBuyable<T extends BuyableOptions>(
         processComputable(buyable as T, "cost");
         processComputable(buyable as T, "resource");
         processComputable(buyable as T, "purchaseLimit");
-        setDefault(buyable, "purchaseLimit", 1);
+        setDefault(buyable, "purchaseLimit", Decimal.dInf);
         processComputable(buyable as T, "style");
         processComputable(buyable as T, "mark");
         processComputable(buyable as T, "small");
@@ -221,7 +230,17 @@ export function createBuyable<T extends BuyableOptions>(
         buyable[GatherProps] = function (this: GenericBuyable) {
             const { display, visibility, style, classes, onClick, canClick, small, mark, id } =
                 this;
-            return { display, visibility, style, classes, onClick, canClick, small, mark, id };
+            return {
+                display,
+                visibility,
+                style: unref(style),
+                classes,
+                onClick,
+                canClick,
+                small,
+                mark,
+                id
+            };
         };
 
         return buyable as unknown as Buyable<T>;

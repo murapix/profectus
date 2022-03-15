@@ -14,8 +14,7 @@ import { displayResource, Resource } from "features/resources/resource";
 import { Tooltip } from "features/tooltip";
 import TreeComponent from "features/trees/Tree.vue";
 import { persistent } from "game/persistence";
-import { DecimalSource, format } from "util/bignum";
-import Decimal, { formatWhole } from "util/break_eternity";
+import Decimal, { DecimalSource, format, formatWhole } from "util/bignum";
 import {
     Computable,
     convertComputable,
@@ -102,7 +101,7 @@ export function createTreeNode<T extends TreeNodeOptions>(
         processComputable(treeNode as T, "mark");
 
         if (treeNode.onClick) {
-            const onClick = treeNode.onClick;
+            const onClick = treeNode.onClick.bind(treeNode);
             treeNode.onClick = function () {
                 if (unref(treeNode.canClick)) {
                     onClick();
@@ -110,7 +109,7 @@ export function createTreeNode<T extends TreeNodeOptions>(
             };
         }
         if (treeNode.onHold) {
-            const onHold = treeNode.onHold;
+            const onHold = treeNode.onHold.bind(treeNode);
             treeNode.onHold = function () {
                 if (unref(treeNode.canClick)) {
                     onHold();
@@ -137,7 +136,7 @@ export interface TreeOptions {
     onReset?: (node: GenericTreeNode) => void;
 }
 
-interface BaseTree {
+export interface BaseTree {
     id: string;
     links: Ref<Link[]>;
     reset: (node: GenericTreeNode) => void;
