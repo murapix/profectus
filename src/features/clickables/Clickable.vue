@@ -23,13 +23,13 @@
     >
         <component v-if="unref(comp)" :is="unref(comp)" />
         <MarkNode :mark="unref(mark)" />
-        <LinkNode :id="id" />
+        <Node :id="id" />
     </button>
 </template>
 
 <script lang="tsx">
 import "components/common/features.css";
-import LinkNode from "components/links/LinkNode.vue";
+import Node from "components/Node.vue";
 import MarkNode from "components/MarkNode.vue";
 import { GenericClickable } from "features/clickables/clickable";
 import { jsx, StyleValue, Visibility } from "features/feature";
@@ -67,7 +67,7 @@ export default defineComponent({
         },
         style: processedPropType<StyleValue>(Object, String, Array),
         classes: processedPropType<Record<string, boolean>>(Object),
-        onClick: Function as PropType<VoidFunction>,
+        onClick: Function as PropType<(e?: MouseEvent | TouchEvent) => void>,
         onHold: Function as PropType<VoidFunction>,
         canClick: {
             type: processedPropType<boolean>(Boolean),
@@ -81,7 +81,7 @@ export default defineComponent({
         }
     },
     components: {
-        LinkNode,
+        Node,
         MarkNode
     },
     setup(props) {

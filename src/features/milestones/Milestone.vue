@@ -10,7 +10,7 @@
         :class="{ feature: true, milestone: true, done: unref(earned), ...unref(classes) }"
     >
         <component :is="unref(comp)" />
-        <LinkNode :id="id" />
+        <Node :id="id" />
     </div>
 </template>
 
@@ -20,7 +20,7 @@ import { jsx, StyleValue, Visibility } from "features/feature";
 import { GenericMilestone } from "features/milestones/milestone";
 import { coerceComponent, isCoercableComponent, processedPropType, unwrapRef } from "util/vue";
 import { Component, defineComponent, shallowRef, toRefs, unref, UnwrapRef, watchEffect } from "vue";
-import LinkNode from "../../components/links/LinkNode.vue";
+import Node from "../../components/Node.vue";
 
 export default defineComponent({
     props: {
@@ -48,7 +48,7 @@ export default defineComponent({
         }
     },
     components: {
-        LinkNode
+        Node
     },
     setup(props) {
         const { display } = toRefs(props);
@@ -102,13 +102,10 @@ export default defineComponent({
     min-width: 120px;
     padding-left: 5px;
     padding-right: 5px;
-    min-height: 75px;
     background-color: var(--locked);
     border-width: 4px;
     border-radius: 5px;
     color: rgba(0, 0, 0, 0.5);
-    margin-top: 0;
-    margin-bottom: 0;
 }
 
 .milestone.done {
@@ -116,12 +113,12 @@ export default defineComponent({
     cursor: default;
 }
 
-.milestone >>> .equal-spaced {
+.milestone :deep(.equal-spaced) {
     display: flex;
     justify-content: center;
 }
 
-.milestone >>> .equal-spaced > * {
+.milestone :deep(.equal-spaced > *) {
     margin: auto;
 }
 </style>

@@ -12,7 +12,7 @@
             ...unref(classes)
         }"
     >
-        <button
+        <div
             @click="click"
             @mousedown="start"
             @mouseleave="stop"
@@ -31,14 +31,14 @@
             ]"
         >
             <component :is="unref(comp)" />
-        </button>
+        </div>
         <MarkNode :mark="unref(mark)" />
-        <LinkNode :id="id" />
+        <Node :id="id" />
     </Tooltip>
 </template>
 
 <script lang="ts">
-import LinkNode from "components/links/LinkNode.vue";
+import Node from "components/Node.vue";
 import MarkNode from "components/MarkNode.vue";
 import TooltipVue from "components/Tooltip.vue";
 import { CoercableComponent, StyleValue, Visibility } from "features/feature";
@@ -72,7 +72,7 @@ export default defineComponent({
         style: processedPropType<StyleValue>(String, Object, Array),
         classes: processedPropType<Record<string, boolean>>(Object),
         tooltip: processedPropType<CoercableComponent | Tooltip>(Object, String, Function),
-        onClick: Function as PropType<VoidFunction>,
+        onClick: Function as PropType<(e?: MouseEvent | TouchEvent) => void>,
         onHold: Function as PropType<VoidFunction>,
         color: processedPropType<string>(String),
         glowColor: processedPropType<string>(String),
@@ -94,7 +94,7 @@ export default defineComponent({
     components: {
         Tooltip: TooltipVue,
         MarkNode,
-        LinkNode
+        Node
     },
     setup(props) {
         const { tooltip, forceTooltip, onClick, onHold, display } = toRefs(props);
@@ -156,7 +156,7 @@ export default defineComponent({
     margin: 0 10px 0 10px;
 }
 
-.treeNode button {
+.treeNode > *:first-child {
     width: 100%;
     height: 100%;
     border: 2px solid rgba(0, 0, 0, 0.125);
@@ -166,6 +166,7 @@ export default defineComponent({
     text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.25);
     box-shadow: -4px -4px 4px rgba(0, 0, 0, 0.25) inset, 0px 0px 20px var(--background);
     text-transform: capitalize;
+    display: flex;
 }
 
 .treeNode.small {
@@ -173,7 +174,7 @@ export default defineComponent({
     width: 60px;
 }
 
-.treeNode.small button {
+.treeNode.small > *:first-child {
     font-size: 30px;
 }
 

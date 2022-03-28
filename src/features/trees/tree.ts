@@ -8,7 +8,7 @@ import {
     StyleValue,
     Visibility
 } from "features/feature";
-import { Link } from "features/links";
+import { Link } from "features/links/links";
 import { GenericReset } from "features/reset";
 import { displayResource, Resource } from "features/resources/resource";
 import { Tooltip } from "features/tooltip";
@@ -24,7 +24,7 @@ import {
     ProcessedComputable
 } from "util/computed";
 import { createLazyProxy } from "util/proxies";
-import { computed, ref, Ref, unref } from "vue";
+import { computed, ref, Ref, shallowRef, unref } from "vue";
 
 export const TreeNodeType = Symbol("TreeNode");
 export const TreeType = Symbol("Tree");
@@ -40,7 +40,7 @@ export interface TreeNodeOptions {
     style?: Computable<StyleValue>;
     mark?: Computable<boolean | string>;
     reset?: GenericReset;
-    onClick?: VoidFunction;
+    onClick?: (e?: MouseEvent | TouchEvent) => void;
     onHold?: VoidFunction;
 }
 
@@ -175,7 +175,7 @@ export function createTree<T extends TreeOptions>(
         tree[Component] = TreeComponent;
 
         tree.isResetting = ref(false);
-        tree.resettingNode = ref(null);
+        tree.resettingNode = shallowRef(null);
 
         tree.reset = function (node) {
             const genericTree = tree as GenericTree;
@@ -199,8 +199,8 @@ export function createTree<T extends TreeOptions>(
         processComputable(tree as T, "branches");
 
         tree[GatherProps] = function (this: GenericTree) {
-            const { nodes, leftSideNodes, rightSideNodes } = this;
-            return { nodes, leftSideNodes, rightSideNodes };
+            const { nodes, leftSideNodes, rightSideNodes, branches } = this;
+            return { nodes, leftSideNodes, rightSideNodes, branches };
         };
 
         return tree as unknown as Tree<T>;

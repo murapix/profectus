@@ -17,10 +17,9 @@
                             <slot name="header" :shown="isOpen"> default header </slot>
                         </div>
                         <div class="modal-body">
-                            <Links v-if="links" :links="links">
+                            <Context ref="contextRef">
                                 <slot name="body" :shown="isOpen"> default body </slot>
-                            </Links>
-                            <slot name="body" v-else :shown="isOpen"> default body </slot>
+                            </Context>
                         </div>
                         <div class="modal-footer">
                             <slot name="footer" :shown="isOpen">
@@ -40,13 +39,12 @@
 </template>
 
 <script setup lang="ts">
-import { Link } from "features/links";
+import { FeatureNode } from "game/layers";
 import { computed, ref, toRefs } from "vue";
-import Links from "./links/Links.vue";
+import Context from "./Context.vue";
 
 const _props = defineProps<{
     modelValue: boolean;
-    links?: Link[];
 }>();
 const props = toRefs(_props);
 const emit = defineEmits<{
@@ -60,7 +58,12 @@ function close() {
 
 const isAnimating = ref(false);
 
-defineExpose({ isOpen });
+const contextRef = ref<typeof Context | null>(null);
+const nodes = computed<Record<string, FeatureNode | undefined> | null>(
+    () => contextRef.value?.nodes ?? null
+);
+
+defineExpose({ isOpen, nodes });
 </script>
 
 <style>

@@ -5,7 +5,8 @@ import {
     Component as ComponentKey,
     GatherProps,
     GenericComponent,
-    JSXFunction
+    JSXFunction,
+    Visibility
 } from "features/feature";
 import {
     Component,
@@ -86,19 +87,21 @@ export function isCoercableComponent(component: unknown): component is Coercable
 }
 
 export function setupHoldToClick(
-    onClick?: Ref<VoidFunction | undefined>,
+    onClick?: Ref<((e?: MouseEvent | TouchEvent) => void) | undefined>,
     onHold?: Ref<VoidFunction | undefined>
 ): {
-    start: VoidFunction;
+    start: (e: MouseEvent | TouchEvent) => void;
     stop: VoidFunction;
     handleHolding: VoidFunction;
 } {
     const interval = ref<null | number>(null);
+    const event = ref<MouseEvent | TouchEvent | undefined>(undefined);
 
-    function start() {
+    function start(e: MouseEvent | TouchEvent) {
         if (!interval.value) {
             interval.value = setInterval(handleHolding, 250);
         }
+        event.value = e;
     }
     function stop() {
         if (interval.value) {
@@ -110,13 +113,28 @@ export function setupHoldToClick(
         if (onHold && onHold.value) {
             onHold.value();
         } else if (onClick && onClick.value) {
-            onClick.value();
+            onClick.value(event.value);
         }
     }
 
     onUnmounted(stop);
 
     return { start, stop, handleHolding };
+}
+
+export function getFirstFeature<T extends { visibility: ProcessedComputable<Visibility> }>(
+    features: T[],
+    filter: (feature: T) => boolean
+): { firstFeature: Ref<T | undefined>; hiddenFeatures: Ref<T[]> } {
+    const filteredFeatures = computed(() =>
+        features.filter(
+            feature => unref(feature.visibility) === Visibility.Visible && filter(feature)
+        )
+    );
+    return {
+        firstFeature: computed(() => filteredFeatures.value[0]),
+        hiddenFeatures: computed(() => filteredFeatures.value.slice(1))
+    };
 }
 
 export function computeComponent(

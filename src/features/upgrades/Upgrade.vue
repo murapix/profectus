@@ -19,13 +19,13 @@
     >
         <component v-if="unref(component)" :is="unref(component)" />
         <MarkNode :mark="unref(mark)" />
-        <LinkNode :id="id" />
+        <Node :id="id" />
     </button>
 </template>
 
 <script lang="tsx">
 import "components/common/features.css";
-import LinkNode from "components/links/LinkNode.vue";
+import Node from "components/Node.vue";
 import MarkNode from "components/MarkNode.vue";
 import { CoercableComponent, jsx, StyleValue, Visibility } from "features/feature";
 import { displayResource, Resource } from "features/resources/resource";
@@ -81,8 +81,7 @@ export default defineComponent({
         }
     },
     components: {
-        Tooltip: TooltipVue,
-        LinkNode,
+        Node,
         MarkNode
     },
     setup(props) {
