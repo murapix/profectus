@@ -37,6 +37,7 @@ export type BuyableDisplay =
 export interface BuyableOptions {
     visibility?: Computable<Visibility>;
     cost?: Computable<DecimalSource>;
+    effect?: Computable<any>;
     resource?: Resource;
     isFree?: Computable<boolean>;
     canPurchase?: Computable<boolean>;
@@ -67,6 +68,7 @@ export type Buyable<T extends BuyableOptions> = Replace<
     {
         visibility: GetComputableTypeWithDefault<T["visibility"], Visibility.Visible>;
         cost: GetComputableType<T["cost"]>;
+        effect: GetComputableType<T["effect"]>;
         resource: GetComputableType<T["resource"]>;
         isFree: GetComputableTypeWithDefault<T["isFree"], false>;
         canPurchase: GetComputableTypeWithDefault<T["canPurchase"], Ref<boolean>>;
@@ -144,6 +146,7 @@ export function createBuyable<T extends BuyableOptions>(
             return currClasses;
         });
         processComputable(buyable as T, "isFree");
+        processComputable(buyable as T, "effect");
         processComputable(buyable as T, "canPurchase");
         buyable.canClick = buyable.canPurchase as ProcessedComputable<boolean>;
         buyable.onClick = buyable.purchase = function () {
@@ -167,8 +170,8 @@ export function createBuyable<T extends BuyableOptions>(
             // TODO once processComputable types correctly, remove this "as X"
             const currDisplay = unref(display) as BuyableDisplay;
             if (isCoercableComponent(currDisplay)) {
-                const CurrDisplay = coerceComponent(currDisplay);
-                return <CurrDisplay />;
+                const coercedDisplay = coerceComponent(currDisplay);
+                return <coercedDisplay />;
             }
             if (currDisplay != null && buyable.cost != null && buyable.resource != null) {
                 const genericBuyable = buyable as GenericBuyable;

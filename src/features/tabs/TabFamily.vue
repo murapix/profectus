@@ -135,7 +135,7 @@ export default defineComponent({
 .tab-family-container {
     margin: calc(50px + var(--feature-margin)) 20px var(--feature-margin) 20px;
     position: relative;
-    border: solid 4px;
+    border-top: solid 4px;
     border-color: var(--outline);
 }
 

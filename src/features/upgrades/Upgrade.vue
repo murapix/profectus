@@ -1,5 +1,6 @@
 <template>
     <button
+        v-if="unref(visibility) !== Visibility.None"
         :style="[
             {
                 visibility: unref(visibility) === Visibility.Hidden ? 'hidden' : undefined

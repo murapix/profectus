@@ -1,6 +1,6 @@
 <template>
     <div class="tabs-container">
-        <div v-for="(tab, index) in tabs" :key="index" class="tab" :ref="`tab-${index}`">
+        <div v-for="(tab, index) in tabs" :key="index" :id="tab" class="tab" :ref="`tab-${index}`">
             <Nav v-if="index === 0 && !useHeader" />
             <div class="inner-tab">
                 <Layer

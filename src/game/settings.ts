@@ -17,7 +17,7 @@ const state = reactive<Partial<Settings>>({
     active: "",
     saves: [],
     showTPS: true,
-    theme: Themes.Nordic,
+    theme: Themes.Classic,
     unthrottled: false
 });
 
@@ -51,7 +51,7 @@ export const hardResetSettings = (window.hardResetSettings = () => {
         active: "",
         saves: [],
         showTPS: true,
-        theme: Themes.Nordic
+        theme: Themes.Classic
     };
     globalBus.emit("loadSettings", settings);
     Object.assign(state, settings);

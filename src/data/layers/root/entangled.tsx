@@ -4,13 +4,13 @@ import { createReset } from "features/reset";
 import { createResource } from "features/resources/resource";
 import { createLayer } from "game/layers";
 import Decimal, { DecimalSource } from "lib/break_eternity";
-import { createLayerTreeNode, createResetButton } from "../common";
+import { createLayerTreeNode, createResetButton } from "../../common";
 import MainDisplay from "features/resources/MainDisplay.vue";
 import Spacer from "components/layout/Spacer.vue";
 import { render } from "util/vue";
 import { format } from "util/break_eternity";
-import { main } from "data/projEntry";
-import skyrmion from "./skyrmion";
+import { root } from "data/projEntry";
+import skyrmion from "./skyrmion/layer";
 
 const layer = createLayer(() => {
     const id = "entangled";
@@ -22,6 +22,9 @@ const layer = createLayer(() => {
         scaling: {
             currentGain() {
                 return Decimal.dZero;
+            },
+            currentAt() {
+                return Decimal.dInf;
             },
             nextAt() {
                 return Decimal.dInf;
@@ -45,7 +48,7 @@ const layer = createLayer(() => {
 
     const resetButton = createResetButton(() => ({
         conversion,
-        tree: main.tree,
+        tree: root.tree,
         treeNode
     }));
 

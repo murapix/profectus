@@ -7,13 +7,15 @@ import {
     ProcessedComputable
 } from "util/computed";
 import { createLazyProxy } from "util/proxies";
-import { computed, isRef, Ref, unref } from "vue";
+import { computed, Ref, unref } from "vue";
 import { Replace, setDefault } from "./feature";
 import { Resource } from "./resources/resource";
 
 export interface ConversionOptions {
     scaling: ScalingFunction;
     currentGain?: Computable<DecimalSource>;
+    actualGain?: Computable<DecimalSource>;
+    currentAt?: Computable<DecimalSource>;
     nextAt?: Computable<DecimalSource>;
     baseResource: Resource;
     gainResource: Resource;
@@ -31,6 +33,8 @@ export type Conversion<T extends ConversionOptions> = Replace<
     T & BaseConversion,
     {
         currentGain: GetComputableTypeWithDefault<T["currentGain"], Ref<DecimalSource>>;
+        actualGain: GetComputableTypeWithDefault<T["actualGain"], Ref<DecimalSource>>;
+        currentAt: GetComputableTypeWithDefault<T["currentAt"], Ref<DecimalSource>>;
         nextAt: GetComputableTypeWithDefault<T["nextAt"], Ref<DecimalSource>>;
         buyMax: GetComputableTypeWithDefault<T["buyMax"], true>;
         roundUpCost: GetComputableTypeWithDefault<T["roundUpCost"], true>;
@@ -41,6 +45,8 @@ export type GenericConversion = Replace<
     Conversion<ConversionOptions>,
     {
         currentGain: ProcessedComputable<DecimalSource>;
+        actualGain: ProcessedComputable<DecimalSource>;
+        currentAt: ProcessedComputable<DecimalSource>;
         nextAt: ProcessedComputable<DecimalSource>;
         buyMax: ProcessedComputable<boolean>;
         roundUpCost: ProcessedComputable<boolean>;
@@ -56,6 +62,14 @@ export function createConversion<T extends ConversionOptions>(
         if (conversion.currentGain == null) {
             conversion.currentGain = computed(() =>
                 conversion.scaling.currentGain(conversion as GenericConversion)
+            );
+        }
+        if (conversion.actualGain == null) {
+            conversion.actualGain = conversion.currentGain;
+        }
+        if (conversion.currentAt == null) {
+            conversion.currentAt = computed(() =>
+                conversion.scaling.currentAt(conversion as GenericConversion)
             );
         }
         if (conversion.nextAt == null) {
@@ -92,6 +106,7 @@ export function createConversion<T extends ConversionOptions>(
 
 export type ScalingFunction = {
     currentGain: (conversion: GenericConversion) => DecimalSource;
+    currentAt: (conversion: GenericConversion) => DecimalSource;
     nextAt: (conversion: GenericConversion) => DecimalSource;
 };
 
@@ -119,11 +134,17 @@ export function createLinearScaling(
             }
             return gain;
         },
-        nextAt(conversion) {
-            let next = Decimal.add(unref(conversion.currentGain), 1)
+        currentAt(conversion) {
+            let current = new Decimal(unref(conversion.currentGain))
                 .times(unref(coefficient))
-                .add(unref(base))
-                .max(unref(base));
+                .add(unref(base));
+            if (conversion.roundUpCost) current = current.ceil();
+            return current;
+        },
+        nextAt(conversion) {
+            let next = Decimal.add(unref(conversion.currentAt), unref(coefficient)).max(
+                unref(base)
+            );
             if (conversion.roundUpCost) next = next.ceil();
             return next;
         }
@@ -143,14 +164,17 @@ export function createPolynomialScaling(
                 .floor()
                 .max(0);
 
-            if (gain.isNan()) {
-                return new Decimal(0);
-            }
+            if (gain.isNan()) return new Decimal(0);
 
-            if (!conversion.buyMax) {
-                gain = gain.min(1);
-            }
+            if (!conversion.buyMax) gain = gain.min(1);
             return gain;
+        },
+        currentAt(conversion) {
+            let current = new Decimal(unref(conversion.currentGain))
+                .root(unref(exponent))
+                .times(unref(base));
+            if (conversion.roundUpCost) current = current.ceil();
+            return current;
         },
         nextAt(conversion) {
             let next = Decimal.add(unref(conversion.currentGain), 1)
@@ -164,6 +188,7 @@ export function createPolynomialScaling(
 }
 
 // Gain formula is log_base(baseResource / coefficient)
+// Cost formula is coefficient * base ^ gain
 // e.g. if coefficient is 2 and base is 10, then having 20 points makes gain 1, and 200 points is 2
 export function createExponentialScaling(
     base: DecimalSource | Ref<DecimalSource>,
@@ -171,13 +196,13 @@ export function createExponentialScaling(
 ): ScalingFunction {
     return {
         currentGain(conversion) {
-            let gain = Decimal.div(conversion.baseResource.value, unref(coefficient))
+            let gain = Decimal.div(unref(conversion.baseResource), unref(coefficient))
                 .log(unref(base))
                 .floor()
-                .max(0);
+                .max(1);
 
             if (gain.isNan()) {
-                return new Decimal(0);
+                return Decimal.dZero;
             }
 
             if (!conversion.buyMax) {
@@ -185,11 +210,15 @@ export function createExponentialScaling(
             }
             return gain;
         },
+        currentAt(conversion) {
+            let current = Decimal.pow(unref(base), unref(conversion.currentGain)).times(
+                unref(coefficient)
+            );
+            if (conversion.roundUpCost) current = current.ceil();
+            return current;
+        },
         nextAt(conversion) {
-            let next = Decimal.add(unref(conversion.currentGain), 1)
-                .pow_base(unref(base))
-                .times(unref(coefficient))
-                .max(unref(base));
+            let next = Decimal.dOne.max(unref(conversion.currentAt)).times(unref(base));
             if (conversion.roundUpCost) next = next.ceil();
             return next;
         }
@@ -210,14 +239,12 @@ export function createIndependentConversion<S extends ConversionOptions>(
 
         setDefault(conversion, "buyMax", false);
 
-        if (conversion.currentGain == null) {
-            conversion.currentGain = computed(() =>
+        if (conversion.actualGain == null) {
+            conversion.actualGain = computed(() =>
                 Decimal.sub(
                     conversion.scaling.currentGain(conversion as GenericConversion),
                     conversion.gainResource.value
                 )
-                    .add(1)
-                    .max(1)
             );
         }
         setDefault(conversion, "convert", function () {
@@ -239,7 +266,7 @@ export function setupPassiveGeneration_Cumulative(
     conversion: GenericConversion,
     rate: ProcessedComputable<DecimalSource> = 1
 ): void {
-    layer.on("preUpdate", (diff: Decimal) => {
+    layer.on("preUpdate", (diff: number) => {
         const currRate = unref(rate);
         if (Decimal.neq(currRate, 0)) {
             conversion.gainResource.value = Decimal.add(
@@ -255,7 +282,7 @@ export function setupPassiveGeneration_Independent(
     conversion: GenericConversion,
     active: ProcessedComputable<boolean> = true
 ): void {
-    layer.on("preUpdate", (diff: Decimal) => {
+    layer.on("preUpdate", (diff: number) => {
         if (unref(active)) {
             let rate = unref(conversion.currentGain);
             if (!conversion.buyMax) rate = Decimal.min(rate, 1);

@@ -6,16 +6,17 @@ import player, { PlayerData } from "game/player";
 import { format, formatTime } from "util/bignum";
 import { render } from "util/vue";
 import { computed, toRaw } from "vue";
-import entangled from "./layers/entangled";
-import skyrmion from "./layers/skyrmion";
+import entangled from "./layers/root/entangled";
+import fome from "./layers/root/fome";
+import skyrmion from "./layers/root/skyrmion/layer";
 
 /**
  * @hidden
  */
-export const main = createLayer(() => {
+export const root = createLayer(() => {
     const tree = createTree(() => ({
-        nodes: [[skyrmion.treeNode], [entangled.treeNode]],
-        branches: [],
+        nodes: [[skyrmion.treeNode], [fome.treeNode], [entangled.treeNode]],
+        branches: [{ startNode: fome.treeNode, endNode: skyrmion.treeNode }],
         onReset() {
             toRaw(this.resettingNode.value) === toRaw(skyrmion.treeNode) ? 0 : 10;
         },
@@ -23,7 +24,7 @@ export const main = createLayer(() => {
     })) as GenericTree;
 
     return {
-        id: "main",
+        id: "root",
         name: "Tree",
         links: tree.links,
         display: jsx(() => (
@@ -46,7 +47,7 @@ export const main = createLayer(() => {
 export const getInitialLayers = (
     /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
     player: Partial<PlayerData>
-): Array<GenericLayer> => [main, skyrmion, entangled];
+): Array<GenericLayer> => [root, skyrmion, fome, entangled];
 
 export const hasWon = computed(() => {
     return false;

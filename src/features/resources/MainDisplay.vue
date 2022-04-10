@@ -5,7 +5,6 @@
         {{ resource.displayName
         }}<!-- remove whitespace -->
         <span v-if="effectComponent">, <component :is="effectComponent" /></span>
-        <br /><br />
     </div>
 </template>
 
