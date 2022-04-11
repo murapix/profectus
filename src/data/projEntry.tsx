@@ -13,7 +13,7 @@ import skyrmion from "./layers/root/skyrmion/layer";
 /**
  * @hidden
  */
-export const root = createLayer(() => {
+export const root = createLayer("root", () => {
     const tree = createTree(() => ({
         nodes: [[skyrmion.treeNode], [fome.treeNode], [entangled.treeNode]],
         branches: [{ startNode: fome.treeNode, endNode: skyrmion.treeNode }],
@@ -24,7 +24,6 @@ export const root = createLayer(() => {
     })) as GenericTree;
 
     return {
-        id: "root",
         name: "Tree",
         links: tree.links,
         display: jsx(() => (
