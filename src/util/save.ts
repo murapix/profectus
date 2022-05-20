@@ -2,6 +2,7 @@ import projInfo from "data/projInfo.json";
 import player, { Player, PlayerData, stringifySave } from "game/player";
 import settings, { loadSettings } from "game/settings";
 import { ProxyState } from "./proxies";
+import LZString from "lz-string";
 
 export function setupInitialStore(player: Partial<PlayerData> = {}): Player {
     return Object.assign(
@@ -23,9 +24,11 @@ export function setupInitialStore(player: Partial<PlayerData> = {}): Player {
     ) as Player;
 }
 
-export function save(): string {
-    const stringifiedSave = btoa(unescape(encodeURIComponent(stringifySave(player[ProxyState]))));
-    localStorage.setItem(player.id, stringifiedSave);
+export function save(playerData?: PlayerData): string {
+    const stringifiedSave = LZString.compressToUTF16(
+        stringifySave(playerData ?? player[ProxyState])
+    );
+    localStorage.setItem((playerData ?? player[ProxyState]).id, stringifiedSave);
     return stringifiedSave;
 }
 
@@ -34,12 +37,24 @@ export async function load(): Promise<void> {
     loadSettings();
 
     try {
-        const save = localStorage.getItem(settings.active);
+        let save = localStorage.getItem(settings.active);
         if (save == null) {
             await loadSave(newSave());
             return;
         }
-        const player = JSON.parse(decodeURIComponent(escape(atob(save))));
+        if (save[0] === "{") {
+            // plaintext. No processing needed
+        } else if (save[0] === "e") {
+            // Assumed to be base64, which starts with e
+            save = decodeURIComponent(escape(atob(save)));
+        } else if (save[0] === "ᯡ") {
+            // Assumed to be lz, which starts with ᯡ
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            save = LZString.decompressFromUTF16(save)!;
+        } else {
+            throw `Unable to determine save encoding`;
+        }
+        const player = JSON.parse(save);
         if (player.modID !== projInfo.id) {
             await loadSave(newSave());
             return;
@@ -55,7 +70,7 @@ export async function load(): Promise<void> {
 export function newSave(): PlayerData {
     const id = getUniqueID();
     const player = setupInitialStore({ id });
-    localStorage.setItem(id, btoa(unescape(encodeURIComponent(stringifySave(player)))));
+    save(player);
 
     settings.saves.push(id);
 
@@ -77,8 +92,10 @@ export async function loadSave(playerObj: Partial<PlayerData>): Promise<void> {
     const { fixOldSave, getInitialLayers } = await import("data/projEntry");
 
     for (const layer in layers) {
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        removeLayer(layers[layer]!);
+        const l = layers[layer];
+        if (l) {
+            removeLayer(l);
+        }
     }
     getInitialLayers(playerObj).forEach(layer => addLayer(layer, playerObj));
 

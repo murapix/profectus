@@ -9,9 +9,9 @@
         @mousedown="start"
         @mouseleave="stop"
         @mouseup="stop"
-        @touchstart="start"
-        @touchend="stop"
-        @touchcancel="stop"
+        @touchstart.passive="start"
+        @touchend.passive="stop"
+        @touchcancel.passive="stop"
         :class="{
             feature: true,
             clickable: true,
@@ -137,5 +137,9 @@ export default defineComponent({
 
 .clickable.small {
     min-height: unset;
+}
+
+.clickable > * {
+    pointer-events: none;
 }
 </style>

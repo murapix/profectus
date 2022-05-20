@@ -17,7 +17,7 @@ import {
 } from "util/computed";
 import { createLazyProxy } from "util/proxies";
 import { createNanoEvents, Emitter } from "nanoevents";
-import { InjectionKey, Ref, ref, unref } from "vue";
+import { InjectionKey, Ref, ref, shallowReactive, unref } from "vue";
 import { globalBus } from "./events";
 import { Persistent, persistent } from "./persistence";
 import player from "./player";
@@ -44,7 +44,7 @@ export interface LayerEvents {
     postUpdate: (diff: number) => void;
 }
 
-export const layers: Record<string, Readonly<GenericLayer> | undefined> = {};
+export const layers: Record<string, Readonly<GenericLayer> | undefined> = shallowReactive({});
 window.layers = layers;
 
 declare module "@vue/runtime-dom" {
@@ -58,8 +58,6 @@ export interface Position {
     y: number;
 }
 
-export type WidthOptions = number | "min-content" | "fit-content" | "max-content";
-
 export interface LayerOptions {
     color?: Computable<string>;
     display: Computable<CoercableComponent>;
@@ -68,7 +66,7 @@ export interface LayerOptions {
     name?: Computable<string>;
     minimizable?: Computable<boolean>;
     forceHideGoBack?: Computable<boolean>;
-    minWidth?: Computable<WidthOptions>;
+    minWidth?: Computable<number | string>;
 }
 
 export interface BaseLayer {
@@ -98,7 +96,7 @@ export type GenericLayer = Replace<
     Layer<LayerOptions>,
     {
         name: ProcessedComputable<string>;
-        minWidth: ProcessedComputable<WidthOptions>;
+        minWidth: ProcessedComputable<number | string>;
         minimizable: ProcessedComputable<boolean>;
     }
 >;

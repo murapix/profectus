@@ -115,7 +115,7 @@ export default defineComponent({
 
         function gatherButtonProps(button: GenericTabButton) {
             const { display, style, classes, glowColor, visibility } = button;
-            return { display, style, classes, glowColor, visibility };
+            return { display, style: unref(style), classes, glowColor, visibility };
         }
 
         return {
@@ -150,37 +150,40 @@ export default defineComponent({
     height: calc(100% + 50px);
 }
 
+.modal-body > .tab-family-container:first-child {
+    margin: calc(10px + var(--feature-margin)) 10px 0 10px;
+    border: none;
+}
+
 .tab-family-container > :nth-child(2) {
     margin-top: 20px;
+}
+
+.modal-body > .tab-family-container > :nth-child(2) {
+    /* TODO Why does it need this instead of 20px? */
+    margin-top: 50px;
 }
 
 .tab-family-container[data-v-f18896fc] > :last-child {
     margin-bottom: 20px;
 }
 
-.tab-family-container .sticky {
-    margin-left: -3px !important;
-    margin-right: -3px !important;
-}
-
 .tab-buttons-container {
-    width: calc(100% - 14px);
     z-index: 4;
 }
 
 .tab-buttons-container:not(.floating) {
-    border-top: solid 4px;
     border-bottom: solid 4px;
     border-color: inherit;
 }
 
+:not(.layer-tab):not(.modal-body) > .tab-family-container > .tab-buttons-container:not(.floating) {
+    width: calc(100% + 6px);
+    margin-left: -3px;
+}
+
 .tab-buttons-container:not(.floating) .tab-buttons {
-    width: calc(100% + 14px);
-    margin-left: -7px;
-    margin-right: -7px;
-    box-sizing: border-box;
     text-align: left;
-    padding-left: 14px;
     margin-bottom: -4px;
 }
 
@@ -229,11 +232,7 @@ export default defineComponent({
     > .tab-family-container
     > .tab-buttons-container:not(.floating):first-child
     .tab-buttons {
-    padding-left: 2px;
-}
-
-.tab-buttons-container:not(.floating):first-child {
-    border-top: 0;
+    padding-left: 0;
 }
 
 .minimizable > .tab-buttons-container:not(.floating):first-child {

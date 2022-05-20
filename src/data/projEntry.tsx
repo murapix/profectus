@@ -30,13 +30,13 @@ export const root = createLayer(id, () => {
         minWidth: 300,
         display: jsx(() => (
             <>
-                <div v-show={player.devSpeed === 0}>Game Paused</div>
-                <div v-show={player.devSpeed && player.devSpeed !== 1}>
-                    Dev Speed: {format(player.devSpeed || 0)}x
-                </div>
-                <div v-show={player.offlineTime != undefined}>
-                    Offline Time: {formatTime(player.offlineTime || 0)}
-                </div>
+                {player.devSpeed === 0 ? <div>Game Paused</div> : null}
+                {player.devSpeed && player.devSpeed !== 1 ? (
+                    <div>Dev Speed: {format(player.devSpeed)}x</div>
+                ) : null}
+                {player.offlineTime ? (
+                    <div>Offline Time: {formatTime(player.offlineTime)}</div>
+                ) : null}
                 <Spacer />
                 {render(tree)}
             </>

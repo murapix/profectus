@@ -170,4 +170,8 @@ export default defineComponent({
     width: 120px;
     font-size: 10px;
 }
+
+.upgrade > * {
+    pointer-events: none;
+}
 </style>

@@ -24,7 +24,7 @@ import {
 } from "util/computed";
 import { createLazyProxy } from "util/proxies";
 import { computed, Ref, unref } from "vue";
-import { persistent, Persistent, PersistentState } from "game/persistence";
+import { persistent, Persistent } from "game/persistence";
 
 export const UpgradeType = Symbol("Upgrade");
 
@@ -48,9 +48,9 @@ export interface UpgradeOptions {
     onPurchase?: VoidFunction;
 }
 
-export interface BaseUpgrade extends Persistent<boolean> {
+export interface BaseUpgrade {
     id: string;
-    bought: Ref<boolean>;
+    bought: Persistent<boolean>;
     canPurchase: Ref<boolean>;
     purchase: VoidFunction;
     type: typeof UpgradeType;
@@ -83,8 +83,9 @@ export type GenericUpgrade = Replace<
 export function createUpgrade<T extends UpgradeOptions>(
     optionsFunc: OptionsFunc<T, Upgrade<T>, BaseUpgrade>
 ): Upgrade<T> {
-    return createLazyProxy(persistent => {
-        const upgrade = Object.assign(persistent, optionsFunc());
+    const bought = persistent<boolean>(false);
+    return createLazyProxy(() => {
+        const upgrade = optionsFunc();
         upgrade.id = getUniqueID("upgrade-");
         upgrade.type = UpgradeType;
         upgrade[Component] = UpgradeComponent;
@@ -96,7 +97,7 @@ export function createUpgrade<T extends UpgradeOptions>(
             );
         }
 
-        upgrade.bought = upgrade[PersistentState];
+        upgrade.bought = bought;
         if (upgrade.canAfford == null) {
             upgrade.canAfford = computed(() => {
                 const genericUpgrade = upgrade as GenericUpgrade;
@@ -126,7 +127,7 @@ export function createUpgrade<T extends UpgradeOptions>(
                     unref(genericUpgrade.cost)
                 );
             }
-            genericUpgrade[PersistentState].value = true;
+            bought.value = true;
             genericUpgrade.onPurchase?.();
         };
 
@@ -169,7 +170,7 @@ export function createUpgrade<T extends UpgradeOptions>(
         };
 
         return upgrade as unknown as Upgrade<T>;
-    }, persistent<boolean>(false));
+    });
 }
 
 export function setupAutoPurchase(

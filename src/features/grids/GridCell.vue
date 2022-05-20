@@ -12,9 +12,9 @@
         @mousedown="start"
         @mouseleave="stop"
         @mouseup="stop"
-        @touchstart="start"
-        @touchend="stop"
-        @touchcancel="stop"
+        @touchstart.passive="start"
+        @touchend.passive="stop"
+        @touchcancel.passive="stop"
     >
         <div v-if="title"><component :is="titleComponent" /></div>
         <component :is="component" style="white-space: pre-line" />
@@ -86,5 +86,9 @@ export default defineComponent({
     width: 80px;
     font-size: 10px;
     background-color: var(--layer-color);
+}
+
+.tile > * {
+    pointer-events: none;
 }
 </style>

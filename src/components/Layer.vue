@@ -4,12 +4,7 @@
         <button class="layer-tab minimized" v-if="minimized.value" @click="minimized.value = false">
             <div>{{ unref(name) }}</div>
         </button>
-        <div
-            class="layer-tab"
-            :style="unref(style)"
-            :class="[{ showGoBack }, unref(classes)]"
-            v-else
-        >
+        <div class="layer-tab" :class="{ showGoBack }" v-else>
             <Context ref="contextRef">
                 <component :is="component" />
             </Context>
@@ -22,8 +17,8 @@
 
 <script lang="ts">
 import projInfo from "data/projInfo.json";
-import { CoercableComponent, StyleValue } from "features/feature";
-import { FeatureNode, WidthOptions } from "game/layers";
+import { CoercableComponent } from "features/feature";
+import { FeatureNode } from "game/layers";
 import { Persistent } from "game/persistence";
 import player from "game/player";
 import { computeComponent, processedPropType, wrapRef } from "util/vue";
@@ -50,7 +45,7 @@ export default defineComponent({
             required: true
         },
         minWidth: {
-            type: processedPropType<WidthOptions>(Number, String),
+            type: processedPropType<number | string>(Number, String),
             required: true
         },
         name: {
@@ -58,8 +53,6 @@ export default defineComponent({
             required: true
         },
         color: processedPropType<string>(String),
-        style: processedPropType<StyleValue>(String, Object, Array),
-        classes: processedPropType<Record<string, boolean>>(Object),
         minimizable: processedPropType<boolean>(Boolean),
         nodes: {
             type: Object as PropType<Ref<Record<string, FeatureNode | undefined>>>,
@@ -93,7 +86,11 @@ export default defineComponent({
             }
         );
 
-        function updateTab(minimized: boolean, minWidth: WidthOptions) {
+        function updateTab(minimized: boolean, minWidth: number | string) {
+            const width =
+                typeof minWidth === "number" || Number.isNaN(parseInt(minWidth))
+                    ? minWidth + "px"
+                    : minWidth;
             const tabValue = tab.value();
             if (tabValue != undefined) {
                 if (minimized) {
@@ -106,7 +103,7 @@ export default defineComponent({
                     tabValue.style.flexGrow = "";
                     tabValue.style.flexShrink = "";
                     tabValue.style.width = "";
-                    tabValue.style.minWidth = tabValue.style.flexBasis = `${minWidth}px`;
+                    tabValue.style.minWidth = tabValue.style.flexBasis = width;
                     tabValue.style.margin = "";
                 }
             }
@@ -189,7 +186,6 @@ export default defineComponent({
     right: 9px;
     z-index: 7;
     line-height: 30px;
-    width: 30px;
     border: none;
     background: var(--background);
     box-shadow: var(--background) 0 2px 3px 5px;
@@ -197,7 +193,6 @@ export default defineComponent({
     color: var(--foreground);
     font-size: 40px;
     cursor: pointer;
-    padding: 0;
     margin-top: -44px;
     margin-right: -30px;
 }
@@ -210,15 +205,19 @@ export default defineComponent({
 }
 
 .goBack {
-    position: absolute;
-    top: 0;
+    position: sticky;
+    top: 6px;
     left: 20px;
-    background-color: transparent;
-    border: 1px solid transparent;
+    line-height: 30px;
+    margin-top: -50px;
+    margin-left: -35px;
+    border: none;
+    background: var(--background);
+    box-shadow: var(--background) 0 2px 3px 5px;
+    border-radius: 50%;
     color: var(--foreground);
     font-size: 40px;
     cursor: pointer;
-    line-height: 40px;
     z-index: 7;
 }
 
