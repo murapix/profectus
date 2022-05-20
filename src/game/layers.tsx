@@ -58,6 +58,8 @@ export interface Position {
     y: number;
 }
 
+export type WidthOptions = number | "min-content" | "fit-content" | "max-content";
+
 export interface LayerOptions {
     color?: Computable<string>;
     display: Computable<CoercableComponent>;
@@ -66,7 +68,7 @@ export interface LayerOptions {
     name?: Computable<string>;
     minimizable?: Computable<boolean>;
     forceHideGoBack?: Computable<boolean>;
-    minWidth?: Computable<number>;
+    minWidth?: Computable<WidthOptions>;
 }
 
 export interface BaseLayer {
@@ -96,7 +98,7 @@ export type GenericLayer = Replace<
     Layer<LayerOptions>,
     {
         name: ProcessedComputable<string>;
-        minWidth: ProcessedComputable<number>;
+        minWidth: ProcessedComputable<WidthOptions>;
         minimizable: ProcessedComputable<boolean>;
     }
 >;

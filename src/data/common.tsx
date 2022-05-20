@@ -160,7 +160,6 @@ export function createLayerTreeNode<T extends LayerTreeNodeOptions>(
         setDefault(options, "display", options.layerID);
         processComputable(options as T, "append");
         return {
-            display: options.layerID,
             onClick:
                 options.append != null && options.append
                     ? function () {
@@ -174,7 +173,8 @@ export function createLayerTreeNode<T extends LayerTreeNodeOptions>(
                     : function () {
                           player.tabs.splice(1, 1, options.layerID);
                       },
-            ...options
+            ...options,
+            display: options.display ?? options.layerID
         };
     }) as unknown as LayerTreeNode<T>;
 }

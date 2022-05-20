@@ -10,10 +10,9 @@ import Spacer from "components/layout/Spacer.vue";
 import { render } from "util/vue";
 import { format } from "util/break_eternity";
 import { root } from "data/projEntry";
-import skyrmion from "./skyrmion/layer";
+import skyrmion from "./skyrmion";
 
-const layer = createLayer(() => {
-    const id = "entangled";
+const layer = createLayer("entangled", () => {
     const name = "Entangled Strings";
     const color = "#9a4500";
     const points = createResource<DecimalSource>(0, "Entangled Strings");
@@ -41,7 +40,7 @@ const layer = createLayer(() => {
 
     const treeNode = createLayerTreeNode(() => ({
         display: "E",
-        layerID: id,
+        layerID: "entangled",
         color,
         reset
     }));
@@ -53,7 +52,6 @@ const layer = createLayer(() => {
     }));
 
     return {
-        id,
         name,
         color,
         points,

@@ -1,9 +1,12 @@
 <template>
-    <div class="pion-container">
-        <ul class="pion-grid">
-            <template v-for="(upgrade, index) in upgrades" :key="index">
+    <div class="skyrmion-container">
+        <ul class="skyrmion-grid">
+            <li class="skyrmion-upgrade reset" v-bind="$attrs">
+                <slot />
+            </li>
+            <template v-for="(upgrade, index) in unref(upgrades)" :key="index">
                 <li
-                    class="pion-upgrade"
+                    class="skyrmion-upgrade"
                     v-bind="$attrs"
                     :style="getPos(index)"
                     v-if="unref(upgrade.visibility) !== Visibility.None"
@@ -18,73 +21,60 @@
 <script lang="ts">
 import { render } from "util/vue";
 import { defineComponent, unref } from "vue";
-import { pions, pionUpgrades } from "./skyrmion";
-import skyrmion from "./layer";
 import { StyleValue, Visibility } from "features/feature";
-import ResourceVue from "features/resources/Resource.vue";
-import SpacerVue from "components/layout/Spacer.vue";
+import skyrmion from "./skyrmion";
 
 export default defineComponent({
     setup() {
-        const upgrades = Object.fromEntries(
-            Object.entries(pionUpgrades).filter(([key, _]) => key !== "amount")
-        ) as Record<
-            keyof Omit<typeof pionUpgrades, "amount">,
-            typeof pionUpgrades[keyof Omit<typeof pionUpgrades, "amount">]
-        >;
+        const upgrades = skyrmion.skyrmionUpgrades;
         const positions: Record<keyof typeof upgrades, { row: number; col: number }> = {
-            alpha: { row: 1, col: 7 },
-            beta: { row: 2, col: 5 },
-            gamma: { row: 3, col: 7 },
-            delta: { row: 4, col: 5 },
-            epsilon: { row: 5, col: 7 },
-            zeta: { row: 3, col: 3 },
-            eta: { row: 5, col: 3 },
-            theta: { row: 6, col: 5 },
-            iota: { row: 7, col: 7 },
-            kappa: { row: 4, col: 1 },
-            lambda: { row: 6, col: 1 },
-            mu: { row: 7, col: 3 }
+            fome: { row: 2, col: 7 },
+            autoGain: { row: 2, col: 11 },
+            alpha: { row: 3, col: 5 },
+            beta: { row: 3, col: 9 },
+            gamma: { row: 3, col: 13 },
+            delta: { row: 4, col: 3 },
+            epsilon: { row: 4, col: 7 },
+            zeta: { row: 4, col: 11 },
+            eta: { row: 4, col: 15 },
+            theta: { row: 5, col: 1 },
+            iota: { row: 5, col: 5 },
+            kappa: { row: 5, col: 9 },
+            lambda: { row: 5, col: 13 },
+            mu: { row: 5, col: 17 },
+            nu: { row: 6, col: 3 },
+            xi: { row: 6, col: 7 },
+            pi: { row: 6, col: 11 },
+            rho: { row: 6, col: 15 }
         };
         function getPos(index: keyof typeof upgrades) {
             return { "--row": positions[index].row, "--col": positions[index].col } as StyleValue;
         }
-        function debug(value: any) {
-            console.log(value);
-            return value;
-        }
         return {
-            debug,
             render,
             getPos,
             unref,
             Visibility,
-            upgrades,
-            pions,
-            color: skyrmion.color
+            upgrades
         };
-    },
-    components: {
-        ResourceVue,
-        SpacerVue
     }
 });
 </script>
 
-<style scoped>
-.pion-container {
-    --upgrade-width: 35px;
-    --width: 3;
+<style>
+.skyrmion-container {
+    --upgrade-width: 120px;
+    --width: 5;
     --row: 1;
     --col: 1;
-    --gap: 5px;
+    --gap: 10px;
     width: calc(
         var(--width) * var(--upgrade-width) + (var(--width) - 1) * var(--upgrade-width) / 2 +
             (var(--width) - 1) * var(--gap)
     );
 }
 
-.pion-grid {
+.skyrmion-grid {
     display: grid;
     grid-template-columns: repeat(calc(var(--width) * 2 - 1), 1fr 2fr) 1fr;
     grid-gap: var(--gap) calc(var(--gap) * 2);
@@ -93,7 +83,7 @@ export default defineComponent({
     padding: 0;
 }
 
-.pion-upgrade {
+.skyrmion-upgrade {
     position: relative;
     grid-column: var(--col) / span 3;
     grid-row: var(--row) / span 2;
@@ -102,7 +92,7 @@ export default defineComponent({
     margin: 0;
 }
 
-.pion-upgrade > * {
+.skyrmion-upgrade.skyrmion-upgrade > * {
     position: absolute;
     top: 0;
     left: 0;
@@ -112,5 +102,14 @@ export default defineComponent({
     clip-path: polygon(75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%, 25% 0%);
     width: var(--upgrade-width);
     min-height: var(--upgrade-width);
+}
+
+.skyrmion-upgrade.skyrmion-upgrade > button:hover {
+    box-shadow: none;
+}
+
+.skyrmion-upgrade.reset {
+    --row: 1;
+    --col: 9;
 }
 </style>

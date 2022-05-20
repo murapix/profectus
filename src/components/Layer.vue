@@ -23,7 +23,7 @@
 <script lang="ts">
 import projInfo from "data/projInfo.json";
 import { CoercableComponent, StyleValue } from "features/feature";
-import { FeatureNode } from "game/layers";
+import { FeatureNode, WidthOptions } from "game/layers";
 import { Persistent } from "game/persistence";
 import player from "game/player";
 import { computeComponent, processedPropType, wrapRef } from "util/vue";
@@ -50,7 +50,7 @@ export default defineComponent({
             required: true
         },
         minWidth: {
-            type: processedPropType<number>(Number),
+            type: processedPropType<WidthOptions>(Number, String),
             required: true
         },
         name: {
@@ -93,7 +93,7 @@ export default defineComponent({
             }
         );
 
-        function updateTab(minimized: boolean, minWidth: number) {
+        function updateTab(minimized: boolean, minWidth: WidthOptions) {
             const tabValue = tab.value();
             if (tabValue != undefined) {
                 if (minimized) {

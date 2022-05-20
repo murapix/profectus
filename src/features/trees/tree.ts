@@ -77,12 +77,13 @@ export type GenericTreeNode = Replace<
 export function createTreeNode<T extends TreeNodeOptions>(
     optionsFunc: OptionsFunc<T, TreeNode<T>, BaseTreeNode>
 ): TreeNode<T> {
-    const forceTooltip = persistent(false);
     return createLazyProxy(() => {
         const treeNode = optionsFunc();
+
         treeNode.id = getUniqueID("treeNode-");
         treeNode.type = TreeNodeType;
 
+        const forceTooltip = persistent(false);
         if (treeNode.tooltip) {
             treeNode.forceTooltip = forceTooltip;
         } else {

@@ -1,0 +1,732 @@
+import {
+    createExponentialScaling,
+    createIndependentConversion,
+    GenericConversion
+} from "features/conversion";
+import { CoercableComponent, jsx, Replace, showIf, Visibility } from "features/feature";
+import { createReset } from "features/reset";
+import { createResource, displayResource, Resource } from "features/resources/resource";
+import { BaseLayer, createLayer } from "game/layers";
+import Decimal, { DecimalSource } from "lib/break_eternity";
+import { format, formatSmall } from "util/break_eternity";
+import { coerceComponent, render } from "util/vue";
+import { computed, ref, unref } from "vue";
+import { createLayerTreeNode, createResetButton } from "../../common";
+import { root } from "../../projEntry";
+import { globalBus } from "game/events";
+import MainDisplayVue from "features/resources/MainDisplay.vue";
+import SpacerVue from "components/layout/Spacer.vue";
+import SkyrmionVue from "./Skyrmion.vue";
+import PionVue from "./Pion.vue";
+import RowVue from "components/layout/Row.vue";
+import ColumnVue from "components/layout/Column.vue";
+import SpinorVue from "./Spinor.vue";
+import ResourceVue from "features/resources/Resource.vue";
+import { createUpgrade, Upgrade, UpgradeOptions } from "features/upgrades/upgrade";
+import fome, { FomeTypes } from "./fome";
+import { Computable, GetComputableTypeWithDefault } from "util/computed";
+import { Buyable, BuyableOptions, createBuyable } from "features/buyable";
+import { createParticles } from "features/particles/particles";
+import { EmitterConfigV3 } from "@pixi/particle-emitter";
+
+interface SkyrmionUpgradeData {
+    [key: string]: any;
+    visibility?: Computable<Visibility>;
+    display: {
+        title: string;
+        description: string;
+    };
+    cost: DecimalSource;
+}
+
+interface SkyrmionBuyableData {
+    name: string;
+    cost: (amount: DecimalSource) => DecimalSource;
+    effect: (amount: DecimalSource) => any;
+    effectDisplay?: (effect: any) => CoercableComponent;
+    isFree: Computable<boolean>;
+    bonusAmount?: Computable<DecimalSource>;
+    visibility?: Computable<Visibility>;
+}
+
+interface SkyrmionBuyableOptions extends BuyableOptions {
+    bonusAmount?: Computable<DecimalSource>;
+}
+
+type SkyrmionBuyable = Replace<
+    SkyrmionBuyableOptions & Buyable<SkyrmionBuyableOptions>,
+    {
+        bonusAmount: GetComputableTypeWithDefault<SkyrmionBuyableOptions["bonusAmount"], 0>;
+    }
+>;
+
+const id = "skyrmion";
+const layer = createLayer(id, function (this: BaseLayer) {
+    const name = "Skyrmion";
+    const color = "#37d7ff";
+
+    const skyrmions = createResource<DecimalSource>(1, "Skyrmions");
+    const pions = createResource<DecimalSource>(0, "Pions");
+    const spinors = createResource<DecimalSource>(0, "Spinors");
+
+    const totalSkyrmions = computed(() => Decimal.add(unref(skyrmions), 0));
+    const genRate = computed(() => {
+        // eslint-disable-next-line
+        let rate = unref(totalSkyrmions)
+        return rate;
+    });
+    this.on("update", diff => {
+        pions.value = Decimal.times(unref(genRate), diff).plus(unref(pions));
+        spinors.value = Decimal.times(unref(genRate), diff).plus(unref(spinors));
+    });
+
+    const minAmount = computed(() => Decimal.min(unref(pions), unref(spinors)));
+    const minResource = createResource<DecimalSource>(minAmount, "Pions and Spinors");
+
+    const conversion = createIndependentConversion(() => ({
+        scaling: createExponentialScaling(10, 1),
+        baseResource: minResource,
+        gainResource: skyrmions,
+        buyMax: true,
+        convert() {
+            conversion.gainResource.value = unref(conversion.currentGain);
+            const cost = unref(conversion.currentAt);
+            pions.value = Decimal.sub(unref(pions), cost);
+            spinors.value = Decimal.sub(unref(spinors), cost);
+        }
+    }));
+
+    const reset = createReset(() => ({
+        thingsToReset: (): Record<string, unknown>[] => []
+    }));
+
+    const treeNode = createLayerTreeNode(() => ({
+        display: "S",
+        layerID: id,
+        color,
+        reset
+    }));
+
+    const resetButton = createResetButton(() => ({
+        conversion,
+        tree: root.tree,
+        treeNode
+    }));
+
+    const emitterConfig: EmitterConfigV3 = {
+        emit: false,
+        autoUpdate: true,
+        lifetime: { min: 3, max: 5 },
+        frequency: 0.05,
+        emitterLifetime: -1,
+        maxParticles: 1000,
+        addAtBack: true,
+        pos: {
+            x: 0,
+            y: 0
+        },
+        behaviors: []
+    };
+    const particles = createParticles(() => ({
+        boundingRect: ref<null | DOMRect>(null),
+        onContainerResized(boundingRect) {
+            this.boundingRect.value = boundingRect;
+        },
+        onHotReload() {
+            particleEffect.value.then(effect => effect.destroy());
+            particleEffect.value = particles.addEmitter(emitterConfig);
+        }
+    }));
+    const particleEffect = ref(particles.addEmitter(emitterConfig));
+
+    const skyrmionUpgrades = {
+        fome: createSkyrmionUpgrade({
+            display: {
+                title: "Condensation",
+                description: "Begin Foam generation"
+            },
+            cost: 10
+        }),
+        autoGain: createSkyrmionUpgrade({
+            display: {
+                title: "Reformation",
+                description: `Automatically gain Skyrmions; they don't cost Pions or Spinors`
+            },
+            cost: 16
+        }),
+        alpha: createSkyrmionUpgrade({
+            visibility() {
+                return showIf(unref(this.bought) || Decimal.gte(unref(skyrmions), 20));
+            },
+            display: {
+                title: "Alteration",
+                description: "Autobuy α upgrades. α upgrades no longer consume Pions or Spinors"
+            },
+            cost: 24
+        }),
+        beta: createSkyrmionUpgrade({
+            visibility() {
+                return showIf(unref(this.bought) || Decimal.gte(unref(skyrmions), 25));
+            },
+            display: {
+                title: "Benediction",
+                description: "Autobuy β upgrades. β upgrades no longer consume Pions or Spinors"
+            },
+            cost: 28
+        }),
+        gamma: createSkyrmionUpgrade({
+            visibility() {
+                return showIf(unref(this.bought) || Decimal.gte(unref(skyrmions), 30));
+            },
+            display: {
+                title: "Consolidation",
+                description: "Autobuy γ upgrades. γ upgrades no longer consume Pions or Spinors"
+            },
+            cost: 32
+        }),
+        delta: createSkyrmionUpgrade({
+            visibility() {
+                return showIf(unref(this.bought) || Decimal.gte(unref(skyrmions), 35));
+            },
+            display: {
+                title: "Diversification",
+                description: "Autobuy δ upgrades. δ upgrades no longer consume Pions or Spinors"
+            },
+            cost: 36
+        }),
+        epsilon: createSkyrmionUpgrade({
+            visibility() {
+                return showIf(unref(this.bought) || Decimal.gte(unref(skyrmions), 40));
+            },
+            display: {
+                title: "Encapsulation",
+                description: "Autobuy ε upgrades. ε upgrades no longer consume Pions or Spinors"
+            },
+            cost: 42
+        }),
+        zeta: createSkyrmionUpgrade({
+            visibility() {
+                return showIf(unref(this.bought) || Decimal.gte(unref(skyrmions), 45));
+            },
+            display: {
+                title: "Fabrication",
+                description: "Autobuy ζ upgrades. ζ upgrades no longer consume Pions or Spinors"
+            },
+            cost: 48
+        }),
+        eta: createSkyrmionUpgrade({
+            visibility() {
+                return showIf(unref(this.bought) || Decimal.gte(unref(skyrmions), 50));
+            },
+            display: {
+                title: "Germination",
+                description: "Autobuy η upgrades. η upgrades no longer consume Pions or Spinors"
+            },
+            cost: 52
+        }),
+        theta: createSkyrmionUpgrade({
+            visibility() {
+                return showIf(unref(this.bought) || Decimal.gte(unref(skyrmions), 55));
+            },
+            display: {
+                title: "Hesitation",
+                description: "Autobuy θ upgrades. θ upgrades no longer consume Pions or Spinors"
+            },
+            cost: 56
+        }),
+        iota: createSkyrmionUpgrade({
+            visibility() {
+                return showIf(unref(this.bought) || Decimal.gte(unref(skyrmions), 60));
+            },
+            display: {
+                title: "Immitation",
+                description: "Autobuy ι upgrades. ι upgrades no longer consume Pions or Spinors"
+            },
+            cost: 64
+        }),
+        kappa: createSkyrmionUpgrade({
+            visibility() {
+                return showIf(unref(this.bought) || Decimal.gte(unref(skyrmions), 65));
+            },
+            display: {
+                title: "Juxtaposition",
+                description: "Autobuy κ upgrades. κ upgrades no longer consume Pions or Spinors"
+            },
+            cost: 69
+        }),
+        lambda: createSkyrmionUpgrade({
+            visibility() {
+                return showIf(unref(this.bought) || Decimal.gte(unref(skyrmions), 70));
+            },
+            display: {
+                title: "Lateralization",
+                description: "Autobuy λ upgrades. λ upgrades no longer consume Pions or Spinors"
+            },
+            cost: 72
+        }),
+        mu: createSkyrmionUpgrade({
+            visibility() {
+                return showIf(unref(this.bought) || Decimal.gte(unref(skyrmions), 75));
+            },
+            display: {
+                title: "Materialization",
+                description: "Autobuy μ upgrades. μ upgrades no longer consume Pions or Spinors"
+            },
+            cost: 92
+        }),
+        nu: createUpgrade(() => ({
+            canAfford: false,
+            visibility() {
+                return showIf(unref(this.bought) || Decimal.gte(unref(skyrmions), 80));
+            },
+            display: {
+                title: "Neutralization",
+                description: "Autobuy ν upgrades. ν upgrades no longer consume Pions or Spinors"
+            },
+            style: {
+                "clip-path": "polygon(75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%, 25% 0%)",
+                border: 0
+            }
+        })),
+        xi: createUpgrade(() => ({
+            canAfford: false,
+            visibility() {
+                return showIf(unref(this.bought) || Decimal.gte(unref(skyrmions), 85));
+            },
+            display: {
+                title: "Externalization",
+                description: "Autobuy ξ upgrades. ξ upgrades no longer consume Pions or Spinors"
+            },
+            style: {
+                "clip-path": "polygon(75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%, 25% 0%)",
+                border: 0
+            }
+        })),
+        pi: createUpgrade(() => ({
+            canAfford: false,
+            visibility() {
+                return showIf(unref(this.bought) || Decimal.gte(unref(skyrmions), 90));
+            },
+            display: {
+                title: "Prioritization",
+                description: "Autobuy π upgrades. π upgrades no longer consume Pions or Spinors"
+            },
+            style: {
+                "clip-path": "polygon(75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%, 25% 0%)",
+                border: 0
+            }
+        })),
+        rho: createUpgrade(() => ({
+            canAfford: false,
+            visibility() {
+                return showIf(unref(this.bought) || Decimal.gte(unref(skyrmions), 95));
+            },
+            display: {
+                title: "Obfuscation",
+                description: "Autobuy ρ upgrades. ρ upgrades no longer consume Pions or Spinors"
+            },
+            style: {
+                "clip-path": "polygon(75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%, 25% 0%)",
+                border: 0
+            }
+        }))
+    };
+
+    const pionUpgrades = {
+        amount: createResource<DecimalSource>(0, "Pion Upgrades"),
+        alpha: createPionUpgrade({
+            name: "α",
+            cost(amount: DecimalSource) {
+                const cost: Decimal = (() => {
+                    if (Decimal.gte(amount, 90)) return Decimal.pow(187.5, amount).times(2.65e77);
+                    else if (Decimal.gte(amount, 25)) return Decimal.pow(9.5, amount).times(9.5);
+                    else return Decimal.pow(1.2, amount).times(0.1);
+                })();
+                return cost.times(fome.getFomeBoost(FomeTypes.protoversal, 1));
+            },
+            effect(amount) {
+                return Decimal.pow(1.5, amount);
+            },
+            bonusAmount() {
+                return fome.getFomeBoost(FomeTypes.protoversal, 2);
+            },
+            isFree: skyrmionUpgrades.alpha.bought
+        }),
+        beta: createPionUpgrade({
+            name: "β",
+            cost(amount: DecimalSource) {
+                const cost: Decimal = (() => {
+                    if (Decimal.gte(amount, 45)) return Decimal.pow(292.5, amount).times(3.01e39);
+                    else if (Decimal.gte(amount, 15)) return Decimal.pow(10, amount).times(6);
+                    else return Decimal.pow(1.3, amount).times(0.1);
+                })();
+                return cost.plus(0.9);
+            },
+            effect(amount) {
+                return Decimal.pow(0.9, amount);
+            },
+            effectDisplay(effect) {
+                return `Spinor upgrade cost nerf reduced to ${formatSmall(
+                    Decimal.times(effect, 100)
+                )}%`;
+            },
+            bonusAmount() {
+                return fome.getFomeBoost(FomeTypes.protoversal, 3);
+            },
+            isFree: skyrmionUpgrades.beta.bought
+        }),
+        gamma: createPionUpgrade({
+            name: "γ",
+            cost(amount: DecimalSource) {
+                const cost: Decimal = (() => {
+                    if (Decimal.gte(amount, 60)) return Decimal.pow(367.5, amount).times(1.97e71);
+                    else if (Decimal.gte(amount, 25)) return Decimal.pow(12.5, amount).times(25);
+                    else return Decimal.pow(1.7, amount).times(0.1);
+                })();
+                return cost.plus(4.9).times(fome.getFomeBoost(FomeTypes.infinitesimal, 5));
+            },
+            effect(amount) {
+                return Decimal.pow(1.75, amount);
+            },
+            bonusAmount() {
+                return fome.getFomeBoost(FomeTypes.protoversal, 4);
+            },
+            isFree: skyrmionUpgrades.gamma.bought
+        }),
+        delta: createPionUpgrade({
+            name: "δ",
+            cost(amount: DecimalSource) {
+                if (Decimal.gte(amount, 60)) return Decimal.pow(225, amount).times(1.1e72);
+                else return Decimal.pow(6, amount).times(30);
+            },
+            effect(amount) {
+                return Decimal.pow(1.7, amount);
+            },
+            bonusAmount() {
+                return fome.getFomeBoost(FomeTypes.subplanck, 2);
+            },
+            isFree: skyrmionUpgrades.delta.bought,
+            visibility() {
+                return showIf(unref(fome.boosts.protoversal[1].amount) > 0);
+            }
+        }),
+        epsilon: createPionUpgrade({
+            name: "ε",
+            cost(amount: DecimalSource) {
+                if (Decimal.gte(amount, 60)) return Decimal.pow(144, amount).times(2.82e66);
+                else return Decimal.pow(5, amount).times(50);
+            },
+            effect(amount) {
+                return Decimal.max(unref(fome.amounts.infinitesimal), 0)
+                    .plus(1)
+                    .log10()
+                    .times(amount)
+                    .times(0.5)
+                    .plus(1);
+            },
+            bonusAmount() {
+                return fome.getFomeBoost(FomeTypes.subplanck, 3);
+            },
+            isFree: skyrmionUpgrades.epsilon.bought,
+            visibility() {
+                return showIf(unref(fome.expansions.infinitesimal) > 0);
+            }
+        }),
+        zeta: createPionUpgrade({
+            name: "ζ",
+            cost(amount: DecimalSource) {
+                if (Decimal.gte(amount, 60)) return Decimal.pow(196, amount).times(1.71e73);
+                else return Decimal.pow(5.5, amount).times(5e3);
+            },
+            effect(amount) {
+                return fome
+                    .getFomeBoost(FomeTypes.subspatial, 4)
+                    .plus(unref(skyrmions))
+                    .times(amount)
+                    .times(0.05)
+                    .plus(1);
+            },
+            bonusAmount() {
+                return fome.getFomeBoost(FomeTypes.subplanck, 4);
+            },
+            isFree: skyrmionUpgrades.zeta.bought,
+            visibility() {
+                return showIf(unref(fome.expansions.subspatial) > 0);
+            }
+        }),
+        eta: createPionUpgrade({
+            name: "η",
+            cost(amount: DecimalSource) {
+                if (Decimal.gte(amount, 60)) return Decimal.pow(144, amount).times(1.69e71);
+                else return Decimal.pow(5, amount).times(3e5);
+            },
+            effect: amount => amount,
+            effectDisplay(effect) {
+                return `${format(effect)} free levels`;
+            },
+            bonusAmount() {
+                return fome.getFomeBoost(FomeTypes.subplanck, 5);
+            },
+            isFree: skyrmionUpgrades.eta.bought,
+            visibility() {
+                return showIf(unref(fome.expansions.protoversal) > 1);
+            }
+        }),
+        theta: createPionUpgrade({
+            name: "θ",
+            cost(amount: DecimalSource) {
+                if (Decimal.gte(amount, 45)) return Decimal.pow(169, amount).times(6.86e72);
+                else return Decimal.pow(6.5, amount).times(7e5);
+            },
+            effect(amount) {
+                return Decimal.max(unref(fome.amounts.subspatial), 0)
+                    .plus(1)
+                    .log10()
+                    .times(amount)
+                    .plus(1);
+            },
+            bonusAmount() {
+                return fome.getFomeBoost(FomeTypes.quantum, 2);
+            },
+            isFree: skyrmionUpgrades.theta.bought,
+            visibility() {
+                return showIf(unref(fome.expansions.subplanck) > 0);
+            }
+        }),
+        iota: createPionUpgrade({
+            name: "ι",
+            cost(amount: DecimalSource) {
+                if (Decimal.gte(amount, 45)) return Decimal.pow(225, amount).times(1.68e67);
+                else return Decimal.pow(7.5, amount).times(4e8);
+            },
+            effect(amount) {
+                return Decimal.max(unref(spinors), 0)
+                    .plus(1)
+                    .log10()
+                    .times(amount)
+                    .times(0.02)
+                    .plus(1);
+            },
+            bonusAmount() {
+                return fome.getFomeBoost(FomeTypes.quantum, 4);
+            },
+            isFree: skyrmionUpgrades.iota.bought,
+            visibility() {
+                return showIf(unref(fome.expansions.protoversal) > 2);
+            }
+        }),
+        kappa: createPionUpgrade({
+            name: "κ",
+            cost(amount: DecimalSource) {
+                if (Decimal.gte(amount, 45))
+                    return Decimal.pow(182, Decimal.sub(amount, 45)).times(3.66e68);
+                else return Decimal.pow(7, amount).times(5e9);
+            },
+            effect(amount) {
+                return Decimal.add(
+                    unref(fome.boosts.protoversal[1].amount),
+                    unref(fome.boosts.protoversal[1].bonus)
+                )
+                    .times(amount)
+                    .times(0.3)
+                    .plus(1);
+            },
+            bonusAmount() {
+                return fome.getFomeBoost(FomeTypes.quantum, 4);
+            },
+            isFree: skyrmionUpgrades.kappa.bought,
+            visibility() {
+                return showIf(unref(fome.expansions.infinitesimal) > 1);
+            }
+        }),
+        lambda: createPionUpgrade({
+            name: "λ",
+            cost(amount: DecimalSource) {
+                if (Decimal.gte(amount, 45))
+                    return Decimal.pow(100, Decimal.pow(amount, 1.1).minus(45)).times(4.92e76);
+                else return Decimal.pow(5, Decimal.pow(amount, 1.1)).times(7e2);
+            },
+            effect(amount) {
+                return Decimal.pow(2, amount);
+            },
+            isFree: skyrmionUpgrades.lambda.bought,
+            visibility() {
+                return showIf(false);
+            }
+        }),
+        mu: createPionUpgrade({
+            name: "μ",
+            cost(amount: DecimalSource) {
+                if (Decimal.gte(amount, 45)) return Decimal.pow(100, amount).times(7e65);
+                else return Decimal.pow(5, amount).times(7e10);
+            },
+            effect(amount) {
+                return Decimal.clamp(1, 1, 1)
+                    .plus(9)
+                    .log10()
+                    .log10()
+                    .times(0.02)
+                    .plus(1)
+                    .pow(amount);
+            },
+            isFree: skyrmionUpgrades.mu.bought,
+            visibility() {
+                return showIf(false);
+            }
+        })
+    };
+
+    const spinorUpgrades = {
+        amount: createResource<DecimalSource>(0, "Spinor Upgrades"),
+        alpha: createSpinorUpgrade({
+            name: "α",
+            cost(amount) {
+                const cost: Decimal = (() => {
+                    if (Decimal.gte(amount, 90)) return Decimal.pow(187.5, amount).times(2.65e77);
+                    else if (Decimal.gte(amount, 25)) return Decimal.pow(9.5, amount).times(9.5);
+                    else return Decimal.pow(1.2, amount).times(0.1e2);
+                })();
+                return cost.times(fome.getFomeBoost(FomeTypes.protoversal, 2));
+            },
+            effect(amount) {
+                return Decimal.pow(1.5, amount);
+            },
+            bonusAmount() {
+                return fome.getFomeBoost(FomeTypes.protoversal, 2);
+            },
+            isFree: skyrmionUpgrades.alpha.bought
+        })
+    };
+
+    return {
+        name,
+        color,
+        skyrmions,
+        skyrmionUpgrades,
+        pions,
+        pionUpgrades,
+        spinors,
+        spinorUpgrades,
+        display: jsx(() => (
+            <>
+                <MainDisplayVue resource={skyrmions} color={color} />
+                <SpacerVue />
+                <RowVue>
+                    <ColumnVue>
+                        <div>
+                            You have <ResourceVue resource={pions} color={color} tag="h3" />{" "}
+                            {pions.displayName}
+                        </div>
+                        <SpacerVue />
+                        <PionVue />
+                    </ColumnVue>
+                    <SpacerVue width="300px" />
+                    <ColumnVue>
+                        <div>
+                            You have <ResourceVue resource={spinors} color={color} tag="h3" />{" "}
+                            {spinors.displayName}
+                        </div>
+                        <SpacerVue />
+                        <SpinorVue />
+                    </ColumnVue>
+                </RowVue>
+                <SpacerVue />
+                <div v-show={false}>
+                    Your Subspatial Foam is granting an additional{" "}
+                    <span color={color}>{format(3)}</span> Skyrmions
+                    <SpacerVue />
+                </div>
+                <SkyrmionVue>{render(resetButton)}</SkyrmionVue>
+                {render(particles)}
+            </>
+        )),
+        minWidth: "fit-content",
+        treeNode
+    };
+
+    function createPionUpgrade(data: SkyrmionBuyableData) {
+        return createSkyrmionBuyable(pions, data);
+    }
+
+    function createSpinorUpgrade(data: SkyrmionBuyableData) {
+        return createSkyrmionBuyable(spinors, data);
+    }
+
+    function createSkyrmionBuyable(resource: Resource<DecimalSource>, data: SkyrmionBuyableData) {
+        if (!data.effectDisplay) data.effectDisplay = effect => `${formatSmall(effect)}x`;
+        return createBuyable(
+            () =>
+                ({
+                    display: data.name,
+                    // display() {
+                    //     return {
+                    //         description: data.name,
+                    //         effectDisplay: data.effectDisplay?.(this.effect)
+                    //     };
+                    // },
+                    bonusAmount: data.bonusAmount ?? 0,
+                    isFree: data.isFree,
+                    cost() {
+                        return data.cost(unref(this.amount));
+                    },
+                    effect() {
+                        return data.effect(
+                            Decimal.add(unref(this.amount), unref(this.bonusAmount))
+                        );
+                    },
+                    onPurchase(cost: DecimalSource) {
+                        switch (resource) {
+                            case pions:
+                                pionUpgrades.amount.value = Decimal.add(
+                                    unref(pionUpgrades.amount),
+                                    1
+                                );
+                                break;
+                            case spinors:
+                                spinorUpgrades.amount.value = Decimal.add(
+                                    unref(spinorUpgrades.amount),
+                                    1
+                                );
+                                break;
+                        }
+                    },
+                    resource: resource,
+                    visibility: data.visibility
+                } as SkyrmionBuyable)
+        );
+    }
+
+    function createSkyrmionUpgrade(data: SkyrmionUpgradeData) {
+        return createUpgrade(
+            () =>
+                ({
+                    visibility: data.visibility,
+                    tooltip: jsx(() => (
+                        <>
+                            {coerceComponent(data.display.description)}
+                            <SpacerVue />
+                            Requires: {displayResource(skyrmions, data.cost)}{" "}
+                            {skyrmions.displayName}
+                        </>
+                    )),
+                    display: data.display.title,
+                    onPurchase() {
+                        if (this.resource && this.cost)
+                            this.resource.value = Decimal.add(
+                                unref(this.resource),
+                                unref(this.cost)
+                            );
+                    },
+                    resource: skyrmions,
+                    cost: data.cost,
+                    style: {
+                        "clip-path":
+                            "polygon(75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%, 25% 0%)",
+                        border: 0
+                    }
+                } as Upgrade<UpgradeOptions>)
+        );
+    }
+});
+
+export default layer;

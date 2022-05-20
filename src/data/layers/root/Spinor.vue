@@ -18,7 +18,7 @@
 <script lang="ts">
 import { render } from "util/vue";
 import { defineComponent, unref } from "vue";
-import { spinorUpgrades } from "./skyrmion";
+import skyrmion from "./skyrmion";
 import { StyleValue, Visibility } from "features/feature";
 import ResourceVue from "features/resources/Resource.vue";
 import SpacerVue from "components/layout/Spacer.vue";
@@ -26,10 +26,10 @@ import SpacerVue from "components/layout/Spacer.vue";
 export default defineComponent({
     setup() {
         const upgrades = Object.fromEntries(
-            Object.entries(spinorUpgrades).filter(([key, _]) => key !== "amount")
+            Object.entries(skyrmion.spinorUpgrades).filter(([key, _]) => key !== "amount")
         ) as Record<
-            keyof Omit<typeof spinorUpgrades, "amount">,
-            typeof spinorUpgrades[keyof Omit<typeof spinorUpgrades, "amount">]
+            keyof Omit<typeof skyrmion.spinorUpgrades, "amount">,
+            typeof skyrmion.spinorUpgrades[keyof Omit<typeof skyrmion.spinorUpgrades, "amount">]
         >;
         const positions: Record<keyof typeof upgrades, { row: number; col: number }> = {
             alpha: { row: 1, col: 1 }
@@ -48,22 +48,13 @@ export default defineComponent({
         function getPos(index: keyof typeof upgrades) {
             return { "--row": positions[index].row, "--col": positions[index].col } as StyleValue;
         }
-        function debug(value: any) {
-            console.log(value);
-            return value;
-        }
         return {
-            debug,
             render,
             getPos,
             unref,
             Visibility,
             upgrades
         };
-    },
-    components: {
-        ResourceVue,
-        SpacerVue
     }
 });
 </script>

@@ -8,17 +8,18 @@ import { render } from "util/vue";
 import { computed, toRaw } from "vue";
 import entangled from "./layers/root/entangled";
 import fome from "./layers/root/fome";
-import skyrmion from "./layers/root/skyrmion/layer";
+import skyrmion from "./layers/root/skyrmion";
 
 /**
  * @hidden
  */
-export const root = createLayer("root", () => {
+const id = "root";
+export const root = createLayer(id, () => {
     const tree = createTree(() => ({
         nodes: [[skyrmion.treeNode], [fome.treeNode], [entangled.treeNode]],
         branches: [{ startNode: fome.treeNode, endNode: skyrmion.treeNode }],
         onReset() {
-            toRaw(this.resettingNode.value) === toRaw(skyrmion.treeNode) ? 0 : 10;
+            // no-op
         },
         resetPropagation: defaultResetPropagation
     })) as GenericTree;
@@ -26,6 +27,7 @@ export const root = createLayer("root", () => {
     return {
         name: "Tree",
         links: tree.links,
+        minWidth: 300,
         display: jsx(() => (
             <>
                 <div v-show={player.devSpeed === 0}>Game Paused</div>

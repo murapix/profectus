@@ -2,29 +2,21 @@ import {
     CoercableComponent,
     getUniqueID,
     jsx,
+    OptionsFunc,
     Replace,
-    showIf,
-    Visibility
+    showIf
 } from "features/feature";
 import { createResource, Resource } from "features/resources/resource";
 import { createLayer } from "game/layers";
 import Decimal, { DecimalSource, format } from "util/bignum";
-import {
-    makePersistent,
-    Persistent,
-    persistent,
-    PersistentRef,
-    PersistentState
-} from "game/persistence";
+import { Persistent, persistent, PersistentState } from "game/persistence";
 import { createLayerTreeNode } from "data/common";
 import { computed, ComputedRef, Ref, unref } from "vue";
-import MainDisplay from "features/resources/MainDisplay.vue";
-import Row from "components/layout/Row.vue";
+import { render } from "util/vue";
 import ResourceVue from "features/resources/Resource.vue";
 import Spacer from "components/layout/Spacer.vue";
-import skyrmion from "./skyrmion/layer";
-import { Buyable, BuyableOptions, createBuyable, GenericBuyable } from "features/buyable";
-import { coerceComponent, isCoercableComponent, render, renderCol, renderRow } from "util/vue";
+import skyrmion from "./skyrmion";
+import { createBuyable, GenericBuyable } from "features/buyable";
 import {
     Computable,
     GetComputableType,
@@ -54,10 +46,10 @@ export enum FomeDims {
     depth = "depth"
 }
 
-const layer = createLayer(() => {
+const id = "fome";
+const layer = createLayer(id, () => {
     const BoostType = Symbol("Boost");
 
-    const id = "fome";
     const name = "Quantum Foam";
     const color = "#ffffff";
 
@@ -68,7 +60,7 @@ const layer = createLayer(() => {
         [FomeTypes.subplanck]: createResource<DecimalSource>(0, "Subplanck Foam"),
         [FomeTypes.quantum]: createResource<DecimalSource>(0, "Quantum Foam")
     };
-    const expansions: Record<FomeTypes, PersistentRef<number>> = {
+    const expansions: Record<FomeTypes, Persistent<number>> = {
         [FomeTypes.protoversal]: persistent<number>(1),
         [FomeTypes.infinitesimal]: persistent<number>(0),
         [FomeTypes.subspatial]: persistent<number>(0),
@@ -403,7 +395,7 @@ const layer = createLayer(() => {
     const boosts: Record<
         FomeTypes,
         {
-            index: PersistentRef<1 | 2 | 3 | 4 | 5>;
+            index: Persistent<1 | 2 | 3 | 4 | 5>;
             1: GenericBoost;
             2: GenericBoost;
             3: GenericBoost;
@@ -641,42 +633,39 @@ const layer = createLayer(() => {
         color: color
     }));
 
-    const tabs = createTabFamily(() => ({
-        tabs: {
-            main: {
-                display: "Foam",
-                tab: createTab(() => ({
-                    display: jsx(() => (
-                        <>
-                            <div>
-                                You have{" "}
-                                <ResourceVue resource={amounts[highestFome.value]} color={color} />{" "}
-                                {amounts[highestFome.value].displayName}
-                                {expansions[highestFome.value].value > 1 ? (
-                                    <sup>{expansions[highestFome.value].value}</sup>
-                                ) : null}
-                            </div>
-                            <Spacer />
-                            <FomeVue />
-                        </>
-                    ))
-                }))
-            },
-            boosts: {
-                display: "Boosts",
-                tab: createTab(() => ({
-                    display: jsx(() => (
-                        <>
-                            <FomeBoostVue />
-                        </>
-                    ))
-                }))
-            }
-        }
-    }));
+    const tabs = createTabFamily({
+        main: () => ({
+            display: "Foam",
+            tab: createTab(() => ({
+                display: jsx(() => (
+                    <>
+                        <div>
+                            You have{" "}
+                            <ResourceVue resource={amounts[highestFome.value]} color={color} />{" "}
+                            {amounts[highestFome.value].displayName}
+                            {expansions[highestFome.value].value > 1 ? (
+                                <sup>{expansions[highestFome.value].value}</sup>
+                            ) : null}
+                        </div>
+                        <Spacer />
+                        <FomeVue />
+                    </>
+                ))
+            }))
+        }),
+        boosts: () => ({
+            display: "Boosts",
+            tab: createTab(() => ({
+                display: jsx(() => (
+                    <>
+                        <FomeBoostVue />
+                    </>
+                ))
+            }))
+        })
+    });
 
     return {
-        id,
         name,
         color,
         amounts,
@@ -689,11 +678,12 @@ const layer = createLayer(() => {
         getFomeBoost,
         display: jsx(() => (
             <>
-                {boosts.protoversal[1].amount.value === 0
+                {unref(boosts.protoversal[1].amount) === 0
                     ? render(unref(tabs.tabs.main.tab))
                     : render(tabs)}
             </>
         )),
+        tabs,
         treeNode
     };
 
@@ -745,12 +735,11 @@ const layer = createLayer(() => {
     }
 
     function createBoost<T extends BoostOptions>(
-        optionsFunc: () => T & ThisType<Boost<T>>
+        optionsFunc: OptionsFunc<T, Boost<T>, BaseBoost>
     ): Boost<T> {
-        return createLazyProxy(() => {
-            const boost: T & Partial<BaseBoost> = optionsFunc();
+        return createLazyProxy(persistent => {
+            const boost = Object.assign(persistent, optionsFunc());
 
-            makePersistent<DecimalSource>(boost, 0);
             boost.id = getUniqueID("boost-");
             boost.type = BoostType;
             boost.amount = boost[PersistentState];
@@ -760,7 +749,7 @@ const layer = createLayer(() => {
             processComputable(boost as T, "bonus");
 
             return boost as unknown as Boost<T>;
-        });
+        }, persistent<DecimalSource>(0));
     }
 });
 
