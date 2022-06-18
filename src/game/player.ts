@@ -11,8 +11,6 @@ export interface PlayerData {
     tabs: Array<string>;
     time: number;
     autosave: boolean;
-    offlineProd: boolean;
-    offlineTime: number | null;
     timePlayed: number;
     keepGoing: boolean;
     modID: string;
@@ -29,8 +27,6 @@ const state = reactive<PlayerData>({
     tabs: [],
     time: -1,
     autosave: true,
-    offlineProd: true,
-    offlineTime: null,
     timePlayed: 0,
     keepGoing: false,
     modID: "",

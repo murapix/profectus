@@ -117,7 +117,7 @@ export function createBuyable<T extends BuyableOptions>(
             return (
                 genericBuyable.resource != null &&
                 cost != null &&
-                Decimal.gte(genericBuyable.resource.value, cost)
+                Decimal.gte(unref(genericBuyable.resource), cost)
             );
         });
         if (buyable.canPurchase == null) {
@@ -167,7 +167,7 @@ export function createBuyable<T extends BuyableOptions>(
                     );
                     genericBuyable.amount.value = Decimal.add(genericBuyable.amount.value, 1);
                 }
-                this.onPurchase?.(cost);
+                genericBuyable.onPurchase?.(cost);
             };
         processComputable(buyable as T, "display");
         const display = buyable.display;

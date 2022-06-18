@@ -23,19 +23,17 @@
         <Node :id="id" />
     </button>
 </template>
-
 <script lang="tsx">
 import "components/common/features.css";
 import Node from "components/Node.vue";
 import MarkNode from "components/MarkNode.vue";
-import { CoercableComponent, jsx, StyleValue, Visibility } from "features/feature";
+import { jsx, StyleValue, Visibility } from "features/feature";
 import { displayResource, Resource } from "features/resources/resource";
 import { GenericUpgrade } from "features/upgrades/upgrade";
 import { DecimalSource } from "util/bignum";
 import { coerceComponent, isCoercableComponent, processedPropType, unwrapRef } from "util/vue";
 import {
     Component,
-    computed,
     defineComponent,
     PropType,
     shallowRef,
@@ -44,10 +42,6 @@ import {
     UnwrapRef,
     watchEffect
 } from "vue";
-import TooltipVue from "components/Tooltip.vue";
-import { gatherTooltipProps, Tooltip } from "features/tooltip";
-import { ProcessedComputable } from "util/computed";
-
 export default defineComponent({
     props: {
         display: {
@@ -60,7 +54,6 @@ export default defineComponent({
         },
         style: processedPropType<StyleValue>(String, Object, Array),
         classes: processedPropType<Record<string, boolean>>(Object),
-        tooltip: processedPropType<CoercableComponent | Tooltip>(String, Object, Function),
         resource: Object as PropType<Resource>,
         cost: processedPropType<DecimalSource>(String, Object, Number),
         canPurchase: {
@@ -86,31 +79,8 @@ export default defineComponent({
         MarkNode
     },
     setup(props) {
-        const { display, tooltip, cost } = toRefs(props);
-
+        const { display, cost } = toRefs(props);
         const component = shallowRef<Component | string>("");
-        const tooltipDisplay = shallowRef<ProcessedComputable<CoercableComponent> | undefined>(
-            undefined
-        );
-
-        watchEffect(() => {
-            const currTooltip = unwrapRef(tooltip);
-
-            if (typeof currTooltip === "object" && !isCoercableComponent(currTooltip)) {
-                tooltipDisplay.value = currTooltip.display;
-                return;
-            }
-            tooltipDisplay.value = currTooltip;
-        });
-        const tooltipToBind = computed(() => {
-            const currTooltip = unwrapRef(tooltip);
-
-            if (typeof currTooltip === "object" && !isCoercableComponent(currTooltip)) {
-                return currTooltip;
-            }
-            return null;
-        });
-
         watchEffect(() => {
             const currDisplay = unwrapRef(display);
             if (currDisplay == null) {
@@ -151,26 +121,20 @@ export default defineComponent({
                 ))
             );
         });
-
         return {
             component,
-            tooltipDisplay,
-            tooltipToBind,
-            gatherTooltipProps,
             unref,
             Visibility
         };
     }
 });
 </script>
-
 <style scoped>
 .upgrade {
     min-height: 120px;
     width: 120px;
     font-size: 10px;
 }
-
 .upgrade > * {
     pointer-events: none;
 }

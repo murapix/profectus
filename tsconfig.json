@@ -40,7 +40,7 @@
       "entryPoints": ["src"],
       "entryPointStrategy": "expand",
       "cleanOutputDir": true,
-      "name": "Profectus",
+      "name": "Universal Reconstruction",
       "includeVersion": true,
       "categorizeByGroup": false,
       "readme": "none",

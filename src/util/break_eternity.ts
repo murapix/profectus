@@ -47,8 +47,8 @@ export function regularFormat(num: DecimalSource, precision: number): string {
     if (num.mag < 0.0001) {
         return (0).toFixed(precision);
     }
-    if (num.mag < 0.1 && precision !== 0) {
-        precision = Math.max(Math.max(precision, 4), projInfo.defaultDecimalsShown);
+    if (precision !== 0) {
+        precision = Math.max(Math.max(precision, num.log10().negate().ceil().toNumber()), projInfo.defaultDecimalsShown);
     }
     return num.toStringWithDecimalPlaces(precision);
 }

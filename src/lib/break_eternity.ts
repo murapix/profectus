@@ -1,3 +1,5 @@
+import { Ref, unref } from "vue";
+
 /* eslint-disable @typescript-eslint/no-this-alias */
 export type CompareResult = -1 | 0 | 1;
 

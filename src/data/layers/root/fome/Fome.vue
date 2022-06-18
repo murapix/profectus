@@ -1,7 +1,7 @@
 <template>
     <div class="fome-grid">
         <template v-for="fome in Object.values(FomeTypes).slice().reverse()" :key="fome">
-            <div v-if="unref(fomeExpansions[fome]) > 0">
+            <div v-if="Decimal.gt(unref(reformUpgrades[fome].amount), 0)">
                 <div v-html="getFomeDisplay(fome)" style="white-space: nowrap" />
                 <div>{{ format(unref(fomeRates[fome])) }}/sec</div>
             </div>
@@ -16,7 +16,7 @@
 
 <script lang="ts">
 import UpgradeVue from "features/upgrades/Upgrade.vue";
-import { format } from "util/break_eternity";
+import Decimal, { format, formatWhole } from "util/break_eternity";
 import { render } from "util/vue";
 import { DefineComponent, defineComponent, unref } from "vue";
 import fome, { FomeDims, FomeTypes } from "./fome";
@@ -49,7 +49,7 @@ export default defineComponent({
             return `You have ${format(unref(fome.amounts[type]))} ${
                 fome.amounts[type].displayName
             }${
-                unref(fome.expansions[type]) > 1 ? `<sup>${unref(fome.expansions[type])}</sup>` : ""
+                Decimal.gt(unref(fome.reformUpgrades[type].amount), 1) ? `<sup>${formatWhole(unref(fome.reformUpgrades[type].amount))}</sup>` : ""
             }`;
         }
         return {
@@ -57,13 +57,14 @@ export default defineComponent({
             fomeCondenseUpgrades,
             fomeReformUpgrades,
             fomeAmounts: fome.amounts,
-            fomeExpansions: fome.expansions,
             fomeRates: fome.rates,
+            reformUpgrades: fome.reformUpgrades,
             FomeTypes,
             FomeDims,
             getFomeDisplay,
             unref,
-            format
+            format,
+            Decimal
         };
     },
     components: { UpgradeVue }
@@ -74,7 +75,7 @@ export default defineComponent({
 .fome-grid {
     display: grid;
     grid-template-columns: repeat(5, 1fr);
-    grid-gap: 10px;
+    grid-gap: 0px;
     width: 90%;
     max-width: 1200px;
 }

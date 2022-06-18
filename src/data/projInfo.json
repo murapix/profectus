@@ -1,12 +1,12 @@
 {
-	"title": "Profectus",
-	"id": "profectus",
-	"author": "thepaperpilot",
+	"title": "Universal Reconstruction",
+	"id": "universal_reconstruction",
+	"author": "Escapee",
 	"discordName": "The Paper Pilot Community",
 	"discordLink": "https://discord.gg/WzejVAx",
 
-	"versionNumber": "0.0",
-	"versionTitle": "Initial Commit",
+	"versionNumber": "1.0",
+	"versionTitle": "Revitalization",
 
 	"allowGoBack": true,
 	"defaultShowSmall": false,
@@ -17,7 +17,6 @@
 	"initialTabs": [ "root" ],
 
 	"maxTickLength": 3600,
-	"offlineLimit": 1,
 	"enablePausing": true,
 	"exportEncoding": "base64"
 }

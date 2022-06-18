@@ -131,7 +131,8 @@ export default defineComponent({
 
 .tooltip {
     text-align: center;
-    width: 150px;
+    min-width: 150px;
+    width: max-content;
     font-size: 14px;
     line-height: 1.2;
     bottom: calc(100% + var(--yoffset));
