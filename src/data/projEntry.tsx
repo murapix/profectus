@@ -18,9 +18,7 @@ import skyrmion from "./layers/root/skyrmion/skyrmion";
 const id = "root";
 export const root = createLayer(id, () => {
     const tree = createTree(() => ({
-        nodes: [[skyrmion.treeNode], [fome.treeNode], [acceleron.treeNode], [entangled.treeNode]],
-        onReset() { /* no-op */ },
-        resetPropagation: defaultResetPropagation
+        nodes: [[skyrmion.treeNode], [fome.treeNode], [acceleron.treeNode], [entangled.treeNode]]
     })) as GenericTree;
 
     type layer = GenericLayer & { unlocked?: Ref<boolean>, boughtColor?: string }
