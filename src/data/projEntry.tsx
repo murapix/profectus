@@ -23,7 +23,7 @@ export const root = createLayer(id, () => {
         resetPropagation: defaultResetPropagation
     })) as GenericTree;
 
-    type layer = GenericLayer & { unlocked?: Ref<boolean> }
+    type layer = GenericLayer & { unlocked?: Ref<boolean>, boughtColor?: string }
     const layers: layer[] = [skyrmion, fome, acceleron, /*timecube,*/ /*inflaton,*/ entangled];
 
     const tabs: GenericTabFamily = createTabFamily(Object.fromEntries(layers.map(layer => 
@@ -31,7 +31,8 @@ export const root = createLayer(id, () => {
             display: layer.name,
             tab: createTab(() => ({
                 style: computed(() => ({
-                    "--layer-color": unref(layer.color)
+                    "--layer-color": unref(layer.color),
+                    ...(unref(layer.style) as Record<string, unknown>)
                 })),
                 display: jsx(() => (
                     <>
@@ -63,14 +64,15 @@ export const root = createLayer(id, () => {
             </>
         )),
         tree,
-        tabs
+        tabs,
+        layers
     };
 });
 
 export const getInitialLayers = (
     /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
     player: Partial<PlayerData>
-): Array<GenericLayer> => [root, skyrmion, fome, entangled];
+): Array<GenericLayer> => [root, ...root.layers];
 
 export const hasWon = computed(() => {
     return false;

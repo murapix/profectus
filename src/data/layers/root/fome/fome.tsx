@@ -1,11 +1,11 @@
-import { CoercableComponent, getUniqueID, jsx, OptionsFunc, Replace, showIf } from "features/feature";
+import { CoercableComponent, getUniqueID, jsx, OptionsFunc, Replace, showIf, StyleValue, Visibility } from "features/feature";
 import { createResource, Resource } from "features/resources/resource";
 import { BaseLayer, createLayer } from "game/layers";
 import Decimal, { DecimalSource, format } from "util/bignum";
 import { Persistent, persistent, PersistentState } from "game/persistence";
 import { createLayerTreeNode } from "data/common";
 import { computed, ComputedRef, Ref, unref } from "vue";
-import { render } from "util/vue";
+import { render, renderRowJSX } from "util/vue";
 import ResourceVue from "features/resources/Resource.vue";
 import Spacer from "components/layout/Spacer.vue";
 import skyrmion from "../skyrmion/skyrmion";
@@ -18,7 +18,8 @@ import { formatWhole } from "util/break_eternity";
 import { createTabFamily } from "features/tabs/tabFamily";
 import { createTab } from "features/tabs/tab";
 import FomeBoostVue from "./FomeBoost.vue";
-import { globalBus } from "game/events";
+import { createAchievement, GenericAchievement } from "features/achievements/achievement";
+import { addTooltip } from "features/tooltips/tooltip";
 
 export enum FomeTypes {
     protoversal = "protoversal",
@@ -40,6 +41,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
 
     const name = "Quantum Foam";
     const color = "#ffffff";
+    const style = {
+        "--bought": "#929aa9"
+    };
 
     const unlocked: Ref<boolean> = skyrmion.skyrmionUpgrades.fome.bought;
 
@@ -59,12 +63,24 @@ const layer = createLayer(id, function (this: BaseLayer) {
         else return FomeTypes.protoversal;
     });
 
+    const inflatonBonus = computed(() => {
+        let bonus = Decimal.dOne;
+        if (false) {
+            if (false) bonus = bonus.times(1) // inflaton research 4
+            if (false) bonus = bonus.times(1) // inflaton research 11
+            if (false) bonus = bonus.times(1) // inflaton research 18
+            bonus = bonus.times(1) // inflaton repeatable 115
+        }
+        return bonus.min(Decimal.dInf) // current inflaton nerf
+    });
+
     const baseGenRate = computed(() =>
-        Decimal.divide(unref(skyrmion.skyrmions), 100)
+        Decimal.add(unref(skyrmion.skyrmions), getFomeBoost(FomeTypes.subspatial, 4))
+            .divide(100)
             .times(unref(skyrmion.spinorUpgrades.eta.effect))
             .times(1) // acceleron fome boost
             .times(1) // acceleron upgrade 121
-            .times(1) // inflaton bonus
+            .times(unref(inflatonBonus)) // inflaton bonus
             .times(1) // inflaton upgrade 21
             .times(getFomeBoost(FomeTypes.quantum, 1))
             .times(getFomeBoost(FomeTypes.quantum, 3))
@@ -84,10 +100,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
         [FomeTypes.quantum]: computed(() => Decimal.dOne)
     };
     const miscMulti: Record<FomeTypes, ComputedRef<Decimal>> = {
-        [FomeTypes.protoversal]: computed(() => new Decimal(unref(skyrmion.pionUpgrades.delta.effect)).times(unref(skyrmion.pionUpgrades.epsilon.effect)).times(unref(skyrmion.pionUpgrades.theta.effect)).times(1)),
-        [FomeTypes.infinitesimal]: computed(() => new Decimal(unref(skyrmion.pionUpgrades.iota.effect)).times(unref(skyrmion.spinorUpgrades.epsilon.effect)).times(unref(skyrmion.spinorUpgrades.iota.effect)).times(1).times(1)),
-        [FomeTypes.subspatial]: computed(() => new Decimal(unref(skyrmion.pionUpgrades.zeta.effect)).times(unref(skyrmion.spinorUpgrades.theta.effect)).times(1).times(1).times(1)),
-        [FomeTypes.subplanck]: computed(() => new Decimal(1)),
+        [FomeTypes.protoversal]: computed(() => new Decimal(unref(skyrmion.pionUpgrades.delta.effect)).times(unref(skyrmion.pionUpgrades.epsilon.effect)).times(unref(skyrmion.pionUpgrades.theta.effect)).times(1/* acceleron upgrade 11 */)),
+        [FomeTypes.infinitesimal]: computed(() => new Decimal(unref(skyrmion.pionUpgrades.iota.effect)).times(unref(skyrmion.spinorUpgrades.epsilon.effect)).times(unref(skyrmion.spinorUpgrades.iota.effect)).times(1/* acceleron upgrade 11 */).times(1/* acceleron upgrade 131 */)),
+        [FomeTypes.subspatial]: computed(() => new Decimal(unref(skyrmion.pionUpgrades.zeta.effect)).times(unref(skyrmion.spinorUpgrades.theta.effect)).times(1/* acceleron upgrade 11 */).times(1/* acceleron upgrade 23 */).times(1/* acceleron upgrade 132 */)),
+        [FomeTypes.subplanck]: computed(() => new Decimal(1/* acceleron upgrade 133 */)),
         [FomeTypes.quantum]: computed(() => Decimal.dOne)
     };
     const fomeRate = Object.fromEntries(
@@ -97,7 +113,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
                     .times(unref(enlargeMulti[type]))
                     .times(unref(boostMulti[type]))
                     .times(unref(miscMulti[type]))
-                    .pow(unref(reformUpgrades[type].effect)))
+                    .pow(unref(reformUpgrades[type].effect))
+                    .times(1) // left timeline bonus
+                    .div(1) // left timeline nerf
+                    .times(1) // timecube upgrade 45, per-foam
+            )
         ])
     ) as Record<FomeTypes, ComputedRef<Decimal>>;
     this.on("preUpdate", (diff: number) => {
@@ -110,21 +130,62 @@ const layer = createLayer(id, function (this: BaseLayer) {
         });
     });
 
-    const autoRequirements: Record<FomeTypes | "reform", Computable<boolean>> = {
-        [FomeTypes.protoversal]: computed(() => Decimal.gte(unref(reformUpgrades.protoversal.amount), 2)),
-        [FomeTypes.infinitesimal]: computed(() => Decimal.gte(unref(reformUpgrades.protoversal.amount), 3)),
-        [FomeTypes.subspatial]: computed(() => Decimal.gte(unref(reformUpgrades.protoversal.amount), 4)),
-        [FomeTypes.subplanck]: computed(() => Decimal.gte(unref(reformUpgrades.protoversal.amount), 5)),
-        [FomeTypes.quantum]: computed(() => Decimal.gte(unref(reformUpgrades.protoversal.amount), 6)),
-        reform: computed(() => Decimal.gte(unref(reformUpgrades.quantum.amount), 2))
-    }
-    this.on("update", (diff: number) => {
-        if (unref(autoRequirements.reform)) {
+    const achievements: Record<FomeTypes | "reform", GenericAchievement & { tooltip: { requirement: JSX.Element, effectDisplay: JSX.Element } }> = {
+        [FomeTypes.protoversal]: createAchievement(() => ({
+            shouldEarn() { return Decimal.gte(unref(reformUpgrades.protoversal.amount), 2) },
+            tooltip: {
+                requirement: <>Re-form your Protoversal Foam</>,
+                effectDisplay: <>Unlock the Pion and Spinor Buy All button<br />Automatically enlarge your Protoversal Foam</>
+            }
+        })),
+        [FomeTypes.infinitesimal]: createAchievement(() => ({
+            shouldEarn() { return Decimal.gte(unref(reformUpgrades.protoversal.amount), 3) },
+            tooltip: {
+                requirement: <>Obtain Protoversal Foam<sup>3</sup></>,
+                effectDisplay: <>Automatically enlarge your Infinitesimal Foam</>
+            }
+        })),
+        [FomeTypes.subspatial]: createAchievement(() => ({
+            shouldEarn() { return Decimal.gte(unref(reformUpgrades.protoversal.amount), 4) },
+            tooltip: {
+                requirement: <>Obtain Protoversal Foam<sup>4</sup></>,
+                effectDisplay: <>Automatically enlarge your Subspatial Foam</>
+            }
+        })),
+        [FomeTypes.subplanck]: createAchievement(() => ({
+            shouldEarn() { return Decimal.gte(unref(reformUpgrades.protoversal.amount), 5) },
+            tooltip: {
+                requirement: <>Obtain Protoversal Foam<sup>5</sup></>,
+                effectDisplay: <>Automatically enlarge your Subplanck Foam</>
+            }
+        })),
+        [FomeTypes.quantum]: createAchievement(() => ({
+            shouldEarn() { return Decimal.gte(unref(reformUpgrades.protoversal.amount), 6) },
+            tooltip: {
+                requirement: <>Obtain Protoversal Foam<sup>6</sup></>,
+                effectDisplay: <>Automatically enlarge your Quantum Foam</>
+            }
+        })),
+        reform: createAchievement(() => ({
+            shouldEarn() { return Decimal.gte(unref(reformUpgrades.quantum.amount), 2) },
+            tooltip: {
+                requirement: <>Obtain Quantum Foam<sup>2</sup></>,
+                effectDisplay: <>Automatically re-form your Foam</>
+            }
+        }))
+    };
+    Object.values(achievements).forEach(achievement => {
+        addTooltip(achievement, {
+            display: jsx(() => (<><h3>{achievement.tooltip.requirement}</h3><br />{achievement.tooltip.effectDisplay}</>)) 
+        })
+    })
+    this.on("update", () => {
+        if (unref(achievements.reform.earned)) {
             Object.values(condenseUpgrades).filter(upgrade => !unref(upgrade.bought)).forEach(upgrade => upgrade.purchase());
             Object.values(reformUpgrades).forEach(upgrade => upgrade.purchase());
         }
         Object.values(FomeTypes).forEach(type => {
-            if (unref(autoRequirements[type])) {
+            if (unref(achievements[type].earned)) {
                 Object.values(dimUpgrades[type]).forEach(dim => dim.purchase());
             }
         });
@@ -165,15 +226,21 @@ const layer = createLayer(id, function (this: BaseLayer) {
             display: display,
             effect() { return Decimal.add(unref(this.amount), 1); },
             cost() { return cost(unref(this.amount)); },
-            style: {
-                width: "100%",
-                "min-height": "100px"
+            style() {
+                const style: StyleValue = {
+                    width: "100%",
+                    "min-height": "100px"
+                }
+                if (achievements[type].earned) style.backgroundColor = "var(--bought)";
+                return style;
             },
-            onPurchase() {
+            onPurchase(cost?: DecimalSource) {
                 const index = boosts[type].index;
                 const boost = boosts[type][unref(index)].amount;
                 boost.value = Decimal.add(unref(boost), 1);
                 index.value = (unref(index) === 5 ? 1 : unref(index) + 1) as 1|2|3|4|5;
+                if (unref(achievements[type].earned))
+                    amounts[type].value = Decimal.add(unref(amounts[type]), cost ?? 0);
             }
         }));
     }
@@ -247,8 +314,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
         [FomeTypes.subplanck]: amount => amount.pow(amount.minus(3).max(2)).plus(1).times(7).pow10(),
         [FomeTypes.quantum]: amount => amount.pow(amount.minus(3).max(2)).plus(1).times(4).pow10()
     }
-    const reformLimits: Record<FomeTypes, DecimalSource | Ref<DecimalSource>> = {
-        [FomeTypes.protoversal]: Decimal.dInf,
+    const reformLimits: Record<FomeTypes, ComputedRef<DecimalSource>> = {
+        [FomeTypes.protoversal]: computed(() => Decimal.dInf),
         [FomeTypes.infinitesimal]: computed(() => Decimal.sub(unref(reformUpgrades.protoversal.amount), 1).max(0)),
         [FomeTypes.subspatial]: computed(() => Decimal.sub(unref(reformUpgrades.infinitesimal.amount), 1).max(0)),
         [FomeTypes.subplanck]: computed(() => Decimal.sub(unref(reformUpgrades.subspatial.amount), 1).max(0)),
@@ -261,6 +328,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         [FomeTypes.subplanck]: amounts.subspatial,
         [FomeTypes.quantum]: amounts.subplanck
     }
+    type ReformUpgrade = GenericBuyable & { requires: Ref<DecimalSource>};
     const reformUpgrades = Object.fromEntries(
         Object.values(FomeTypes).map(type => [
             type,
@@ -271,7 +339,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                     const buyable = reformUpgrades[type];
                     const description = <>Re-form your {amounts[type].displayName}</>
                     const amountDisplay = <>Amount: {formatWhole(unref(buyable.amount))}</>
-                    const requirementDisplay = <>Requires: {reformLimitResource[type].displayName}<sup>{formatWhole(unref(Decimal.add(unref(buyable.amount), 1)))}</sup></>
+                    const requirementDisplay = <>Requires: {reformLimitResource[type].displayName}<sup>{formatWhole(unref(Decimal.add(unref(buyable.amount), 2)))}</sup></>
                     const costDisplay = <>Cost: {format(unref(buyable.cost ?? 0))} {buyable.resource?.displayName}</>
                     return (
                         <>
@@ -286,10 +354,16 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 cost() { return reformCosts[type](new Decimal(unref(this.amount))); },
                 requires: reformLimits[type],
                 effect() { return Decimal.cbrt(unref(this.amount)); },
+                canPurchase() {
+                    return unref(this.visibility) === Visibility.Visible &&
+                    unref(this.canAfford) &&
+                    Decimal.lt(unref(this.amount), unref((this as ReformUpgrade).requires)) &&
+                    Decimal.lt(unref(this.amount), unref(this.purchaseLimit))
+                },
                 style: { width: "100%", minHeight: "100px" }
             }))
         ])
-    ) as Record<FomeTypes, GenericBuyable & { requires: Ref<DecimalSource>}>;
+    ) as Record<FomeTypes, ReformUpgrade>;
     
     const boosts: Record<FomeTypes, { [key in 1|2|3|4|5]: GenericBoost } & { index: Persistent<1|2|3|4|5> }> = {
         [FomeTypes.protoversal]: {
@@ -459,6 +533,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
                         </div>
                         <Spacer />
                         <FomeVue />
+                        <Spacer height="8px" />
+                        {renderRowJSX(...Object.values(achievements))}
                     </>
                 ))
             }))
@@ -477,6 +553,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         dimUpgrades,
         condenseUpgrades,
         reformUpgrades,
+        milestones: achievements,
         boosts,
         getFomeBoost,
         display: jsx(() => (
@@ -486,13 +563,14 @@ const layer = createLayer(id, function (this: BaseLayer) {
                     : render(tabs)}
             </>
         )),
+        style,
         tabs,
         treeNode,
         unlocked
     };
 
     interface BoostOptions {
-        display: Computable<CoercableComponent>;
+        display: Computable<CoercableComponent[]>;
         effect: Computable<Decimal>;
         bonus: Computable<DecimalSource>;
     }
@@ -506,7 +584,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
     type Boost<T extends BoostOptions> = Replace<
         T & BaseBoost,
         {
-            display: Ref<string>;
+            display: Ref<string[]>;
             effect: GetComputableType<T["effect"]>;
             bonus: GetComputableType<T["bonus"]>;
         }
@@ -526,10 +604,17 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 const amount = unref(boosts[type][index].amount);
                 const bonus = unref(boosts[type][index].bonus);
                 if (amount > 0 || bonus > 0)
-                    return `${amounts[type].displayName.split(" ")[0]} Boost ${index} [${amount}${
-                        bonus > 0 ? `+${formatWhole(bonus)}` : ``
-                    }]: ${display(unref(boosts[type][index].effect))}`;
-                return "";
+                    return [
+                        `${amounts[type].displayName.split(" ")[0]} Boost ${index}`,
+                        '[',
+                        formatWhole(amount),
+                        bonus > 0 ? '+' : '',
+                        bonus > 0 ? format(bonus) : '',
+                        ']:',
+                        display(unref(boosts[type][index].effect))
+                    ];
+                return ["", "", "", "", "", "", ""];
+                
             },
             effect() {
                 return effect(Decimal.add(unref(this.amount), unref(this.bonus)));

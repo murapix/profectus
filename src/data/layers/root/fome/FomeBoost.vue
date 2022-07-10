@@ -1,10 +1,12 @@
 <template>
-    <template v-for="(boosts, key) in fomeBoosts" :key="key">
-        <Spacer />
-        <template v-for="(boost, index) in boosts" :key="key + '-' + index">
-            <div>{{ boost }}</div>
+    <div style="display: grid; gridTemplateColumns: repeat(7, auto); width: fit-content; margin: auto">
+        <template v-for="(boosts, key) in fomeBoosts" :key="key">
+            <Spacer :num-labels="7" v-for="n in 7" :key="n" />
+            <template v-for="(boost, index) in boosts" :key="key + '-' + index">
+                <div v-for="val in boost" :key="val">{{ val }}</div>
+            </template>
         </template>
-    </template>
+    </div>
 </template>
 
 <script lang="ts">
@@ -26,7 +28,7 @@ export default defineComponent({
                     [5]: unref(boosts[5].display)
                 }
             ])
-        ) as Record<FomeTypes, Record<1 | 2 | 3 | 4 | 5, string>>;
+        ) as Record<FomeTypes, Record<1 | 2 | 3 | 4 | 5, string[]>>;
         return {
             fomeBoosts
         };
@@ -35,4 +37,30 @@ export default defineComponent({
 });
 </script>
 
-<style scoped></style>
+<style scoped>
+div>div:nth-child(7n+1) {
+    text-align: right;
+    width: 100%;
+}
+div>div:nth-child(7n+2) {
+    margin-left: 8px;
+}
+div>div:nth-child(7n+3) {
+    text-align: right;
+    width: 100%;
+}
+div>div:nth-child(7n+4) {
+    margin: 0px;
+}
+div>div:nth-child(7n+5) {
+    text-align: left;
+    width: 100%;
+}
+div>div:nth-child(7n+6) {
+    margin-right: 8px;
+}
+div>div:nth-child(7n+7) {
+    text-align: left;
+    width: 100%;
+}
+</style>

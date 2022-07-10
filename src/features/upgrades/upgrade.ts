@@ -46,6 +46,7 @@ export interface UpgradeOptions {
     resource?: Resource;
     canAfford?: Computable<boolean>;
     onPurchase?: VoidFunction;
+    effect?: Computable<any>; // eslint-disable-line @typescript-eslint/no-explicit-any
 }
 
 export interface BaseUpgrade {
@@ -69,6 +70,7 @@ export type Upgrade<T extends UpgradeOptions> = Replace<
         mark: GetComputableType<T["mark"]>;
         cost: GetComputableType<T["cost"]>;
         canAfford: GetComputableTypeWithDefault<T["canAfford"], Ref<boolean>>;
+        effect: GetComputableType<T["effect"]>;
     }
 >;
 
@@ -77,6 +79,7 @@ export type GenericUpgrade = Replace<
     {
         visibility: ProcessedComputable<Visibility>;
         canPurchase: ProcessedComputable<boolean>;
+        effect: ProcessedComputable<any>; // eslint-disable-line @typescript-eslint/no-explicit-any
     }
 >;
 
@@ -139,6 +142,7 @@ export function createUpgrade<T extends UpgradeOptions>(
         processComputable(upgrade as T, "mark");
         processComputable(upgrade as T, "cost");
         processComputable(upgrade as T, "resource");
+        processComputable(upgrade as T, "effect");
 
         upgrade[GatherProps] = function (this: GenericUpgrade) {
             const {
@@ -152,7 +156,8 @@ export function createUpgrade<T extends UpgradeOptions>(
                 bought,
                 mark,
                 id,
-                purchase
+                purchase,
+                effect
             } = this;
             return {
                 display,
@@ -165,7 +170,8 @@ export function createUpgrade<T extends UpgradeOptions>(
                 bought,
                 mark,
                 id,
-                purchase
+                purchase,
+                effect
             };
         };
 

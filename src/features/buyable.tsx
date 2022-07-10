@@ -38,7 +38,7 @@ export type BuyableDisplay =
 export interface BuyableOptions {
     visibility?: Computable<Visibility>;
     cost?: Computable<DecimalSource>;
-    effect?: Computable<any>;
+    effect?: Computable<any>; // eslint-disable-line @typescript-eslint/no-explicit-any
     resource?: Resource;
     isFree?: Computable<boolean>;
     canPurchase?: Computable<boolean>;

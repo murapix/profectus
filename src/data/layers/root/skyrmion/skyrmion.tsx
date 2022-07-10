@@ -19,7 +19,7 @@ import SpinorVue from "./Spinor.vue";
 import ResourceVue from "features/resources/Resource.vue";
 import { createUpgrade, GenericUpgrade, Upgrade, UpgradeOptions } from "features/upgrades/upgrade";
 import fome, { FomeTypes } from "../fome/fome";
-import { Computable, GetComputableTypeWithDefault } from "util/computed";
+import { Computable, GetComputableTypeWithDefault, processComputable } from "util/computed";
 import { Buyable, BuyableOptions, createBuyable } from "features/buyable";
 import { addTooltip } from "features/tooltips/tooltip";
 import { Direction } from "util/common";
@@ -41,8 +41,8 @@ interface SkyrmionBuyableData {
     name: string;
     description: JSX.Element;
     cost: (amount: DecimalSource) => DecimalSource;
-    effect: (amount: DecimalSource) => any;
-    effectDisplay?: (effect: any) => CoercableComponent;
+    effect: (amount: DecimalSource) => any; // eslint-disable-line @typescript-eslint/no-explicit-any
+    effectDisplay?: (effect: any) => CoercableComponent; // eslint-disable-line @typescript-eslint/no-explicit-any
     isFree: Computable<boolean>;
     bonusAmount?: Computable<DecimalSource>;
     visibility?: Computable<Visibility>;
@@ -708,8 +708,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
         skyrmions,
         skyrmionUpgrades,
         pions,
+        pionRate,
         pionUpgrades,
         spinors,
+        spinorRate,
         spinorUpgrades,
         abyssChallenge,
         display: jsx(() => (
@@ -758,12 +760,21 @@ const layer = createLayer(id, function (this: BaseLayer) {
     }
 
     function createSkyrmionBuyable(resource: Resource<DecimalSource>, data: SkyrmionBuyableData, abyss = false) {
+        processComputable(data, "isFree");
+        processComputable(data, "bonusAmount");
+        processComputable(data, "visibility");
+
         if (!data.effectDisplay) data.effectDisplay = effect => `${formatSmall(effect)}x`;
         let costFunc!: (cost: DecimalSource) => DecimalSource;
         switch (resource) {
             case pions: costFunc = cost => unref(pionCostNerf).times(cost); break;
             case spinors: costFunc = cost => unref(spinorCostNerf).times(cost); break;
             default: costFunc = cost => cost; break;
+        }
+        let buyFunc: () => void;
+        switch(resource) {
+            case pions: buyFunc = () => pionUpgrades.amount.value = Decimal.add(unref(pionUpgrades.amount), 1); break;
+            case spinors: buyFunc = () => spinorUpgrades.amount.value = Decimal.add(unref(spinorUpgrades.amount), 1);
         }
         const buyable = createBuyable(() => ({
                 display: data.name,
@@ -772,14 +783,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 cost() { return costFunc(data.cost(unref(this.amount))); },
                 effect() { return data.effect(Decimal.add(unref(this.amount), unref(this.bonusAmount))); },
                 onPurchase(cost: DecimalSource) {
-                    switch (resource) {
-                        case pions:
-                            pionUpgrades.amount.value = Decimal.add(unref(pionUpgrades.amount), 1);
-                            break;
-                        case spinors:
-                            spinorUpgrades.amount.value = Decimal.add(unref(spinorUpgrades.amount), 1);
-                            break;
-                    }
+                    buyFunc?.();
                     if (unref(data.isFree)) resource.value = Decimal.add(unref(resource), cost);
                 },
                 resource: resource,
@@ -793,7 +797,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             display: jsx(() => <>
                 {data.description}
                 <br />
-                {"Amount: "}{formatWhole(unref(buyable.amount))}
+                {"Amount: "}{formatWhole(unref(buyable.amount))}{unref(buyable.bonusAmount) > 0 ? <>+{formatWhole(unref(buyable.bonusAmount))}</> : undefined}
                 <br />
                 {"Currently: "}{data.effectDisplay?.(unref(buyable.effect))}
                 <br />
