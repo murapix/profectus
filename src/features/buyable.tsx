@@ -1,29 +1,22 @@
 import ClickableComponent from "features/clickables/Clickable.vue";
-import { Resource } from "features/resources/resource";
-import { Persistent, persistent } from "game/persistence";
-import Decimal, { DecimalSource, format, formatWhole } from "util/bignum";
-import {
+import type { CoercableComponent, OptionsFunc, Replace, StyleValue } from "features/feature";
+import { Component, GatherProps, getUniqueID, jsx, setDefault, Visibility } from "features/feature";
+import type { Resource } from "features/resources/resource";
+import type { Persistent } from "game/persistence";
+import { persistent } from "game/persistence";
+import type { DecimalSource } from "util/bignum";
+import Decimal, { format, formatWhole } from "util/bignum";
+import type {
     Computable,
     GetComputableType,
     GetComputableTypeWithDefault,
-    processComputable,
     ProcessedComputable
 } from "util/computed";
+import { processComputable } from "util/computed";
 import { createLazyProxy } from "util/proxies";
 import { coerceComponent, isCoercableComponent } from "util/vue";
-import { computed, Ref, unref } from "vue";
-import {
-    CoercableComponent,
-    Component,
-    OptionsFunc,
-    GatherProps,
-    getUniqueID,
-    jsx,
-    Replace,
-    setDefault,
-    StyleValue,
-    Visibility
-} from "./feature";
+import type { Ref } from "vue";
+import { computed, unref } from "vue";
 
 export const BuyableType = Symbol("Buyable");
 
@@ -31,8 +24,9 @@ export type BuyableDisplay =
     | CoercableComponent
     | {
           title?: CoercableComponent;
-          description: CoercableComponent;
+          description?: CoercableComponent;
           effectDisplay?: CoercableComponent;
+          showAmount?: boolean;
       };
 
 export interface BuyableOptions {
@@ -92,7 +86,7 @@ export type GenericBuyable = Replace<
 >;
 
 export function createBuyable<T extends BuyableOptions>(
-    optionsFunc: OptionsFunc<T, Buyable<T>, BaseBuyable>
+    optionsFunc: OptionsFunc<T, BaseBuyable, GenericBuyable>
 ): Buyable<T> {
     const amount = persistent<DecimalSource>(0);
     return createLazyProxy(() => {
@@ -181,17 +175,8 @@ export function createBuyable<T extends BuyableOptions>(
             if (currDisplay != null && buyable.cost != null && buyable.resource != null) {
                 const genericBuyable = buyable as GenericBuyable;
                 const Title = coerceComponent(currDisplay.title || "", "h3");
-                const Description = coerceComponent(currDisplay.description);
+                const Description = coerceComponent(currDisplay.description || "");
                 const EffectDisplay = coerceComponent(currDisplay.effectDisplay || "");
-                const amountDisplay =
-                    unref(genericBuyable.purchaseLimit) === Decimal.dInf ? (
-                        <>Amount: {formatWhole(genericBuyable.amount.value)}</>
-                    ) : (
-                        <>
-                            Amount: {formatWhole(genericBuyable.amount.value)} /{" "}
-                            {formatWhole(unref(genericBuyable.purchaseLimit))}
-                        </>
-                    );
 
                 return (
                     <span>
@@ -200,11 +185,20 @@ export function createBuyable<T extends BuyableOptions>(
                                 <Title />
                             </div>
                         ) : null}
-                        <Description />
-                        <div>
-                            <br />
-                            {amountDisplay}
-                        </div>
+                        {currDisplay.description ? <Description /> : null}
+                        {currDisplay.showAmount === false ? null : (
+                            <div>
+                                <br />
+                                {unref(genericBuyable.purchaseLimit) === Decimal.dInf ? (
+                                    <>Amount: {formatWhole(genericBuyable.amount.value)}</>
+                                ) : (
+                                    <>
+                                        Amount: {formatWhole(genericBuyable.amount.value)} /{" "}
+                                        {formatWhole(unref(genericBuyable.purchaseLimit))}
+                                    </>
+                                )}
+                            </div>
+                        )}
                         {currDisplay.effectDisplay ? (
                             <div>
                                 <br />

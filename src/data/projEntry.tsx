@@ -1,7 +1,7 @@
 import { jsx, showIf, Visibility } from "features/feature";
 import { createTab } from "features/tabs/tab";
 import { createTabFamily, GenericTabFamily } from "features/tabs/tabFamily";
-import { createTree, defaultResetPropagation, GenericTree } from "features/trees/tree";
+import { createTree, GenericTree } from "features/trees/tree";
 import { createLayer, GenericLayer } from "game/layers";
 import player, { PlayerData } from "game/player";
 import { format } from "util/bignum";
@@ -67,15 +67,27 @@ export const root = createLayer(id, () => {
     };
 });
 
+/**
+ * Given a player save data object being loaded, return a list of layers that should currently be enabled.
+ * If your project does not use dynamic layers, this should just return all layers.
+ */
 export const getInitialLayers = (
     /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
     player: Partial<PlayerData>
 ): Array<GenericLayer> => [root, ...root.layers];
 
+/**
+ * A computed ref whose value is true whenever the game is over.
+ */
 export const hasWon = computed(() => {
     return false;
 });
 
+/**
+ * Given a player save data object being loaded with a different version, update the save data object to match the structure of the current version.
+ * @param oldVersion The version of the save being loaded in
+ * @param player The save data being loaded in
+ */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 export function fixOldSave(
     oldVersion: string | undefined,
