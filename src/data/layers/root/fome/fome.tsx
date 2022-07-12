@@ -10,7 +10,7 @@ import ResourceVue from "features/resources/Resource.vue";
 import Spacer from "components/layout/Spacer.vue";
 import skyrmion from "../skyrmion/skyrmion";
 import { createBuyable, GenericBuyable } from "features/buyable";
-import { Computable, GetComputableType, processComputable, ProcessedComputable } from "util/computed";
+import { Computable, convertComputable, GetComputableType, processComputable, ProcessedComputable } from "util/computed";
 import FomeVue from "./Fome.vue";
 import { createUpgrade, GenericUpgrade } from "features/upgrades/upgrade";
 import { createLazyProxy } from "util/proxies";
@@ -227,12 +227,12 @@ const layer = createLayer(id, function (this: BaseLayer) {
             effect() { return Decimal.add(unref(this.amount), 1); },
             cost() { return cost(unref(this.amount)); },
             style() {
-                const style: StyleValue = {
+                const currentStyle: StyleValue = {
                     width: "100%",
-                    "min-height": "100px"
+                    minHeight: "100px"
                 }
-                if (achievements[type].earned) style.backgroundColor = "var(--bought)";
-                return style;
+                if (unref(achievements[type].earned)) currentStyle.backgroundColor = "var(--bought)";
+                return currentStyle;
             },
             onPurchase(cost?: DecimalSource) {
                 const index = boosts[type].index;
@@ -271,7 +271,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             resource: amounts[FomeTypes.protoversal],
             display: { description: `Condense your ${amounts.protoversal.displayName}` },
             cost: 1e4,
-            style: { width: "100%", "min-height": "100px" },
+            style: { width: "100%", minHeight: "100px" },
             onPurchase() { reformUpgrades.infinitesimal.amount.value = Decimal.dOne }
         })),
         [FomeTypes.infinitesimal]: createUpgrade(() => ({
@@ -279,7 +279,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             resource: amounts[FomeTypes.infinitesimal],
             display: { description: `Condense your ${amounts.infinitesimal.displayName}` },
             cost: 2e4,
-            style: { width: "100%", "min-height": "100px" },
+            style: { width: "100%", minHeight: "100px" },
             onPurchase() { reformUpgrades.subspatial.amount.value = Decimal.dOne }
         })),
         [FomeTypes.subspatial]: createUpgrade(() => ({
@@ -287,7 +287,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             resource: amounts[FomeTypes.subspatial],
             display: { description: `Condense your ${amounts.subspatial.displayName}` },
             cost: 4e5,
-            style: { width: "100%", "min-height": "100px" },
+            style: { width: "100%", minHeight: "100px" },
             onPurchase() { reformUpgrades.subplanck.amount.value = Decimal.dOne }
         })),
         [FomeTypes.subplanck]: createUpgrade(() => ({
@@ -295,7 +295,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             resource: amounts[FomeTypes.subplanck],
             display: { description: `Condense your ${amounts.subplanck.displayName}` },
             cost: 1e7,
-            style: { width: "100%", "min-height": "100px" },
+            style: { width: "100%", minHeight: "100px" },
             onPurchase() { reformUpgrades.quantum.amount.value = Decimal.dOne }
         })),
         [FomeTypes.quantum]: createUpgrade(() => ({
@@ -303,7 +303,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             resource: amounts[FomeTypes.quantum],
             display: { description: `Condense your ${amounts.quantum.displayName}` },
             cost: 1e5,
-            style: { width: "100%", "min-height": "100px" }
+            style: { width: "100%", minHeight: "100px" }
         }))
     };
 
@@ -358,7 +358,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                     return unref(this.visibility) === Visibility.Visible &&
                     unref(this.canAfford) &&
                     Decimal.lt(unref(this.amount), unref((this as ReformUpgrade).requires)) &&
-                    Decimal.lt(unref(this.amount), unref(this.purchaseLimit))
+                    Decimal.lt(unref(this.amount), unref(convertComputable(this.purchaseLimit)))
                 },
                 style: { width: "100%", minHeight: "100px" }
             }))
@@ -590,7 +590,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
         }
     >;
 
-    type GenericBoost = Boost<BoostOptions>;
+    type GenericBoost = Replace<Boost<BoostOptions>,
+    {
+        effect: ProcessedComputable<any> // eslint-disable-line @typescript-eslint/no-explicit-any
+        bonus: ProcessedComputable<DecimalSource>
+    }>;
 
     function createFomeBoost(
         type: FomeTypes,
@@ -617,13 +621,13 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 
             },
             effect() {
-                return effect(Decimal.add(unref(this.amount), unref(this.bonus)));
+                return effect(Decimal.add(unref(this.amount), unref(this.bonus as ProcessedComputable<DecimalSource>)));
             },
             bonus: bonus
         }));
     }
 
-    function createBoost<T extends BoostOptions>(optionsFunc: OptionsFunc<T, Boost<T>, BaseBoost>): Boost<T> {
+    function createBoost<T extends BoostOptions>(optionsFunc: OptionsFunc<T, BaseBoost, GenericBoost>): Boost<T> {
         return createLazyProxy(persistent => {
             const boost = Object.assign(persistent, optionsFunc());
 

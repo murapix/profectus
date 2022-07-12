@@ -123,31 +123,6 @@ const layer = createLayer(id, function (this: BaseLayer) {
         minHeight: "var(--upgrade-width)",
     }
 
-    const abyssChallenge = createChallenge(() => ({
-        style: {
-            border: 0,
-            borderRadius: 0,
-            clipPath: "polygon(75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%, 25% 0%)",
-            marginHorizontal: "50px",
-            width: "250px",
-            minWidth: "250px",
-            minHeight: "250px",
-            boxShadow: "0"
-        } as StyleValue,
-        visibility: computed(() => showIf(true)),
-        completionLimit: 4,
-        canComplete() { return unref(abyssUpgradeCount) > unref(this.completions); },
-        onEnter() { /* no-op */ },
-        onExit() { /* no-op */ }
-    }))
-    const abyssUpgradeCount = computed(() => {
-        return (['nu', 'pi', 'xi', 'rho'] as (keyof typeof skyrmionUpgrades)[])
-            .map(upgrade => unref(skyrmionUpgrades?.[upgrade].bought ?? false))
-            .filter(bought => bought)
-            .length
-    })
-    watch(abyssUpgradeCount, () => abyssChallenge.completions.value = new Decimal(unref(abyssUpgradeCount)));
-
     const minAmount = computed(() => Decimal.min(unref(pions), unref(spinors)));
     const minResource = createResource<DecimalSource>(minAmount, "Pions and Spinors");
 
@@ -156,8 +131,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         baseResource: minResource,
         gainResource: skyrmions,
         buyMax: true,
-        convert() {
-            conversion.gainResource.value = unref(conversion.currentGain);
+        spend() {
             if (!unref(skyrmionUpgrades.autoGain.bought)) {
                 const cost = unref(conversion.currentAt);
                 pions.value = Decimal.sub(unref(pions), cost);
@@ -701,6 +675,31 @@ const layer = createLayer(id, function (this: BaseLayer) {
             visibility: () => showIf(false)
         })
     };
+
+    const abyssChallenge = createChallenge(() => ({
+        style: {
+            border: 0,
+            borderRadius: 0,
+            clipPath: "polygon(75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%, 25% 0%)",
+            marginHorizontal: "50px",
+            width: "250px",
+            minWidth: "250px",
+            minHeight: "250px",
+            boxShadow: "0"
+        } as StyleValue,
+        visibility: computed(() => showIf(true)),
+        completionLimit: 4,
+        canComplete() { return unref(abyssUpgradeCount) > unref(this.completions); },
+        onEnter() { /* no-op */ },
+        onExit() { /* no-op */ }
+    }))
+    const abyssUpgradeCount = computed(() => {
+        return (['nu', 'pi', 'xi', 'rho'] as (keyof typeof skyrmionUpgrades)[])
+            .map(upgrade => unref(skyrmionUpgrades?.[upgrade].bought ?? false))
+            .filter(bought => bought)
+            .length
+    })
+    watch(abyssUpgradeCount, () => abyssChallenge.completions.value = new Decimal(unref(abyssUpgradeCount)));
 
     return {
         name,

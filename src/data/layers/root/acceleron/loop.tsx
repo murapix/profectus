@@ -5,7 +5,7 @@ import { Computable, GetComputableTypeWithDefault, GetComputableType, processCom
 import { createLazyProxy } from "util/proxies";
 import LoopVue from "./Loop.vue";
 
-const LoopType = Symbol("Loop");
+export const LoopType = Symbol("Loop");
 
 export interface LoopOptions {
     visibility: Computable<Visibility>;
@@ -47,10 +47,10 @@ export type Loop<T extends LoopOptions> = Replace<
 
 export type GenericLoop = Loop<LoopOptions>;
 
-export function createLoop<T extends LoopOptions>(optionsFunc: OptionsFunc<T, Loop<T>, BaseLoop>): Loop<T> {
-    const triggerProgress = persistent(0);
-    const buildProgress = persistent(0);
-    const built = persistent(false);
+export function createLoop<T extends LoopOptions>(optionsFunc: OptionsFunc<T, BaseLoop, GenericLoop>): Loop<T> {
+    const triggerProgress = persistent<DecimalSource>(0);
+    const buildProgress = persistent<DecimalSource>(0);
+    const built = persistent<boolean>(false);
     return createLazyProxy(() => {
         const loop = optionsFunc();
 

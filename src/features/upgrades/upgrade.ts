@@ -156,8 +156,7 @@ export function createUpgrade<T extends UpgradeOptions>(
                 bought,
                 mark,
                 id,
-                purchase,
-                effect
+                purchase
             } = this;
             return {
                 display,
@@ -170,8 +169,7 @@ export function createUpgrade<T extends UpgradeOptions>(
                 bought,
                 mark,
                 id,
-                purchase,
-                effect
+                purchase
             };
         };
 
