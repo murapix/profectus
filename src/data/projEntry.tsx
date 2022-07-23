@@ -22,9 +22,9 @@ export const root = createLayer(id, () => {
     })) as GenericTree;
 
     type layer = GenericLayer & { unlocked?: Ref<boolean>, boughtColor?: string }
-    const layers: layer[] = [skyrmion, fome, acceleron, /*timecube,*/ /*inflaton,*/ entangled];
+    const layers: {[key: number]: layer} = Object.fromEntries([skyrmion, fome, acceleron, /*timecube,*/ /*inflaton,*/ entangled].map((layer, index) => [index, layer]));
 
-    const tabs: GenericTabFamily = createTabFamily(Object.fromEntries(layers.map(layer => 
+    const tabs: GenericTabFamily = createTabFamily(Object.fromEntries(Object.values(layers).map(layer => 
         [layer.name, () => ({
             display: layer.name,
             tab: createTab(() => ({
@@ -74,7 +74,7 @@ export const root = createLayer(id, () => {
 export const getInitialLayers = (
     /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
     player: Partial<PlayerData>
-): Array<GenericLayer> => [root, ...root.layers];
+): Array<GenericLayer> => [root, ...Object.values(root.layers)];
 
 /**
  * A computed ref whose value is true whenever the game is over.

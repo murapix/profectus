@@ -1,0 +1,538 @@
+<template>
+    <div class="ring-container" :style="{top: `${unref(radius)}px`}">
+        <template v-for="(upgrades, side) in upgradeData">
+            <template v-for="(upgrade, index) in unref(upgrades)" :key="upgrade">
+                <svg :width="unref(upgrade.ring.size).width"
+                    :height="unref(upgrade.ring.size).height"
+                    :style="unref(upgrade.ring.position)"
+                    class="ring-segment"
+                    v-if="unref(upgrade.upgrade.upgrade.visibility) === Visibility.Visible">
+                    <path :d="unref(upgrade.ring.path)" :stroke="unref(upgrade.upgrade.color)" :stroke-width="`${values.global.border}px`" fill="none"/>
+                </svg>
+                <svg :width="unref(upgrade.line.size).width"
+                     :height="unref(upgrade.line.size).height"
+                     :style="unref(upgrade.line.position)"
+                     class="ring-line"
+                     v-if="unref(upgrade.upgrade.upgrade.visibility) === Visibility.Visible">
+                     <path :d="unref(upgrade.line.path)" :stroke="unref(upgrade.upgrade.color)" :stroke-width="`${values.global.border}px`" fill="none" />
+                </svg>
+                <component :is="upgrade.upgrade.render"
+                           :style="{...unref(upgrade.upgrade.position), width: values.upgrade.width, minHeight: values.upgrade.height}"
+                            class="ring-upgrade"
+                           :class="side" />
+            </template>
+        </template>
+    </div>
+</template>
+
+<script lang="ts">
+import { render, processedPropType, unwrapRef } from "util/vue";
+import { computed, ComputedRef, DefineComponent, defineComponent, toRefs, unref } from "vue";
+import { GenericUpgrade } from "features/upgrades/upgrade";
+import { Visibility } from "features/feature";
+
+export default defineComponent({
+    props: {
+        radius: {
+            type: processedPropType<number>(Number),
+            required: true
+        },
+        width: {
+            type: processedPropType<number>(Number),
+            required: true
+        },
+        distance: {
+            type: processedPropType<number>(Number),
+            required: true
+        },
+        top: {
+            type: processedPropType<number>(Number),
+            required: true
+        },
+        right: {
+            type: processedPropType<GenericUpgrade[]>(Array),
+            required: true
+        },
+        bottom: {
+            type: processedPropType<number>(Number),
+            required: true
+        },
+        left: {
+            type: processedPropType<GenericUpgrade[]>(Array),
+            required: true
+        }
+    },
+    setup(props) {
+        type Side = "left" | "right";
+        
+        const { radius, width, distance, top, right, bottom, left } = toRefs(props);
+
+        const values = {
+            global: {
+                margin: 5,
+                border: 2
+            },
+            upgrade: {
+                width: 250,
+                height: 125
+            },
+            line: {
+                x: 8,
+                y: 32,
+                radius: computed(() => unref(outerRadius) + unwrapRef(width))
+            }
+        }
+
+        const visibleSegments: {[key in Side]: ComputedRef<number>} = {
+            left: computed(() => unwrapRef(left).filter(upgrade => unref(upgrade.visibility) !== Visibility.None).length),
+            right: computed(() => unwrapRef(right).filter(upgrade => unref(upgrade.visibility) !== Visibility.None).length)
+        };
+
+        const lengths = {
+            top: computed(() => unwrapRef(top)),
+            right: computed(() => unwrapRef(right).length),
+            bottom: computed(() => unwrapRef(bottom)),
+            left: computed(() => unwrapRef(left).length)
+        };
+        const numSegments = computed(() => Object.values(lengths).map(length => unref(length)).reduce((a,b) => a+b));
+        const anglePerSegment = computed(() => 2*Math.PI / unref(numSegments));
+
+        const innerRadius = computed(() => unwrapRef(radius));
+        const outerRadius = computed(() => unwrapRef(radius) + unwrapRef(width));
+        const innerArc = computed(() => unref(innerRadius) * unref(anglePerSegment) - (values.global.margin+values.global.border));
+        const outerArc = computed(() => unref(outerRadius) * unref(anglePerSegment) - (values.global.margin+values.global.border));
+        const innerAngle = computed(() => unref(innerArc) / unref(innerRadius));
+        const outerAngle = computed(() => unref(outerArc) / unref(outerRadius));
+        
+        type Points = number[][];
+        type Bounds = { minX: number, minY: number, maxX: number, maxY: number };
+        type Size = { width: number, height: number };
+        type Offset = { x: number, y: number };
+        type Position = { top: string, left: string };
+        type Base = {
+            index: ComputedRef<number>,
+            angle: ComputedRef<number>
+        };
+        type Ring = {
+            points: ComputedRef<Points>,
+            bounds: ComputedRef<Bounds>,
+            size: ComputedRef<Size>,
+            position: ComputedRef<Position>,
+            path: ComputedRef<string>
+        };
+        type Upgrade = {
+            upgrade: GenericUpgrade,
+            render: JSX.Element | DefineComponent,
+            id: string,
+            color: ComputedRef<string>,
+            distance: ComputedRef<number>,
+            offset: ComputedRef<Offset>,
+            position: ComputedRef<Position>
+        };
+        type Line = {
+            height: ComputedRef<number>,
+            angle: ComputedRef<number>,
+            points: ComputedRef<Points>,
+            bounds: ComputedRef<Bounds>
+            size: ComputedRef<Size>,
+            position: ComputedRef<Position>,
+            path: ComputedRef<string>
+        }
+
+        const upgradeData: {[key in Side]: { base: Base, ring: Ring, upgrade: Upgrade, line: Line }[]} = {
+            left: unwrapRef(left).map((upgrade, index, array) => ({
+                base: {
+                    index: (() => {
+                        if (index === 0) return computed(() => 0);
+                        return computed(() => unref(upgradeData.left[index-1].base.index) + (unref(array[index-1].visibility) !== Visibility.None ? 1 : 0));
+                    })(),
+                    angle: computed(() => Math.PI - unref(anglePerSegment) * (unref(upgradeData.left[index].base.index) - unref(visibleSegments.left)/2 + 0.5))
+                },
+                ring: {
+                    points: computed(() => {
+                        let baseAngle = unref(upgradeData.left[index].base.angle);
+                        let innerMin = [baseAngle - unref(innerAngle)/2, unref(innerRadius)];
+                        let innerMax = [baseAngle + unref(innerAngle)/2, unref(innerRadius)];
+                        let outerMin = [baseAngle - unref(outerAngle)/2, unref(outerRadius)];
+                        let outerMax = [baseAngle + unref(outerAngle)/2, unref(outerRadius)];
+
+                        return [innerMin, innerMax, outerMax, outerMin].map(([angle, radius]) => [Math.cos(angle) * radius, Math.sin(angle) * radius]);
+                    }),
+                    bounds: computed(() => {
+                        let points = unref(upgradeData.left[index].ring.points);
+                        let bounds = {
+                            minX: Math.min(...points.map(point => point[0])),
+                            maxX: Math.max(...points.map(point => point[0])),
+                            minY: Math.min(...points.map(point => point[1])),
+                            maxY: Math.max(...points.map(point => point[1]))
+                        };
+                        if (Math.sign(bounds.minY) !== Math.sign(bounds.maxY)) {
+                            bounds.minX = Math.min(-unref(outerRadius), bounds.minX);
+                        }
+                        return bounds;
+                    }),
+                    size: computed(() => {
+                        let bounds = unref(upgradeData.left[index].ring.bounds);
+                        return {
+                            width: bounds.maxX - bounds.minX + values.global.border,
+                            height: bounds.maxY - bounds.minY + values.global.border
+                        };
+                    }),
+                    position: computed(() => {
+                        let bounds = unref(upgradeData.left[index].ring.bounds);
+                        return {
+                            top: `${bounds.minY - values.global.border/2}px`,
+                            left: `${bounds.minX - values.global.border/2}px`
+                        };
+                    }),
+                    path: computed(() => {
+                        let inner = unref(innerRadius);
+                        let outer = unref(outerRadius);
+                        let points = unref(upgradeData.left[index].ring.points);
+                        let bounds = unref(upgradeData.left[index].ring.bounds);
+                        let p = points.map(point => [
+                            point[0] - bounds.minX + values.global.border/2,
+                            point[1] - bounds.minY + values.global.border/2
+                        ]);
+                        return [
+                            `M ${p[0][0]} ${p[0][1]}`,
+                            `A ${inner} ${inner} 0 0 1 ${p[1][0]} ${p[1][1]}`,
+                            `L ${p[2][0]} ${p[2][1]}`,
+                            `A ${outer} ${outer} 0 0 0 ${p[3][0]} ${p[3][1]}`,
+                            'Z'
+                        ].join(' ');
+                    })
+                },
+                upgrade: {
+                    upgrade,
+                    render: render(upgrade),
+                    id: upgrade.id,
+                    color: computed(() => {
+                        if (unref(upgrade.bought)) return 'var(--bought)';
+                        else if (unref(upgrade.canPurchase)) return 'var(--layer-color)';
+                        else return 'var(--locked)';
+                    }),
+                    distance: computed(() => {
+                        let angle = unref(upgradeData.left[index].base.angle);
+                        if (angle === 0) return unref(outerRadius);
+                        let segmentIndex = (Math.PI - angle) / unref(anglePerSegment);
+                        let height = (values.upgrade.height + values.global.margin) * segmentIndex;
+                        return height / Math.sin(angle);
+                    }),
+                    offset: computed(() => {
+                        let angle = unref(upgradeData.left[index].base.angle);
+                        let radius = unref(upgradeData.left[index].upgrade.distance);
+
+                        let outerPos = Math.cos(angle) * radius;
+                        let innerPos = Math.cos(angle) * unref(outerRadius);
+
+                        return {
+                            x: Math.min(outerPos - innerPos, -unwrapRef(distance)) + innerPos - values.upgrade.width/2,
+                            y: Math.sin(angle) * radius
+                        };
+                    }),
+                    position: computed(() => {
+                        let offset = unref(upgradeData.left[index].upgrade.offset);
+                        return {
+                            top: `${offset.y - values.upgrade.height/2}px`,
+                            left: `${offset.x - values.upgrade.width/2}px`
+                        }
+                    })
+                },
+                line: {
+                    height: computed(() => {
+                        let angle = unref(upgradeData.left[index].base.angle);
+                        let segmentIndex = (Math.PI - angle) / unref(anglePerSegment);
+                        return (values.upgrade.height + values.global.margin) * segmentIndex + values.line.y - values.upgrade.height/2;
+                    }),
+                    angle: computed(() => {
+                        let radius = unref(values.line.radius);
+                        let height = unref(upgradeData.left[index].line.height);
+                        return Math.PI - Math.asin(height / radius);
+                    }),
+                    points: computed(() => {
+                        let angle = unref(upgradeData.left[index].line.angle);
+                        let height = unref(upgradeData.left[index].line.height);
+                        return [
+                            [unref(upgradeData.left[index].upgrade.offset).x - values.upgrade.width/2 + values.line.x, height],
+                            [Math.cos(angle) * unref(values.line.radius), height],
+                            [Math.cos(angle) * unref(outerRadius), Math.sin(angle) * unref(outerRadius)]
+                        ]
+                    }),
+                    bounds: computed(() => {
+                        let points = unref(upgradeData.left[index].line.points);
+                        return {
+                            minX: Math.min(...points.map(point => point[0])),
+                            maxX: Math.max(...points.map(point => point[0])),
+                            minY: Math.min(...points.map(point => point[1])),
+                            maxY: Math.max(...points.map(point => point[1]))
+                        }
+                    }),
+                    size: computed(() => {
+                        let bounds = unref(upgradeData.left[index].line.bounds);
+                        return {
+                            width: bounds.maxX - bounds.minX + values.global.border,
+                            height: bounds.maxY - bounds.minY + values.global.border
+                        }
+                    }),
+                    position: computed(() => {
+                        let bounds = unref(upgradeData.left[index].line.bounds);
+                        return {
+                            top: `${bounds.minY - values.global.border/2}px`,
+                            left: `${bounds.minX - values.global.border/2}px`
+                        };
+                    }),
+                    path: computed(() => {
+                        let points = unref(upgradeData.left[index].line.points);
+                        let bounds = unref(upgradeData.left[index].line.bounds);
+                        let p = points.map(point => [
+                            point[0] - bounds.minX + values.global.border/2,
+                            point[1] - bounds.minY + values.global.border/2
+                        ]);
+                        return [
+                            `M ${p[0][0]} ${p[0][1]}`,
+                            `L ${p[1][0]} ${p[1][1]}`,
+                            `L ${p[2][0]} ${p[2][1]}`
+                        ].join(' ');
+                    })
+                }
+            })),
+            right: unwrapRef(right).map((upgrade, index, array) => ({
+                base: {
+                    index: (() => {
+                        if (index === 0) return computed(() => 0);
+                        return computed(() => unref(upgradeData.right[index-1].base.index) + (unref(array[index-1].visibility) !== Visibility.None ? 1 : 0));
+                    })(),
+                    angle: computed(() => unref(anglePerSegment) * (unref(upgradeData.right[index].base.index) - unref(visibleSegments.right)/2 + 0.5))
+                },
+                ring: {
+                    points: computed(() => {
+                        let baseAngle = unref(upgradeData.right[index].base.angle);
+                        let innerMin = [baseAngle - unref(innerAngle)/2, unref(innerRadius)];
+                        let innerMax = [baseAngle + unref(innerAngle)/2, unref(innerRadius)];
+                        let outerMin = [baseAngle - unref(outerAngle)/2, unref(outerRadius)];
+                        let outerMax = [baseAngle + unref(outerAngle)/2, unref(outerRadius)];
+
+                        return [innerMin, innerMax, outerMax, outerMin].map(([angle, radius]) => [Math.cos(angle) * radius, Math.sin(angle) * radius]);
+                    }),
+                    bounds: computed(() => {
+                        let points = unref(upgradeData.right[index].ring.points);
+                        let bounds = {
+                            minX: Math.min(...points.map(point => point[0])),
+                            maxX: Math.max(...points.map(point => point[0])),
+                            minY: Math.min(...points.map(point => point[1])),
+                            maxY: Math.max(...points.map(point => point[1]))
+                        };
+                        if (Math.sign(bounds.minY) !== Math.sign(bounds.maxY)) {
+                            bounds.maxX = Math.max(unref(outerRadius), bounds.maxX);
+                        }
+                        return bounds;
+                    }),
+                    size: computed(() => {
+                        let bounds = unref(upgradeData.right[index].ring.bounds);
+                        return {
+                            width: bounds.maxX - bounds.minX + values.global.border,
+                            height: bounds.maxY - bounds.minY + values.global.border
+                        };
+                    }),
+                    position: computed(() => {
+                        let bounds = unref(upgradeData.right[index].ring.bounds);
+                        return {
+                            top: `${bounds.minY - values.global.border/2}px`,
+                            left: `${bounds.minX - values.global.border/2}px`
+                        };
+                    }),
+                    path: computed(() => {
+                        let inner = unref(innerRadius);
+                        let outer = unref(outerRadius);
+                        let points = unref(upgradeData.right[index].ring.points);
+                        let bounds = unref(upgradeData.right[index].ring.bounds);
+                        let p = points.map(point => [
+                            point[0] - bounds.minX + values.global.border/2,
+                            point[1] - bounds.minY + values.global.border/2
+                        ]);
+                        return [
+                            `M ${p[0][0]} ${p[0][1]}`,
+                            `A ${inner} ${inner} 0 0 1 ${p[1][0]} ${p[1][1]}`,
+                            `L ${p[2][0]} ${p[2][1]}`,
+                            `A ${outer} ${outer} 0 0 0 ${p[3][0]} ${p[3][1]}`,
+                            'Z'
+                        ].join(' ');
+                    })
+                },
+                upgrade: {
+                    upgrade,
+                    render: render(upgrade),
+                    id: upgrade.id,
+                    color: computed(() => {
+                        if (unref(upgrade.bought)) return 'var(--bought)';
+                        else if (unref(upgrade.canPurchase)) return 'var(--layer-color)';
+                        else return 'var(--locked)';
+                    }),
+                    distance: computed(() => {
+                        let angle = unref(upgradeData.right[index].base.angle);
+                        if (angle === 0) return unref(outerRadius);
+                        let segmentIndex = angle / unref(anglePerSegment);
+                        let height = (values.upgrade.height + values.global.margin) * segmentIndex;
+                        return height / Math.sin(angle);
+                    }),
+                    offset: computed(() => {
+                        let angle = unref(upgradeData.right[index].base.angle);
+                        let radius = unref(upgradeData.right[index].upgrade.distance);
+
+                        let outerPos = Math.cos(angle) * radius;
+                        let innerPos = Math.cos(angle) * unref(outerRadius);
+
+                        return {
+                            x: Math.max(outerPos - innerPos, unwrapRef(distance)) + innerPos + values.upgrade.width/2,
+                            y: Math.sin(angle) * radius
+                        };
+                    }),
+                    position: computed(() => {
+                        let offset = unref(upgradeData.right[index].upgrade.offset);
+                        return {
+                            top: `${offset.y - values.upgrade.height/2}px`,
+                            left: `${offset.x - values.upgrade.width/2}px`
+                        }
+                    })
+                },
+                line: {
+                    height: computed(() => {
+                        let angle = unref(upgradeData.right[index].base.angle);
+                        let segmentIndex = angle / unref(anglePerSegment);
+                        return (values.upgrade.height + values.global.margin) * segmentIndex + values.line.y - values.upgrade.height/2;
+                    }),
+                    angle: computed(() => {
+                        let radius = unref(values.line.radius);
+                        let height = unref(upgradeData.right[index].line.height);
+                        return Math.asin(height / radius);
+                    }),
+                    points: computed(() => {
+                        let angle = unref(upgradeData.right[index].line.angle);
+                        let height = unref(upgradeData.right[index].line.height);
+                        return [
+                            [unref(upgradeData.right[index].upgrade.offset).x + values.upgrade.width/2 - values.line.x, height],
+                            [Math.cos(angle) * unref(values.line.radius), height],
+                            [Math.cos(angle) * unref(outerRadius), Math.sin(angle) * unref(outerRadius)]
+                        ]
+                    }),
+                    bounds: computed(() => {
+                        let points = unref(upgradeData.right[index].line.points);
+                        return {
+                            minX: Math.min(...points.map(point => point[0])),
+                            maxX: Math.max(...points.map(point => point[0])),
+                            minY: Math.min(...points.map(point => point[1])),
+                            maxY: Math.max(...points.map(point => point[1]))
+                        }
+                    }),
+                    size: computed(() => {
+                        let bounds = unref(upgradeData.right[index].line.bounds);
+                        return {
+                            width: bounds.maxX - bounds.minX + values.global.border,
+                            height: bounds.maxY - bounds.minY + values.global.border
+                        }
+                    }),
+                    position: computed(() => {
+                        let bounds = unref(upgradeData.right[index].line.bounds);
+                        return {
+                            top: `${bounds.minY - values.global.border/2}px`,
+                            left: `${bounds.minX - values.global.border/2}px`
+                        };
+                    }),
+                    path: computed(() => {
+                        let points = unref(upgradeData.right[index].line.points);
+                        let bounds = unref(upgradeData.right[index].line.bounds);
+                        let p = points.map(point => [
+                            point[0] - bounds.minX + values.global.border/2,
+                            point[1] - bounds.minY + values.global.border/2
+                        ]);
+                        return [
+                            `M ${p[0][0]} ${p[0][1]}`,
+                            `L ${p[1][0]} ${p[1][1]}`,
+                            `L ${p[2][0]} ${p[2][1]}`
+                        ].join(' ');
+                    })
+                }
+            }))
+        };
+
+        return {
+            render,
+            unref,
+            Visibility,
+
+            upgradeData,
+            values
+        }
+    }
+})
+</script>
+
+<style>
+.ring-container {
+    pointer-events: none;
+    position: relative;
+    width: max-content;
+    min-height: max-content;
+}
+
+.ring-segment {
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+
+.ring-line {
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+
+.ring-upgrade.ring-upgrade {
+    pointer-events: all;
+    
+    margin: 0;
+    padding: 5px 10px;
+    width: 250px;
+    min-height: 125px;
+    
+    position: absolute;
+    top: 0;
+    left: 0;
+
+    border-radius: 0;
+    border-width: 2px;
+    background: #0000002F;
+}
+
+.ring-upgrade.left {
+    text-align: left;
+    border-style: solid solid solid none;
+}
+
+.ring-upgrade.right {
+    text-align: right;
+    border-style: solid none solid solid;
+}
+
+.ring-upgrade.locked {
+    border-color: var(--locked);
+    color: var(--locked);
+}
+
+.ring-upgrade.can {
+    border-color: var(--layer-color);
+    color: var(--layer-color);
+}
+
+.ring-upgrade.bought {
+    border-color: var(--bought);
+    color: var(--bought);
+}
+
+.ring-upgrade.can:hover {
+    transform: none;
+    box-shadow: inset 0 0 20px var(--layer-color);
+}
+
+</style>
