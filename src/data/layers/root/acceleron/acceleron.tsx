@@ -53,10 +53,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
             scaling: createPolynomialScaling(1e6, 0.1),
             baseResource: fome.amounts[FomeTypes.quantum],
             gainResource: accelerons,
-            costModifier: createSequentialModifier(
-                createMultiplicativeModifier(upgrades.rfToAccGain.effect, '', upgrades.rfToAccGain.bought),
-                createMultiplicativeModifier(upgrades.lpToAccGain.effect, '', upgrades.lpToAccGain.bought)
-            )
+            costModifier: createSequentialModifier(() => [
+                createMultiplicativeModifier(() => ({ multiplier: upgrades.rfToAccGain.effect, enabled: upgrades.rfToAccGain.bought })),
+                createMultiplicativeModifier(() => ({ multiplier: upgrades.lpToAccGain.effect, enabled: upgrades.lpToAccGain.bought }))
+            ])
         })),
         createCumulativeConversion(() => ({
             scaling: createPolynomialScaling(1e80, 0.05),
