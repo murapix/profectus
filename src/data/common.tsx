@@ -20,6 +20,7 @@ import type {
     ProcessedComputable
 } from "util/computed";
 import { convertComputable, processComputable } from "util/computed";
+import { createLazyProxy } from "util/proxies";
 import { renderJSX } from "util/vue";
 import type { Ref } from "vue";
 import { computed, unref } from "vue";
@@ -29,7 +30,12 @@ import "./common.css";
 export interface ResetButtonOptions extends ClickableOptions {
     /** The conversion the button uses to calculate how much resources will be gained on click */
     conversion: GenericConversion;
-    /** 
+
+    /** The tree this reset button is apart of */
+    tree?: GenericTree;
+    /** The specific tree node associated with this reset button */
+    treeNode?: GenericTreeNode;
+    /**
      * Text to display on low conversion amounts, describing what "resetting" is in this context.
      * Defaults to "Reset for ".
      */
@@ -227,42 +233,66 @@ export function createLayerTreeNode<T extends LayerTreeNodeOptions>(
     }) as unknown as LayerTreeNode<T>;
 }
 
+/** An option object for a modifier display as a single section. **/
+export interface Section {
+    /** The header for this modifier. **/
+    title: string;
+    /** A subtitle for this modifier, e.g. to explain the context for the modifier. **/
+    subtitle?: string;
+    /** The modifier to be displaying in this section. **/
+    modifier: WithRequired<Modifier, "description">;
+    /** The base value being modified. **/
+    base?: Computable<DecimalSource>;
+    /** The unit of measurement for the base. **/
+    unit?: string;
+    /** The label to call the base amount. Defaults to "Base". **/
+    baseText?: Computable<CoercableComponent>;
+    /** Whether or not this section should be currently visible to the player. **/
+    visible?: Computable<boolean>;
+}
+
 /**
  * Takes an array of modifier "sections", and creates a JSXFunction that can render all those sections, and allow each section to be collapsed.
  * Also returns a list of persistent refs that are used to control which sections are currently collapsed.
- * @param sections An array of options objects for each section to display.
- * @param sections.title The header for this modifier.
- * @param sections.subtitle A subtitle for this modifier, e.g. to explain the context for the modifier.
- * @param sections.modifier The modifier to be displaying in this section.
- * @param sections.base The base value being modified.
- * @param sections.unit The unit of measurement for the base.
- * @param sections.baseText The label to call the base amount.
- * @param sections.visible Whether or not this section should be currently visible to the player.
+ * @param sectionsFunc A function that returns the sections to display.
  */
 export function createCollapsibleModifierSections(
-    sections: {
-        title: string;
-        subtitle?: string;
-        modifier: WithRequired<Modifier, "description">;
-        base?: Computable<DecimalSource>;
-        unit?: string;
-        baseText?: Computable<CoercableComponent>;
-        visible?: Computable<boolean>;
-    }[]
-): [JSXFunction, Persistent<boolean>[]] {
-    const processedBase = sections.map(s => convertComputable(s.base));
-    const processedBaseText = sections.map(s => convertComputable(s.baseText));
-    const processedVisible = sections.map(s => convertComputable(s.visible));
-    const collapsed = sections.map(() => persistent<boolean>(false));
+    sectionsFunc: () => Section[]
+): [JSXFunction, Persistent<Record<number, boolean>>] {
+    const sections: Section[] = [];
+    const processed:
+        | {
+              base: ProcessedComputable<DecimalSource | undefined>[];
+              baseText: ProcessedComputable<CoercableComponent | undefined>[];
+              visible: ProcessedComputable<boolean | undefined>[];
+          }
+        | Record<string, never> = {};
+    let calculated = false;
+    function calculateSections() {
+        if (!calculated) {
+            sections.push(...sectionsFunc());
+            processed.base = sections.map(s => convertComputable(s.base));
+            processed.baseText = sections.map(s => convertComputable(s.baseText));
+            processed.visible = sections.map(s => convertComputable(s.visible));
+            calculated = true;
+        }
+        return sections;
+    }
+
+    const collapsed = persistent<Record<number, boolean>>({});
     const jsxFunc = jsx(() => {
+        const sections = calculateSections();
+
         const sectionJSX = sections.map((s, i) => {
-            if (unref(processedVisible[i]) === false) return null;
+            if (unref(processed.visible[i]) === false) return null;
             const header = (
                 <h3
-                    onClick={() => (collapsed[i].value = !collapsed[i].value)}
+                    onClick={() => (collapsed.value[i] = !collapsed.value[i])}
                     style="cursor: pointer"
                 >
-                    <span class={"modifier-toggle" + (unref(collapsed[i]) ? " collapsed" : "")}>
+                    <span
+                        class={"modifier-toggle" + (unref(collapsed.value[i]) ? " collapsed" : "")}
+                    >
                         ▼
                     </span>
                     {s.title}
@@ -270,15 +300,15 @@ export function createCollapsibleModifierSections(
                 </h3>
             );
 
-            const modifiers = unref(collapsed[i]) ? null : (
+            const modifiers = unref(collapsed.value[i]) ? null : (
                 <>
                     <div class="modifier-container">
                         <span class="modifier-amount">
-                            {format(unref(processedBase[i]) ?? 1)}
+                            {format(unref(processed.base[i]) ?? 1)}
                             {s.unit}
                         </span>
                         <span class="modifier-description">
-                            {renderJSX(unref(processedBaseText[i]) ?? "Base")}
+                            {renderJSX(unref(processed.baseText[i]) ?? "Base")}
                         </span>
                     </div>
                     {renderJSX(unref(s.modifier.description))}
@@ -293,7 +323,7 @@ export function createCollapsibleModifierSections(
                         <br />
                         {modifiers}
                         <hr />
-                        Total: {format(s.modifier.apply(unref(processedBase[i]) ?? 1))}
+                        Total: {format(s.modifier.apply(unref(processed.base[i]) ?? 1))}
                         {s.unit}
                     </div>
                 </>
@@ -309,6 +339,6 @@ export function createCollapsibleModifierSections(
  * @param textToColor The content to change the color of
  * @param color The color to change the content to look like. Defaults to the current theme's accent 2 variable.
  */
-export function colorText(textToColor: string, color = "var(--accent2)"): string {
-    return `<span style="color: ${color}">${textToColor}</span>`;
+export function colorText(textToColor: string, color = "var(--accent2)"): JSX.Element {
+    return <span style={{ color }}>{textToColor}</span>;
 }
