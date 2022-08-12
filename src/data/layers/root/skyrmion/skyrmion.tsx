@@ -81,7 +81,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                                     .times(unref(pionUpgrades.mu.effect)))    
     
     this.on("preUpdate", diff => {
-        const modifiedDiff = Decimal.times(diff, unref(acceleron.timeMult));
+        const modifiedDiff = unref(acceleron.timeMult).times(diff);
         pions.value = modifiedDiff.times(unref(pionRate)).plus(unref(pions));
         spinors.value = modifiedDiff.times(unref(spinorRate)).plus(unref(spinors));
     });
@@ -144,21 +144,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
         )
     }));
 
-    const reset = createReset(() => ({
-        thingsToReset: (): Record<string, unknown>[] => []
-    }));
-
-    const treeNode = createLayerTreeNode(() => ({
-        display: "S",
-        layerID: id,
-        color,
-        reset
-    }));
-
     const resetButton = createResetButton(() => ({
         conversion,
-        tree: root.tree,
-        treeNode,
         style: {
             ...(hexStyle as CSSProperties),
             paddingHorizontal: "20px"
@@ -699,7 +686,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             .filter(bought => bought)
             .length
     })
-    watch(abyssUpgradeCount, () => abyssChallenge.completions.value = new Decimal(unref(abyssUpgradeCount)));
+    watch(abyssUpgradeCount, count => abyssChallenge.completions.value = new Decimal(count));
 
     return {
         name,
@@ -746,7 +733,6 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 <SkyrmionVue>{render(resetButton)}</SkyrmionVue>
             </>
         )),
-        treeNode,
         conversion
     };
 

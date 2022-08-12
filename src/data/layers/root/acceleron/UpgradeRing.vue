@@ -1,13 +1,31 @@
 <template>
     <div class="ring-container" :style="{top: `${unref(radius)}px`}">
         <template v-for="(upgrades, side) in upgradeData">
-            <template v-for="(upgrade, index) in unref(upgrades)" :key="upgrade">
+            <template v-for="upgrade in unref(upgrades)" :key="upgrade.upgrade.id">
                 <svg :width="unref(upgrade.ring.size).width"
-                    :height="unref(upgrade.ring.size).height"
-                    :style="unref(upgrade.ring.position)"
-                    class="ring-segment"
-                    v-if="unref(upgrade.upgrade.upgrade.visibility) === Visibility.Visible">
-                    <path :d="unref(upgrade.ring.path)" :stroke="unref(upgrade.upgrade.color)" :stroke-width="`${values.global.border}px`" fill="none"/>
+                     :height="unref(upgrade.ring.size).height"
+                     :style="{...unref(upgrade.ring.position), '--shadow-id': `url(#${upgrade.upgrade.id}-shadow)` }"
+                      class="ring-segment"
+                     :id="`${upgrade.upgrade.id}-ring`"
+                      v-if="unref(upgrade.upgrade.upgrade.visibility) === Visibility.Visible"
+                     @mouseenter="onMouseEnter(upgrade.upgrade.id)"
+                     @mouseleave="onMouseLeave(upgrade.upgrade.id)"
+                     @click="upgrade.upgrade.upgrade.purchase">
+                    <path :d="unref(upgrade.ring.path)" :stroke="unref(upgrade.upgrade.color)" :stroke-width="`${values.global.border}px`" fill="var(--background)"
+                        :class="{ can: unref(upgrade.upgrade.upgrade.canPurchase) }"/>
+                    <filter :id="`${upgrade.upgrade.id}-shadow`">
+                        <feOffset dx="0" dy="0" />
+                        <feGaussianBlur stdDeviation="0" result="offset-blur">
+                            <animate attributeName="stdDeviation" restart="whenNotActive" fill="freeze"
+                                        to="6" dur="0.5s" begin="indefinite" />
+                            <animate attributeName="stdDeviation" restart="whenNotActive" fill="freeze"
+                                        to="0" dur="0.5s" begin="indefinite" />
+                        </feGaussianBlur>
+                        <feComposite operator="out" in="SourceGraphic" in2="offset-blur" result="inverse" />
+                        <feFlood :flood-color="unref(upgrade.upgrade.color)" flood-opacity="1" result="color" />
+                        <feComposite operator="in" in="color" in2="inverse" result="shadow" />
+                        <feComposite operator="over" in="shadow" in2="SourceGraphic" />
+                    </filter>
                 </svg>
                 <svg :width="unref(upgrade.line.size).width"
                      :height="unref(upgrade.line.size).height"
@@ -16,10 +34,14 @@
                      v-if="unref(upgrade.upgrade.upgrade.visibility) === Visibility.Visible">
                      <path :d="unref(upgrade.line.path)" :stroke="unref(upgrade.upgrade.color)" :stroke-width="`${values.global.border}px`" fill="none" />
                 </svg>
-                <component :is="upgrade.upgrade.render"
-                           :style="{...unref(upgrade.upgrade.position), width: values.upgrade.width, minHeight: values.upgrade.height}"
-                            class="ring-upgrade"
-                           :class="side" />
+                <div :id="`${upgrade.upgrade.id}-upgrade`">
+                    <component :is="upgrade.upgrade.render"
+                               :style="{...unref(upgrade.upgrade.position), width: values.upgrade.width, minHeight: values.upgrade.height}"
+                                class="ring-upgrade"
+                               :class="side"
+                               @mouseenter="onMouseEnter(upgrade.upgrade.id)"
+                               @mouseleave="onMouseLeave(upgrade.upgrade.id)"/>
+                </div>
             </template>
         </template>
     </div>
@@ -132,6 +154,7 @@ export default defineComponent({
         type Line = {
             height: ComputedRef<number>,
             angle: ComputedRef<number>,
+            radius: ComputedRef<number>,
             points: ComputedRef<Points>,
             bounds: ComputedRef<Bounds>
             size: ComputedRef<Size>,
@@ -248,14 +271,21 @@ export default defineComponent({
                     angle: computed(() => {
                         let radius = unref(values.line.radius);
                         let height = unref(upgradeData.left[index].line.height);
-                        return Math.PI - Math.asin(height / radius);
+                        let angle = Math.PI - Math.asin(height / radius);
+                        return Math.min(unref(upgradeData.left[index].base.angle) + unref(outerAngle)/2, angle)
+                    }),
+                    radius: computed(() => {
+                        let height = unref(upgradeData.left[index].line.height);
+                        let angle = unref(upgradeData.left[index].line.angle);
+                        return height / Math.sin(angle);
                     }),
                     points: computed(() => {
                         let angle = unref(upgradeData.left[index].line.angle);
                         let height = unref(upgradeData.left[index].line.height);
+                        let radius = unref(upgradeData.left[index].line.radius);
                         return [
                             [unref(upgradeData.left[index].upgrade.offset).x - values.upgrade.width/2 + values.line.x, height],
-                            [Math.cos(angle) * unref(values.line.radius), height],
+                            [Math.cos(angle) * radius, height],
                             [Math.cos(angle) * unref(outerRadius), Math.sin(angle) * unref(outerRadius)]
                         ]
                     }),
@@ -405,14 +435,21 @@ export default defineComponent({
                     angle: computed(() => {
                         let radius = unref(values.line.radius);
                         let height = unref(upgradeData.right[index].line.height);
-                        return Math.asin(height / radius);
+                        let angle = Math.asin(height / radius);
+                        return Math.max(unref(upgradeData.right[index].base.angle) - unref(outerAngle)/2, angle)
+                    }),
+                    radius: computed(() => {
+                        let height = unref(upgradeData.right[index].line.height);
+                        let angle = unref(upgradeData.right[index].line.angle);
+                        return height / Math.sin(angle);
                     }),
                     points: computed(() => {
                         let angle = unref(upgradeData.right[index].line.angle);
                         let height = unref(upgradeData.right[index].line.height);
+                        let radius = unref(upgradeData.right[index].line.radius);
                         return [
                             [unref(upgradeData.right[index].upgrade.offset).x + values.upgrade.width/2 - values.line.x, height],
-                            [Math.cos(angle) * unref(values.line.radius), height],
+                            [Math.cos(angle) * radius, height],
                             [Math.cos(angle) * unref(outerRadius), Math.sin(angle) * unref(outerRadius)]
                         ]
                     }),
@@ -456,10 +493,23 @@ export default defineComponent({
             }))
         };
 
+        function onMouseEnter(id: string) {
+            (document.getElementById(`${id}-ring`)?.children[1].children[1].children[0] as SVGAnimationElement).beginElement();
+            document.getElementById(`${id}-upgrade`)?.children[0].classList.add("hover");
+        }
+
+        function onMouseLeave(id: string) {
+            (document.getElementById(`${id}-ring`)?.children[1].children[1].children[1] as SVGAnimationElement).beginElement();
+            document.getElementById(`${id}-upgrade`)?.children[0].classList.remove("hover");
+        }
+
         return {
             render,
             unref,
             Visibility,
+
+            onMouseEnter,
+            onMouseLeave,
 
             upgradeData,
             values
@@ -477,9 +527,15 @@ export default defineComponent({
 }
 
 .ring-segment {
+    pointer-events: fill;
     position: absolute;
     top: 0;
     left: 0;
+}
+
+.ring-segment > .can {
+    transform: none;
+    filter: var(--shadow-id);
 }
 
 .ring-line {
@@ -530,7 +586,7 @@ export default defineComponent({
     color: var(--bought);
 }
 
-.ring-upgrade.can:hover {
+.ring-upgrade.can:hover, .ring-upgrade.can.hover {
     transform: none;
     box-shadow: inset 0 0 20px var(--layer-color);
 }

@@ -1,28 +1,26 @@
 import { jsx, showIf, Visibility } from "features/feature";
 import { createTab } from "features/tabs/tab";
 import { createTabFamily, GenericTabFamily } from "features/tabs/tabFamily";
-import { createTree, GenericTree } from "features/trees/tree";
 import { createLayer, GenericLayer } from "game/layers";
 import player, { PlayerData } from "game/player";
 import { format } from "util/bignum";
 import { render } from "util/vue";
 import { computed, Ref, unref } from "vue";
 import acceleron from "./layers/root/acceleron/acceleron";
+import entropy from "./layers/root/acceleron/entropy";
 import entangled from "./layers/root/entangled/entangled";
 import fome from "./layers/root/fome/fome";
 import skyrmion from "./layers/root/skyrmion/skyrmion";
+import timecube from "./layers/root/timecube/timecube";
 
 /**
  * @hidden
  */
 const id = "root";
 export const root = createLayer(id, () => {
-    const tree = createTree(() => ({
-        nodes: [[skyrmion.treeNode], [fome.treeNode], [acceleron.treeNode], [entangled.treeNode]]
-    })) as GenericTree;
-
     type layer = GenericLayer & { unlocked?: Ref<boolean>, boughtColor?: string }
-    const layers: {[key: number]: layer} = Object.fromEntries([skyrmion, fome, acceleron, /*timecube,*/ /*inflaton,*/ entangled].map((layer, index) => [index, layer]));
+    const layers: {[key: number]: layer} = Object.fromEntries([skyrmion, fome, acceleron, timecube, /*inflaton,*/ entangled].map((layer, index) => [index, layer]));
+    const subLayers: {[key: number]: layer} = Object.fromEntries([entropy].map((layer, index) => [index, layer]));
 
     const tabs: GenericTabFamily = createTabFamily(Object.fromEntries(Object.values(layers).map(layer => 
         [layer.name, () => ({
@@ -47,8 +45,7 @@ export const root = createLayer(id, () => {
     )));
 
     return {
-        name: "Tree",
-        links: tree.links,
+        name: "Root",
         minWidth: 300,
         minimizable: false,
         display: jsx(() => (
@@ -61,9 +58,9 @@ export const root = createLayer(id, () => {
                 }
             </>
         )),
-        tree,
         tabs,
-        layers
+        layers,
+        subLayers
     };
 });
 
@@ -74,7 +71,7 @@ export const root = createLayer(id, () => {
 export const getInitialLayers = (
     /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
     player: Partial<PlayerData>
-): Array<GenericLayer> => [root, ...Object.values(root.layers)];
+): Array<GenericLayer> => [root, ...Object.values(root.layers), ...Object.values(root.subLayers)];
 
 /**
  * A computed ref whose value is true whenever the game is over.

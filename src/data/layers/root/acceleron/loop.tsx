@@ -1,8 +1,9 @@
 import { Visibility, CoercableComponent, GatherProps, Replace, OptionsFunc, getUniqueID, Component } from "features/feature";
 import { Persistent, persistent } from "game/persistence";
-import { DecimalSource } from "lib/break_eternity";
-import { Computable, GetComputableTypeWithDefault, GetComputableType, processComputable } from "util/computed";
+import Decimal, { DecimalSource } from "lib/break_eternity";
+import { Computable, GetComputableTypeWithDefault, GetComputableType, processComputable, ProcessedComputable } from "util/computed";
 import { createLazyProxy } from "util/proxies";
+import { unref, watch } from "vue";
 import LoopVue from "./Loop.vue";
 
 export const LoopType = Symbol("Loop");
@@ -12,12 +13,13 @@ export interface LoopOptions {
     buildRequirement: Computable<DecimalSource>;
     triggerRequirement: Computable<DecimalSource>;
     display: Computable<{
-        color: string;
+        color: ProcessedComputable<string>;
         width: number;
         description: CoercableComponent;
     }>;
+    persistentBoost?: boolean;
     effect: Computable<any>; // eslint-disable-line @typescript-eslint/no-explicit-any
-    trigger: (this: BaseLoop, intervals?: DecimalSource) => void;
+    trigger: (this: BaseLoop, intervals: DecimalSource) => void;
 }
 
 export interface BaseLoop {
@@ -27,8 +29,9 @@ export interface BaseLoop {
     buildProgress: Persistent<DecimalSource>;
     buildRequirement: Computable<DecimalSource>;
     built: Persistent<boolean>;
+    currentBoost?: Persistent<DecimalSource>;
     effect: Computable<any>; // eslint-disable-line @typescript-eslint/no-explicit-any
-    trigger(intervals?: DecimalSource): void;
+    trigger(intervals: DecimalSource): void;
     type: typeof LoopType;
     [Component]: typeof LoopVue;
     [GatherProps]: () => Record<string, unknown>;
@@ -61,6 +64,14 @@ export function createLoop<T extends LoopOptions>(optionsFunc: OptionsFunc<T, Ba
         loop.buildProgress = buildProgress;
         loop.built = built;
 
+        if (loop.persistentBoost)
+            loop.currentBoost = persistent<DecimalSource>(0)
+
+        watch(loop.buildProgress, progress => {
+            if (Decimal.gte(progress, unref(loop.buildRequirement as ProcessedComputable<DecimalSource>)))
+                built.value = true;
+        })
+        
         processComputable(loop as T, "visibility");
         processComputable(loop as T, "buildRequirement");
         processComputable(loop as T, "triggerRequirement");
@@ -76,7 +87,8 @@ export function createLoop<T extends LoopOptions>(optionsFunc: OptionsFunc<T, Ba
                 buildRequirement,
                 built,
                 triggerProgress,
-                triggerRequirement
+                triggerRequirement,
+                currentBoost
             } = this;
             return {
                 visibility,
@@ -85,7 +97,8 @@ export function createLoop<T extends LoopOptions>(optionsFunc: OptionsFunc<T, Ba
                 buildRequirement,
                 built,
                 triggerProgress,
-                triggerRequirement
+                triggerRequirement,
+                currentBoost
             };
         };
 

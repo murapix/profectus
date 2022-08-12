@@ -11,10 +11,12 @@
             :cx="unref(center)"
             :cy="unref(center)"
             :r="unref(radius)"
-            :transform="unref(rotate)"
-            :transform-origin="`${unref(center)} ${unref(center)}`"
             stroke-linecap="round"
-            style="transition-duration: 0s"
+            :style="{
+                transitionDuration: '0s',
+                transform: unref(rotate),
+                transformOrigin: `${unref(center)}px ${unref(center)}px`
+            }"
             />
 </template>
 
@@ -53,7 +55,7 @@ export default defineComponent({
         const center = computed(() => unwrapRef(radius) + unwrapRef(width)/2);
 
         const arcString = computed(() => `${unref(arc)}, ${unref(circumference)}`)
-        const rotationString = computed(() => `rotate(${unwrapRef(offset)})`)
+        const rotationString = computed(() => `rotate(${unwrapRef(offset)}deg)`)
 
         return {
             arc: arcString,

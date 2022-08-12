@@ -33,17 +33,9 @@ const layer = createLayer("entangled", () => {
         thingsToReset: (): Record<string, unknown>[] => []
     }));
 
-    const treeNode = createLayerTreeNode(() => ({
-        display: "E",
-        layerID: "entangled",
-        color,
-        reset
-    }));
 
     const resetButton = createResetButton(() => ({
-        conversion,
-        tree: root.tree,
-        treeNode
+        conversion
     }));
 
     return {
@@ -71,8 +63,7 @@ const layer = createLayer("entangled", () => {
                 </div>
                 <Spacer />
             </>
-        )),
-        treeNode
+        ))
     };
 });
 

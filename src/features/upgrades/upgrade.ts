@@ -177,6 +177,10 @@ export function createUpgrade<T extends UpgradeOptions>(
     });
 }
 
+export function getUpgradeEffect(upgrade: GenericUpgrade, defaultValue: any = 1): any {
+    return unref(upgrade.bought) ? unref(upgrade.effect) : defaultValue;
+}
+
 export function setupAutoPurchase(
     layer: GenericLayer,
     autoActive: Computable<boolean>,

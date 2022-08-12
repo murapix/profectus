@@ -1,25 +1,30 @@
 import { CoercableComponent, getUniqueID, jsx, OptionsFunc, Replace, showIf, StyleValue, Visibility } from "features/feature";
 import { createResource, Resource } from "features/resources/resource";
-import { BaseLayer, createLayer } from "game/layers";
-import Decimal, { DecimalSource, format } from "util/bignum";
-import { Persistent, persistent, PersistentState } from "game/persistence";
-import { createLayerTreeNode } from "data/common";
-import { computed, ComputedRef, Ref, unref } from "vue";
-import { render, renderRowJSX } from "util/vue";
-import ResourceVue from "features/resources/Resource.vue";
-import Spacer from "components/layout/Spacer.vue";
-import skyrmion from "../skyrmion/skyrmion";
 import { createBuyable, GenericBuyable } from "features/buyable";
-import { Computable, convertComputable, GetComputableType, processComputable, ProcessedComputable } from "util/computed";
-import FomeVue from "./Fome.vue";
-import { createUpgrade, GenericUpgrade } from "features/upgrades/upgrade";
-import { createLazyProxy } from "util/proxies";
-import { formatWhole } from "util/break_eternity";
+import { createUpgrade, GenericUpgrade, getUpgradeEffect } from "features/upgrades/upgrade";
 import { createTabFamily } from "features/tabs/tabFamily";
 import { createTab } from "features/tabs/tab";
-import FomeBoostVue from "./FomeBoost.vue";
 import { createAchievement, GenericAchievement } from "features/achievements/achievement";
 import { addTooltip } from "features/tooltips/tooltip";
+import { BaseLayer, createLayer } from "game/layers";
+import { Persistent, persistent, PersistentState } from "game/persistence";
+import { Computable, convertComputable, GetComputableType, processComputable, ProcessedComputable } from "util/computed";
+import { createLazyProxy } from "util/proxies";
+import { formatWhole } from "util/break_eternity";
+import Decimal, { DecimalSource, format } from "util/bignum";
+import { render, renderRowJSX } from "util/vue";
+import { computed, ComputedRef, Ref, unref } from "vue";
+
+import ResourceVue from "features/resources/Resource.vue";
+import SpacerVue from "components/layout/Spacer.vue";
+import FomeVue from "./Fome.vue";
+import FomeBoostVue from "./FomeBoost.vue";
+
+import skyrmion from "../skyrmion/skyrmion";
+import acceleron from "../acceleron/acceleron";
+import entropy from "../acceleron/entropy";
+import timecube from "../timecube/timecube";
+
 
 export enum FomeTypes {
     protoversal = "protoversal",
@@ -78,8 +83,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
         Decimal.add(unref(skyrmion.skyrmions), getFomeBoost(FomeTypes.subspatial, 4))
             .divide(100)
             .times(unref(skyrmion.spinorUpgrades.eta.effect))
-            .times(1) // acceleron fome boost
-            .times(1) // acceleron upgrade 121
+            .times(getUpgradeEffect(acceleron.upgrades.fomeGain))
+            .times(getUpgradeEffect(entropy.enhancements.invention))
+            .times(unref(acceleron.loops.tempFoam.currentBoost!))
+            .times(getUpgradeEffect(entropy.enhancements.formation))
             .times(unref(inflatonBonus)) // inflaton bonus
             .times(1) // inflaton upgrade 21
             .times(getFomeBoost(FomeTypes.quantum, 1))
@@ -100,10 +107,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
         [FomeTypes.quantum]: computed(() => Decimal.dOne)
     };
     const miscMulti: Record<FomeTypes, ComputedRef<Decimal>> = {
-        [FomeTypes.protoversal]: computed(() => new Decimal(unref(skyrmion.pionUpgrades.delta.effect)).times(unref(skyrmion.pionUpgrades.epsilon.effect)).times(unref(skyrmion.pionUpgrades.theta.effect)).times(1/* acceleron upgrade 11 */)),
-        [FomeTypes.infinitesimal]: computed(() => new Decimal(unref(skyrmion.pionUpgrades.iota.effect)).times(unref(skyrmion.spinorUpgrades.epsilon.effect)).times(unref(skyrmion.spinorUpgrades.iota.effect)).times(1/* acceleron upgrade 11 */).times(1/* acceleron upgrade 131 */)),
-        [FomeTypes.subspatial]: computed(() => new Decimal(unref(skyrmion.pionUpgrades.zeta.effect)).times(unref(skyrmion.spinorUpgrades.theta.effect)).times(1/* acceleron upgrade 11 */).times(1/* acceleron upgrade 23 */).times(1/* acceleron upgrade 132 */)),
-        [FomeTypes.subplanck]: computed(() => new Decimal(1/* acceleron upgrade 133 */)),
+        [FomeTypes.protoversal]: computed(() => new Decimal(unref(skyrmion.pionUpgrades.delta.effect)).times(unref(skyrmion.pionUpgrades.epsilon.effect)).times(unref(skyrmion.pionUpgrades.theta.effect))),
+        [FomeTypes.infinitesimal]: computed(() => new Decimal(unref(skyrmion.pionUpgrades.iota.effect)).times(unref(skyrmion.spinorUpgrades.epsilon.effect)).times(unref(skyrmion.spinorUpgrades.iota.effect)).times(getUpgradeEffect(entropy.enhancements.extension))),
+        [FomeTypes.subspatial]: computed(() => new Decimal(unref(skyrmion.pionUpgrades.zeta.effect)).times(unref(skyrmion.spinorUpgrades.theta.effect)).times(1/* acceleron upgrade 23 */).times(getUpgradeEffect(entropy.enhancements.configuration))),
+        [FomeTypes.subplanck]: computed(() => getUpgradeEffect(entropy.enhancements.invention)),
         [FomeTypes.quantum]: computed(() => Decimal.dOne)
     };
     const fomeRate = Object.fromEntries(
@@ -123,7 +130,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
     this.on("preUpdate", (diff: number) => {
         if (!unref(unlocked)) return;
 
-        const delta = Decimal.times(diff, 1);
+        const delta = unref(acceleron.timeMult).times(diff);
         Object.values(FomeTypes).forEach(type => {
             if (Decimal.gt(unref(reformUpgrades[type].amount), 0))
                 amounts[type].value = unref(fomeRate[type]).times(delta).plus(unref(amounts[type])).max(0);
@@ -226,14 +233,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             display: display,
             effect() { return Decimal.add(unref(this.amount), 1); },
             cost() { return cost(unref(this.amount)); },
-            style() {
-                const currentStyle: StyleValue = {
-                    width: "100%",
-                    minHeight: "100px"
-                }
-                if (unref(achievements[type].earned)) currentStyle.backgroundColor = "var(--bought)";
-                return currentStyle;
-            },
+            classes: () => ({ auto: unref(achievements[type].earned) }),
             onPurchase(cost?: DecimalSource) {
                 const index = boosts[type].index;
                 const boost = boosts[type][unref(index)].amount;
@@ -271,7 +271,6 @@ const layer = createLayer(id, function (this: BaseLayer) {
             resource: amounts[FomeTypes.protoversal],
             display: { description: `Condense your ${amounts.protoversal.displayName}` },
             cost: 1e4,
-            style: { width: "100%", minHeight: "100px" },
             onPurchase() { reformUpgrades.infinitesimal.amount.value = Decimal.dOne }
         })),
         [FomeTypes.infinitesimal]: createUpgrade(() => ({
@@ -279,7 +278,6 @@ const layer = createLayer(id, function (this: BaseLayer) {
             resource: amounts[FomeTypes.infinitesimal],
             display: { description: `Condense your ${amounts.infinitesimal.displayName}` },
             cost: 2e4,
-            style: { width: "100%", minHeight: "100px" },
             onPurchase() { reformUpgrades.subspatial.amount.value = Decimal.dOne }
         })),
         [FomeTypes.subspatial]: createUpgrade(() => ({
@@ -287,7 +285,6 @@ const layer = createLayer(id, function (this: BaseLayer) {
             resource: amounts[FomeTypes.subspatial],
             display: { description: `Condense your ${amounts.subspatial.displayName}` },
             cost: 4e5,
-            style: { width: "100%", minHeight: "100px" },
             onPurchase() { reformUpgrades.subplanck.amount.value = Decimal.dOne }
         })),
         [FomeTypes.subplanck]: createUpgrade(() => ({
@@ -295,15 +292,13 @@ const layer = createLayer(id, function (this: BaseLayer) {
             resource: amounts[FomeTypes.subplanck],
             display: { description: `Condense your ${amounts.subplanck.displayName}` },
             cost: 1e7,
-            style: { width: "100%", minHeight: "100px" },
             onPurchase() { reformUpgrades.quantum.amount.value = Decimal.dOne }
         })),
         [FomeTypes.quantum]: createUpgrade(() => ({
             visibility() { return showIf(!unref(this.bought) && unref(condenseUpgrades.subplanck.bought)); },
             resource: amounts[FomeTypes.quantum],
             display: { description: `Condense your ${amounts.quantum.displayName}` },
-            cost: 1e5,
-            style: { width: "100%", minHeight: "100px" }
+            cost: 1e5
         }))
     };
 
@@ -352,6 +347,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                     );
                 }),
                 cost() { return reformCosts[type](new Decimal(unref(this.amount))); },
+                classes: () => ({ auto: unref(achievements.reform.earned) }),
                 requires: reformLimits[type],
                 effect() { return Decimal.cbrt(unref(this.amount)); },
                 canPurchase() {
@@ -359,39 +355,40 @@ const layer = createLayer(id, function (this: BaseLayer) {
                     unref(this.canAfford) &&
                     Decimal.lt(unref(this.amount), unref((this as ReformUpgrade).requires)) &&
                     Decimal.lt(unref(this.amount), unref(convertComputable(this.purchaseLimit)))
-                },
-                style: { width: "100%", minHeight: "100px" }
+                }
             }))
         ])
     ) as Record<FomeTypes, ReformUpgrade>;
     
+    const globalBoost = computed(() => Decimal.add(getUpgradeEffect(entropy.enhancements.entitlement, 0), getUpgradeEffect(timecube.upgrades.tier, 0)))
+
     const boosts: Record<FomeTypes, { [key in 1|2|3|4|5]: GenericBoost } & { index: Persistent<1|2|3|4|5> }> = {
         [FomeTypes.protoversal]: {
             index: persistent<1|2|3|4|5>(1),
             1: createFomeBoost(FomeTypes.protoversal, 1,
                 effect => `Multiply the generation of Protoversal Foam by ${format(effect)}`,
                 total => total.times(1).plus(1).times(unref(skyrmion.pionUpgrades.kappa.effect)).times(unref(skyrmion.spinorUpgrades.delta.effect)),
-                () => getFomeBoost(FomeTypes.protoversal, 5).plus(getFomeBoost(FomeTypes.subspatial, 3)).plus(getFomeBoost(FomeTypes.quantum, 5))
+                () => unref(globalBoost).plus(unref(globalBoost).plus(getFomeBoost(FomeTypes.protoversal, 5)).plus(getFomeBoost(FomeTypes.subspatial, 3)).plus(getFomeBoost(FomeTypes.quantum, 5)))
             ),
             2: createFomeBoost(FomeTypes.protoversal, 2,
                 effect => `Gain ${format(effect)} bonus Pion and Spinor Upgrade α levels`,
                 total => total,
-                () => getFomeBoost(FomeTypes.protoversal, 5).plus(getFomeBoost(FomeTypes.subspatial, 3)).add(getFomeBoost(FomeTypes.quantum, 5))
+                () => unref(globalBoost).plus(getFomeBoost(FomeTypes.protoversal, 5).plus(getFomeBoost(FomeTypes.subspatial, 3)).add(getFomeBoost(FomeTypes.quantum, 5)))
             ),
             3: createFomeBoost(FomeTypes.protoversal, 3,
                 effect => `Gain ${format(effect)} bonus Pion and Spinor Upgrade β levels`,
                 total => Decimal.sqrt(total),
-                () => getFomeBoost(FomeTypes.protoversal, 5).plus(getFomeBoost(FomeTypes.subspatial, 3)).add(getFomeBoost(FomeTypes.quantum, 5))
+                () => unref(globalBoost).plus(getFomeBoost(FomeTypes.protoversal, 5).plus(getFomeBoost(FomeTypes.subspatial, 3)).add(getFomeBoost(FomeTypes.quantum, 5)))
             ),
             4: createFomeBoost(FomeTypes.protoversal, 4,
                 effect => `Gain ${format(effect)} bonus Pion and Spinor Upgrade γ levels`,
                 total => total,
-                () => getFomeBoost(FomeTypes.protoversal, 5).plus(getFomeBoost(FomeTypes.subspatial, 3)).add(getFomeBoost(FomeTypes.quantum, 5))
+                () => unref(globalBoost).plus(getFomeBoost(FomeTypes.protoversal, 5).plus(getFomeBoost(FomeTypes.subspatial, 3)).add(getFomeBoost(FomeTypes.quantum, 5)))
             ),
             5: createFomeBoost(FomeTypes.protoversal, 5,
                 effect => `Add ${format(effect)} levels to all above boosts`,
                 total => total.times(0.1),
-                () => getFomeBoost(FomeTypes.subspatial, 3).add(getFomeBoost(FomeTypes.quantum, 5))
+                () => unref(globalBoost).plus(getFomeBoost(FomeTypes.subspatial, 3).add(getFomeBoost(FomeTypes.quantum, 5)))
             )
         },
         [FomeTypes.infinitesimal]: {
@@ -399,27 +396,27 @@ const layer = createLayer(id, function (this: BaseLayer) {
             1: createFomeBoost(FomeTypes.infinitesimal, 1,
                 effect => `Multiply the generation of Infinitesimal Foam by ${format(effect)}x`,
                 total => total.times(1).plus(1).times(unref(skyrmion.pionUpgrades.lambda.effect)),
-                () => getFomeBoost(FomeTypes.subspatial, 3).add(getFomeBoost(FomeTypes.quantum, 5))
+                () => unref(globalBoost).plus(getFomeBoost(FomeTypes.subspatial, 3).add(getFomeBoost(FomeTypes.quantum, 5)))
             ),
             2: createFomeBoost(FomeTypes.infinitesimal, 2,
                 effect => `Increase Pion and Spinor gain by ${format(effect.minus(1).times(100))}%`,
                 total => total.times(0.5).plus(1),
-                () => getFomeBoost(FomeTypes.subspatial, 3).add(getFomeBoost(FomeTypes.quantum, 5))
+                () => unref(globalBoost).plus(getFomeBoost(FomeTypes.subspatial, 3).add(getFomeBoost(FomeTypes.quantum, 5)))
             ),
             3: createFomeBoost(FomeTypes.infinitesimal, 3,
                 effect => `Reduce Pion and Spinor Upgrade α costs by ${format(Decimal.sub(1, effect).times(100))}%`,
                 total => Decimal.pow(0.8, total),
-                () => getFomeBoost(FomeTypes.subspatial, 3).add(getFomeBoost(FomeTypes.quantum, 5))
+                () => unref(globalBoost).plus(getFomeBoost(FomeTypes.subspatial, 3).add(getFomeBoost(FomeTypes.quantum, 5)))
             ),
             4: createFomeBoost(FomeTypes.infinitesimal, 4,
                 effect => `Increase Skyrmion gain by ${format(effect.minus(1).times(100))}%`,
                 total => total.times(0.5).plus(1),
-                () => getFomeBoost(FomeTypes.subspatial, 3).add(getFomeBoost(FomeTypes.quantum, 5))
+                () => unref(globalBoost).plus(getFomeBoost(FomeTypes.subspatial, 3).add(getFomeBoost(FomeTypes.quantum, 5)))
             ),
             5: createFomeBoost(FomeTypes.infinitesimal, 5,
                 effect => `Reduce Pion and Spinor Upgrade γ costs by ${format(Decimal.sub(1, effect).times(100))}%`,
                 total => Decimal.pow(0.8, total),
-                () => getFomeBoost(FomeTypes.subspatial, 3).add(getFomeBoost(FomeTypes.quantum, 5))
+                () => unref(globalBoost).plus(getFomeBoost(FomeTypes.subspatial, 3).add(getFomeBoost(FomeTypes.quantum, 5)))
             )
         },
         [FomeTypes.subspatial]: {
@@ -427,27 +424,27 @@ const layer = createLayer(id, function (this: BaseLayer) {
             1: createFomeBoost(FomeTypes.subspatial, 1,
                 effect => `Multiply the generation of Subspatial Foam by ${format(effect)}x`,
                 total => total.times(1).plus(1).times(unref(skyrmion.spinorUpgrades.kappa.effect)),
-                () => getFomeBoost(FomeTypes.subspatial, 3).add(getFomeBoost(FomeTypes.quantum, 5))
+                () => unref(globalBoost).plus(getFomeBoost(FomeTypes.subspatial, 3).add(getFomeBoost(FomeTypes.quantum, 5)))
             ),
             2: createFomeBoost(FomeTypes.subspatial, 2,
                 effect => `The Pion and Spinor nerfs act as if you had ${format(effect)} fewer upgrades`,
                 total => total,
-                () => getFomeBoost(FomeTypes.subspatial, 3).add(getFomeBoost(FomeTypes.quantum, 5))
+                () => unref(globalBoost).plus(getFomeBoost(FomeTypes.subspatial, 3).add(getFomeBoost(FomeTypes.quantum, 5)))
             ),
             3: createFomeBoost(FomeTypes.subspatial, 3,
                 effect => `Add ${format(effect)} levels to all above boosts`,
                 total => total.times(0.1),
-                () => getFomeBoost(FomeTypes.quantum, 5)
+                () => unref(globalBoost).plus(getFomeBoost(FomeTypes.quantum, 5))
             ),
             4: createFomeBoost(FomeTypes.subspatial, 4,
                 effect => `Increase effective Skyrmion count by ${format(effect)}`,
                 total => total,
-                () => getFomeBoost(FomeTypes.quantum, 5)
+                () => unref(globalBoost).plus(getFomeBoost(FomeTypes.quantum, 5))
             ),
             5: createFomeBoost(FomeTypes.subspatial, 5,
                 effect => `Pion and Spinor upgrades cost as if you had ${format(effect)} fewer`,
                 total => total.times(0.25),
-                () => getFomeBoost(FomeTypes.quantum, 5)
+                () => unref(globalBoost).plus(getFomeBoost(FomeTypes.quantum, 5))
             )
         },
         [FomeTypes.subplanck]: {
@@ -455,27 +452,27 @@ const layer = createLayer(id, function (this: BaseLayer) {
             1: createFomeBoost(FomeTypes.subplanck, 1,
                 effect => `Multiply the generation of Subplanck Foam by ${format(effect)}x`,
                 total => total.times(1).plus(1),
-                () => getFomeBoost(FomeTypes.quantum, 5)
+                () => unref(globalBoost).plus(getFomeBoost(FomeTypes.quantum, 5))
             ),
             2: createFomeBoost(FomeTypes.subplanck, 2,
                 effect => `Gain ${format(effect)} bonus Pion and Spinor Upgrade δ levels`,
                 total => total.times(0.5),
-                () => getFomeBoost(FomeTypes.quantum, 5)
+                () => unref(globalBoost).plus(getFomeBoost(FomeTypes.quantum, 5))
             ),
             3: createFomeBoost(FomeTypes.subplanck, 3,
                 effect => `Gain ${format(effect)} bonus Pion and Spinor Upgrade ε levels`,
                 total => total.times(0.5),
-                () => getFomeBoost(FomeTypes.quantum, 5)
+                () => unref(globalBoost).plus(getFomeBoost(FomeTypes.quantum, 5))
             ),
             4: createFomeBoost(FomeTypes.subplanck, 4,
                 effect => `Gain ${format(effect)} bonus Pion and Spinor Upgrade ζ levels`,
                 total => total.times(0.5),
-                () => getFomeBoost(FomeTypes.quantum, 5)
+                () => unref(globalBoost).plus(getFomeBoost(FomeTypes.quantum, 5))
             ),
             5: createFomeBoost(FomeTypes.subplanck, 5,
                 effect => `Gain ${format(effect)} bonus Pion and Spinor Upgrade η levels`,
                 total => total.times(0.5),
-                () => getFomeBoost(FomeTypes.quantum, 5)
+                () => unref(globalBoost).plus(getFomeBoost(FomeTypes.quantum, 5))
             )
         },
         [FomeTypes.quantum]: {
@@ -483,39 +480,33 @@ const layer = createLayer(id, function (this: BaseLayer) {
             1: createFomeBoost(FomeTypes.quantum, 1,
                 effect => `Multiply the generation of all Foam types by ${format(effect)}x`,
                 total => total.times(1).plus(1),
-                () => getFomeBoost(FomeTypes.quantum, 5)
+                () => unref(globalBoost).plus(getFomeBoost(FomeTypes.quantum, 5))
             ),
             2: createFomeBoost(FomeTypes.quantum, 2,
                 effect => `Reduce the Pion and Spinor cost nerf exponent by ${format(Decimal.sub(1, effect).times(100))}%`,
                 total => Decimal.pow(0.975, total.gt(16) ? total.ln().times(Decimal.ln(2).recip().times(4)) : total),
-                () => getFomeBoost(FomeTypes.quantum, 5)
+                () => unref(globalBoost).plus(getFomeBoost(FomeTypes.quantum, 5))
             ),
             3: createFomeBoost(FomeTypes.quantum, 3,
                 effect => `Multiply the generation of all Foam types again by ${format(effect)}x`,
                 total => (total.gt(16) ? total.sqrt().times(4) : total).times(getFomeBoost(FomeTypes.quantum, 1).dividedBy(10)).plus(1),
-                () => getFomeBoost(FomeTypes.quantum, 5)
+                () => unref(globalBoost).plus(getFomeBoost(FomeTypes.quantum, 5))
             ),
             4: createFomeBoost(FomeTypes.quantum, 4,
                 effect => `Gain ${format(effect)} bonus Pion and Spinor Upgrade θ, ι, and κ levels`,
                 total => total.times(0.25),
-                () => getFomeBoost(FomeTypes.quantum, 5)
+                () => unref(globalBoost).plus(getFomeBoost(FomeTypes.quantum, 5))
             ),
             5: createFomeBoost(FomeTypes.quantum, 5,
                 effect => `Add ${format(effect)} levels to all above boosts`,
                 total => total.times(0.1),
-                () => 0
+                () => unref(globalBoost)
             )
         }
     };
     function getFomeBoost(type: FomeTypes, index: 1 | 2 | 3 | 4 | 5) {
         return unref(boosts[type][index].effect);
     }
-
-    const treeNode = createLayerTreeNode(() => ({
-        display: "F",
-        layerID: id,
-        color: color
-    }));
 
     const tabs = createTabFamily({
         main: () => ({
@@ -531,9 +522,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
                                 <sup>{formatWhole(unref(reformUpgrades[unref(highestFome)].amount))}</sup>
                             ) : null}
                         </div>
-                        <Spacer />
+                        <SpacerVue />
                         <FomeVue />
-                        <Spacer height="8px" />
+                        <SpacerVue height="8px" />
                         {renderRowJSX(...Object.values(achievements))}
                     </>
                 ))
@@ -553,7 +544,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         dimUpgrades,
         condenseUpgrades,
         reformUpgrades,
-        milestones: achievements,
+        achievements,
         boosts,
         getFomeBoost,
         display: jsx(() => (
@@ -565,7 +556,6 @@ const layer = createLayer(id, function (this: BaseLayer) {
         )),
         style,
         tabs,
-        treeNode,
         unlocked
     };
 

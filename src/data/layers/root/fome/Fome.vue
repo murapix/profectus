@@ -71,12 +71,21 @@ export default defineComponent({
 });
 </script>
 
-<style scoped>
+<style>
 .fome-grid {
     display: grid;
     grid-template-columns: repeat(5, 1fr);
     grid-gap: 0px;
     width: 90%;
     max-width: 1200px;
+}
+
+.fome-grid > .clickable {
+    width: 100%;
+    min-height: 100px;
+}
+
+.fome-grid > .clickable.auto {
+    background-color: var(--bought);
 }
 </style>

@@ -29,10 +29,6 @@ import "./common.css";
 export interface ResetButtonOptions extends ClickableOptions {
     /** The conversion the button uses to calculate how much resources will be gained on click */
     conversion: GenericConversion;
-    /** The tree this reset button is apart of */
-    tree: GenericTree;
-    /** The specific tree node associated with this reset button */
-    treeNode: GenericTreeNode;
     /** 
      * Text to display on low conversion amounts, describing what "resetting" is in this context.
      * Defaults to "Reset for ".
@@ -156,7 +152,6 @@ export function createResetButton<T extends ClickableOptions & ResetButtonOption
                 return;
             }
             resetButton.conversion.convert();
-            resetButton.tree.reset(resetButton.treeNode);
             if (resetButton.resetTime) {
                 resetButton.resetTime.value = resetButton.resetTime[DefaultValue];
             }
