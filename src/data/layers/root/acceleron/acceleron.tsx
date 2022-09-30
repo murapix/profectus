@@ -1,32 +1,34 @@
-import SpacerVue from "components/layout/Spacer.vue";
 import { createResetButton } from "data/common";
 import { createAchievement } from "features/achievements/achievement";
 import { createClickable } from "features/clickables/clickable";
 import { createCumulativeConversion, createPolynomialScaling } from "features/conversion";
 import { jsx, showIf, Visibility } from "features/feature";
-import MainDisplayVue from "features/resources/MainDisplay.vue";
 import { createResource, trackBest, trackTotal } from "features/resources/resource";
 import { createTab } from "features/tabs/tab";
-import { createTabFamily } from "features/tabs/tabFamily";
+import { createTabFamily, GenericTabFamily } from "features/tabs/tabFamily";
 import { createUpgrade, GenericUpgrade, getUpgradeEffect } from "features/upgrades/upgrade";
-import { createLayer, BaseLayer, Layer } from "game/layers";
+import { createLayer, BaseLayer } from "game/layers";
 import { createMultiplicativeModifier, createSequentialModifier } from "game/modifiers";
-import { Persistent, persistent } from "game/persistence";
+import { persistent } from "game/persistence";
 import Decimal, { DecimalSource } from "lib/break_eternity";
 import { format, formatSmall, formatTime, formatWhole } from "util/break_eternity";
 import { ProcessedComputable } from "util/computed";
 import { render } from "util/vue";
 import { computed, ComputedRef, unref } from "vue";
-import fome, { FomeTypes } from "../fome/fome";
 import skyrmion from "../skyrmion/skyrmion";
-import timecube from "../timecube/timecube";
+import fome, { FomeTypes } from "../fome/fome";
 import entropy from "./entropy";
+import timecube from "../timecube/timecube";
+import inflaton from "../inflaton/inflaton";
+import entangled from "../entangled/entangled";
 import { createLoop, GenericLoop } from "./loop";
+import MainDisplayVue from "features/resources/MainDisplay.vue";
+import SpacerVue from "components/layout/Spacer.vue";
 import LoopDescriptionsVue from "./LoopDescriptions.vue";
 import LoopsVue from "./Loops.vue";
 import UpgradeRingVue from "./UpgradeRing.vue";
 
-const id = "acceleron";
+export const id = "acceleron";
 const layer = createLayer(id, function (this: BaseLayer) {
     const name = "Accelerons";
     const color = "#0f52ba";
@@ -35,7 +37,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
     const bestAccelerons = trackBest(accelerons);
     const totalAccelerons = trackTotal(accelerons);
 
-    const timeMult = computed(() => {
+    const timeMult: ComputedRef<Decimal> = computed(() => {
         let mult = Decimal.max(unref(bestAccelerons), 0).plus(1);
         mult = mult.gte(1e12) ? mult.log10().times(5e5/6) : mult.sqrt();
         return mult.times(getUpgradeEffect(timecube.upgrades.time))
@@ -48,44 +50,39 @@ const layer = createLayer(id, function (this: BaseLayer) {
                    .times(unref(loopToggle) ? -1 : 1) // negate if constructing
     })
     
-    const conversions = [
-        createCumulativeConversion(() => ({
-            scaling: createPolynomialScaling(1e6, 0.1),
+    const conversion = createCumulativeConversion(() => ({
+            scaling: createPolynomialScaling(
+                () => entangled.isFirstBranch(id) ? 1e6: 1e80,
+                () => entangled.isFirstBranch(id) ? 0.1: 0.05),
             baseResource: fome.amounts[FomeTypes.quantum],
             gainResource: accelerons,
             costModifier: createSequentialModifier(() => [
-                createMultiplicativeModifier(() => ({ multiplier: upgrades.rfToAccGain.effect, enabled: upgrades.rfToAccGain.bought })),
-                createMultiplicativeModifier(() => ({ multiplier: upgrades.lpToAccGain.effect, enabled: upgrades.lpToAccGain.bought }))
-            ])
-        })),
-        createCumulativeConversion(() => ({
-            scaling: createPolynomialScaling(1e80, 0.05),
-            baseResource: fome.amounts[FomeTypes.quantum],
-            gainResource: accelerons
-        }))
-    ];
-    const unlockOrder: ComputedRef<0|1> = computed(() => {
-        return false ? 1 : 0; // inflaton points without acceleron mastery upgrade
-    });
+                createMultiplicativeModifier(() => ({ multiplier: upgrades.translation.effect, enabled: upgrades.translation.bought })),
+                createMultiplicativeModifier(() => ({ multiplier: upgrades.fluctuation.effect, enabled: upgrades.fluctuation.bought }))
+            ]),
+            onConvert() {
+                if (entangled.isFirstBranch(id)) entangled.branchOrder.value = id;
+            }
+        }));
 
     const time = persistent<DecimalSource>(0);
     this.on("preUpdate", (diff) => {
         time.value = Decimal.add(diff, unref(time));
     })
-    const resetButtons = conversions.map(conversion => 
-        createResetButton(() => ({
+    const resetButton = createResetButton(() => ({
             conversion,
             style: {
                 width: 'fit-content',
                 padding: '5px 10px',
                 minHeight: '60px'
             }
-        }))
+        })
     );
 
-    const loops: {[key: string]: GenericLoop} = {
+    type Loops = 'acceleron' | 'instantProd' | 'timecube' | 'tempFoam' | 'tempAcceleron' | 'tempSkyrmion'
+    const loops: {[key in Loops]: GenericLoop} = {
         acceleron: createLoop(() => ({
-            visibility() { return showIf(unref(upgrades.loopBuilding.bought)); },
+            visibility() { return showIf(unref(upgrades.superstructures.bought)); },
             buildRequirement: new Decimal(60),
             triggerRequirement: Decimal.dOne,
             display: {
@@ -97,7 +94,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                             {formatSmall(unref(loops.acceleron.effect).times(100), 1)}%
                         </span> of your Acceleron gain.
                         Currently: <span style={{color: unref(unref(loops.acceleron.display).color)}}>
-                            {format(Decimal.times(unref(conversions[unref(unlockOrder)].currentGain), unref(timeMult)).times(unref(loops.acceleron.effect)).div(unref(loops.acceleron.triggerRequirement)))}
+                            {format(Decimal.times(unref(conversion.currentGain), unref(timeMult)).times(unref(loops.acceleron.effect)).div(unref(loops.acceleron.triggerRequirement)))}
                         </span> Accelerons/s
                     </>
                 ))
@@ -107,7 +104,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                                      .times(0 + 1) // passive timeline right bonus
             },
             trigger(intervals) {
-                let gain = new Decimal(unref(conversions[unref(unlockOrder)].currentGain));
+                let gain = new Decimal(unref(conversion.currentGain));
                 gain = gain.times(unref(this.effect));
                 gain = gain.times(intervals);
                 if (false) gain = gain.max(1); // timecube upgrade 44
@@ -163,7 +160,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 ))
             },
             effect() { return new Decimal(getUpgradeEffect(timecube.upgrades.tile))
-                                .times(getUpgradeEffect(upgrades.lpToTCGain))
+                                .times(getUpgradeEffect(upgrades.conversion))
                                 .times(getUpgradeEffect(entropy.enhancements.tesselation))
                                 .times(1) // front time square
                                 .div(1) // active right timeline effect
@@ -177,7 +174,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         })),
         tempFoam: createLoop(() => ({
             persistentBoost: true,
-            visibility() { return showIf(unref(this.built) || unref(upgrades.passiveAcceleron.bought) || unref(timecube.upgrades.tiny.bought)) },
+            visibility() { return showIf(unref(this.built) || unref(upgrades.tetration.bought) || unref(timecube.upgrades.tiny.bought)) },
             buildRequirement: new Decimal(250000),
             triggerRequirement: new Decimal(86400),
             display: {
@@ -198,7 +195,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         })),
         tempAcceleron: createLoop(() => ({
             persistentBoost: true,
-            visibility() { return showIf(unref(this.built) || (unref(upgrades.passiveAcceleron.bought)) && unref(loops.tempFoam.built)) },
+            visibility() { return showIf(unref(this.built) || (unref(upgrades.tetration.bought)) && unref(loops.tempFoam.built)) },
             buildRequirement: new Decimal(1e11),
             triggerRequirement: new Decimal(31536000),
             display: {
@@ -219,7 +216,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         })),
         tempSkyrmion: createLoop(() => ({
             persistentBoost: true,
-            visibility() { return showIf(unref(this.built) || (unref(upgrades.passiveAcceleron.bought) && unref(timecube.upgrades.tiny.bought) && unref(loops.tempAcceleron.built))) },
+            visibility() { return showIf(unref(this.built) || (unref(upgrades.tetration.bought) && unref(timecube.upgrades.tiny.bought) && unref(loops.tempAcceleron.built))) },
             buildRequirement: new Decimal(4e17),
             triggerRequirement: new Decimal(315360000),
             display: {
@@ -255,7 +252,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
     })
 
     const loopToggleButton = createClickable(() => ({
-        visibility() { return showIf(unref(upgrades.loopBuilding.bought)) },
+        visibility() { return showIf(unref(upgrades.superstructures.bought)) },
         canClick() { return unref(nextLoop) !== undefined },
         onClick() { loopToggle.value = !unref(loopToggle) },
         display: jsx(() => (
@@ -285,8 +282,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
             let remaining = Decimal.minus(unref(loop.buildRequirement), unref(loop.buildProgress));
             let buildSpeed = unref(timeMult).times(diff).negate()
                                             .times(getUpgradeEffect(entropy.enhancements.construction))
-                                            .times(getUpgradeEffect(timecube.upgrades.buildSpeed))
-                                            .times(1) // pion upgrade 44
+                                            .times(getUpgradeEffect(timecube.upgrades.ten))
+                                            .times(1) // 4th abyssal pion buyable
                                             .times(1) // right time square effect
                                             .min(unref(accelerons))
                                             .min(remaining);
@@ -308,7 +305,13 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 loop.trigger(numIntervals);
             }
         }
-    })
+    });
+    const remainingBuild = computed(() => {
+        let loop = unref(nextLoop);
+        if (loop === undefined) return 0;
+        return Decimal.sub(unref(loop.buildRequirement), unref(loop.buildProgress));
+    });
+    const remainingCost = computed(() => Decimal.times(unref(remainingBuild), getUpgradeEffect(entropy.enhancements.development)));
 
     const achievements = {
         protoversal: createAchievement(() => ({ // keep protoversal fome upgrades and boosts
@@ -331,25 +334,26 @@ const layer = createLayer(id, function (this: BaseLayer) {
         }))
     }
 
-    const upgrades: {[key: string]: GenericUpgrade} = {
-        fomeGain: createUpgrade(() => ({
+    type Upgrades = 'acceleration' | 'translation' | 'skyrmion' | 'superstructures' | 'fluctuation' | 'expansion' | 'conversion' | 'alacrity' | 'tetration' | 'mastery'
+    const upgrades: {[key in Upgrades]: GenericUpgrade} = {
+        acceleration: createUpgrade(() => ({
             visibility() { return showIf(unref(this.bought) || Decimal.gte(unref(totalAccelerons), 4)) },
             display: jsx(() => (
                 <>
                     <h3>Minute Acceleration</h3><br /><br />
                     Time speed massively multiplies Foam generation<br /><br />
-                    Currently: {format(unref(upgrades.fomeGain.effect))}x<br />
-                    Cost: {formatWhole(unref(upgrades.fomeGain.cost!))} {upgrades.fomeGain.resource!.displayName}
+                    Currently: {format(unref(upgrades.acceleration.effect))}x<br />
+                    Cost: {formatWhole(unref(upgrades.acceleration.cost!))} {upgrades.acceleration.resource!.displayName}
                 </>
             )),
             effect() { return unref(timeMult).abs().sqrt().times(1000) },
             cost: Decimal.dOne,
             resource: accelerons
         })),
-        rfToAccGain: createUpgrade(() => ({
-            visibility() { return showIf(unref(this.bought) || unref(upgrades.fomeGain.bought)) },
+        translation: createUpgrade(() => ({
+            visibility() { return showIf(unref(this.bought) || unref(upgrades.acceleration.bought)) },
             display: jsx(() => {
-                let upgrade = upgrades.rfToAccGain;
+                let upgrade = upgrades.translation;
                 return <>
                     <h3>Quantum Translation</h3><br /><br />
                     Each Foam re-formation increases Acceleron gain by 100%<br /><br />
@@ -361,10 +365,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
             cost: new Decimal(5),
             resource: accelerons
         })),
-        skyrmionUpgrade: createUpgrade(() => ({
-            visibility() { return showIf(unref(this.bought) || unref(upgrades.fomeGain.bought)) },
+        skyrmion: createUpgrade(() => ({
+            visibility() { return showIf(unref(this.bought) || unref(upgrades.acceleration.bought)) },
             display: jsx(() => {
-                let upgrade = upgrades.skyrmionUpgrade;
+                let upgrade = upgrades.skyrmion;
                 return <>
                     <h3>Superpositional Acceleration</h3><br /><br />
                     Gain a new Pion upgrade<br />
@@ -376,96 +380,96 @@ const layer = createLayer(id, function (this: BaseLayer) {
             cost: new Decimal(25),
             resource: accelerons
         })),
-        loopBuilding: createUpgrade(() => ({
-            visibility() { return showIf(unref(this.bought) || unref(upgrades.skyrmionUpgrade.bought)) },
+        superstructures: createUpgrade(() => ({
+            visibility() { return showIf(unref(this.bought) || unref(upgrades.skyrmion.bought)) },
             display: jsx(() => (
                 <>
                     <h3>Quasi-temporal Superstructures</h3><br /><br />
                     Consume the past to build the future<br /><br /><br />
                     <br />
-                    Cost: {formatWhole(unref(upgrades.loopBuilding.cost!))} {upgrades.loopBuilding.resource!.displayName}
+                    Cost: {formatWhole(unref(upgrades.superstructures.cost!))} {upgrades.superstructures.resource!.displayName}
                 </>
             )),
             cost: new Decimal(50),
             resource: accelerons
         })),
-        lpToAccGain: createUpgrade(() => ({
+        fluctuation: createUpgrade(() => ({
             visibility() { return showIf(unref(this.bought) || unref(loops.acceleron.built)) },
             display: jsx(() => (
                 <>
                     <h3>Temporal Fluctuation</h3><br /><br />
                     Each Entropic Loop multiplies Acceleron gain<br /><br />
-                    Currently: {formatWhole(unref(upgrades.lpToAccGain.effect))}x<br />
-                    Cost: {formatWhole(unref(upgrades.lpToAccGain.cost!))} {upgrades.lpToAccGain.resource!.displayName}
+                    Currently: {formatWhole(unref(upgrades.fluctuation.effect))}x<br />
+                    Cost: {formatWhole(unref(upgrades.fluctuation.cost!))} {upgrades.fluctuation.resource!.displayName}
                 </>
             )),
             effect() { return unref(numBuiltLoops) + 1 },
             cost: new Decimal(100),
             resource: accelerons
         })),
-        enhancement: createUpgrade(() => ({
+        expansion: createUpgrade(() => ({
             visibility() { return showIf(unref(this.bought) || unref(loops.instantProd.built)) },
             display: jsx(() => (
                 <>
                     <h3>Unstable Expansion</h3><br /><br />
                     Unlock Entropic Enhancements<br /><br /><br />
                     <br />
-                    Cost: {formatWhole(unref(upgrades.enhancement.cost!))} {upgrades.enhancement.resource!.displayName}
+                    Cost: {formatWhole(unref(upgrades.expansion.cost!))} {upgrades.expansion.resource!.displayName}
                 </>
             )),
             cost: new Decimal(300),
             resource: accelerons
         })),
-        lpToTCGain: createUpgrade(() => ({
+        conversion: createUpgrade(() => ({
             visibility() { return showIf(unref(this.bought) || unref(loops.timecube.built)) },
             display: jsx(() => (
                 <>
                     <h3>Stability Conversion</h3><br /><br />
                     Each Entropic Loop multiplies Time Cube gain<br /><br />
-                    Currently: {formatWhole(unref(upgrades.lpToTCGain.effect))}x<br />
-                    Cost: {formatWhole(unref(upgrades.lpToTCGain.cost!))} {upgrades.lpToTCGain.resource!.displayName}
+                    Currently: {formatWhole(unref(upgrades.conversion.effect))}x<br />
+                    Cost: {formatWhole(unref(upgrades.conversion.cost!))} {upgrades.conversion.resource!.displayName}
                 </>
             )),
             effect() { return unref(numBuiltLoops) + 1 },
             cost: new Decimal(150000),
             resource: accelerons
         })),
-        subspatialGain: createUpgrade(() => ({
-            visibility() { return showIf(unref(this.bought) || unref(upgrades.lpToTCGain.bought)) },
+        alacrity: createUpgrade(() => ({
+            visibility() { return showIf(unref(this.bought) || unref(upgrades.conversion.bought)) },
             display: jsx(() => (
                 <>
                     <h3>Subspatial Alacrity</h3><br /><br />
-                    Increase Subspatial Foam gain by {formatWhole(unref(upgrades.subspatialGain.effect))}x<br /><br />
+                    Increase Subspatial Foam gain by {formatWhole(unref(upgrades.alacrity.effect))}x<br /><br />
                     <br />
-                    Cost: {formatWhole(unref(upgrades.subspatialGain.cost!))} {upgrades.subspatialGain.resource!.displayName}
+                    Cost: {formatWhole(unref(upgrades.alacrity.cost!))} {upgrades.alacrity.resource!.displayName}
                 </>
             )),
             effect: new Decimal(1e4),
             cost: new Decimal(2e6),
             resource: accelerons
         })),
-        passiveAcceleron: createUpgrade(() => ({
-            visibility() { return showIf(unref(this.bought) || unref(upgrades.subspatialGain.bought)) },
+        tetration: createUpgrade(() => ({
+            visibility() { return showIf(unref(this.bought) || unref(upgrades.alacrity.bought)) },
             display: jsx(() => (
                 <>
                     <h3>Cubic Tetration</h3><br /><br />
                     Remove the ability to Acceleron reset<br />
                     Unlock two additional Entropic Loops<br /><br />
                     <br />
-                    Cost: {formatWhole(unref(upgrades.passiveAcceleron.cost!))} {upgrades.passiveAcceleron.resource!.displayName}
+                    Cost: {formatWhole(unref(upgrades.tetration.cost!))} {upgrades.tetration.resource!.displayName}
                 </>
             )),
             cost: new Decimal(1e8),
             resource: accelerons
         })),
-        inflation: createUpgrade(() => ({
-            visibility() { return showIf(unref(this.bought) || unref(upgrades.passiveAcceleron.bought)) },
+        mastery: createUpgrade(() => ({
+            visibility() { return showIf(unref(this.bought) || unref(upgrades.tetration.bought)) },
             display: jsx(() => (
                 <>
                     <h3>Temporal Mastery</h3><br /><br />
-                    Unlock {unref(unlockOrder) == 0 ? 'Inflatons': 'Entangled Strings'}<br /><br /><br />
+                    Unlock {entangled.isFirstBranch(id) ? inflaton.inflatons.displayName : entangled.strings.displayName}<br /><br /><br />
                     <br />
-                    Cost: {formatWhole(unref(upgrades.inflation.cost!))} {upgrades.inflation.resource!.displayName}
+                    Cost: {formatWhole(unref(upgrades.mastery.cost!))} {upgrades.mastery.resource!.displayName}
                 </>
             )),
             cost: new Decimal(1e19),
@@ -473,21 +477,21 @@ const layer = createLayer(id, function (this: BaseLayer) {
         }))
     }
     const left = [
-        upgrades.fomeGain,
-        upgrades.lpToAccGain,
-        upgrades.passiveAcceleron,
-        upgrades.lpToTCGain,
-        upgrades.skyrmionUpgrade
+        upgrades.acceleration,
+        upgrades.fluctuation,
+        upgrades.tetration,
+        upgrades.conversion,
+        upgrades.skyrmion
     ];
     const right = [
-        upgrades.rfToAccGain,
-        upgrades.enhancement,
-        upgrades.inflation,
-        upgrades.subspatialGain,
-        upgrades.loopBuilding
+        upgrades.translation,
+        upgrades.expansion,
+        upgrades.mastery,
+        upgrades.alacrity,
+        upgrades.superstructures
     ]
     
-    const tabs = createTabFamily({
+    const tabs: GenericTabFamily = createTabFamily({
         loops: () => ({
             display: "Entropic Loops",
             tab: createTab(() => ({
@@ -495,8 +499,16 @@ const layer = createLayer(id, function (this: BaseLayer) {
                     <>
                         <MainDisplayVue resource={accelerons} color={color} effectDisplay={jsx(() => <>which are causing time to go {format(unref(timeMult))}x faster<br />
                         For every second in real time, {formatTime(unref(timeMult))} passes</>)}/>
-                        {unref(upgrades.passiveAcceleron.bought) ? <SpacerVue height="70px" /> : render(resetButtons[unref(unlockOrder)])}
-                        <SpacerVue height="50px" />
+                        {unref(upgrades.tetration.bought) ? <SpacerVue height="70px" /> : render(resetButton)}
+                        {(unref(nextLoop) !== undefined)
+                            ? (<>
+                            <SpacerVue height="18px" />
+                            <div style={{fontSize: '12px', color: 'var(--link)'}}>
+                                Construction Progress: {formatWhole(unref(unref(nextLoop)?.buildProgress ?? 0))} / {formatWhole(unref(unref(nextLoop)?.buildRequirement ?? 0))}<br />
+                                Construction will consume {formatWhole(unref(remainingCost))} {accelerons.displayName}
+                            </div>
+                            </>)
+                            : <SpacerVue height="50px" />}
                         <UpgradeRingVue radius={192} width={60} distance={150} top={4} right={right} bottom={4} left={left} />
                         <SpacerVue />
                         <LoopsVue radius={175} bars={Object.values(loops)} buildButton={loopToggleButton} />
@@ -525,19 +537,18 @@ const layer = createLayer(id, function (this: BaseLayer) {
         tabs,
         display: jsx(() => (
             <>
-                {unref(upgrades.enhancement.bought)
+                {unref(upgrades.expansion.bought)
                     ? render(tabs)
                     : render(unref(tabs.tabs.loops.tab))}
             </>
         )),
-        conversions,
+        conversion,
         loops,
         loopToggle,
         numBuiltLoops,
         upgrades,
         achievements,
-        resetButtons,
-        unlockOrder
+        resetButton
     }
 })
 

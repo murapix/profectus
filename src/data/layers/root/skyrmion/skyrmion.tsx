@@ -1,14 +1,12 @@
 import { createExponentialScaling, createIndependentConversion } from "features/conversion";
-import { CoercableComponent, jsx, Replace, showIf, StyleValue, Visibility } from "features/feature";
-import { createReset } from "features/reset";
+import { CoercableComponent, jsx, showIf, StyleValue, Visibility } from "features/feature";
 import { createResource, displayResource, Resource } from "features/resources/resource";
 import { BaseLayer, createLayer } from "game/layers";
 import Decimal, { DecimalSource } from "lib/break_eternity";
 import { format, formatSmall, formatWhole } from "util/break_eternity";
 import { render } from "util/vue";
-import { computed, ComputedRef, CSSProperties, Ref, unref, watch } from "vue";
-import { createLayerTreeNode, createResetButton } from "../../../common";
-import { root } from "../../../projEntry";
+import { computed, ComputedRef, Ref, unref, watch } from "vue";
+import { createResetButton } from "../../../common";
 import MainDisplayVue from "features/resources/MainDisplay.vue";
 import SpacerVue from "components/layout/Spacer.vue";
 import SkyrmionVue from "./Skyrmion.vue";
@@ -19,8 +17,8 @@ import SpinorVue from "./Spinor.vue";
 import ResourceVue from "features/resources/Resource.vue";
 import { createUpgrade, GenericUpgrade, Upgrade, UpgradeOptions } from "features/upgrades/upgrade";
 import fome, { FomeTypes } from "../fome/fome";
-import { Computable, GetComputableTypeWithDefault, processComputable } from "util/computed";
-import { Buyable, BuyableOptions, createBuyable } from "features/buyable";
+import { Computable, processComputable, ProcessedComputable } from "util/computed";
+import { bonusBuyableDecorator, BonusBuyableOptions, Buyable, createBuyable, freeBuyableDecorator, FreeBuyableOptions } from "features/buyable";
 import { addTooltip } from "features/tooltips/tooltip";
 import { Direction } from "util/common";
 import { createMultiplicativeModifier, createSequentialModifier } from "game/modifiers";
@@ -28,7 +26,7 @@ import { createChallenge } from "features/challenges/challenge";
 import acceleron from "../acceleron/acceleron";
 
 interface SkyrmionUpgradeData {
-    visibility?: Visibility | Ref<Visibility> | ((this: GenericUpgrade) => Visibility);
+    visibility?: ProcessedComputable<Visibility> | ((this: GenericUpgrade) => Visibility);
     display: {
         title: string;
         description: JSX.Element;
@@ -48,16 +46,7 @@ interface SkyrmionBuyableData {
     visibility?: Computable<Visibility>;
 }
 
-interface SkyrmionBuyableOptions extends BuyableOptions {
-    bonusAmount?: Computable<DecimalSource>;
-}
-
-type SkyrmionBuyable = Replace<
-    SkyrmionBuyableOptions & Buyable<SkyrmionBuyableOptions>,
-    {
-        bonusAmount: GetComputableTypeWithDefault<SkyrmionBuyableOptions["bonusAmount"], 0>;
-    }
->;
+interface SkyrmionBuyableOptions extends FreeBuyableOptions, BonusBuyableOptions {};
 
 const id = "skyrmion";
 const layer = createLayer(id, function (this: BaseLayer) {
@@ -111,18 +100,6 @@ const layer = createLayer(id, function (this: BaseLayer) {
         return Decimal.pow(amount.times(0.2).times(unref(pionUpgrades.beta.effect)).plus(1), amount.times(0.25).times(fome.getFomeBoost(FomeTypes.quantum, 2)));
     })
 
-    const hexStyle = {
-        position: "absolute",
-        top: 0,
-        left: 0,
-        margin: 0,
-        border: 0,
-        borderRadius: 0,
-        clipPath: "polygon(75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%, 25% 0%)",
-        width: "var(--upgrade-width)",
-        minHeight: "var(--upgrade-width)",
-    }
-
     const minAmount = computed(() => Decimal.min(unref(pions), unref(spinors)));
     const minResource = createResource<DecimalSource>(minAmount, "Pions and Spinors");
 
@@ -138,16 +115,15 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 spinors.value = Decimal.sub(unref(spinors), cost);
             }
         },
-        costModifier: createSequentialModifier(
-            createMultiplicativeModifier(spinorUpgrades.alpha.effect),
-            createMultiplicativeModifier(fome.boosts[FomeTypes.infinitesimal][4].effect)
-        )
+        costModifier: createSequentialModifier(() => [
+            createMultiplicativeModifier(() => ({ multiplier: spinorUpgrades.alpha.effect })),
+            createMultiplicativeModifier(() => ({ multiplier: fome.boosts[FomeTypes.infinitesimal][4].effect }))
+        ])
     }));
 
     const resetButton = createResetButton(() => ({
         conversion,
         style: {
-            ...(hexStyle as CSSProperties),
             paddingHorizontal: "20px"
         },
         display: jsx(() => (
@@ -309,8 +285,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             display: {
                 title: "Neutralization",
                 description: "Autobuy ν upgrades<br />ν upgrades no longer consume Pions or Spinors"
-            },
-            style: hexStyle as CSSProperties
+            }
         })),
         xi: createUpgrade(() => ({
             canAfford: false,
@@ -320,8 +295,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             display: {
                 title: "Externalization",
                 description: "Autobuy ξ upgrades<br />ξ upgrades no longer consume Pions or Spinors"
-            },
-            style: hexStyle as CSSProperties
+            }
         })),
         pi: createUpgrade(() => ({
             canAfford: false,
@@ -331,8 +305,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             display: {
                 title: "Prioritization",
                 description: "Autobuy π upgrades<br />π upgrades no longer consume Pions or Spinors"
-            },
-            style: hexStyle as CSSProperties
+            }
         })),
         rho: createUpgrade(() => ({
             canAfford: false,
@@ -342,8 +315,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             display: {
                 title: "Obfuscation",
                 description: "Autobuy ρ upgrades<br />ρ upgrades no longer consume Pions or Spinors"
-            },
-            style: hexStyle as CSSProperties
+            }
         }))
     };
 
@@ -490,7 +462,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             },
             effect: amount => Decimal.pow(2, amount),
             isFree: skyrmionUpgrades.lambda.bought,
-            visibility: () => showIf(false)
+            visibility: () => showIf(unref(acceleron.upgrades.skyrmion.bought))
         }),
         mu: createPionUpgrade({
             name: "μ",
@@ -646,9 +618,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 if (Decimal.gte(amount, 45)) return Decimal.pow(100, Decimal.pow(amount, 1.1).minus(45)).times(4.92e76);
                 else return Decimal.pow(5, Decimal.pow(amount, 1.1)).times(7e2);
             },
-            effect: amount => Decimal.max(unref(0), 0).plus(1).ln().times(amount).plus(1),
+            effect: amount => Decimal.max(unref(acceleron.bestAccelerons), 0).plus(1).ln().times(amount).plus(1),
             isFree: skyrmionUpgrades.lambda.bought,
-            visibility: () => showIf(false)
+            visibility: () => showIf(unref(acceleron.upgrades.skyrmion.bought))
         }),
         mu: createSpinorUpgrade({
             name: "μ",
@@ -745,10 +717,6 @@ const layer = createLayer(id, function (this: BaseLayer) {
     }
 
     function createSkyrmionBuyable(resource: Resource<DecimalSource>, data: SkyrmionBuyableData, abyss = false) {
-        processComputable(data, "isFree");
-        processComputable(data, "bonusAmount");
-        processComputable(data, "visibility");
-
         if (!data.effectDisplay) data.effectDisplay = effect => `${formatSmall(effect)}x`;
         let costFunc!: (cost: DecimalSource) => DecimalSource;
         switch (resource) {
@@ -761,20 +729,17 @@ const layer = createLayer(id, function (this: BaseLayer) {
             case pions: buyFunc = () => pionUpgrades.amount.value = Decimal.add(unref(pionUpgrades.amount), 1); break;
             case spinors: buyFunc = () => spinorUpgrades.amount.value = Decimal.add(unref(spinorUpgrades.amount), 1);
         }
-        const buyable = createBuyable(() => ({
+        const buyable = createBuyable<SkyrmionBuyableOptions>(() => ({
                 display: data.name,
                 bonusAmount: data.bonusAmount ?? 0,
                 isFree: data.isFree,
                 cost() { return costFunc(data.cost(unref(this.amount))); },
-                effect() { return data.effect(Decimal.add(unref(this.amount), unref(this.bonusAmount))); },
-                onPurchase(cost: DecimalSource) {
-                    buyFunc?.();
-                    if (unref(data.isFree)) resource.value = Decimal.add(unref(resource), cost);
-                },
+                effect() { return data.effect(Decimal.add(unref(this.amount), unref(this.bonusAmount as ProcessedComputable<DecimalSource>))); },
+                onPurchase: buyFunc,
                 resource: resource,
-                visibility() { return unref(abyssChallenge.active) === abyss ? unref(data.visibility ?? Visibility.Visible) : Visibility.None; },
-                style: hexStyle
-            } as SkyrmionBuyable));
+                visibility() { return unref(abyssChallenge.active) === abyss ? unref(data.visibility as ProcessedComputable<Visibility> ?? Visibility.Visible) : Visibility.None; }
+            }),
+            freeBuyableDecorator, bonusBuyableDecorator);
 
         addTooltip(buyable, {
             direction: Direction.Down,
@@ -782,7 +747,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             display: jsx(() => <>
                 {data.description}
                 <br />
-                {"Amount: "}{formatWhole(unref(buyable.amount))}{unref(buyable.bonusAmount) > 0 ? <>+{formatWhole(unref(buyable.bonusAmount))}</> : undefined}
+                {"Amount: "}{formatWhole(unref(buyable.amount))}{unref(buyable.bonusAmount) > 0 ? <>+{formatWhole(unref(buyable.bonusAmount as ProcessedComputable<DecimalSource>))}</> : undefined}
                 <br />
                 {"Currently: "}{data.effectDisplay?.(unref(buyable.effect))}
                 <br />
@@ -806,8 +771,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                     data.onPurchase?.()
                 },
                 resource: skyrmions,
-                cost: data.cost,
-                style: hexStyle
+                cost: data.cost
             } as Upgrade<UpgradeOptions>));
 
         addTooltip(upgrade, {

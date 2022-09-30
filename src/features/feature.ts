@@ -37,14 +37,14 @@ export type GenericComponent = DefineComponent<any, any, any>;
 /** Utility type that is S, with any properties from T that aren't already present in S */
 export type Replace<T, S> = S & Omit<T, keyof S>;
 
+export type OptionsObject<T, R = Record<string, unknown>, S = R> = T & Partial<R> & ThisType<T & S>;
+
 /**
  * Utility function for a function that returns an object of a given type,
  * with "this" bound to what the type will eventually be processed into.
  * Intended for making lazily evaluated objects.
  */
-export type OptionsFunc<T, R = Record<string, unknown>, S = R> = () => T &
-    Partial<R> &
-    ThisType<T & S>;
+export type OptionsFunc<T, R = Record<string, unknown>, S = R> = () => OptionsObject<T,R,S>;
 
 let id = 0;
 /**

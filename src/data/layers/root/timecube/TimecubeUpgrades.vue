@@ -69,7 +69,7 @@ export default defineComponent({
 })
 </script>
 
-<style>
+<style scoped>
 .timecube.row > button {
     margin: 0;
     min-height: 150px;

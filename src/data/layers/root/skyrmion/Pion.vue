@@ -87,4 +87,16 @@ export default defineComponent({
     padding-bottom: var(--upgrade-width);
     margin: 0;
 }
+
+.pion-upgrade :deep(button) {
+    position: absolute;
+    top: 0;
+    left: 0;
+    margin: 0;
+    border: 0;
+    border-radius: 0;
+    clip-path: polygon(75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%, 25% 0%);
+    width: var(--upgrade-width);
+    min-height: var(--upgrade-width);
+}
 </style>

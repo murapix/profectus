@@ -14,9 +14,10 @@ import { computed, ComputedRef, unref, watch } from "vue";
 import fome from "../fome/fome";
 import timecube from "../timecube/timecube";
 import acceleron from "./acceleron";
+import EnhancementsVue from "./Enhancements.vue";
 
 const id = "entropy";
-const layer: GenericLayer & {enhancements: {[key in string]: GenericUpgrade}} = createLayer(id, function (this: BaseLayer) {
+const layer = createLayer(id, function (this: BaseLayer) {
     const name = "Entropy";
     const color = acceleron.color;
 
@@ -47,7 +48,11 @@ const layer: GenericLayer & {enhancements: {[key in string]: GenericUpgrade}} = 
     const fibonacciEnhancements = computed(() => fibonacciNumber(unref(effectiveEnhancements)));
     const enhancementCost = computed(() => fibonacciNumber(unref(totalEnhancements)).round());
 
-    const enhancements: {[key in string]: GenericUpgrade} = Object.fromEntries([
+    type Enhancements = 'expansion' | 'construction' | 'dilation' | 'contraction' |
+                        'formation' | 'development' | 'acceleration' | 'entrenchment' |
+                        'extension' | 'configuration' | 'invention' | 'inversion' |
+                        'tesselation' | 'amplification' | 'rotation' | 'entitlement'
+    const enhancements = Object.fromEntries([
         createEnhancement('expansion', () => ({
             row: 1,
             visibility: acceleron.loops.acceleron.built,
@@ -138,7 +143,7 @@ const layer: GenericLayer & {enhancements: {[key in string]: GenericUpgrade}} = 
             visibility: acceleron.loops.tempFoam.built,
             title: 'Entropic Tesselation',
             description: 'Increase Time Cube gain based on best Accelerons',
-            effect() { return Decimal.max(unref(acceleron.accelerons), 0).plus(1).log10().plus(1) }
+            effect() { return Decimal.max(unref(acceleron.bestAccelerons), 0).plus(1).log10().plus(1) }
         })),
         createEnhancement('amplification', () => ({
             row: 4,
@@ -162,7 +167,7 @@ const layer: GenericLayer & {enhancements: {[key in string]: GenericUpgrade}} = 
             effect() { return unref(effectiveEnhancements).times(0.1) },
             effectDisplay: (effect) => `${format(effect, 1)} free levels`
         })),
-    ]);
+    ]) as {[key in Enhancements]: GenericUpgrade};
 
     const respec = createClickable(() => ({
         canClick() { return unref(totalEnhancements) > 0 },
@@ -194,10 +199,11 @@ const layer: GenericLayer & {enhancements: {[key in string]: GenericUpgrade}} = 
                 <SpacerVue />
                 {render(respec)}
                 <SpacerVue />
-                {Object.values(enhancementRows).map(row => row.map(upgrade => enhancements[upgrade])).map(row => renderRow(...row))}
+                <EnhancementsVue rows={Object.values(enhancementRows).map(row => row.map(upgrade => enhancements[upgrade]))}/>
             </>
         )),
         enhancementCounts,
+        enhancementLimits,
         totalEnhancements
     }
 
@@ -226,7 +232,7 @@ const layer: GenericLayer & {enhancements: {[key in string]: GenericUpgrade}} = 
     >;
 
     function createEnhancement<T extends EnhancementOptions>(
-        id: string,
+        id: Enhancements,
         optionsFunc: OptionsFunc<T, {}, GenericEnhancement>
     ): [string, GenericUpgrade] {
         return [id, (() => {
@@ -239,11 +245,18 @@ const layer: GenericLayer & {enhancements: {[key in string]: GenericUpgrade}} = 
 
             const upgrade: GenericUpgrade = createUpgrade(() => ({
                 cost: enhancementCost,
+                canAfford(this: GenericUpgrade) {
+                    return (
+                        this.resource != null &&
+                        this.cost != null &&
+                        Decimal.gte(unref(this.resource), unref(this.cost))
+                    ) && (
+                        unref(enhancementCounts[enhancement.row]) < unref(enhancementLimits[enhancement.row])
+                    );
+                },
                 resource: entropy,
-                visibility() { return showIf(unref(this.bought) ||
-                    (unref(enhancement.visibility ?? true) &&
-                    unref(enhancementCounts[enhancement.row]) < unref(enhancementLimits[enhancement.row]))
-                ) },
+                visibility() { return showIf(unref(this.bought) || unref(enhancement.visibility as ProcessedComputable<boolean> ?? true))
+                },
                 display: enhancement.title,
                 effect: enhancement.effect
             }));
@@ -266,16 +279,6 @@ const layer: GenericLayer & {enhancements: {[key in string]: GenericUpgrade}} = 
                         </>
                     )
                 })
-                //     (
-                //     <>
-                //         {coerceComponent(enhancement.description)}
-                //         {upgrade.effect ? (
-                //             <div>
-                //                 Currently: {displayFunc(unref(upgrade.effect))}
-                //             </div>
-                //         ) : null}
-                //     </>
-                // ))
             })
 
             enhancementRows[enhancement.row].push(id);

@@ -32,9 +32,9 @@ export type BuyableDisplay =
 export interface BuyableOptions {
     visibility?: Computable<Visibility>;
     cost?: Computable<DecimalSource>;
-    effect?: Computable<any>; // eslint-disable-line @typescript-eslint/no-explicit-any
     resource?: Resource;
-    isFree?: Computable<boolean>;
+    bulk?: Computable<DecimalSource>;
+    effect?: Computable<any>; // eslint-disable-line @typescript-eslint/no-explicit-any
     canPurchase?: Computable<boolean>;
     purchaseLimit?: Computable<DecimalSource>;
     classes?: Computable<Record<string, boolean>>;
@@ -42,7 +42,7 @@ export interface BuyableOptions {
     mark?: Computable<boolean | string>;
     small?: Computable<boolean>;
     display?: Computable<BuyableDisplay>;
-    onPurchase?: (cost: DecimalSource | undefined) => void;
+    onPurchase?: (cost?: DecimalSource) => void;
 }
 
 export interface BaseBuyable {
@@ -63,9 +63,9 @@ export type Buyable<T extends BuyableOptions> = Replace<
     {
         visibility: GetComputableTypeWithDefault<T["visibility"], Visibility.Visible>;
         cost: GetComputableType<T["cost"]>;
-        effect: GetComputableType<T["effect"]>;
         resource: GetComputableType<T["resource"]>;
-        isFree: GetComputableTypeWithDefault<T["isFree"], false>;
+        bulk: GetComputableTypeWithDefault<T["bulk"], 1>;
+        effect: GetComputableType<T["effect"]>;
         canPurchase: GetComputableTypeWithDefault<T["canPurchase"], Ref<boolean>>;
         purchaseLimit: GetComputableTypeWithDefault<T["purchaseLimit"], Decimal>;
         classes: GetComputableType<T["classes"]>;
@@ -86,7 +86,8 @@ export type GenericBuyable = Replace<
 >;
 
 export function createBuyable<T extends BuyableOptions>(
-    optionsFunc: OptionsFunc<T, BaseBuyable, GenericBuyable>
+    optionsFunc: OptionsFunc<T, BaseBuyable, GenericBuyable>,
+    ...decorators: ((buyable: T & Partial<BaseBuyable> & ThisType<T & GenericBuyable>) => void)[]
 ): Buyable<T> {
     const amount = persistent<DecimalSource>(0);
     return createLazyProxy(() => {
@@ -140,7 +141,8 @@ export function createBuyable<T extends BuyableOptions>(
             }
             return currClasses;
         });
-        processComputable(buyable as T, "isFree");
+        processComputable(buyable as T, "bulk");
+        setDefault(buyable as T, "bulk", 1);
         processComputable(buyable as T, "effect");
         processComputable(buyable as T, "canPurchase");
         buyable.canClick = buyable.canPurchase as ProcessedComputable<boolean>;
@@ -159,7 +161,7 @@ export function createBuyable<T extends BuyableOptions>(
                         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
                         cost!
                     );
-                    genericBuyable.amount.value = Decimal.add(genericBuyable.amount.value, 1);
+                    genericBuyable.amount.value = Decimal.add(genericBuyable.amount.value, unref(genericBuyable.bulk));
                 }
                 genericBuyable.onPurchase?.(cost);
             };
@@ -244,6 +246,56 @@ export function createBuyable<T extends BuyableOptions>(
             };
         };
 
+        decorators.forEach(decorator => decorator(buyable));
+
         return buyable as unknown as Buyable<T>;
     });
+};
+
+/*
+ ------------
+  DECORATORS
+ ------------
+*/
+
+export interface FreeBuyableOptions extends BuyableOptions {
+    isFree: Computable<boolean>;
+}
+
+export type FreeBuyable<T extends FreeBuyableOptions> = Replace<
+    T & BaseBuyable,
+    {
+        isFree: GetComputableType<T["isFree"]>;
+    }
+>;
+
+export type GenericFreeBuyable = GenericBuyable & FreeBuyable<FreeBuyableOptions>;
+
+export function freeBuyableDecorator<T extends FreeBuyableOptions>(buyable: T & Partial<BaseBuyable> & ThisType<T & GenericBuyable>){
+    processComputable(buyable as T, "isFree");
+
+    let onPurchase = buyable.onPurchase;
+    buyable.onPurchase = (cost?: DecimalSource) => {
+        if (cost && buyable.resource && unref(buyable.isFree)) {
+            buyable.resource.value = Decimal.add(unref(buyable.resource), cost);
+        };
+        onPurchase?.(cost);
+    }
+}
+
+export interface BonusBuyableOptions extends BuyableOptions {
+    bonusAmount: Computable<DecimalSource>;
+}
+
+export type BonusBuyable<T extends BonusBuyableOptions> = Replace<
+    T & BaseBuyable,
+    {
+        bonusAmount: GetComputableType<T["bonusAmount"]>;
+    }
+>;
+
+export type GenericBonusBuyable = GenericBuyable & BonusBuyable<BonusBuyableOptions>;
+
+export function bonusBuyableDecorator<T extends BonusBuyableOptions>(buyable: T & Partial<BaseBuyable> & ThisType<T & GenericBuyable>) {
+        processComputable(buyable as T, "bonusAmount");
 }

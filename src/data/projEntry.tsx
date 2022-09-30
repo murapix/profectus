@@ -7,13 +7,16 @@ import type { PlayerData } from "game/player";
 import player from "game/player";
 import { format } from "util/bignum";
 import { render } from "util/vue";
+
 import { computed, Ref, unref } from "vue";
+
+import skyrmion from "./layers/root/skyrmion/skyrmion";
+import fome from "./layers/root/fome/fome";
 import acceleron from "./layers/root/acceleron/acceleron";
 import entropy from "./layers/root/acceleron/entropy";
-import entangled from "./layers/root/entangled/entangled";
-import fome from "./layers/root/fome/fome";
-import skyrmion from "./layers/root/skyrmion/skyrmion";
 import timecube from "./layers/root/timecube/timecube";
+import inflaton from "./layers/root/inflaton/inflaton";
+import entangled from "./layers/root/entangled/entangled";
 
 /**
  * @hidden
@@ -21,7 +24,7 @@ import timecube from "./layers/root/timecube/timecube";
 const id = "root";
 export const root = createLayer(id, () => {
     type layer = GenericLayer & { unlocked?: Ref<boolean>, boughtColor?: string }
-    const layers: {[key: number]: layer} = Object.fromEntries([skyrmion, fome, acceleron, timecube, /*inflaton,*/ entangled].map((layer, index) => [index, layer]));
+    const layers: {[key: number]: layer} = Object.fromEntries([skyrmion, fome, acceleron, timecube, inflaton, entangled].map((layer, index) => [index, layer]));
     const subLayers: {[key: number]: layer} = Object.fromEntries([entropy].map((layer, index) => [index, layer]));
     const tabs: GenericTabFamily = createTabFamily(Object.fromEntries(Object.values(layers).map(layer => 
         [layer.name, () => ({
@@ -72,7 +75,7 @@ export const root = createLayer(id, () => {
 export const getInitialLayers = (
     /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
     player: Partial<PlayerData>
-): Array<GenericLayer> => [root, ...Object.values(root.layers), ...Object.values(root.subLayers)];
+): Array<GenericLayer> => [...Object.values(root.layers), ...Object.values(root.subLayers), root];
 
 /**
  * A computed ref whose value is true whenever the game is over.

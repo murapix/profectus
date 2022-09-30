@@ -7,8 +7,7 @@
             <div class="main-display">
                 <span v-if="showPrefix">You have </span>
                 <ResourceVue :resource="resource" :color="color || 'white'" />
-                {{ resource.displayName
-                }}<!-- remove whitespace -->
+                {{ resource.displayName }}<!-- remove whitespace -->
                 <span v-if="effectComponent"
                     >, <component :is="effectComponent" ref="effectRef"
                 /></span>

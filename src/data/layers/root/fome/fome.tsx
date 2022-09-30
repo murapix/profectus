@@ -1,6 +1,6 @@
-import { CoercableComponent, getUniqueID, jsx, OptionsFunc, Replace, showIf, StyleValue, Visibility } from "features/feature";
+import { CoercableComponent, getUniqueID, jsx, OptionsFunc, Replace, showIf, Visibility } from "features/feature";
 import { createResource, Resource } from "features/resources/resource";
-import { createBuyable, GenericBuyable } from "features/buyable";
+import { createBuyable, freeBuyableDecorator, FreeBuyableOptions, GenericBuyable, GenericFreeBuyable } from "features/buyable";
 import { createUpgrade, GenericUpgrade, getUpgradeEffect } from "features/upgrades/upgrade";
 import { createTabFamily } from "features/tabs/tabFamily";
 import { createTab } from "features/tabs/tab";
@@ -24,6 +24,8 @@ import skyrmion from "../skyrmion/skyrmion";
 import acceleron from "../acceleron/acceleron";
 import entropy from "../acceleron/entropy";
 import timecube from "../timecube/timecube";
+import inflaton from "../inflaton/inflaton";
+import { getResearchEffect } from "../inflaton/research";
 
 
 export enum FomeTypes {
@@ -68,26 +70,15 @@ const layer = createLayer(id, function (this: BaseLayer) {
         else return FomeTypes.protoversal;
     });
 
-    const inflatonBonus = computed(() => {
-        let bonus = Decimal.dOne;
-        if (false) {
-            if (false) bonus = bonus.times(1) // inflaton research 4
-            if (false) bonus = bonus.times(1) // inflaton research 11
-            if (false) bonus = bonus.times(1) // inflaton research 18
-            bonus = bonus.times(1) // inflaton repeatable 115
-        }
-        return bonus.min(Decimal.dInf) // current inflaton nerf
-    });
-
     const baseGenRate = computed(() =>
         Decimal.add(unref(skyrmion.skyrmions), getFomeBoost(FomeTypes.subspatial, 4))
             .divide(100)
             .times(unref(skyrmion.spinorUpgrades.eta.effect))
-            .times(getUpgradeEffect(acceleron.upgrades.fomeGain))
+            .times(getUpgradeEffect(acceleron.upgrades.acceleration))
             .times(getUpgradeEffect(entropy.enhancements.invention))
             .times(unref(acceleron.loops.tempFoam.currentBoost!))
             .times(getUpgradeEffect(entropy.enhancements.formation))
-            .times(unref(inflatonBonus)) // inflaton bonus
+            .times(unref(inflaton.fomeBonus))
             .times(1) // inflaton upgrade 21
             .times(getFomeBoost(FomeTypes.quantum, 1))
             .times(getFomeBoost(FomeTypes.quantum, 3))
@@ -227,22 +218,21 @@ const layer = createLayer(id, function (this: BaseLayer) {
     };
     function createDimBuyable(type: FomeTypes, dim: FomeDims, cost: (amount: DecimalSource) => DecimalSource) {
         const display = dimBuyableDisplay(type, dim);
-        return createBuyable(() => ({
+        return createBuyable<FreeBuyableOptions>(() => ({
             visibility() { return showIf(Decimal.gt(unref(reformUpgrades[type].amount), 0)) },
             resource: amounts[type],
             display: display,
             effect() { return Decimal.add(unref(this.amount), 1); },
             cost() { return cost(unref(this.amount)); },
             classes: () => ({ auto: unref(achievements[type].earned) }),
-            onPurchase(cost?: DecimalSource) {
+            onPurchase() {
                 const index = boosts[type].index;
                 const boost = boosts[type][unref(index)].amount;
                 boost.value = Decimal.add(unref(boost), 1);
                 index.value = (unref(index) === 5 ? 1 : unref(index) + 1) as 1|2|3|4|5;
-                if (unref(achievements[type].earned))
-                    amounts[type].value = Decimal.add(unref(amounts[type]), cost ?? 0);
-            }
-        }));
+            },
+            isFree: achievements[type].earned
+        }), freeBuyableDecorator) as GenericFreeBuyable;
     }
     function dimBuyableDisplay(type: FomeTypes, dim: FomeDims) {
         let dimName: string;
@@ -396,7 +386,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             1: createFomeBoost(FomeTypes.infinitesimal, 1,
                 effect => `Multiply the generation of Infinitesimal Foam by ${format(effect)}x`,
                 total => total.times(1).plus(1).times(unref(skyrmion.pionUpgrades.lambda.effect)),
-                () => unref(globalBoost).plus(getFomeBoost(FomeTypes.subspatial, 3).add(getFomeBoost(FomeTypes.quantum, 5)))
+                () => unref(globalBoost).plus(getFomeBoost(FomeTypes.subspatial, 3).add(getFomeBoost(FomeTypes.quantum, 5))).times(unref(skyrmion.pionUpgrades.lambda.effect))
             ),
             2: createFomeBoost(FomeTypes.infinitesimal, 2,
                 effect => `Increase Pion and Spinor gain by ${format(effect.minus(1).times(100))}%`,

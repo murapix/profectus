@@ -3,7 +3,7 @@ import MainDisplayVue from "features/resources/MainDisplay.vue";
 import { createResource, trackBest } from "features/resources/resource";
 import { createUpgrade, GenericUpgrade } from "features/upgrades/upgrade";
 import { BaseLayer, createLayer } from "game/layers";
-import Decimal from "lib/break_eternity";
+import Decimal, { DecimalSource } from "lib/break_eternity";
 import { format, formatWhole } from "util/break_eternity";
 import { unref } from "vue";
 import acceleron from "../acceleron/acceleron";
@@ -14,10 +14,15 @@ const layer = createLayer(id, function (this: BaseLayer) {
     const name = "Time Cubes";
     const color = "#f037ea";
     
-    const timecubes = createResource(0, "Time Cubes");
+    const timecubes = createResource<DecimalSource>(0, "Time Cubes");
     const bestTimecubes = trackBest(timecubes);
 
-    const upgrades: {[key in string]: GenericUpgrade} = {
+    type Upgrades = 'tile' | 'time' | 'tier' | 'tilt' | 'tiny' |
+                    'twice' | 'twist' | 'ten' | 'twirl' | 'tetrate' |
+                    'tesselate' | 'triple' | 'turn' | 'tall' | 'tour' |
+                    'tactics' | 'tower' | 'title' | 'tempo' | 'toil' |
+                    'a' | 'b' | 'c' | 'd' | 'e'
+    const upgrades: {[key in Upgrades]: GenericUpgrade} = {
         tile: createUpgrade(() => ({
             display: {
                 title: 'Tile',
@@ -73,11 +78,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
             visibility() { return showIf(unref(this.bought) || unref(upgrades.tiny.bought)) },
             display: () => ({
                 title: 'Twice',
-                description: `${unref(upgrades.tripleEntropy.bought) ? 'Triple' : 'Double'} maximum entropy`
+                description: `${unref(upgrades.triple.bought) ? 'Triple' : 'Double'} maximum entropy`
             }),
             cost: new Decimal(2500),
             resource: timecubes,
-            effect() { return unref(upgrades.tripleEntropy.bought) ? 3 : 2 }
+            effect() { return unref(upgrades.triple.bought) ? 3 : 2 }
         })),
         twist: createUpgrade(() => ({
             visibility() { return showIf(unref(this.bought) || unref(upgrades.twice.bought)) },
@@ -116,8 +121,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
             cost: new Decimal(5e9),
             resource: timecubes
         })),
-        
-        tripleEntropy: createUpgrade(() => ({
+        tesselate: createUpgrade(() => ({visibility: showIf(false)})),
+        triple: createUpgrade(() => ({
             visibility() { return showIf(unref(this.bought) || false) },
             display: {
                 title: 'Triple',
@@ -126,6 +131,19 @@ const layer = createLayer(id, function (this: BaseLayer) {
             cost: new Decimal(1e11),
             resource: timecubes
         })),
+        turn: createUpgrade(() => ({ visibility() { return showIf(false) }, display: { description: "X" }, cost: Decimal.dInf, resource: timecubes })),
+        tall: createUpgrade(() => ({ visibility() { return showIf(false) }, display: { description: "X" }, cost: Decimal.dInf, resource: timecubes })),
+        tour: createUpgrade(() => ({ visibility() { return showIf(false) }, display: { description: "X" }, cost: Decimal.dInf, resource: timecubes })),
+        tactics: createUpgrade(() => ({ visibility() { return showIf(false) }, display: { description: "X" }, cost: Decimal.dInf, resource: timecubes })),
+        tower: createUpgrade(() => ({ visibility() { return showIf(false) }, display: { description: "X" }, cost: Decimal.dInf, resource: timecubes })),
+        title: createUpgrade(() => ({ visibility() { return showIf(false) }, display: { description: "X" }, cost: Decimal.dInf, resource: timecubes })),
+        tempo: createUpgrade(() => ({ visibility() { return showIf(false) }, display: { description: "X" }, cost: Decimal.dInf, resource: timecubes })),
+        toil: createUpgrade(() => ({ visibility() { return showIf(false) }, display: { description: "X" }, cost: Decimal.dInf, resource: timecubes })),
+        'a': createUpgrade(() => ({ visibility() { return showIf(false) }, display: { description: "X" }, cost: Decimal.dInf, resource: timecubes })),
+        'b': createUpgrade(() => ({ visibility() { return showIf(false) }, display: { description: "X" }, cost: Decimal.dInf, resource: timecubes })),
+        'c': createUpgrade(() => ({ visibility() { return showIf(false) }, display: { description: "X" }, cost: Decimal.dInf, resource: timecubes })),
+        'd': createUpgrade(() => ({ visibility() { return showIf(false) }, display: { description: "X" }, cost: Decimal.dInf, resource: timecubes })),
+        'e': createUpgrade(() => ({ visibility() { return showIf(false) }, display: { description: "X" }, cost: Decimal.dInf, resource: timecubes })),
     }
 
     return {

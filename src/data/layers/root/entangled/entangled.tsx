@@ -1,69 +1,116 @@
-import { createConversion } from "features/conversion";
 import { jsx } from "features/feature";
-import { createReset } from "features/reset";
 import { createResource } from "features/resources/resource";
 import { createLayer } from "game/layers";
 import Decimal, { DecimalSource } from "lib/break_eternity";
-import { createLayerTreeNode, createResetButton } from "../../../common";
 import MainDisplay from "features/resources/MainDisplay.vue";
 import Spacer from "components/layout/Spacer.vue";
-import { render } from "util/vue";
+import { render, renderCol } from "util/vue";
 import { format } from "util/break_eternity";
-import { root } from "data/projEntry";
-import skyrmion from "../skyrmion/skyrmion";
-import { unref } from "vue";
+import { computed, unref } from "vue";
+import { persistent } from "game/persistence";
+import acceleron, { id as acceleronId } from "../acceleron/acceleron";
+import inflaton, { id as inflatonId } from "../inflaton/inflaton";
+import timecube from "../timecube/timecube";
+import { createMilestone, GenericMilestone } from "features/milestones/milestone";
+import { createClickable, GenericClickable } from "features/clickables/clickable";
 
 const layer = createLayer("entangled", () => {
     const name = "Entangled Strings";
     const color = "#9a4500";
-    const points = createResource<DecimalSource>(0, "Entangled Strings");
+    const strings = createResource<DecimalSource>(0, "Entangled Strings");
 
-    const conversion = createConversion(() => ({
-        scaling: {
-            currentGain() { return Decimal.dZero; },
-            currentAt() { return Decimal.dInf; },
-            nextAt() { return Decimal.dInf; }
+    type BranchOrder = '' | typeof acceleronId | typeof inflatonId
+    const branchOrder = persistent<BranchOrder>('');
+    function isFirstBranch(branch: BranchOrder): boolean {
+        if (unref(milestones[1].earned)) return true;
+        return ['', branch].includes(unref(branchOrder));
+    }
+
+    const requirements = {
+        acceleron: {
+            resource: acceleron.accelerons,
+            amount: computed(() => Decimal.dInf)
         },
-        baseResource: skyrmion.skyrmions,
-        gainResource: points,
-        roundUpCost: false
+        inflaton: {
+            resource: inflaton.inflatons,
+            amount: computed(() => Decimal.dInf)
+        },
+        timecube: {
+            resource: timecube.timecubes,
+            amount: computed(() => Decimal.dInf),
+            visibility: false
+        }
+    }
+    const resetButton: GenericClickable = createClickable(() => ({
+        canClick() {
+            return Object.values(requirements).every(({resource, amount}) => Decimal.gte(unref(resource), unref(amount)));
+        },
+        display: 'Reset for 1 Entangled String'
     }));
 
-    const reset = createReset(() => ({
-        thingsToReset: (): Record<string, unknown>[] => []
-    }));
-
-
-    const resetButton = createResetButton(() => ({
-        conversion
-    }));
+    const milestones: {[key in 1|2|3|7]: GenericMilestone} = {
+        1: createMilestone(() => ({
+            shouldEarn() { return Decimal.gte(unref(strings), 1) },
+            display: {
+                requirement: `1 ${strings.displayName}`,
+                effectDisplay: `${acceleron.accelerons.displayName} and ${inflaton.inflatons.displayName} no longer inflate each other's costs`
+            }
+        })),
+        2: createMilestone(() => ({
+            shouldEarn() { return Decimal.gte(unref(strings), 2) },
+            display: {
+                requirement: `2 ${strings.displayName}`,
+                effectDisplay: jsx(() => <>
+                    Unlock expansions to previous content<br />
+                    Keep Skyrmion upgrades and Foam milestones
+                </>)
+            }
+        })),
+        3: createMilestone(() => ({
+            shouldEarn() { return Decimal.gte(unref(strings), 3) },
+            display: {
+                requirement: `3 ${strings.displayName}`,
+                effectDisplay: 'Keep all parallel research and research queue researches'
+            }
+        })),
+        7: createMilestone(() => ({
+            shouldEarn() { return Decimal.gte(unref(strings), 7) },
+            display: {
+                requirement: `7 ${strings.displayName}`,
+                effectDisplay: 'Unlock Fundamental Particles'
+            }
+        }))
+    }
 
     return {
         name,
         color,
-        points,
+        strings,
+        milestones,
         display: jsx(() => (
             <>
-                <MainDisplay resource={points} color={color} />
+                <MainDisplay resource={strings} color={color} />
                 <Spacer />
                 {render(resetButton)}
                 <Spacer />
-                <div>The next Entangled String requires:</div>
+                <div>The next {strings.displayName} requires:</div>
                 <Spacer />
-                <div color={color}>
-                    Accelerons: {format(unref(skyrmion.pions))}/{format(unref(conversion.nextAt))}
+                <div color={acceleron.color}>
+                    {acceleron.accelerons.displayName}: {format(unref(requirements.acceleron.resource))} / {format(unref(requirements.acceleron.amount))}
                 </div>
-                <div color={color}>
-                    Stored Inflatons: {format(unref(skyrmion.spinors))}/
-                    {format(unref(conversion.nextAt))}
+                <div color={inflaton.color}>
+                    Stored {inflaton.inflatons.displayName}: {format(unref(requirements.inflaton.resource))} / {format(unref(requirements.inflaton.amount))}
                 </div>
-                <div color={color} v-show={false}>
-                    Total Timeline Score: {format(unref(skyrmion.skyrmions))}/
-                    {format(unref(conversion.nextAt))}
+                <div color={timecube.color} v-show={false}>
+                    Total Timeline Score: {format(unref(requirements.timecube.resource))} / {format(unref(requirements.timecube.amount))}
                 </div>
                 <Spacer />
+                {renderCol(...Object.values(milestones))}
             </>
-        ))
+        )),
+
+        branchOrder,
+        isFirstBranch
     };
 });
 

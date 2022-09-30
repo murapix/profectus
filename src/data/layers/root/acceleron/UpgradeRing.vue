@@ -518,7 +518,7 @@ export default defineComponent({
 })
 </script>
 
-<style>
+<style scoped>
 .ring-container {
     pointer-events: none;
     position: relative;
@@ -533,7 +533,7 @@ export default defineComponent({
     left: 0;
 }
 
-.ring-segment > .can {
+.ring-segment > :deep(.can) {
     transform: none;
     filter: var(--shadow-id);
 }
@@ -544,7 +544,7 @@ export default defineComponent({
     left: 0;
 }
 
-.ring-upgrade.ring-upgrade {
+:deep(.ring-upgrade.ring-upgrade) {
     pointer-events: all;
     
     margin: 0;
@@ -561,32 +561,32 @@ export default defineComponent({
     background: #0000002F;
 }
 
-.ring-upgrade.left {
+:deep(.ring-upgrade.left) {
     text-align: left;
     border-style: solid solid solid none;
 }
 
-.ring-upgrade.right {
+:deep(.ring-upgrade.right) {
     text-align: right;
     border-style: solid none solid solid;
 }
 
-.ring-upgrade.locked {
+:deep(.ring-upgrade.locked) {
     border-color: var(--locked);
     color: var(--locked);
 }
 
-.ring-upgrade.can {
+:deep(.ring-upgrade.can) {
     border-color: var(--layer-color);
     color: var(--layer-color);
 }
 
-.ring-upgrade.bought {
+:deep(.ring-upgrade.bought) {
     border-color: var(--bought);
     color: var(--bought);
 }
 
-.ring-upgrade.can:hover, .ring-upgrade.can.hover {
+:deep(.ring-upgrade.can:hover), :deep(.ring-upgrade.can.hover) {
     transform: none;
     box-shadow: inset 0 0 20px var(--layer-color);
 }
