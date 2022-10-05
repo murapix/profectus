@@ -42,11 +42,11 @@ export default defineComponent({
         const visibleCounts = rows.map(row => computed(() => row.filter(upgrade => unref(upgrade.visibility) === Visibility.Visible).length));
         const top = rows.map((row, index) => {
             const result = index === 0 ? false : unref(visibleCounts[index]) <= unref(visibleCounts[index-1]);
-            return row.map(_ => result);
+            return row.map(() => result);
         });
         const bottom = rows.map((row, index) => {
             const result = index >= rows.length-1 ? false : unref(visibleCounts[index]) <= unref(visibleCounts[index+1]);
-            return row.map(_ => result);
+            return row.map(() => result);
         });
 
         const joined = rows.map((row, rowIndex) => row.map((upgrade, upgradeIndex) => computed(() => ({

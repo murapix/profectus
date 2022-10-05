@@ -6,13 +6,13 @@
                 '--fill-percent': `${format(unref(fillPercent))}%`
             }
         ]"
-        @click="research"
+        @click="research()"
         :class="{
             research: true,
             hidden: unref(visibility) === Visibility.None,
             locked: !unref(canResearch), // unavailable to click
-            can: unref(canResearch) && Decimal.eq(unref(progress), 0), // available to click, not in the queue
-            queued: Decimal.gt(unref(progress), 0) && !unref(researched), // in queue (todo: change these to queue state, not progress)
+            can: unref(canResearch) && !unref(isResearching) && !unref(researched), // available to click, not in the queue or done
+            queued: unref(isResearching), // in queue
             done: unref(researched) // finished researching
         }"
         :disabled="!unref(canResearch)"
@@ -127,6 +127,7 @@ export default defineComponent({
     background-color: var(--background);
 
     pointer-events: none;
+    display: flex;
     flex-flow: column;
 }
 
@@ -139,7 +140,7 @@ export default defineComponent({
     pointer-events: all;
 }
 
-.research.queued {
+.research.queued, .research.can {
     background-image: linear-gradient(to right, var(--layer-color) calc(var(--fill-percent) - 5%), var(--background) calc(var(--fill-percent) + 5%));
 }
 
@@ -148,7 +149,7 @@ export default defineComponent({
     background-color: var(--bought);
 }
 
-.research > * {
+.research > :deep(*) {
     pointer-events: none;
 }
 </style>

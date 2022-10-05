@@ -74,7 +74,7 @@ export default defineComponent({
 <style scoped>
 .container {
     position: relative;
-    margin: 0 auto;
+    margin: 0;
     width: fit-content;
     align-items: center;
     --scrollbar-width: 10px;

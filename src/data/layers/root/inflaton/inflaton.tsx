@@ -16,12 +16,13 @@ import Decimal, { DecimalSource } from "lib/break_eternity";
 import { format, formatSmall, formatWhole } from "util/break_eternity";
 import { Computable, ProcessedComputable } from "util/computed";
 import { createLazyProxy } from "util/proxies";
-import { render, renderCol, renderColJSX, renderRow, renderRowJSX } from "util/vue";
+import { render, renderCol, renderColJSX, renderJSX, renderRow, renderRowJSX } from "util/vue";
 import { computed, ComputedRef, unref, watch } from "vue";
 import acceleron from "../acceleron/acceleron";
 import entangled from "../entangled/entangled";
 import fome, { FomeTypes } from "../fome/fome";
 import { createResearch, GenericRepeatableResearch, GenericResearch, getResearchEffect, repeatableResearchDecorator, RepeatableResearchOptions } from "./research";
+import ResearchQueueVue from "./ResearchQueue.vue";
 import ResearchTreeVue from "./ResearchTree.vue";
 
 interface BuildingData {
@@ -94,11 +95,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
         inflatons.value = unref(research.instantInflation.researched)
             ? Decimal.reciprocate(unref(buildings.condenser.effect)).dividedBy(10).pow10()
             : Decimal.add(unref(inflatons), 1);
-    }
+    };
     function endInflation() {
         inflating.value = false;
         inflatons.value = Decimal.min(unref(inflatons), unref(buildings.storage.effect));
-    }
+    };
 
     const inflating = persistent<boolean>(false);
     const inflatonNerf = computed(() => {
@@ -150,7 +151,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
 
     const upgradeStyle = {
         width: '250px'
-    }
+    };
     type Upgrades = 'subspaceBuildings' | 'research'
     const upgrades: {[key in Upgrades]: GenericUpgrade} = {
         subspaceBuildings: createUpgrade(() => ({
@@ -173,7 +174,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             visibility() { return showIf(unref(this.bought) || unref(upgrades.subspaceBuildings.bought)) },
             style: upgradeStyle
         }))
-    }
+    };
 
     const buildingStyle = computed(() => ({
         ...upgradeStyle,
@@ -182,7 +183,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         borderBottomRightRadius: unref(research.respecs.researched) ? 0 : undefined,
     }));
     const buildingSize = computed(() => {
-        return Decimal.times(getResearchEffect(research.biggerBuildings, {size: 1}).size, 1) // size repeatable
+        return Decimal.times(getResearchEffect(research.biggerBuildings, {size: 1}).size, getResearchEffect(repeatables.buildingSize, {size: 1}).size)
     });
     const canBuild = computed(() => Decimal.minus(unref(maxSize), unref(usedSize)).gte(unref(buildingSize)));
     type Buildings = 'condenser' | 'lab' | 'storage'
@@ -190,8 +191,6 @@ const layer = createLayer(id, function (this: BaseLayer) {
         condenser: createBuilding(() => ({
             effect(amount: Decimal) {
                 return amount.times(getResearchEffect(research.quintupleCondenser))
-                             .times(getResearchEffect(research.biggerBuildings).gain)
-                            //  .times(getResearchEffect(repeatables.biggerBuildings).gain)
                              .pow_base(0.975);
             },
             cost: {
@@ -210,7 +209,6 @@ const layer = createLayer(id, function (this: BaseLayer) {
         lab: createBuilding(() => ({
             effect(amount: Decimal) {
                 return amount.times(unref(research.researchBoost.researched) ? Decimal.times(unref(research.researchBoost.effect), 0.9) : 1)
-                             .times(getResearchEffect(research.biggerBuildings, {gain: 1}).gain)
                              .times(1) // 1st abyssal pion buyable
             },
             cost: {
@@ -228,8 +226,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         })),
         storage: createBuilding(() => ({
             effect(amount: Decimal) {
-                return amount.times(getResearchEffect(research.biggerBuildings, {gain: 1}).gain)
-                             .times(getResearchEffect(research.improvedStorage, 1/3))
+                return amount.times(getResearchEffect(research.improvedStorage, 1/3))
                              .pow_base(500);
             },
             cost: {
@@ -245,12 +242,12 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 effect: jsx(() => <>Safely store up to {formatWhole(unref(buildings.storage.effect))} Inflatons</>)
             }
         }))
-    }
+    };
     const respecStyle = {
         width: '125px',
         minHeight: '25px',
         borderRadius: 0
-    }
+    };
     const respecButtons = Object.fromEntries(Object.entries(buildings).map(([id, building]) => [
         id,
         {
@@ -258,7 +255,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 visibility() { return showIf(unref(research.respecs.researched)) },
                 canClick() { return Decimal.gt(unref(building.amount), 0) },
                 display: { description: 'Sell One' },
-                onClick() { building.amount.value = Decimal.minus(unref(building.amount), 1) },
+                onClick() { building.amount.value = Decimal.minus(unref(building.amount), unref(buildingSize)).max(0) },
                 style: computed(() => ({...respecStyle, borderBottomLeftRadius: 'var(--border-radius)'}))
             })) as GenericClickable,
             all: createClickable(() => ({
@@ -270,6 +267,12 @@ const layer = createLayer(id, function (this: BaseLayer) {
             })) as GenericClickable
         }
     ])) as {[key in Buildings]: {[key in 'one' | 'all']: GenericClickable}};
+    const respecAll = createClickable(() => ({
+        canClick() { return Object.values(buildings).some(building => Decimal.gt(unref(building.amount), 0)) },
+        display: { description: 'Sell All' },
+        onClick() { for (const building of Object.values(buildings)) building.amount.value = Decimal.dZero },
+        style: {...respecStyle, borderRadius: 'var(--border-radius)'}
+    }));
     const buildingRenders = Object.fromEntries(Object.keys(buildings).map(id => [id, jsx(() => (
         <div class="col mergeAdjacent">
             {render(buildings[id as Buildings])}
@@ -290,7 +293,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             effect: 5,
             cost: new Decimal(75),
             visibility() { return showIf(unref(upgrades.research.bought)) },
-            research: startResearch,
+            research: startResearch('research'),
             isResearching
         })),
         doubleSize: createResearch(() => ({
@@ -302,7 +305,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             effect: 2,
             cost: new Decimal(100),
             requirements: [research.quintupleCondenser],
-            research: startResearch,
+            research: startResearch('research'),
             isResearching
         })),
         cheaperLabs: createResearch(() => ({
@@ -313,7 +316,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             },
             cost: 100,
             requirements: [research.quintupleCondenser],
-            research: startResearch,
+            research: startResearch('research'),
             isResearching
         })),
         fomeGain: createResearch(() => ({
@@ -325,7 +328,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             effect: 1e6,
             cost: 500,
             requirements: [research.doubleSize],
-            research: startResearch,
+            research: startResearch('research'),
             isResearching
         })),
         researchBoost: createResearch(() => ({
@@ -333,13 +336,13 @@ const layer = createLayer(id, function (this: BaseLayer) {
             display: {
                 title: 'Distributed Analysis Framework',
                 description: jsx(() => <span>Transform 10% of your Quantum Flux Analyzers into networking nodes, increasing Research Point gain by up to {format(unref((research.researchBoost as GenericResearch & {limit: ComputedRef<Decimal>}).limit))}x</span>),
-                effectDisplay: jsx(() => <>{unref((research.researchBoost as GenericResearch).effect)}x</>)
+                effectDisplay: jsx(() => <>{format(unref((research.researchBoost as GenericResearch).effect))}x</>)
             },
             effect() { return Decimal.pow(1.1, unref(buildings.lab.amount)).min(unref((research.researchBoost as GenericResearch & {limit: ComputedRef<Decimal>}).limit)) },
-            limit: computed(() => Decimal.times(1, 1.8)), // repeatable boost limit increase
+            limit: computed(() => Decimal.times(unref(repeatables.research.effect), 1.8)),
             cost: 1500,
             requirements: [research.doubleSize, research.cheaperLabs],
-            research: startResearch,
+            research: startResearch('research'),
             isResearching
         })),
         storage: createResearch(() => ({
@@ -350,7 +353,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             },
             cost: 500,
             requirements: [research.cheaperLabs],
-            research: startResearch,
+            research: startResearch('research'),
             isResearching
         })),
         halfQuantum: createResearch(() => ({
@@ -362,7 +365,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             cost: 750,
             effect: 0.5,
             requirements: [research.fomeGain],
-            research: startResearch,
+            research: startResearch('research'),
             isResearching
         })),
         quadrupleSize: createResearch(() => ({
@@ -374,7 +377,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             cost: 750,
             effect: 2,
             requirements: [research.fomeGain],
-            research: startResearch,
+            research: startResearch('research'),
             isResearching
         })),
         upgrades: createResearch(() => ({
@@ -385,7 +388,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             },
             cost: 750,
             requirements: [research.storage],
-            research: startResearch,
+            research: startResearch('research'),
             isResearching
         })),
         respecs: createResearch(() => ({
@@ -396,7 +399,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             },
             cost: 750,
             requirements: [research.storage],
-            research: startResearch,
+            research: startResearch('research'),
             isResearching
         })),
         moreFomeGain: createResearch(() => ({
@@ -408,7 +411,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             cost: 1500,
             effect: 1e12,
             requirements: [research.halfQuantum, research.upgrades],
-            research: startResearch,
+            research: startResearch('research'),
             isResearching
         })),
         queueTwo: createResearch(() => ({
@@ -420,7 +423,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             cost: 10000,
             effect: 2,
             requirements: [research.researchBoost],
-            research: startResearch,
+            research: startResearch('research'),
             isResearching
         })),
         improvedStorage: createResearch(() => ({
@@ -432,7 +435,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             cost: 1500,
             effect: 1,
             requirements: [research.respecs],
-            research: startResearch,
+            research: startResearch('research'),
             isResearching
         })),
         quarterQuantum: createResearch(() => ({
@@ -444,7 +447,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             cost: 6000,
             effect: 0.5,
             requirements: [research.halfQuantum, research.moreFomeGain],
-            research: startResearch,
+            research: startResearch('research'),
             isResearching
         })),
         repeatableUnlock: createResearch(() => ({
@@ -455,7 +458,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             },
             cost: 6000,
             requirements: [research.quadrupleSize],
-            research: startResearch,
+            research: startResearch('research'),
             isResearching
         })),
         inflationResearch: createResearch(() => ({
@@ -466,7 +469,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             },
             cost: 15000,
             requirements: [research.queueTwo, research.improvedStorage],
-            research: startResearch,
+            research: startResearch('research'),
             isResearching
         })),
         autofillStorage: createResearch(() => ({
@@ -477,7 +480,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             },
             cost: 6000,
             requirements: [research.respecs, research.improvedStorage],
-            research: startResearch,
+            research: startResearch('research'),
             isResearching
         })),
         evenMoreFoamGain: createResearch(() => ({
@@ -489,7 +492,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             cost: 9000,
             effect: 1e12,
             requirements: [research.quarterQuantum, research.repeatableUnlock],
-            research: startResearch,
+            research: startResearch('research'),
             isResearching
         })),
         biggerBuildings: createResearch(() => ({
@@ -501,7 +504,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
             cost: 25000,
             effect: { size: 10, effect: 2 },
             requirements: [research.quarterQuantum, research.repeatableUnlock, research.inflationResearch],
-            research: startResearch,
+            onResearch: respecAll.onClick,
+            research: startResearch('research'),
             isResearching
         })),
         isolatedStorage: createResearch(() => ({
@@ -512,7 +516,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             },
             cost: 25000,
             requirements: [research.inflationResearch],
-            research: startResearch,
+            research: startResearch('research'),
             isResearching
         })),
         instantInflation: createResearch(() => ({
@@ -523,7 +527,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             },
             cost: 25000,
             requirements: [research.inflationResearch, research.autofillStorage],
-            research: startResearch,
+            research: startResearch('research'),
             isResearching
         })),
         moreRepeatables: createResearch(() => ({
@@ -534,7 +538,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             },
             cost: 100000,
             requirements: [research.evenMoreFoamGain, research.biggerBuildings],
-            research: startResearch,
+            research: startResearch('research'),
             isResearching
         })),
         queueFour: createResearch(() => ({
@@ -546,7 +550,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             cost: 100000,
             effect: 2,
             requirements: [research.queueTwo, research.repeatableUnlock],
-            research: startResearch,
+            research: startResearch('research'),
             isResearching
         })),
         autobuild: createResearch(() => ({
@@ -557,21 +561,21 @@ const layer = createLayer(id, function (this: BaseLayer) {
             },
             cost: 100000,
             requirements: [research.isolatedStorage, research.instantInflation],
-            research: startResearch,
+            research: startResearch('research'),
             isResearching
         })),
         mastery: createResearch(() => ({
             position: [8,0],
-            display: () => ({
+            display: {
                 title: 'Spatial Mastery',
-                description: `Unlock ${entangled.isFirstBranch(id) ? acceleron.accelerons.displayName : entangled.strings.displayName}`
-            }),
+                description: jsx(() => <span>Unlock {entangled.isFirstBranch(id) ? acceleron.accelerons.displayName : entangled.strings.displayName}</span>)
+            },
             cost: 750000,
             requirements: [research.moreRepeatables, research.queueFour, research.autobuild],
-            research: startResearch,
+            research: startResearch('research'),
             isResearching
         }))
-    }
+    };
 
     const repeatables: {[key in string]: GenericRepeatableResearch} = {
         universeSize: createResearch<RepeatableResearchOptions>(() => ({
@@ -581,9 +585,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 description: 'Double the size of your universe',
                 effectDisplay: jsx(() => <>{formatWhole(unref(repeatables.universeSize.effect))}x</>)
             },
-            cost() { return Decimal.pow(4, unref((this as GenericRepeatableResearch).amount)).times(12000).dividedBy(1) /* 1st abyssal spinor buyable */ },
-            effect() { return Decimal.pow(2, unref((this as GenericRepeatableResearch).amount)) },
-            research: startRepeatableResearch,
+            cost(this: GenericRepeatableResearch) { return Decimal.pow(4, unref(this.amount)).times(12000).dividedBy(1) /* 1st abyssal spinor buyable */ },
+            effect(this: GenericRepeatableResearch) { return Decimal.pow(2, unref(this.amount)) },
+            research: startResearch('repeatables'),
             isResearching
         }), repeatableResearchDecorator) as GenericRepeatableResearch,
         research: createResearch<RepeatableResearchOptions>(() => ({
@@ -593,9 +597,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 description: `Increase Distributed Analysis Framework's maximum bonus by 80%`,
                 effectDisplay: jsx(() => <>{formatWhole(unref(repeatables.research.effect))}x</>)
             },
-            cost() { return Decimal.pow(8, unref((this as GenericRepeatableResearch).amount)).times(15000).dividedBy(1) /* 1st abyssal spinor buyable */ },
-            effect() { return Decimal.pow(1.8, unref((this as GenericRepeatableResearch).amount)) },
-            research: startRepeatableResearch,
+            cost(this: GenericRepeatableResearch) { return Decimal.pow(8, unref(this.amount)).times(15000).dividedBy(1) /* 1st abyssal spinor buyable */ },
+            effect(this: GenericRepeatableResearch) { return Decimal.pow(1.8, unref(this.amount)) },
+            research: startResearch('repeatables'),
             isResearching
         }), repeatableResearchDecorator) as GenericRepeatableResearch,
         buildingSize: createResearch<RepeatableResearchOptions>(() => ({
@@ -605,13 +609,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 description: 'Increase Subspace building size tenfold, and increase their effects by twice as much',
                 effectDisplay: jsx(() => <>{formatWhole(unref(repeatables.buildingSize.effect).size)}x, {formatWhole(Decimal.times(unref(repeatables.buildingSize.effect).size, unref(repeatables.buildingSize.effect).gain))}</>)
             },
-            cost() { return Decimal.pow(200, unref((this as GenericRepeatableResearch).amount)).times(150000).dividedBy(1).div(1) /* 1st abyssal spinor buyable, left time square */ },
-            effect() { return { size: Decimal.pow(10, unref((this as GenericRepeatableResearch).amount)), gain: Decimal.pow(2, unref((this as GenericRepeatableResearch).amount)) }},
+            cost(this: GenericRepeatableResearch) { return Decimal.pow(200, unref(this.amount)).times(150000).dividedBy(1).div(1) /* 1st abyssal spinor buyable, left time square */ },
+            effect(this: GenericRepeatableResearch) { return { size: Decimal.pow(10, unref(this.amount)), effect: Decimal.pow(2, unref(this.amount)) }},
             canResearch: () => Object.values(buildings).map(building => unref(building.amount)).every(amount => Decimal.gte(amount, unref(buildingSize).times(10))),
-            onResearch() {
-                // click respec button
-            },
-            research: startRepeatableResearch,
+            onResearch: respecAll.onClick,
+            research: startResearch('repeatables'),
             isResearching
         }), repeatableResearchDecorator) as GenericRepeatableResearch,
         buildingCost: createResearch<RepeatableResearchOptions>(() => ({
@@ -621,9 +623,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 description: 'Decrease Subspace building cost scaling by 1.5x',
                 effectDisplay: jsx(() => <>1/{format(unref(repeatables.buildingCost.effect))}x</>)
             },
-            cost() { return Decimal.pow(3, unref((this as GenericRepeatableResearch).amount)).times(120000).dividedBy(1) /* 1st abyssal spinor buyable */ },
-            effect() { return Decimal.pow(1.5, unref((this as GenericRepeatableResearch).amount)) },
-            research: startRepeatableResearch,
+            cost(this: GenericRepeatableResearch) { return Decimal.pow(3, unref(this.amount)).times(120000).dividedBy(1) /* 1st abyssal spinor buyable */ },
+            effect(this: GenericRepeatableResearch) { return Decimal.pow(1.5, unref(this.amount)) },
+            research: startResearch('repeatables'),
             isResearching
         }), repeatableResearchDecorator) as GenericRepeatableResearch,
         fome: createResearch<RepeatableResearchOptions>(() => ({
@@ -633,72 +635,91 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 description: 'Retain up to 1e6x more Foam',
                 effectDisplay: jsx(() => <>{formatWhole(unref(repeatables.fome.effect))}x</>)
             },
-            cost() { return Decimal.pow(5, unref((this as GenericRepeatableResearch).amount)).times(160000).dividedBy(1) /* 1st abyssal spinor buyable */ },
-            effect() { return Decimal.pow(1e6, unref((this as GenericRepeatableResearch).amount)) },
-            research: startRepeatableResearch,
+            cost(this: GenericRepeatableResearch) { return Decimal.pow(5, unref(this.amount)).times(160000).dividedBy(1) /* 1st abyssal spinor buyable */ },
+            effect(this: GenericRepeatableResearch) { return Decimal.pow(1e6, unref(this.amount)) },
+            research: startResearch('repeatables'),
             isResearching
         }), repeatableResearchDecorator) as GenericRepeatableResearch
-    }
+    };
 
-    const baseResearchGain = computed(() => {
+    const researchLocations = {
+        research,
+        repeatables
+    };
+
+    const baseResearchGain = computed<Decimal>(() => {
         return Decimal.times(unref(buildings.lab.effect), getResearchEffect(research.researchBoost)).times(1) /* 1st abyssal pion buyable */
     });
-    const finalResearchGain = computed(() => {
+    const finalResearchGain = computed<Decimal>(() => {
         return unref(baseResearchGain);
     });
-    const queueLength = computed(() => {
+    const queueLength = computed<number>(() => {
         return 1 + getResearchEffect(research.queueTwo, 0) + getResearchEffect(research.queueFour, 0);
     });
-    const parallelSize = computed(() => {
+    const parallelSize = computed<number>(() => {
         return 1;
     });
-    const researchQueue = persistent<string[]>([]);
-    function startResearch(this: GenericResearch, force: boolean) {
-        if (force || unref(researchQueue).length < unref(queueLength)) {
-            const key = Object.keys(research).find(key => research[key] === this);
-            if (key) unref(researchQueue).push(key);
-        }
-    }
-    function startRepeatableResearch(this: GenericRepeatableResearch, force: boolean) {
-        if (force || unref(researchQueue).length < unref(queueLength)) {
-            const key = Object.keys(repeatables).find(key => repeatables[key] === this);
-            if (key) unref(researchQueue).push(key);
+    const researchQueue = persistent<[keyof typeof researchLocations, string][]>([]);
+    function startResearch(location: keyof typeof researchLocations) {
+        const research = researchLocations[location];
+        return function(this: GenericResearch, force: boolean = false) {
+            if (force || unref(researchQueue).length < unref(queueLength)) {
+                const key = Object.keys(research).find(key => research[key].id === this.id);
+                if (key) unref(researchQueue).push([location, key]);
+            }
         }
     }
     function isResearching(this: GenericResearch) {
-        return unref(researchQueue).includes(this.id);
+        return unref(researchQueue).some(([key, id]) => researchLocations[key][id].id === this.id);
     }
-    this.on("preUpdate", (diff) => { // increment research progress
+    this.on("preUpdate", (diff) => {
         if (unref(researchQueue).length === 0) return;
         const gain = Decimal.times(unref(finalResearchGain), diff);
-        for (const id of unref(researchQueue).slice(0, unref(parallelSize))) {
-            Object.values(research).filter(research => research.id === id);
-            Object.values(repeatables).filter(research => research.id === id);
+        for (const research of unref(researchQueue).slice(0, unref(parallelSize)).map(([key, id]) => researchLocations[key][id])) {
+            research.progress.value = gain.plus(unref(research.progress));
         }
     });
-    this.on("update", (diff) => { // if below parallel count, add repeatables
-
+    this.on("update", () => { // if below parallel count, add repeatables
+        if (unref(researchQueue).length < unref(parallelSize)) { // and auto-researching
+            Object.values(repeatables)
+                  .filter(research => Decimal.gte(unref(research.amount), 1))
+                  .filter(research => !unref(research.isResearching))
+                  .filter(research => unref(research.canResearch))
+                  .sort((a, b) => Decimal.compare(unref(a.cost), unref(b.cost)))
+                  .slice(0, unref(parallelSize) - unref(researchQueue).length)
+                  .forEach((research) => research.research(true));
+        }
     });
-    this.on("postUpdate", (diff) => { // remove completed researches from queue
-
+    this.on("postUpdate", () => { // remove completed researches from queue
+        researchQueue.value = unref(researchQueue).filter(([key, id]) => {
+            const research = researchLocations[key][id];
+            if (Decimal.gte(unref(research.progressPercentage), 1)) {
+                research.onResearch?.();
+                return false;
+            }
+            return true;
+        });
     });
+    function removeFromQueue(location: string, name: string) {
+        researchQueue.value = unref(researchQueue).filter(([key, id]) => !(key === location && id === name));
+    }
 
     const header = jsx(() => (<>
-                        <MainDisplayVue resource={inflatons} color={color} />
-                        <div style={{marginTop: '-20px', fontSize: '12px'}}>
-                            {unref(inflating)
-                                ? <>Runaway inflation is dividing all other resources by <span style={{color, textShadow: `${color} 0px 0px 10px`}}>{formatWhole(unref(inflatonNerf))}x</span> per second</>
-                                : <>{unref(research.fomeGain.researched)
-                                    ? <>Inflaton resonance is increasing Foam generation by <span style={{color, textShadow: `${color} 0px 0px 10px`}}>{formatWhole(unref(fomeBonus))}x</span></>
-                                    : undefined
-                                }</>
-                            }
-                        </div>
-                        {Decimal.gte(unref(inflatons), 1)
-                        ? render(inflate)
-                        : render(conversion)}
-                        <SpacerVue />
-                    </>));
+        <MainDisplayVue resource={inflatons} color={color} />
+        <div style={{marginTop: '-20px', fontSize: '12px'}}>
+            {unref(inflating)
+                ? <>Runaway inflation is dividing all other resources by <span style={{color, textShadow: `${color} 0px 0px 10px`}}>{formatWhole(unref(inflatonNerf))}x</span> per second</>
+                : <>{unref(research.fomeGain.researched)
+                    ? <>Inflaton resonance is increasing Foam generation by <span style={{color, textShadow: `${color} 0px 0px 10px`}}>{formatWhole(unref(fomeBonus))}x</span></>
+                    : undefined
+                }</>
+            }
+        </div>
+        {Decimal.gte(unref(inflatons), 1)
+        ? render(inflate)
+        : render(conversion)}
+        <SpacerVue />
+    </>));
     const tabs = createTabFamily(({
         buildings: () => ({
             display: "Structures",
@@ -707,6 +728,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
                     <>
                         {render(header)}
                         {renderRow(...Object.values(buildingRenders))}
+                        <SpacerVue />
+                        {render(respecAll)}
+                        <SpacerVue />
                         {renderRow(...Object.values(upgrades))}
                     </>
                 ))
@@ -718,9 +742,13 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 display: jsx(() => (
                     <>
                         {render(header)}
-                        {renderRow(...Object.values(repeatables))}
-                        <SpacerVue />
-                        <ResearchTreeVue research={research} />
+                        <div class='row' style={{flexFlow: 'row-reverse nowrap', alignItems: 'flex-start', justifyContent: 'space-evenly'}}>
+                            <ResearchQueueVue locations={researchLocations} parallel={parallelSize} queue={computed(() => Array.from({...unref(researchQueue), length: Math.max(unref(researchQueue).length, unref(queueLength))}))} />
+                            <ResearchTreeVue research={research} />
+                            <ColumnVue mergeAdjacent={false}>
+                                {...Object.values(repeatables).map(render).map(element => <div style={{margin: 'var(--feature-margin) 0px'}}>{element}</div>)}
+                            </ColumnVue>
+                        </div>
                     </>
                 ))
             }))
@@ -752,7 +780,12 @@ const layer = createLayer(id, function (this: BaseLayer) {
         )),
         inflating,
         nerf: inflatonNerf,
-        fomeBonus
+        fomeBonus,
+
+        removeFromQueue,
+
+        queueLength,
+        parallelSize
     }
     
     function createBuilding(
@@ -762,14 +795,18 @@ const layer = createLayer(id, function (this: BaseLayer) {
             let building = optionsFunc();
             return createBuyable<BuildingOptions>(() => ({
                 isFree: research.autobuild.researched,
-                bonusAmount() { return Decimal.times(unref(this.amount), 1) }, // 3rd abyssal spinor buyable
+                bonusAmount() { return Decimal.times(unref(this.amount), 0) }, // 3rd abyssal spinor buyable
                 
                 visibility: building.display.visibility,
                 
                 cost() { return getBuildingCost(unref(building.cost.multiplier), unref(building.cost.base), unref(this.amount))},
                 resource: building.cost.resource,
 
-                effect() { return building.effect(Decimal.add(unref(this.amount), unref(this.bonusAmount as ProcessedComputable<DecimalSource>))) },
+                effect() {
+                    return building.effect(Decimal.add(unref(this.amount), unref(this.bonusAmount as ProcessedComputable<DecimalSource>))
+                        .times(getResearchEffect(research.biggerBuildings, {effect: 1}).effect)
+                        .times(unref(repeatables.buildingSize.effect).effect))
+                },
                 display: {
                     title: building.display.title,
                     description: building.display.description,
@@ -788,7 +825,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
     }
 
     function getBuildingCost(multiplier: DecimalSource, base: DecimalSource, amount: DecimalSource) {
-        amount = Decimal.div(amount, 1) // subspace repeatable
+        amount = Decimal.div(amount, unref(repeatables.buildingCost.effect))
                         .div(1) // 3rd abyssal pion buyable
         if (unref(research.autobuild.researched))
             return Decimal.pow(base, amount).times(multiplier);

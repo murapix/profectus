@@ -78,7 +78,7 @@ export default defineComponent({
         const processedBars = unwrapRef(bars).map((bar, index) => ({
             id: bar.id,
             visibility: bar.visibility,
-            color: computed(() => unref(bar.display).color),
+            color: computed(() => unref(unref(bar.display).color)),
             width: computed(() => unref(bar.display).width),
             radius: radii[index],
             offset: startAngles[index],

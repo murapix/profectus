@@ -48,9 +48,6 @@ const layer = createLayer(id, function (this: BaseLayer) {
 
     const name = "Quantum Foam";
     const color = "#ffffff";
-    const style = {
-        "--bought": "#929aa9"
-    };
 
     const unlocked: Ref<boolean> = skyrmion.skyrmionUpgrades.fome.bought;
 
@@ -544,7 +541,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                     : render(tabs)}
             </>
         )),
-        style,
+        style: { "--bought": "#929aa9" },
         tabs,
         unlocked
     };

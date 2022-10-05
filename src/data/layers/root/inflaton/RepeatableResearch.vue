@@ -7,13 +7,13 @@
                 '--fill-percent': `${format(unref(fillPercent))}%`
             }
         ]"
-        @click="research"
+        @click="research()"
         :class="{
             research: true,
             repeatable: true,
             locked: !unref(canResearch), // unavailable to click
-            can: unref(canResearch) && Decimal.eq(unref(progress), 0), // available to click, not in the queue
-            queued: Decimal.gt(unref(progress), 0), // in queue (todo: change these to queue state, not progress)
+            can: unref(canResearch) && !unref(isResearching), // available to click, not in the queue
+            queued: unref(isResearching), // in queue
         }"
         :disabled="!unref(canResearch)"
     >
@@ -30,7 +30,7 @@ import { format, formatWhole } from 'util/break_eternity';
 import { coerceComponent, isCoercableComponent, processedPropType, unwrapRef } from 'util/vue';
 import { PropType, Component, UnwrapRef, computed } from 'vue';
 import { defineComponent, unref, toRefs, shallowRef, watchEffect } from 'vue';
-import { GenericResearch } from './research'
+import { formatRoman, GenericResearch } from './research'
 import Node from 'components/Node.vue';
 
 export default defineComponent({
@@ -75,7 +75,7 @@ export default defineComponent({
         }
     },
     setup(props) {
-        const { display, cost, progressPercentage, amount } = toRefs(props);
+        const { display, cost, progressPercentage } = toRefs(props);
         const component = shallowRef<Component | string>("");
         watchEffect(() => {
             const currentDisplay = unwrapRef(display);
@@ -88,11 +88,11 @@ export default defineComponent({
                 return;
             }
             const Cost = unwrapRef(cost);
-            const Title = coerceComponent(currentDisplay.title ?? "");
+            const Title = coerceComponent(currentDisplay.title ?? "", "h3");
             const Description = coerceComponent(currentDisplay.description);
             const EffectDisplay = coerceComponent(currentDisplay.effectDisplay ?? "");
             component.value = coerceComponent(jsx(() => (<>
-                        {currentDisplay.title ? <h3>Repeatable: <Title /> {formatRoman(Decimal.add(unref(unref(amount) ?? 0), 1))}</h3> : null}
+                        {currentDisplay.title ? <Title /> : null}
                         <span><Description /></span>
                         {currentDisplay.effectDisplay ? <span>Currently: <EffectDisplay /></span> : null}
                         <span>{formatWhole(Cost ?? 0)} Research Points</span>
@@ -105,31 +105,12 @@ export default defineComponent({
             component,
             unref,
             format,
+            formatRoman,
             Visibility,
             Decimal,
 
             fillPercent
         };
-
-        function formatRoman(value: DecimalSource) {
-            const romanNumerals: [number, string][] = [
-                [1, 'I'], [4, 'IV'], [5, 'V'], [9, 'IX'], [10, 'X'], [40, 'XL'], [50, 'L'], [90, 'XC'], [100, 'C'], [400, 'CD'], [500, 'D'], [900, 'CM'], [1000, 'M']
-            ]
-
-            let num = new Decimal(value).trunc().toNumber();
-            if (num >= 4000) return format(value);
-            if (num < 1) return "Nulla";
-
-            const out = [];
-            for (let index = romanNumerals.length-1; num > 0; index--) {
-                for (let i = Math.floor(num / romanNumerals[index][0]); i > 0; i--) {
-                    out.push(romanNumerals[index][1]);
-                }
-                num %= romanNumerals[index][0];
-            }
-
-            return out.join('');
-        }
     },
     components: { Node }
 })
@@ -148,6 +129,7 @@ export default defineComponent({
     background-color: var(--background);
 
     pointer-events: none;
+    display: flex;
     flex-flow: column;
 }
 
@@ -160,7 +142,7 @@ export default defineComponent({
     pointer-events: all;
 }
 
-.research.queued {
+.research.queued, .research.can {
     background-image: linear-gradient(to right, var(--layer-color) calc(var(--fill-percent) - 5%), var(--background) calc(var(--fill-percent) + 5%));
 }
 
@@ -169,7 +151,7 @@ export default defineComponent({
     background-color: var(--bought);
 }
 
-.research > * {
+.research > :deep(*) {
     pointer-events: none;
 }
 </style>

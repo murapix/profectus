@@ -1,9 +1,12 @@
-import { CoercableComponent, Component, GatherProps, getUniqueID, OptionsFunc, OptionsObject, Replace, setDefault, Visibility } from "features/feature";
+import { CoercableComponent, Component, GatherProps, getUniqueID, jsx, OptionsFunc, OptionsObject, Replace, setDefault, Visibility } from "features/feature";
 import { persistent, Persistent, State } from "game/persistence";
 import Decimal, { DecimalSource } from "lib/break_eternity";
+import { format } from "util/break_eternity";
+import { isFunction } from "util/common";
 import { Computable, GetComputableType, GetComputableTypeWithDefault, processComputable, ProcessedComputable } from "util/computed";
 import { createLazyProxy } from "util/proxies";
-import { computed, ComputedRef, Ref, unref, watch } from "vue";
+import { coerceComponent, isCoercableComponent } from "util/vue";
+import { computed, ComputedRef, isRef, Ref, unref, watch } from "vue";
 import RepeatableResearchVue from "./RepeatableResearch.vue";
 import ResearchVue from "./Research.vue";
 
@@ -26,15 +29,16 @@ export interface ResearchOptions {
     canResearch?: Computable<boolean>;
     onResearch?: VoidFunction;
     research: (force: boolean) => void;
-    isResearching: Computable<boolean>;
+    isResearching: (this: GenericResearch) => boolean;
 }
 
 export interface BaseResearch {
     id: string;
     progress: Persistent<DecimalSource>;
     progressPercentage: Ref<DecimalSource>;
-    researched: Persistent<boolean>;
+    researched: Ref<boolean>;
     research: (force: boolean) => void;
+    isResearching: Computable<boolean>;
     type: typeof ResearchType;
     [Component]: typeof ResearchVue;
     [GatherProps]: () => Record<string, unknown>;
@@ -55,6 +59,7 @@ export type GenericResearch = Replace<
     Research<ResearchOptions>,
     {
         visibility: ProcessedComputable<Visibility>;
+        cost: ProcessedComputable<DecimalSource>;
         isResearching: ProcessedComputable<boolean>;
     }
 >;
@@ -72,7 +77,6 @@ export function createResearch<T extends ResearchOptions>(
     ...decorators: ResearchDecorator<T>[]
 ): Research<T> {
     const progress = persistent<DecimalSource>(0);
-    const researched = persistent<boolean>(false);
 
     const persistents = decorators.map(decorator => decorator.getPersistents?.() ?? {}).reduce((current, next) => Object.assign(current, next), {});
 
@@ -92,7 +96,6 @@ export function createResearch<T extends ResearchOptions>(
         decorators.forEach(decorator => decorator.preConstruct?.(research));
 
         research.progress = progress;
-        research.researched = researched;
 
         Object.assign(research, persistents);
 
@@ -123,6 +126,12 @@ export function createResearch<T extends ResearchOptions>(
         processComputable(research as T, "isResearching");
 
         research.progressPercentage = computed(() => Decimal.div(unref(research.progress!), unref(research.cost as ProcessedComputable<DecimalSource>)).clamp(0, 1));
+        watch(research.progressPercentage, (percent) => {
+            if (Decimal.gte(percent, 1)) {
+                research.researched!.value = true;
+            }
+        });
+        research.researched = computed(() => Decimal.gte(unref(research.progressPercentage!), 1));
 
         const gatheredProps: Partial<T> = decorators.map(decorator => decorator.getGatheredProps?.(research) ?? {}).reduce((current, next) => Object.assign(current, next), {});
         research[GatherProps] = function (this: GenericResearch) {
@@ -181,6 +190,11 @@ export interface BaseRepeatableResearch extends BaseResearch {
 export type RepeatableResearch<T extends RepeatableResearchOptions> = Replace<
     T & BaseRepeatableResearch,
     {
+        visibility: GetComputableTypeWithDefault<T["visibility"], Visibility.Visible>;
+        display: GetComputableType<T["display"]>;
+        effect: GetComputableType<T["effect"]>;
+        cost: GetComputableType<T["cost"]>;
+        isResearching: GetComputableType<T["isResearching"]>;
         purchaseLimit: GetComputableTypeWithDefault<T["purchaseLimit"], Decimal>;
     }
 >;
@@ -188,6 +202,9 @@ export type RepeatableResearch<T extends RepeatableResearchOptions> = Replace<
 export type GenericRepeatableResearch = GenericResearch & Replace<
     RepeatableResearch<RepeatableResearchOptions>,
     {
+        visibility: ProcessedComputable<Visibility>;
+        cost: ProcessedComputable<DecimalSource>;
+        isResearching: ProcessedComputable<boolean>;
         purchaseLimit: ProcessedComputable<DecimalSource>;
     }
 >;
@@ -200,6 +217,16 @@ export const repeatableResearchDecorator: ResearchDecorator<RepeatableResearchOp
     },
     preConstruct(research) {
         research[Component] = RepeatableResearchVue;
+
+        if (isCoercableComponent(research.display)) return;
+        if (isRef(research.display)) return;
+        if (isFunction(research.display)) return;
+
+        const title = research.display.title;
+        research.display.title = jsx(() => {
+            const Title = coerceComponent(title ?? "");
+            return <h3>Repeatable: <Title /> {formatRoman(Decimal.add(unref(research.amount ?? 0), 1))}</h3>
+        });
     },
     postConstruct(research) {
         processComputable(research, "purchaseLimit");
@@ -218,11 +245,38 @@ export const repeatableResearchDecorator: ResearchDecorator<RepeatableResearchOp
             return unref(cost as ProcessedComputable<DecimalSource>);
         });
 
-        watch(research.researched!, (value) => { if (value) research.researched!.value = false })
+        research.researched = computed(() => Decimal.gte(unref(research.amount!), 1));
+
+        const onResearch = research.onResearch;
+        research.onResearch = () => {
+            onResearch?.();
+            research.amount!.value = Decimal.add(unref(research.amount!), 1);
+            research.progress!.value = 0;
+        }
     },
     getGatheredProps(research) {
         return {
             amount: research.amount
         }
     }
+}
+
+export function formatRoman(value: DecimalSource) {
+    const romanNumerals: [number, string][] = [
+        [1, 'I'], [4, 'IV'], [5, 'V'], [9, 'IX'], [10, 'X'], [40, 'XL'], [50, 'L'], [90, 'XC'], [100, 'C'], [400, 'CD'], [500, 'D'], [900, 'CM'], [1000, 'M']
+    ]
+
+    let num = new Decimal(value).trunc().toNumber();
+    if (num >= 4000) return format(value);
+    if (num < 1) return "Nulla";
+
+    const out = [];
+    for (let index = romanNumerals.length-1; num > 0; index--) {
+        for (let i = Math.floor(num / romanNumerals[index][0]); i > 0; i--) {
+            out.push(romanNumerals[index][1]);
+        }
+        num %= romanNumerals[index][0];
+    }
+
+    return out.join('');
 }
