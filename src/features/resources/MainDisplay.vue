@@ -51,5 +51,6 @@ const showPrefix = computed(() => {
     vertical-align: middle;
     margin-bottom: 20px;
     display: flex;
+    transition-duration: 0s;
 }
 </style>
