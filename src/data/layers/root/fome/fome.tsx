@@ -278,7 +278,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             visibility() { return showIf(!unref(this.bought) && unref(condenseUpgrades.subspatial.bought)); },
             resource: amounts[FomeTypes.subplanck],
             display: { description: `Condense your ${amounts.subplanck.displayName}` },
-            cost: 1e7,
+            cost: 1e6,
             onPurchase() { reformUpgrades.quantum.amount.value = Decimal.dOne }
         })),
         [FomeTypes.quantum]: createUpgrade(() => ({
@@ -293,7 +293,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         [FomeTypes.protoversal]: amount => amount.pow(amount.minus(3).max(2)).plus(1).times(4).pow10(),
         [FomeTypes.infinitesimal]: amount => amount.pow(amount.minus(2).max(2)).plus(1).times(5).pow10().dividedBy(5),
         [FomeTypes.subspatial]: amount => amount.pow(amount.minus(3).max(2)).plus(1).times(6).pow10().dividedBy(2.5),
-        [FomeTypes.subplanck]: amount => amount.pow(amount.minus(3).max(2)).plus(1).times(7).pow10(),
+        [FomeTypes.subplanck]: amount => amount.pow(amount.minus(3).max(2)).plus(1).times(6).pow10(),
         [FomeTypes.quantum]: amount => amount.pow(amount.minus(3).max(2)).plus(1).times(4).pow10()
     }
     const reformLimits: Record<FomeTypes, ComputedRef<DecimalSource>> = {

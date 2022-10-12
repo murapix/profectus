@@ -221,7 +221,7 @@ export interface ScalingFunction {
      * The conversion is responsible for applying the gainModifier, so this function should be un-modified.
      * It does not need to be clamped or rounded.
      */
-    currentGain: (conversion: GenericConversion, resource: DecimalSource) => DecimalSource;
+    currentGain: (conversion: GenericConversion, resource?: DecimalSource) => DecimalSource;
     /**
      * Calculates the amount of the input resource that is required for the current value of `conversion.currentGain`.
      * Note that `conversion.currentGain` has been modified by `conversion.gainModifier`, so you will need to revert that as appropriate.
@@ -258,16 +258,15 @@ export function createLinearScaling(
     const processedBase = convertComputable(base);
     const processedCoefficient = convertComputable(coefficient);
     return {
-        currentGain(conversion) {
-            let baseAmount: DecimalSource = unref(conversion.baseResource.value);
+        currentGain(conversion, amount = unref(conversion.baseResource)) {
             if (conversion.costModifier) {
-                baseAmount = conversion.costModifier.apply(baseAmount);
+                amount = conversion.costModifier.apply(amount);
             }
-            if (Decimal.lt(baseAmount, unref(processedBase))) {
+            if (Decimal.lt(amount, unref(processedBase))) {
                 return 0;
             }
 
-            return Decimal.sub(baseAmount, unref(processedBase))
+            return Decimal.sub(amount, unref(processedBase))
                 .sub(1)
                 .times(unref(processedCoefficient))
                 .add(1);
@@ -324,16 +323,15 @@ export function createPolynomialScaling(
     const processedBase = convertComputable(base);
     const processedExponent = convertComputable(exponent);
     return {
-        currentGain(conversion) {
-            let baseAmount: DecimalSource = unref(conversion.baseResource.value);
+        currentGain(conversion, amount = unref(conversion.baseResource)) {
             if (conversion.costModifier) {
-                baseAmount = conversion.costModifier.apply(baseAmount);
+                amount = conversion.costModifier.apply(amount);
             }
-            if (Decimal.lt(baseAmount, unref(processedBase))) {
+            if (Decimal.lt(amount, unref(processedBase))) {
                 return 0;
             }
 
-            const gain = Decimal.div(baseAmount, unref(processedBase)).pow(
+            const gain = Decimal.div(amount, unref(processedBase)).pow(
                 unref(processedExponent)
             );
 
@@ -392,7 +390,7 @@ export function createExponentialScaling(
     const processedBase = convertComputable(base);
     const processedCoefficient = convertComputable(coefficient);
     return {
-        currentGain(conversion, amount) {
+        currentGain(conversion, amount = unref(conversion.baseResource)) {
             if (Decimal.lt(amount, unref(processedBase))) {
                 return 0;
             }
@@ -470,7 +468,7 @@ export function createIndependentConversion<S extends ConversionOptions>(
         if (conversion.actualGain == null) {
             conversion.actualGain = computed(() => {
                 let gain = Decimal.sub(
-                    Decimal.floor(conversion.scaling.currentGain(conversion as GenericConversion, conversion.gainResource.value)),
+                    Decimal.floor(conversion.scaling.currentGain(conversion as GenericConversion)),
                     conversion.gainResource.value
                 ).max(0);
 

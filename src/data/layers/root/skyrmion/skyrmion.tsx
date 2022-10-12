@@ -717,6 +717,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
     }
 
     function createSkyrmionBuyable(resource: Resource<DecimalSource>, data: SkyrmionBuyableData, abyss = false) {
+        processComputable(data, "visibility");
+
         if (!data.effectDisplay) data.effectDisplay = effect => `${formatSmall(effect)}x`;
         let costFunc!: (cost: DecimalSource) => DecimalSource;
         switch (resource) {
