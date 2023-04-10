@@ -1,0 +1,42 @@
+Start off with 2 more loops, another row of upgrades, and more entropy/entropy enhancements
+
+1st loop = ???
+2nd loop = base of the endless stairwell
+
+The Endless Stairwell:
+- More upgrades, more loops
+- Main new features: temporal precipitate and virtualization
+
+-----------------------------------
+1st loop: 1 millenium = 1e3
+2nd loop: 10 millenia = 1e4
+3rd loop: 100 millenia = 1e5
+4th loop: 1 billion years = 1e6
+...
+7th loop: 1 aeon = 1e9
+38th loop: 1 degenerate era = 1e40
+98th loop: 1 black hole era = 1e100
+100th loop: 100 black hole eras, the final loop
+
+Need 7 loops to complete 3rd entangled string (single expansion)
+15 to complete 4th entangled string (double expansion) - require resources from said second expansion
+31 to complete 5th entangled string (triple expansion) - require resources from both other expansions
+63 to complete 6th entangled string (quadruple expansion) - require resources from all three other expansions
+100 to complete 7th entangled string (quintuple expansion) - require resources from all four other expansions
+-----------------------------------
+1st loop adds 4 particles
+2nd loop adds 3 more
+3rd loop adds 2 more
+4th loop adds 1 more
+8th loop adds another
+16th loop again
+32nd once more
+64th adds the final particle
+Every loop between increases particle rates for lower loops
+
+Each particle loop will produce a random particle of its selection 
+-----------------------------------
+Virtualization: the process by which particles are generated from incomplete loops
+
+All particles start off at just a percentage chance per gameplay second to generate, based on the time speed and generating loop duration
+Further loops, entropic enhancements, particles, and upgrades increase this percentage and smooth out the randomness

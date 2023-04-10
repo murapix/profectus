@@ -1,0 +1,4 @@
+Main feature: the factory
+- main design issues:
+  - factory resources need to use resources from other layers (and other expansions)
+  - factory resources need to be based on significance and discovery, rather than actual physics
