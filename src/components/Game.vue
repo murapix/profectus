@@ -5,7 +5,6 @@
             :key="index"
             :id="tab"
             class="tab"
-            :ref="`tab-${index}`"
             :style="unref(layers[tab]?.style)"
             :class="unref(layers[tab]?.classes)"
         >
@@ -15,7 +14,7 @@
                     v-if="layerKeys.includes(tab)"
                     v-bind="gatherLayerProps(layers[tab]!)"
                     :index="index"
-                    :tab="() => (($refs[`tab-${index}`] as HTMLElement[] | undefined)?.[0])"
+                    @set-minimized="value => (layers[tab]!.minimized.value = value)"
                 />
                 <component :is="tab" :index="index" v-else />
             </div>
@@ -37,8 +36,8 @@ const layerKeys = computed(() => Object.keys(layers));
 const useHeader = projInfo.useHeader;
 
 function gatherLayerProps(layer: GenericLayer) {
-    const { display, minimized, minWidth, name, color, minimizable, nodes } = layer;
-    return { display, minimized, minWidth, name, color, minimizable, nodes };
+    const { display, minimized, name, color, minimizable, nodes, minimizedDisplay } = layer;
+    return { display, minimized, name, color, minimizable, nodes, minimizedDisplay };
 }
 </script>
 

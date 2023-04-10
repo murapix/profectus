@@ -6,6 +6,76 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **BREAKING** New requirements system
+    - Replaces many features' existing requirements with new generic form
+- **BREAKING** Formulas, which can be used to calculate buy max for you
+    - Requirements can use them so repeatables and challenges can be "buy max" without any extra effort
+    - Conversions now use formulas instead of the old scaling functions system, allowing for arbitrary functions that are much easier to follow
+    - There's a utility for converting modifiers to formulas, thus replacing things like the gain modifier on conversions
+- Feature decorators, which simplify the process of adding extra values to features
+- Action feature, which is a clickable with a cooldown
+- ETA util (calculates time until a specific amount of a resource, based on its current gain rate)
+- createCollapsibleMilestones util
+- deleteLowerSaves util
+- Minimized layers can now display a component
+- submitOnBlur property to Text fields
+- showPopups property to Milestones
+- Mouse/touch events to more onClick listeners
+- Example hotkey to starting layer
+- Schema for projInfo.json
+### Changes
+- **BREAKING** Buyables renamed to Repeatables
+    - Renamed purchaseLimit to limit
+    - Renamed buyMax to maximize
+    - Added initialAmount property
+- **BREAKING** Persistent refs no longer have redundancies in save object
+    - Requires referencing persistent refs either through a proxy or by wrapping in `noPersist()`
+- **BREAKING** Visibility properties can now take booleans
+    - Removed showIf util
+- Tweaked settings display
+- setupPassiveGeneration will no longer lower the resource
+- displayResource now floors resource amounts
+- Tweaked modifier displays, incl showing negative modifiers in red
+- Hotkeys now appear on key graphic
+- Mofifier sections now accept computable strings for title and subtitle
+- Every VueFeature's `[Component]` property is now typed as GenericComponent
+- Make errors throw objects instead of strings
+- Updated b_e
+### Fixed
+- NaN detection stopped working
+    - Now specifically only checks persistent refs
+- trackTotal would increase the total when loading the save
+- PWAs wouldn't show updates
+- Board feature no longer working at all
+- Some discord links didn't open in new tab
+- Adjacent grid cells wouldn't merge
+- When fixing old saves, the modVersion would not be updated
+- Default layer would display `Dev Speed: 0x` when paused
+- Fixed hotkeys not working with shift + numbers
+- Fixed console errors about deleted persistent refs not being included in the layer object
+- Modifiers wouldn't display small numbers
+- Conversions' addSoftcap wouldn't affect currentAt or nextAt
+- MainDisplay not respecting style and classes props
+- Tabs could sometimes not update correctly
+- offlineTime not capping properly
+- Tooltips being user-selectable
+- Pinnable tooltips causing stack overflow
+- Workflows not working with submodules
+- Various minor typing issues
+### Removed
+- **BREAKING** Removed milestones (achievements now have small and large displays)
+### Documented
+- every single feature
+- formulas
+- requirements
+### Tests
+- conversions
+- formulas
+- requirements
+
+Contributors: thepaperpilot, escapee, adsaf, ducdat
+
 ## [0.5.2] - 2022-08-22
 ### Added
 - onLoad event

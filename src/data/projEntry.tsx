@@ -1,9 +1,9 @@
-import { jsx, showIf, Visibility } from "features/feature";
+import { jsx, Visibility } from "features/feature";
 import { createTab } from "features/tabs/tab";
 import { GenericTabFamily, createTabFamily } from "features/tabs/tabFamily";
 import type { GenericLayer } from "game/layers";
 import { createLayer } from "game/layers";
-import type { PlayerData } from "game/player";
+import type { Player } from "game/player";
 import player from "game/player";
 import { format } from "util/bignum";
 import { render } from "util/vue";
@@ -44,7 +44,7 @@ export const root = createLayer(id, () => {
                     </>
                 ))
             })),
-            visibility: 'unlocked' in layer ? () => showIf(unref(layer.unlocked ?? true)) : Visibility.Visible
+            visibility: 'unlocked' in layer ? () => unref(layer.unlocked ?? true) : true
         })]
     )));
 
@@ -74,7 +74,7 @@ export const root = createLayer(id, () => {
  */
 export const getInitialLayers = (
     /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
-    player: Partial<PlayerData>
+    player: Partial<Player>
 ): Array<GenericLayer> => [...Object.values(root.layers), ...Object.values(root.subLayers), root];
 
 /**
@@ -92,7 +92,7 @@ export const hasWon = computed(() => {
 /* eslint-disable @typescript-eslint/no-unused-vars */
 export function fixOldSave(
     oldVersion: string | undefined,
-    player: Partial<PlayerData>
+    player: Partial<Player>
     // eslint-disable-next-line @typescript-eslint/no-empty-function
 ): void {}
 /* eslint-enable @typescript-eslint/no-unused-vars */

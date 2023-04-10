@@ -1,4 +1,6 @@
 {
+    "$schema": "./projInfo-schema.json",
+    
 	"title": "Universal Reconstruction",
     "description": "An expanded reversal of Distance Incremental",
 	"id": "universal_reconstruction",
