@@ -153,7 +153,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         width: '250px'
     };
     type Upgrades = 'subspaceBuildings' | 'research'
-    const upgrades: {[key in Upgrades]: GenericUpgrade} = {
+    const upgrades: Record<Upgrades, GenericUpgrade> = {
         subspaceBuildings: createUpgrade(() => ({
             display: {
                 title: 'Subspatial Field Stabilizers',
@@ -187,7 +187,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
     });
     const canBuild = computed(() => Decimal.minus(unref(maxSize), unref(usedSize)).gte(unref(buildingSize)));
     type Buildings = 'condenser' | 'lab' | 'storage'
-    const buildings: {[key in Buildings]: GenericFreeBuyable & GenericBonusBuyable} = {
+    const buildings: Record<Buildings, GenericFreeBuyable & GenericBonusBuyable> = {
         condenser: createBuilding(() => ({
             effect(amount: Decimal) {
                 return amount.times(getResearchEffect(research.quintupleCondenser))
@@ -266,7 +266,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 style: computed(() => ({...respecStyle, borderBottomRightRadius: 'var(--border-radius)'}))
             })) as GenericClickable
         }
-    ])) as {[key in Buildings]: {[key in 'one' | 'all']: GenericClickable}};
+    ])) as Record<Buildings, Record<'one' | 'all', GenericClickable>>;
     const respecAll = createClickable(() => ({
         canClick() { return Object.values(buildings).some(building => Decimal.gt(unref(building.amount), 0)) },
         display: { description: 'Sell All' },
@@ -283,7 +283,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         </div>
     ))]));
 
-    const research: {[key in string]: GenericResearch} = {
+    const research: Record<string, GenericResearch> = {
         quintupleCondenser: createResearch(() => ({
             position: [0,0],
             display: {
@@ -577,7 +577,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         }))
     };
 
-    const repeatables: {[key in string]: GenericRepeatableResearch} = {
+    const repeatables: Record<string, GenericRepeatableResearch> = {
         universeSize: createResearch<RepeatableResearchOptions>(() => ({
             visibility() { return showIf(unref(research.repeatableUnlock.researched)) },
             display: {

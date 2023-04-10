@@ -5,7 +5,7 @@ import { BaseLayer, createLayer } from "game/layers";
 import Decimal, { DecimalSource } from "lib/break_eternity";
 import { format, formatSmall, formatWhole } from "util/break_eternity";
 import { render } from "util/vue";
-import { computed, ComputedRef, Ref, unref, watch } from "vue";
+import { computed, ComputedRef, unref, watch } from "vue";
 import { createResetButton } from "../../../common";
 import MainDisplayVue from "features/resources/MainDisplay.vue";
 import SpacerVue from "components/layout/Spacer.vue";
@@ -18,7 +18,7 @@ import ResourceVue from "features/resources/Resource.vue";
 import { createUpgrade, GenericUpgrade, Upgrade, UpgradeOptions } from "features/upgrades/upgrade";
 import fome, { FomeTypes } from "../fome/fome";
 import { Computable, processComputable, ProcessedComputable } from "util/computed";
-import { bonusBuyableDecorator, BonusBuyableOptions, Buyable, createBuyable, freeBuyableDecorator, FreeBuyableOptions } from "features/buyable";
+import { bonusBuyableDecorator, BonusBuyableOptions, createBuyable, freeBuyableDecorator, FreeBuyableOptions } from "features/buyable";
 import { addTooltip } from "features/tooltips/tooltip";
 import { Direction } from "util/common";
 import { createMultiplicativeModifier, createSequentialModifier } from "game/modifiers";
@@ -141,7 +141,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         ))
     });
 
-    const skyrmionUpgrades: {[key: string]: GenericUpgrade} = {
+    const skyrmionUpgrades: Record<string, GenericUpgrade> = {
         fome: createSkyrmionUpgrade({
             display: {
                 title: "Condensation",

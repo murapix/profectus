@@ -105,7 +105,7 @@ export default defineComponent({
             }
         }
 
-        const visibleSegments: {[key in Side]: ComputedRef<number>} = {
+        const visibleSegments: Record<Side, ComputedRef<number>> = {
             left: computed(() => unwrapRef(left).filter(upgrade => unref(upgrade.visibility) !== Visibility.None).length),
             right: computed(() => unwrapRef(right).filter(upgrade => unref(upgrade.visibility) !== Visibility.None).length)
         };
@@ -162,7 +162,7 @@ export default defineComponent({
             path: ComputedRef<string>
         }
 
-        const upgradeData: {[key in Side]: { base: Base, ring: Ring, upgrade: Upgrade, line: Line }[]} = {
+        const upgradeData: Record<Side, { base: Base, ring: Ring, upgrade: Upgrade, line: Line }[]> = {
             left: unwrapRef(left).map((upgrade, index, array) => ({
                 base: {
                     index: (() => {

@@ -22,7 +22,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                     'tesselate' | 'triple' | 'turn' | 'tall' | 'tour' |
                     'tactics' | 'tower' | 'title' | 'tempo' | 'toil' |
                     'a' | 'b' | 'c' | 'd' | 'e'
-    const upgrades: {[key in Upgrades]: GenericUpgrade} = {
+    const upgrades: Record<Upgrades, GenericUpgrade> = {
         tile: createUpgrade(() => ({
             display: {
                 title: 'Tile',

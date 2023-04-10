@@ -66,7 +66,7 @@ export type GenericResearch = Replace<
 
 type ResearchOptionsObject<T extends ResearchOptions> = OptionsObject<T, BaseRepeatableResearch, GenericRepeatableResearch>;
 type ResearchDecorator<T extends ResearchOptions, P extends State = State> = {
-    getPersistents?(): {[key in string]: Persistent<P>};
+    getPersistents?(): Record<string, Persistent<P>>;
     preConstruct?(research: ResearchOptionsObject<T>): void;
     postConstruct?(research: ResearchOptionsObject<T>): void;
     getGatheredProps?(research: ResearchOptionsObject<T>): Partial<ResearchOptionsObject<T>>;

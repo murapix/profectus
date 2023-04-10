@@ -33,8 +33,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
     });
 
     type EnhancementRow = 1|2|3|4;
-    const enhancementRows: {[key in EnhancementRow]: (keyof typeof enhancements)[]} = { 1: [], 2: [], 3: [], 4: [] }
-    const enhancementLimits: {[key in EnhancementRow]: ComputedRef<number>} = {
+    const enhancementRows: Record<EnhancementRow, (keyof typeof enhancements)[]> = { 1: [], 2: [], 3: [], 4: [] }
+    const enhancementLimits: Record<EnhancementRow, ComputedRef<number>> = {
         1: computed(() => 1 + (unref(timecube.upgrades.twist.bought) ? 1 : 0)),
         2: computed(() => 1 + (unref(enhancements.entrenchment.bought) ? 1 : 0)),
         3: computed(() => 1),
@@ -42,7 +42,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
     };
     const enhancementCounts = Object.fromEntries(Object.entries(enhancementRows).map(([row, upgrades]) => {
         return [Number(row), computed(() => upgrades.map(upgrade => enhancements[upgrade]).filter(upgrade => unref(upgrade.bought)).length)];
-    })) as {[key in EnhancementRow]: ComputedRef<number>};
+    })) as Record<EnhancementRow, ComputedRef<number>>;
     const totalEnhancements = computed(() => Object.values(enhancementCounts).map(count => unref(count)).reduce((a,b) => a + b));
     const effectiveEnhancements = computed(() => Decimal.add(unref(totalEnhancements), 0)); // bottom time square
     const fibonacciEnhancements = computed(() => fibonacciNumber(unref(effectiveEnhancements)));
@@ -167,7 +167,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             effect() { return unref(effectiveEnhancements).times(0.1) },
             effectDisplay: (effect) => `${format(effect, 1)} free levels`
         })),
-    ]) as {[key in Enhancements]: GenericUpgrade};
+    ]) as Record<Enhancements, GenericUpgrade>;
 
     const respec = createClickable(() => ({
         canClick() { return unref(totalEnhancements) > 0 },

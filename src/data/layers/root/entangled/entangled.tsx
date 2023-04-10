@@ -48,7 +48,7 @@ const layer = createLayer("entangled", () => {
         display: 'Reset for 1 Entangled String'
     }));
 
-    const milestones: {[key in 1|2|3|7]: GenericMilestone} = {
+    const milestones: Record<1|2|3|7, GenericMilestone> = {
         1: createMilestone(() => ({
             shouldEarn() { return Decimal.gte(unref(strings), 1) },
             display: {

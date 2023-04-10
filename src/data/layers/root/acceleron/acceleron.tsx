@@ -80,7 +80,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
     );
 
     type Loops = 'acceleron' | 'instantProd' | 'timecube' | 'tempFoam' | 'tempAcceleron' | 'tempSkyrmion'
-    const loops: {[key in Loops]: GenericLoop} = {
+    const loops: Record<Loops, GenericLoop> = {
         acceleron: createLoop(() => ({
             visibility() { return showIf(unref(upgrades.superstructures.bought)); },
             buildRequirement: new Decimal(60),
@@ -335,7 +335,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
     }
 
     type Upgrades = 'acceleration' | 'translation' | 'skyrmion' | 'superstructures' | 'fluctuation' | 'expansion' | 'conversion' | 'alacrity' | 'tetration' | 'mastery'
-    const upgrades: {[key in Upgrades]: GenericUpgrade} = {
+    const upgrades: Record<Upgrades, GenericUpgrade> = {
         acceleration: createUpgrade(() => ({
             visibility() { return showIf(unref(this.bought) || Decimal.gte(unref(totalAccelerons), 4)) },
             display: jsx(() => (
@@ -490,7 +490,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         upgrades.alacrity,
         upgrades.superstructures
     ]
-    
+
     const tabs: GenericTabFamily = createTabFamily({
         loops: () => ({
             display: "Entropic Loops",

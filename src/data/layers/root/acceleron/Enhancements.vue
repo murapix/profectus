@@ -1,9 +1,12 @@
 <template>
     <div class="enhancementRow" v-for="row in rows">
-        <div>Remaining Enhancements: {{unref(row.count)}}</div>
+        <div v-if="row.row.some(upgrade => unref(upgrade.visibility) !== Visibility.None)"
+        >Remaining Enhancements: {{unref(row.count)}}</div>
         <Row>
             <template v-for="upgrade in row.row">
-                <component :is="render(upgrade)" />
+                <template v-if="unref(upgrade.visibility) !== Visibility.None">
+                    <component :is="render(upgrade)" />
+                </template>
             </template>
         </Row>
     </div>    
@@ -15,6 +18,7 @@ import { processedPropType, render, unwrapRef } from 'util/vue';
 import { computed, defineComponent, unref, toRefs } from 'vue';
 import entropy from './entropy';
 import Row from 'components/layout/Row.vue';
+import { Visibility } from 'features/feature';
 
 export default defineComponent({
     props: {
@@ -32,7 +36,9 @@ export default defineComponent({
         return {
             rows: processedRows,
             unref,
-            render
+            render,
+
+            Visibility
         };
     },
     components: { Row }

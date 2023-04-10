@@ -32,7 +32,7 @@ import { Visibility } from 'features/feature';
 export default defineComponent({
     props: {
         research: {
-            type: processedPropType<{[key in string]: GenericResearch}>(Object),
+            type: processedPropType<Record<string, GenericResearch>>(Object),
             required: true
         }
     },

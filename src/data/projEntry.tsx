@@ -24,8 +24,8 @@ import entangled from "./layers/root/entangled/entangled";
 const id = "root";
 export const root = createLayer(id, () => {
     type layer = GenericLayer & { unlocked?: Ref<boolean>, boughtColor?: string }
-    const layers: {[key: number]: layer} = Object.fromEntries([skyrmion, fome, acceleron, timecube, inflaton, entangled].map((layer, index) => [index, layer]));
-    const subLayers: {[key: number]: layer} = Object.fromEntries([entropy].map((layer, index) => [index, layer]));
+    const layers: Record<number, layer> = Object.fromEntries([skyrmion, fome, acceleron, timecube, inflaton, entangled].map((layer, index) => [index, layer]));
+    const subLayers: Record<number, layer> = Object.fromEntries([entropy].map((layer, index) => [index, layer]));
     const tabs: GenericTabFamily = createTabFamily(Object.fromEntries(Object.values(layers).map(layer => 
         [layer.name, () => ({
             display: layer.name,
