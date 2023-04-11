@@ -11,7 +11,7 @@ import { persistent } from "game/persistence";
 import acceleron, { id as acceleronId } from "../acceleron/acceleron";
 import inflaton, { id as inflatonId } from "../inflaton/inflaton";
 import timecube from "../timecube/timecube";
-import { createMilestone, GenericMilestone } from "features/milestones/milestone";
+import { createAchievement, GenericAchievement } from "features/achievements/achievement";
 import { createClickable, GenericClickable } from "features/clickables/clickable";
 
 const layer = createLayer("entangled", () => {
@@ -48,15 +48,16 @@ const layer = createLayer("entangled", () => {
         display: 'Reset for 1 Entangled String'
     }));
 
-    const milestones: Record<1|2|3|7, GenericMilestone> = {
-        1: createMilestone(() => ({
+    const milestones: Record<1|2|3|7, GenericAchievement> = {
+        1: createAchievement(() => ({
             shouldEarn() { return Decimal.gte(unref(strings), 1) },
             display: {
                 requirement: `1 ${strings.displayName}`,
                 effectDisplay: `${acceleron.accelerons.displayName} and ${inflaton.inflatons.displayName} no longer inflate each other's costs`
-            }
+            },
+            small: false
         })),
-        2: createMilestone(() => ({
+        2: createAchievement(() => ({
             shouldEarn() { return Decimal.gte(unref(strings), 2) },
             display: {
                 requirement: `2 ${strings.displayName}`,
@@ -64,21 +65,24 @@ const layer = createLayer("entangled", () => {
                     Unlock expansions to previous content<br />
                     Keep Skyrmion upgrades and Foam milestones
                 </>)
-            }
+            },
+            small: false
         })),
-        3: createMilestone(() => ({
+        3: createAchievement(() => ({
             shouldEarn() { return Decimal.gte(unref(strings), 3) },
             display: {
                 requirement: `3 ${strings.displayName}`,
                 effectDisplay: 'Keep all parallel research and research queue researches'
-            }
+            },
+            small: false
         })),
-        7: createMilestone(() => ({
+        7: createAchievement(() => ({
             shouldEarn() { return Decimal.gte(unref(strings), 7) },
             display: {
                 requirement: `7 ${strings.displayName}`,
                 effectDisplay: 'Unlock Fundamental Particles'
-            }
+            },
+            small: false
         }))
     }
 

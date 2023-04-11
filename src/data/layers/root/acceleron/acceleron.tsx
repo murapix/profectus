@@ -1,19 +1,18 @@
 import { createResetButton } from "data/common";
 import { createAchievement } from "features/achievements/achievement";
 import { createClickable } from "features/clickables/clickable";
-import { createCumulativeConversion, createPolynomialScaling } from "features/conversion";
-import { jsx, showIf, Visibility } from "features/feature";
+import { createCumulativeConversion } from "features/conversion";
+import { CoercableComponent, jsx, Visibility } from "features/feature";
 import { createResource, trackBest, trackTotal } from "features/resources/resource";
 import { createTab } from "features/tabs/tab";
 import { createTabFamily, GenericTabFamily } from "features/tabs/tabFamily";
-import { createUpgrade, GenericUpgrade, getUpgradeEffect } from "features/upgrades/upgrade";
+import { createUpgrade, EffectUpgrade, EffectUpgradeOptions, GenericUpgrade, getUpgradeEffect } from "features/upgrades/upgrade";
 import { createLayer, BaseLayer } from "game/layers";
-import { createMultiplicativeModifier, createSequentialModifier } from "game/modifiers";
-import { persistent } from "game/persistence";
+import { noPersist, persistent } from "game/persistence";
 import Decimal, { DecimalSource } from "lib/break_eternity";
 import { format, formatSmall, formatTime, formatWhole } from "util/break_eternity";
 import { ProcessedComputable } from "util/computed";
-import { render } from "util/vue";
+import { joinJSX, render } from "util/vue";
 import { computed, ComputedRef, unref } from "vue";
 import skyrmion from "../skyrmion/skyrmion";
 import fome, { FomeTypes } from "../fome/fome";
@@ -27,6 +26,8 @@ import SpacerVue from "components/layout/Spacer.vue";
 import LoopDescriptionsVue from "./LoopDescriptions.vue";
 import LoopsVue from "./Loops.vue";
 import UpgradeRingVue from "./UpgradeRing.vue";
+import { createCostRequirement, displayRequirements, Requirements } from "game/requirements";
+import { effectDecorator } from "features/decorators/common";
 
 export const id = "acceleron";
 const layer = createLayer(id, function (this: BaseLayer) {
@@ -51,15 +52,12 @@ const layer = createLayer(id, function (this: BaseLayer) {
     })
     
     const conversion = createCumulativeConversion(() => ({
-            scaling: createPolynomialScaling(
-                () => entangled.isFirstBranch(id) ? 1e6: 1e80,
-                () => entangled.isFirstBranch(id) ? 0.1: 0.05),
-            baseResource: fome.amounts[FomeTypes.quantum],
-            gainResource: accelerons,
-            costModifier: createSequentialModifier(() => [
-                createMultiplicativeModifier(() => ({ multiplier: upgrades.translation.effect, enabled: upgrades.translation.bought })),
-                createMultiplicativeModifier(() => ({ multiplier: upgrades.fluctuation.effect, enabled: upgrades.fluctuation.bought }))
-            ]),
+            formula: accelerons => accelerons.times(getUpgradeEffect(upgrades.translation))
+                                             .times(getUpgradeEffect(upgrades.fluctuation))
+                                             .dividedBy(() => entangled.isFirstBranch(id) ? 1e6 : 1e80)
+                                             .pow(() => entangled.isFirstBranch(id) ? 0.1 : 0.05),
+            baseResource: noPersist(fome.amounts[FomeTypes.quantum]),
+            gainResource: noPersist(accelerons),
             onConvert() {
                 if (entangled.isFirstBranch(id)) entangled.branchOrder.value = id;
             }
@@ -82,7 +80,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
     type Loops = 'acceleron' | 'instantProd' | 'timecube' | 'tempFoam' | 'tempAcceleron' | 'tempSkyrmion'
     const loops: Record<Loops, GenericLoop> = {
         acceleron: createLoop(() => ({
-            visibility() { return showIf(unref(upgrades.superstructures.bought)); },
+            visibility() { return unref(upgrades.superstructures.bought); },
             buildRequirement: new Decimal(60),
             triggerRequirement: Decimal.dOne,
             display: {
@@ -113,7 +111,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             }
         })),
         instantProd: createLoop(() => ({
-            visibility() { return showIf(unref(this.built) || unref(loops.acceleron.built)) },
+            visibility() { return unref(this.built) || unref(loops.acceleron.built) },
             buildRequirement: new Decimal(360),
             triggerRequirement: new Decimal(60),
             display: () => ({
@@ -142,7 +140,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             }
         })),
         timecube: createLoop(() => ({
-            visibility() { return showIf(unref(this.built) || unref(loops.instantProd.built)) },
+            visibility() { return unref(this.built) || unref(loops.instantProd.built) },
             buildRequirement: new Decimal(600),
             triggerRequirement: new Decimal(3600),
             display: {
@@ -174,7 +172,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         })),
         tempFoam: createLoop(() => ({
             persistentBoost: true,
-            visibility() { return showIf(unref(this.built) || unref(upgrades.tetration.bought) || unref(timecube.upgrades.tiny.bought)) },
+            visibility() { return unref(this.built) || unref(upgrades.tetration.bought) || unref(timecube.upgrades.tiny.bought) },
             buildRequirement: new Decimal(250000),
             triggerRequirement: new Decimal(86400),
             display: {
@@ -195,7 +193,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         })),
         tempAcceleron: createLoop(() => ({
             persistentBoost: true,
-            visibility() { return showIf(unref(this.built) || (unref(upgrades.tetration.bought)) && unref(loops.tempFoam.built)) },
+            visibility() { return unref(this.built) || (unref(upgrades.tetration.bought)) && unref(loops.tempFoam.built) },
             buildRequirement: new Decimal(1e11),
             triggerRequirement: new Decimal(31536000),
             display: {
@@ -216,7 +214,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         })),
         tempSkyrmion: createLoop(() => ({
             persistentBoost: true,
-            visibility() { return showIf(unref(this.built) || (unref(upgrades.tetration.bought) && unref(timecube.upgrades.tiny.bought) && unref(loops.tempAcceleron.built))) },
+            visibility() { return unref(this.built) || (unref(upgrades.tetration.bought) && unref(timecube.upgrades.tiny.bought) && unref(loops.tempAcceleron.built)) },
             buildRequirement: new Decimal(4e17),
             triggerRequirement: new Decimal(315360000),
             display: {
@@ -252,7 +250,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
     })
 
     const loopToggleButton = createClickable(() => ({
-        visibility() { return showIf(unref(upgrades.superstructures.bought)) },
+        visibility() { return unref(upgrades.superstructures.bought) },
         canClick() { return unref(nextLoop) !== undefined },
         onClick() { loopToggle.value = !unref(loopToggle) },
         display: jsx(() => (
@@ -335,145 +333,163 @@ const layer = createLayer(id, function (this: BaseLayer) {
     }
 
     type Upgrades = 'acceleration' | 'translation' | 'skyrmion' | 'superstructures' | 'fluctuation' | 'expansion' | 'conversion' | 'alacrity' | 'tetration' | 'mastery'
-    const upgrades: Record<Upgrades, GenericUpgrade> = {
-        acceleration: createUpgrade(() => ({
-            visibility() { return showIf(unref(this.bought) || Decimal.gte(unref(totalAccelerons), 4)) },
+    const upgrades: Record<Upgrades, GenericUpgrade | EffectUpgrade> = {
+        acceleration: createUpgrade<EffectUpgradeOptions>(() => ({
+            visibility() { return unref(this.bought) || Decimal.gte(unref(totalAccelerons), 4) },
             display: jsx(() => (
                 <>
                     <h3>Minute Acceleration</h3><br /><br />
                     Time speed massively multiplies Foam generation<br /><br />
-                    Currently: {format(unref(upgrades.acceleration.effect))}x<br />
-                    Cost: {formatWhole(unref(upgrades.acceleration.cost!))} {upgrades.acceleration.resource!.displayName}
+                    Currently: {format(getUpgradeEffect(upgrades.acceleration, undefined, true))}x<br />
+                    {displayRequirements(upgrades.acceleration.requirements)}
                 </>
             )),
             effect() { return unref(timeMult).abs().sqrt().times(1000) },
-            cost: Decimal.dOne,
-            resource: accelerons
-        })),
-        translation: createUpgrade(() => ({
-            visibility() { return showIf(unref(this.bought) || unref(upgrades.acceleration.bought)) },
-            display: jsx(() => {
-                let upgrade = upgrades.translation;
-                return <>
+            requirements: createCostRequirement(() => ({
+                cost: Decimal.dOne,
+                resource: noPersist(accelerons)
+            }))
+        }), effectDecorator),
+        translation: createUpgrade<EffectUpgradeOptions>(() => ({
+            visibility() { return unref(this.bought) || unref(upgrades.acceleration.bought) },
+            display: jsx(() => (
+                <>
                     <h3>Quantum Translation</h3><br /><br />
                     Each Foam re-formation increases Acceleron gain by 100%<br /><br />
-                    Currently: {formatWhole(unref(upgrade.effect))}x<br />
-                    Cost: {formatWhole(unref(upgrade.cost!))} {upgrade.resource!.displayName}
+                    Currently: {formatWhole(getUpgradeEffect(upgrades.translation, undefined, true))}x<br />
+                    {displayRequirements(upgrades.translation.requirements)}
                 </>
-            }),
+            )),
             effect() { return Object.values(fome.reformUpgrades).map(upgrade => unref(upgrade.amount)).reduce((a,b) => Decimal.add(a, b)) },
-            cost: new Decimal(5),
-            resource: accelerons
-        })),
+            requirements: createCostRequirement(() => ({
+                cost: new Decimal(5),
+                resource: noPersist(accelerons)
+            }))
+        }), effectDecorator),
         skyrmion: createUpgrade(() => ({
-            visibility() { return showIf(unref(this.bought) || unref(upgrades.acceleration.bought)) },
-            display: jsx(() => {
-                let upgrade = upgrades.skyrmion;
-                return <>
+            visibility() { return unref(this.bought) || unref(upgrades.acceleration.bought) },
+            display: jsx(() => (
+                <>
                     <h3>Superpositional Acceleration</h3><br /><br />
                     Gain a new Pion upgrade<br />
                     Gain a new Spinor upgrade<br /><br />
                     <br />
-                    Cost: {formatWhole(unref(upgrade.cost!))} {upgrade.resource!.displayName}
+                    {displayRequirements(upgrades.skyrmion.requirements)}
                 </>
-            }),
-            cost: new Decimal(25),
-            resource: accelerons
+            )),
+            requirements: createCostRequirement(() => ({
+                cost: new Decimal(25),
+                resource: noPersist(accelerons)
+            }))
         })),
         superstructures: createUpgrade(() => ({
-            visibility() { return showIf(unref(this.bought) || unref(upgrades.skyrmion.bought)) },
+            visibility() { return unref(this.bought) || unref(upgrades.skyrmion.bought) },
             display: jsx(() => (
                 <>
                     <h3>Quasi-temporal Superstructures</h3><br /><br />
                     Consume the past to build the future<br /><br /><br />
                     <br />
-                    Cost: {formatWhole(unref(upgrades.superstructures.cost!))} {upgrades.superstructures.resource!.displayName}
+                    {displayRequirements(upgrades.superstructures.requirements)}
                 </>
             )),
-            cost: new Decimal(50),
-            resource: accelerons
+            requirements: createCostRequirement(() => ({
+                cost: new Decimal(50),
+                resource: noPersist(accelerons)
+            }))
         })),
-        fluctuation: createUpgrade(() => ({
-            visibility() { return showIf(unref(this.bought) || unref(loops.acceleron.built)) },
+        fluctuation: createUpgrade<EffectUpgradeOptions>(() => ({
+            visibility() { return unref(this.bought) || unref(loops.acceleron.built) },
             display: jsx(() => (
                 <>
                     <h3>Temporal Fluctuation</h3><br /><br />
                     Each Entropic Loop multiplies Acceleron gain<br /><br />
-                    Currently: {formatWhole(unref(upgrades.fluctuation.effect))}x<br />
-                    Cost: {formatWhole(unref(upgrades.fluctuation.cost!))} {upgrades.fluctuation.resource!.displayName}
+                    Currently: {formatWhole(getUpgradeEffect(upgrades.fluctuation, undefined, true))}x<br />
+                    {displayRequirements(upgrades.fluctuation.requirements)}
                 </>
             )),
             effect() { return unref(numBuiltLoops) + 1 },
-            cost: new Decimal(100),
-            resource: accelerons
-        })),
+            requirements: createCostRequirement(() => ({
+                cost: new Decimal(100),
+                resource: noPersist(accelerons)
+            }))
+        }), effectDecorator),
         expansion: createUpgrade(() => ({
-            visibility() { return showIf(unref(this.bought) || unref(loops.instantProd.built)) },
+            visibility() { return unref(this.bought) || unref(loops.instantProd.built) },
             display: jsx(() => (
                 <>
                     <h3>Unstable Expansion</h3><br /><br />
                     Unlock Entropic Enhancements<br /><br /><br />
                     <br />
-                    Cost: {formatWhole(unref(upgrades.expansion.cost!))} {upgrades.expansion.resource!.displayName}
+                    {displayRequirements(upgrades.expansion.requirements)}
                 </>
             )),
-            cost: new Decimal(300),
-            resource: accelerons
+            requirements: createCostRequirement(() => ({
+                cost: new Decimal(300),
+                resource: noPersist(accelerons)
+            }))
         })),
-        conversion: createUpgrade(() => ({
-            visibility() { return showIf(unref(this.bought) || unref(loops.timecube.built)) },
+        conversion: createUpgrade<EffectUpgradeOptions>(() => ({
+            visibility() { return unref(this.bought) || unref(loops.timecube.built) },
             display: jsx(() => (
                 <>
                     <h3>Stability Conversion</h3><br /><br />
                     Each Entropic Loop multiplies Time Cube gain<br /><br />
-                    Currently: {formatWhole(unref(upgrades.conversion.effect))}x<br />
-                    Cost: {formatWhole(unref(upgrades.conversion.cost!))} {upgrades.conversion.resource!.displayName}
+                    Currently: {formatWhole(getUpgradeEffect(upgrades.conversion, undefined, true))}x<br />
+                    {displayRequirements(upgrades.conversion.requirements)}
                 </>
             )),
             effect() { return unref(numBuiltLoops) + 1 },
-            cost: new Decimal(150000),
-            resource: accelerons
-        })),
-        alacrity: createUpgrade(() => ({
-            visibility() { return showIf(unref(this.bought) || unref(upgrades.conversion.bought)) },
+            requirements: createCostRequirement(() => ({
+                cost: new Decimal(150000),
+                resource: noPersist(accelerons)
+            }))
+        }), effectDecorator),
+        alacrity: createUpgrade<EffectUpgradeOptions>(() => ({
+            visibility() { return unref(this.bought) || unref(upgrades.conversion.bought) },
             display: jsx(() => (
                 <>
                     <h3>Subspatial Alacrity</h3><br /><br />
-                    Increase Subspatial Foam gain by {formatWhole(unref(upgrades.alacrity.effect))}x<br /><br />
+                    Increase Subspatial Foam gain by {formatWhole(getUpgradeEffect(upgrades.alacrity, undefined, true))}x<br /><br />
                     <br />
-                    Cost: {formatWhole(unref(upgrades.alacrity.cost!))} {upgrades.alacrity.resource!.displayName}
+                    {displayRequirements(upgrades.alacrity.requirements)}
                 </>
             )),
             effect: new Decimal(1e4),
-            cost: new Decimal(2e6),
-            resource: accelerons
+            requirements: createCostRequirement(() => ({
+                cost: new Decimal(2e6),
+                resource: noPersist(accelerons)
+            }))
         })),
         tetration: createUpgrade(() => ({
-            visibility() { return showIf(unref(this.bought) || unref(upgrades.alacrity.bought)) },
+            visibility() { return unref(this.bought) || unref(upgrades.alacrity.bought) },
             display: jsx(() => (
                 <>
                     <h3>Cubic Tetration</h3><br /><br />
                     Remove the ability to Acceleron reset<br />
                     Unlock two additional Entropic Loops<br /><br />
                     <br />
-                    Cost: {formatWhole(unref(upgrades.tetration.cost!))} {upgrades.tetration.resource!.displayName}
+                    {displayRequirements(upgrades.tetration.requirements)}
                 </>
             )),
-            cost: new Decimal(1e8),
-            resource: accelerons
+            requirements: createCostRequirement(() => ({
+                cost: new Decimal(1e8),
+                resource: noPersist(accelerons)
+            }))
         })),
         mastery: createUpgrade(() => ({
-            visibility() { return showIf(unref(this.bought) || unref(upgrades.tetration.bought)) },
+            visibility() { return unref(this.bought) || unref(upgrades.tetration.bought) },
             display: jsx(() => (
                 <>
                     <h3>Temporal Mastery</h3><br /><br />
                     Unlock {entangled.isFirstBranch(id) ? inflaton.inflatons.displayName : entangled.strings.displayName}<br /><br /><br />
                     <br />
-                    Cost: {formatWhole(unref(upgrades.mastery.cost!))} {upgrades.mastery.resource!.displayName}
+                    {displayRequirements(upgrades.mastery.requirements)}
                 </>
             )),
-            cost: new Decimal(1e19),
-            resource: accelerons
+            requirements: createCostRequirement(() => ({
+                cost: new Decimal(1e19),
+                resource: noPersist(accelerons)
+            }))
         }))
     }
     const left = [

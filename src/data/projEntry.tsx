@@ -22,11 +22,12 @@ import entangled from "./layers/root/entangled/entangled";
  * @hidden
  */
 const id = "root";
+type layer = GenericLayer & { unlocked?: Ref<boolean>, boughtColor?: string }
+const rootLayers: Record<number, layer> = Object.fromEntries([skyrmion, fome, acceleron, timecube, inflaton, entangled].map((layer, index) => [index, layer]));
+const rootSubLayers: Record<number, layer> = Object.fromEntries([entropy].map((layer, index) => [index, layer]));
+    
 export const root = createLayer(id, () => {
-    type layer = GenericLayer & { unlocked?: Ref<boolean>, boughtColor?: string }
-    const layers: Record<number, layer> = Object.fromEntries([skyrmion, fome, acceleron, timecube, inflaton, entangled].map((layer, index) => [index, layer]));
-    const subLayers: Record<number, layer> = Object.fromEntries([entropy].map((layer, index) => [index, layer]));
-    const tabs: GenericTabFamily = createTabFamily(Object.fromEntries(Object.values(layers).map(layer => 
+    const tabs: GenericTabFamily = createTabFamily(Object.fromEntries(Object.values(rootLayers).map(layer => 
         [layer.name, () => ({
             display: layer.name,
             tab: createTab(() => ({
@@ -62,9 +63,7 @@ export const root = createLayer(id, () => {
                 }
             </>
         )),
-        tabs,
-        layers,
-        subLayers
+        tabs
     };
 });
 
@@ -75,7 +74,7 @@ export const root = createLayer(id, () => {
 export const getInitialLayers = (
     /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
     player: Partial<Player>
-): Array<GenericLayer> => [...Object.values(root.layers), ...Object.values(root.subLayers), root];
+): Array<GenericLayer> => [...Object.values(rootLayers), ...Object.values(rootSubLayers), root];
 
 /**
  * A computed ref whose value is true whenever the game is over.

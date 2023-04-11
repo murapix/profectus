@@ -18,6 +18,8 @@ export interface Resource<T = DecimalSource> extends Ref<T> {
     small?: boolean;
 }
 
+export type PersistentResource<T extends State = DecimalSource> = Resource<T> & Persistent<T> & { [NonPersistent]: Resource<T> }
+
 /**
  * Creates a resource.
  * @param defaultValue The initial value of the resource

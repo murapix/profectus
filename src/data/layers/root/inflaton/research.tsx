@@ -20,7 +20,7 @@ type ResearchDisplay = CoercableComponent
 }
 
 export interface ResearchOptions {
-    visibility?: Computable<Visibility>;
+    visibility?: Computable<Visibility | boolean>;
     requirements?: GenericResearch[];
     display: Computable<ResearchDisplay>;
     position?: [number, number];
@@ -58,7 +58,7 @@ export type Research<T extends ResearchOptions> = Replace<
 export type GenericResearch = Replace<
     Research<ResearchOptions>,
     {
-        visibility: ProcessedComputable<Visibility>;
+        visibility: ProcessedComputable<Visibility | boolean>;
         cost: ProcessedComputable<DecimalSource>;
         isResearching: ProcessedComputable<boolean>;
     }

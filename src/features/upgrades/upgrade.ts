@@ -1,5 +1,5 @@
 import { isArray } from "@vue/shared";
-import { Decorator, GenericEffectFeature } from "features/decorators/common";
+import { Decorator, EffectFeatureOptions, GenericEffectFeature } from "features/decorators/common";
 import type {
     CoercableComponent,
     GenericComponent,
@@ -70,7 +70,6 @@ export interface UpgradeOptions {
     requirements: Requirements;
     /** A function that is called when the upgrade is purchased. */
     onPurchase?: VoidFunction;
-    effect?: Computable<any>; // eslint-disable-line @typescript-eslint/no-explicit-any
 }
 
 /**
@@ -113,6 +112,9 @@ export type GenericUpgrade = Replace<
         visibility: ProcessedComputable<Visibility | boolean>;
     }
 >;
+
+export interface EffectUpgradeOptions extends UpgradeOptions, EffectFeatureOptions {};
+export type EffectUpgrade = GenericUpgrade & GenericEffectFeature;
 
 /**
  * Lazily creates an upgrade with the given options.
@@ -199,8 +201,10 @@ export function createUpgrade<T extends UpgradeOptions>(
     });
 }
 
-export function getUpgradeEffect(upgrade: GenericUpgrade & GenericEffectFeature, defaultValue: any = 1): any {
-    return unref(upgrade.bought) ? unref(upgrade.effect) : defaultValue;
+export function getUpgradeEffect(upgrade: GenericUpgrade | EffectUpgrade, defaultValue: any = 1, always: boolean = false): any {
+    if (!('effect' in upgrade))
+        throw new TypeError(`Upgrade ${upgrade.id} does not have an effect`);
+    return (always || unref(upgrade.bought)) ? unref(upgrade.effect) : defaultValue;
 }
 
 /**

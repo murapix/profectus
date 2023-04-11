@@ -1,20 +1,23 @@
 import SpacerVue from "components/layout/Spacer.vue";
 import { createClickable } from "features/clickables/clickable";
-import { CoercableComponent, jsx, OptionsFunc, Replace, showIf, Visibility } from "features/feature";
+import { effectDecorator } from "features/decorators/common";
+import { CoercableComponent, jsx, OptionsFunc, Replace } from "features/feature";
 import MainDisplayVue from "features/resources/MainDisplay.vue";
 import { createResource } from "features/resources/resource";
 import { addTooltip } from "features/tooltips/tooltip";
-import { createUpgrade, GenericUpgrade, getUpgradeEffect } from "features/upgrades/upgrade";
-import { BaseLayer, createLayer, GenericLayer } from "game/layers";
+import { createUpgrade, EffectUpgrade, EffectUpgradeOptions, getUpgradeEffect } from "features/upgrades/upgrade";
+import { BaseLayer, createLayer } from "game/layers";
+import { createBooleanRequirement, createCostRequirement } from "game/requirements";
 import Decimal, { DecimalSource } from "lib/break_eternity";
 import { format, formatTime, formatWhole } from "util/break_eternity";
 import { Computable, GetComputableType, GetComputableTypeWithDefault, processComputable, ProcessedComputable } from "util/computed";
-import { coerceComponent, render, renderRow } from "util/vue";
+import { coerceComponent, render } from "util/vue";
 import { computed, ComputedRef, unref, watch } from "vue";
 import fome from "../fome/fome";
 import timecube from "../timecube/timecube";
 import acceleron from "./acceleron";
 import EnhancementsVue from "./Enhancements.vue";
+import { noPersist } from "game/persistence"
 
 const id = "entropy";
 const layer = createLayer(id, function (this: BaseLayer) {
@@ -167,7 +170,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             effect() { return unref(effectiveEnhancements).times(0.1) },
             effectDisplay: (effect) => `${format(effect, 1)} free levels`
         })),
-    ]) as Record<Enhancements, GenericUpgrade>;
+    ]) as Record<Enhancements, EffectUpgrade>;
 
     const respec = createClickable(() => ({
         canClick() { return unref(totalEnhancements) > 0 },
@@ -234,7 +237,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
     function createEnhancement<T extends EnhancementOptions>(
         id: Enhancements,
         optionsFunc: OptionsFunc<T, {}, GenericEnhancement>
-    ): [string, GenericUpgrade] {
+    ): [string, EffectUpgrade] {
         return [id, (() => {
             const enhancement = optionsFunc();
 
@@ -243,23 +246,19 @@ const layer = createLayer(id, function (this: BaseLayer) {
 
             const displayFunc = enhancement.effectDisplay ?? ((effect: any) => `${format(effect)}x`)
 
-            const upgrade: GenericUpgrade = createUpgrade(() => ({
-                cost: enhancementCost,
-                canAfford(this: GenericUpgrade) {
-                    return (
-                        this.resource != null &&
-                        this.cost != null &&
-                        Decimal.gte(unref(this.resource), unref(this.cost))
-                    ) && (
-                        unref(enhancementCounts[enhancement.row]) < unref(enhancementLimits[enhancement.row])
-                    );
-                },
-                resource: entropy,
-                visibility() { return showIf(unref(this.bought) || unref(enhancement.visibility as ProcessedComputable<boolean> ?? true))
+            const upgrade: EffectUpgrade = createUpgrade<EffectUpgradeOptions>(() => ({
+                requirements: [
+                    createCostRequirement(() => ({
+                        cost: enhancementCost,
+                        resource: noPersist(entropy)
+                    })),
+                    createBooleanRequirement(() => unref(enhancementCounts[enhancement.row]) < unref(enhancementLimits[enhancement.row]))
+                ],
+                visibility() { return unref(this.bought) || unref(enhancement.visibility as ProcessedComputable<boolean> ?? true)
                 },
                 display: enhancement.title,
                 effect: enhancement.effect
-            }));
+            }), effectDecorator);
 
             addTooltip(upgrade, {
                 display: jsx(() => {

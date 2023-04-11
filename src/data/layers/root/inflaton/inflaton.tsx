@@ -1,23 +1,25 @@
 import ColumnVue from "components/layout/Column.vue";
-import RowVue from "components/layout/Row.vue";
 import SpacerVue from "components/layout/Spacer.vue";
-import { BaseBuyable, bonusBuyableDecorator, BonusBuyableOptions, createBuyable, freeBuyableDecorator, FreeBuyableOptions, GenericBonusBuyable, GenericFreeBuyable } from "features/buyable";
 import { createClickable, GenericClickable } from "features/clickables/clickable";
-import { softcap } from "features/conversion";
-import { CoercableComponent, jsx, OptionsFunc, showIf, Visibility } from "features/feature";
+import { BaseBonusAmountFeature, bonusAmountDecorator, BonusAmountFeatureOptions, GenericBonusAmountFeature } from "features/decorators/bonusDecorator";
+import { effectDecorator, EffectFeatureOptions, GenericEffectFeature } from "features/decorators/common";
+import { CoercableComponent, jsx, OptionsFunc, Visibility } from "features/feature";
+import { createRepeatable, BaseRepeatable, GenericRepeatable, RepeatableOptions } from "features/repeatable";
 import MainDisplayVue from "features/resources/MainDisplay.vue";
 import { createResource, Resource, trackBest } from "features/resources/resource";
 import { createTab } from "features/tabs/tab";
 import { createTabFamily } from "features/tabs/tabFamily";
 import { createUpgrade, GenericUpgrade } from "features/upgrades/upgrade";
+import Formula from "game/formulas/formulas";
 import { BaseLayer, createLayer } from "game/layers";
-import { persistent } from "game/persistence";
+import { noPersist, persistent } from "game/persistence";
+import { createBooleanRequirement, createCostRequirement } from "game/requirements";
 import Decimal, { DecimalSource } from "lib/break_eternity";
 import { format, formatSmall, formatWhole } from "util/break_eternity";
 import { Computable, ProcessedComputable } from "util/computed";
 import { createLazyProxy } from "util/proxies";
-import { render, renderCol, renderColJSX, renderJSX, renderRow, renderRowJSX } from "util/vue";
-import { computed, ComputedRef, unref, watch } from "vue";
+import { render, renderRow } from "util/vue";
+import { computed, ComputedRef, unref } from "vue";
 import acceleron from "../acceleron/acceleron";
 import entangled from "../entangled/entangled";
 import fome, { FomeTypes } from "../fome/fome";
@@ -34,16 +36,15 @@ interface BuildingData {
         base: ProcessedComputable<DecimalSource>;
     };
     display: {
-        visibility?: Computable<Visibility>;
+        visibility?: Computable<Visibility | boolean>;
         title: CoercableComponent;
         description: CoercableComponent;
         effect: CoercableComponent;
     }
 }
 
-interface BuildingOptions extends FreeBuyableOptions, BonusBuyableOptions {};
-
-type GenericBuilding = GenericFreeBuyable & GenericBonusBuyable;
+interface BuildingOptions extends RepeatableOptions, EffectFeatureOptions, BonusAmountFeatureOptions {};
+type GenericBuilding = GenericRepeatable & GenericEffectFeature & GenericBonusAmountFeature;
 
 export const id = "inflaton";
 const layer = createLayer(id, function (this: BaseLayer) {
@@ -136,15 +137,17 @@ const layer = createLayer(id, function (this: BaseLayer) {
     const currentSize = createResource(computed(() => {
         if (Decimal.lt(unref(inflatons), 1)) return Decimal.dZero;
 
-        let size: DecimalSource = Decimal.max(unref(inflatons), 2).log2().log2()
-                    .times(getResearchEffect(research.doubleSize))
-                    .times(getResearchEffect(research.quadrupleSize))
-                    // .times(getResearchEffect(repeatables.size))
-        size = Decimal.times(softcap(size, 6.187e10, 0.1),
-                             1) // top time square effect
-                      .div(1) // top timeline nerf
-                      .times(1) // top timeline bonus
-        return size;
+        let size = Formula.constant(inflatons).max(2)
+            .log2().log2()
+            .times(getResearchEffect(research.doubleSize))
+            .times(getResearchEffect(research.quadrupleSize))
+            .times(1) // size repeatable effect
+            .step(6.187e10, size => size.pow(0.1))
+            .times(1) // top time square effect
+            .div(1) // top timeline nerf
+            .times(1) // top timeline bonus
+
+        return size.evaluate();
     }), "planck lengths");
     const maxSize = trackBest(currentSize);
     const usedSize = persistent<DecimalSource>(0);
@@ -159,9 +162,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 title: 'Subspatial Field Stabilizers',
                 description: '<br/>Allow the creation of Subspatial Structures<br/>'
             },
-            cost: () => entangled.isFirstBranch(id) ? new Decimal(5e13) : new Decimal(5e46),
-            resource: fome.amounts[FomeTypes.quantum],
-            visibility() { return showIf(true) },
+            requirements: createCostRequirement(() => ({
+                cost: () => entangled.isFirstBranch(id) ? new Decimal(5e13) : new Decimal(5e46),
+                resource: noPersist(fome.amounts[FomeTypes.quantum])
+            })),
+            visibility() { return true },
             style: upgradeStyle
         })),
         research: createUpgrade(() => ({
@@ -169,9 +174,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 title: 'Quantum Field Investigations',
                 description: `<br/>Stabilization isn't enough. Maybe the constant bubbling of the quantum field may hold the secret to sustaining inflation<br/>`
             },
-            cost: () => entangled.isFirstBranch(id) ? new Decimal(1e14) : new Decimal(1e47),
-            resource: fome.amounts[FomeTypes.quantum],
-            visibility() { return showIf(unref(this.bought) || unref(upgrades.subspaceBuildings.bought)) },
+            requirements: createCostRequirement(() => ({
+                cost: () => entangled.isFirstBranch(id) ? new Decimal(1e14) : new Decimal(1e47),
+                resource: noPersist(fome.amounts[FomeTypes.quantum])
+            })),
+            visibility() { return unref(this.bought) || unref(upgrades.subspaceBuildings.bought) },
             style: upgradeStyle
         }))
     };
@@ -187,7 +194,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
     });
     const canBuild = computed(() => Decimal.minus(unref(maxSize), unref(usedSize)).gte(unref(buildingSize)));
     type Buildings = 'condenser' | 'lab' | 'storage'
-    const buildings: Record<Buildings, GenericFreeBuyable & GenericBonusBuyable> = {
+    const buildings: Record<Buildings, GenericBuilding> = {
         condenser: createBuilding(() => ({
             effect(amount: Decimal) {
                 return amount.times(getResearchEffect(research.quintupleCondenser))
@@ -195,12 +202,12 @@ const layer = createLayer(id, function (this: BaseLayer) {
             },
             cost: {
                 free: research.autobuild.researched,
-                resource: fome.amounts[FomeTypes.subspatial],
+                resource: noPersist(fome.amounts[FomeTypes.subspatial]),
                 multiplier: computed(() => entangled.isFirstBranch(id) ? 1e30 : 1e82),
                 base: 1.1
             },
             display: {
-                visibility() { return showIf(unref(upgrades.subspaceBuildings.bought)) },
+                visibility() { return unref(upgrades.subspaceBuildings.bought) },
                 title: 'M-Field Condenser',
                 description: 'Slightly reduce the loss of resources to Inflation',
                 effect: jsx(() => <>{formatSmall(unref(buildings.condenser.effect))}x</>)
@@ -213,12 +220,12 @@ const layer = createLayer(id, function (this: BaseLayer) {
             },
             cost: {
                 free: research.autobuild.researched,
-                resource: fome.amounts[FomeTypes.subspatial],
+                resource: noPersist(fome.amounts[FomeTypes.subspatial]),
                 multiplier: computed(() => entangled.isFirstBranch(id) ? 1e30 : 1e82),
                 base: computed(() => unref(research.cheaperLabs.researched) ? 1.5 : 15)
             },
             display: {
-                visibility() { return showIf(unref(upgrades.research.bought)) },
+                visibility() { return unref(upgrades.research.bought) },
                 title: 'Quantum Flux Analyzer',
                 description: 'Study fluctuations in the quantum field',
                 effect: jsx(() => <>+{formatWhole(unref(buildings.lab.effect))} research points/s</>)
@@ -231,12 +238,12 @@ const layer = createLayer(id, function (this: BaseLayer) {
             },
             cost: {
                 free: research.autobuild.researched,
-                resource: fome.amounts[FomeTypes.quantum],
+                resource: noPersist(fome.amounts[FomeTypes.quantum]),
                 multiplier: computed(() => entangled.isFirstBranch(id) ? 1e15 : 1e48),
                 base: 1.2
             },
             display: {
-                visibility() { return showIf(unref(research.storage.researched)) },
+                visibility() { return unref(research.storage.researched) },
                 title: 'Inflaton Containment Unit',
                 description: 'Specialized storage facilities designed to keep Inflatons separated and inert',
                 effect: jsx(() => <>Safely store up to {formatWhole(unref(buildings.storage.effect))} Inflatons</>)
@@ -252,14 +259,14 @@ const layer = createLayer(id, function (this: BaseLayer) {
         id,
         {
             one: createClickable(() => ({
-                visibility() { return showIf(unref(research.respecs.researched)) },
+                visibility() { return unref(research.respecs.researched) },
                 canClick() { return Decimal.gt(unref(building.amount), 0) },
                 display: { description: 'Sell One' },
                 onClick() { building.amount.value = Decimal.minus(unref(building.amount), unref(buildingSize)).max(0) },
                 style: computed(() => ({...respecStyle, borderBottomLeftRadius: 'var(--border-radius)'}))
             })) as GenericClickable,
             all: createClickable(() => ({
-                visibility() { return showIf(unref(research.respecs.researched)) },
+                visibility() { return unref(research.respecs.researched) },
                 canClick() { return Decimal.gt(unref(building.amount), 0) },
                 display: { description: 'Sell All' },
                 onClick() { building.amount.value = Decimal.dZero },
@@ -292,7 +299,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             },
             effect: 5,
             cost: new Decimal(75),
-            visibility() { return showIf(unref(upgrades.research.bought)) },
+            visibility() { return unref(upgrades.research.bought) },
             research: startResearch('research'),
             isResearching
         })),
@@ -579,7 +586,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
 
     const repeatables: Record<string, GenericRepeatableResearch> = {
         universeSize: createResearch<RepeatableResearchOptions>(() => ({
-            visibility() { return showIf(unref(research.repeatableUnlock.researched)) },
+            visibility() { return unref(research.repeatableUnlock.researched) },
             display: {
                 title: 'Eternal Inflation',
                 description: 'Double the size of your universe',
@@ -591,7 +598,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             isResearching
         }), repeatableResearchDecorator) as GenericRepeatableResearch,
         research: createResearch<RepeatableResearchOptions>(() => ({
-            visibility() { return showIf(unref(research.repeatableUnlock.researched)) },
+            visibility() { return unref(research.repeatableUnlock.researched) },
             display: {
                 title: 'Perpetual Testing',
                 description: `Increase Distributed Analysis Framework's maximum bonus by 80%`,
@@ -603,7 +610,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             isResearching
         }), repeatableResearchDecorator) as GenericRepeatableResearch,
         buildingSize: createResearch<RepeatableResearchOptions>(() => ({
-            visibility() { return showIf(unref(research.moreRepeatables.researched)) },
+            visibility() { return unref(research.moreRepeatables.researched) },
             display: {
                 title: 'Subspatial Construction',
                 description: 'Increase Subspace building size tenfold, and increase their effects by twice as much',
@@ -617,7 +624,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             isResearching
         }), repeatableResearchDecorator) as GenericRepeatableResearch,
         buildingCost: createResearch<RepeatableResearchOptions>(() => ({
-            visibility() { return showIf(unref(research.moreRepeatables.researched)) },
+            visibility() { return unref(research.moreRepeatables.researched) },
             display: {
                 title: 'Efficient Design',
                 description: 'Decrease Subspace building cost scaling by 1.5x',
@@ -629,7 +636,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             isResearching
         }), repeatableResearchDecorator) as GenericRepeatableResearch,
         fome: createResearch<RepeatableResearchOptions>(() => ({
-            visibility() { return showIf(unref(research.moreRepeatables.researched)) },
+            visibility() { return unref(research.moreRepeatables.researched) },
             display: {
                 title: 'Inflational Dynamics',
                 description: 'Retain up to 1e6x more Foam',
@@ -789,18 +796,23 @@ const layer = createLayer(id, function (this: BaseLayer) {
     }
     
     function createBuilding(
-        optionsFunc: OptionsFunc<BuildingData, BaseBuyable, GenericBuilding>
+        optionsFunc: OptionsFunc<BuildingData, BaseRepeatable, GenericBuilding>
     ): GenericBuilding {
         return createLazyProxy(() => {
             let building = optionsFunc();
-            return createBuyable<BuildingOptions>(() => ({
-                isFree: research.autobuild.researched,
+            let repeatable = createRepeatable<BuildingOptions>(() => ({
                 bonusAmount() { return Decimal.times(unref(this.amount), 0) }, // 3rd abyssal spinor buyable
                 
                 visibility: building.display.visibility,
                 
-                cost() { return getBuildingCost(unref(building.cost.multiplier), unref(building.cost.base), unref(this.amount))},
-                resource: building.cost.resource,
+                requirements: [
+                    createBooleanRequirement(canBuild),
+                    createCostRequirement(() => ({
+                        cost() { return getBuildingCost(unref(building.cost.multiplier), unref(building.cost.base), unref(repeatable.amount))},
+                        resource: building.cost.resource,
+                        requiresPay: research.autobuild.researched
+                    }))
+                ],
 
                 effect() {
                     return building.effect(Decimal.add(unref(this.amount), unref(this.bonusAmount as ProcessedComputable<DecimalSource>))
@@ -812,15 +824,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
                     description: building.display.description,
                     effectDisplay: building.display.effect
                 },
-                style: buildingStyle,
-
-                canPurchase() {
-                    if (unref(this.visibility) !== Visibility.Visible) return false;
-                    if (!unref(this.canAfford)) return false;
-                    return unref(canBuild);
-                },
-                bulk: buildingSize,
-            }), freeBuyableDecorator, bonusBuyableDecorator) as GenericBuilding
+                style: buildingStyle
+            }), effectDecorator, bonusAmountDecorator) as GenericBuilding
+            return repeatable;
         });
     }
 

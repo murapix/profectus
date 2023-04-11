@@ -1,13 +1,13 @@
-import { CoercableComponent, getUniqueID, jsx, OptionsFunc, Replace, showIf, Visibility } from "features/feature";
-import { createResource, Resource } from "features/resources/resource";
-import { createBuyable, freeBuyableDecorator, FreeBuyableOptions, GenericBuyable, GenericFreeBuyable } from "features/buyable";
+import { CoercableComponent, getUniqueID, jsx, OptionsFunc, Replace, Visibility } from "features/feature";
+import { createResource, PersistentResource, Resource } from "features/resources/resource";
+import { createRepeatable, GenericRepeatable, RepeatableOptions } from "features/repeatable";
 import { createUpgrade, GenericUpgrade, getUpgradeEffect } from "features/upgrades/upgrade";
 import { createTabFamily } from "features/tabs/tabFamily";
 import { createTab } from "features/tabs/tab";
 import { createAchievement, GenericAchievement } from "features/achievements/achievement";
 import { addTooltip } from "features/tooltips/tooltip";
 import { BaseLayer, createLayer } from "game/layers";
-import { Persistent, persistent, PersistentState } from "game/persistence";
+import { noPersist, Persistent, persistent, PersistentState } from "game/persistence";
 import { Computable, convertComputable, GetComputableType, processComputable, ProcessedComputable } from "util/computed";
 import { createLazyProxy } from "util/proxies";
 import { formatWhole } from "util/break_eternity";
@@ -26,6 +26,8 @@ import entropy from "../acceleron/entropy";
 import timecube from "../timecube/timecube";
 import inflaton from "../inflaton/inflaton";
 import { getResearchEffect } from "../inflaton/research";
+import { createBooleanRequirement, createCostRequirement, displayRequirements } from "game/requirements";
+import { effectDecorator, EffectFeatureOptions, GenericEffectFeature } from "features/decorators/common";
 
 
 export enum FomeTypes {
@@ -51,7 +53,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
 
     const unlocked: Ref<boolean> = skyrmion.skyrmionUpgrades.fome.bought;
 
-    const amounts: Record<FomeTypes, Resource<DecimalSource>> = {
+    const amounts: Record<FomeTypes, PersistentResource<DecimalSource>> = {
         [FomeTypes.protoversal]: createResource<DecimalSource>(0, "Protoversal Foam"),
         [FomeTypes.infinitesimal]: createResource<DecimalSource>(0, "Infinitesimal Foam"),
         [FomeTypes.subspatial]: createResource<DecimalSource>(0, "Subspatial Foam"),
@@ -188,61 +190,64 @@ const layer = createLayer(id, function (this: BaseLayer) {
     this.on("update", () => {
         if (unref(achievements.reform.earned)) {
             Object.values(condenseUpgrades).filter(upgrade => !unref(upgrade.bought)).forEach(upgrade => upgrade.purchase());
-            Object.values(reformUpgrades).forEach(upgrade => upgrade.purchase());
+            Object.values(reformUpgrades).forEach(upgrade => upgrade.onClick());
         }
         Object.values(FomeTypes).forEach(type => {
             if (unref(achievements[type].earned)) {
-                Object.values(dimUpgrades[type]).forEach(dim => dim.purchase());
+                Object.values(dimUpgrades[type]).forEach(dim => dim.onClick());
             }
         });
     })
 
-    const dimUpgrades: Record<FomeTypes, Record<FomeDims, GenericBuyable>> = {
+    const dimUpgrades: Record<FomeTypes, Record<FomeDims, GenericRepeatable & GenericEffectFeature>> = {
         [FomeTypes.protoversal]: {
-            [FomeDims.height]: createDimBuyable(FomeTypes.protoversal, FomeDims.height, amount => Decimal.pow(4, Decimal.pow(amount, 1.15)).times(2)),
-            [FomeDims.width]: createDimBuyable(FomeTypes.protoversal, FomeDims.width, amount => Decimal.pow(6, Decimal.pow(amount, 1.15)).times(5)),
-            [FomeDims.depth]: createDimBuyable(FomeTypes.protoversal, FomeDims.depth, amount => Decimal.pow(8, Decimal.pow(amount, 1.15)).times(20))
+            [FomeDims.height]: createDimRepeatable(FomeTypes.protoversal, FomeDims.height, amount => Decimal.pow(4, Decimal.pow(amount, 1.15)).times(2)),
+            [FomeDims.width]: createDimRepeatable(FomeTypes.protoversal, FomeDims.width, amount => Decimal.pow(6, Decimal.pow(amount, 1.15)).times(5)),
+            [FomeDims.depth]: createDimRepeatable(FomeTypes.protoversal, FomeDims.depth, amount => Decimal.pow(8, Decimal.pow(amount, 1.15)).times(20))
         },
         [FomeTypes.infinitesimal]: {
-            [FomeDims.height]: createDimBuyable(FomeTypes.infinitesimal, FomeDims.height, amount => Decimal.pow(5, Decimal.pow(amount, 1.15)).times(6)),
-            [FomeDims.width]: createDimBuyable(FomeTypes.infinitesimal, FomeDims.width, amount => Decimal.pow(7, Decimal.pow(amount, 1.15)).times(10)),
-            [FomeDims.depth]: createDimBuyable(FomeTypes.infinitesimal, FomeDims.depth, amount => Decimal.pow(9, Decimal.pow(amount, 1.15)).times(25))
+            [FomeDims.height]: createDimRepeatable(FomeTypes.infinitesimal, FomeDims.height, amount => Decimal.pow(5, Decimal.pow(amount, 1.15)).times(6)),
+            [FomeDims.width]: createDimRepeatable(FomeTypes.infinitesimal, FomeDims.width, amount => Decimal.pow(7, Decimal.pow(amount, 1.15)).times(10)),
+            [FomeDims.depth]: createDimRepeatable(FomeTypes.infinitesimal, FomeDims.depth, amount => Decimal.pow(9, Decimal.pow(amount, 1.15)).times(25))
         },
         [FomeTypes.subspatial]: {
-            [FomeDims.height]: createDimBuyable(FomeTypes.subspatial, FomeDims.height, amount => Decimal.pow(6, Decimal.pow(amount, 1.15)).times(10)),
-            [FomeDims.width]: createDimBuyable(FomeTypes.subspatial, FomeDims.width, amount => Decimal.pow(8, Decimal.pow(amount, 1.15)).times(18)),
-            [FomeDims.depth]: createDimBuyable(FomeTypes.subspatial, FomeDims.depth, amount => Decimal.pow(10, Decimal.pow(amount, 1.15)).times(60))
+            [FomeDims.height]: createDimRepeatable(FomeTypes.subspatial, FomeDims.height, amount => Decimal.pow(6, Decimal.pow(amount, 1.15)).times(10)),
+            [FomeDims.width]: createDimRepeatable(FomeTypes.subspatial, FomeDims.width, amount => Decimal.pow(8, Decimal.pow(amount, 1.15)).times(18)),
+            [FomeDims.depth]: createDimRepeatable(FomeTypes.subspatial, FomeDims.depth, amount => Decimal.pow(10, Decimal.pow(amount, 1.15)).times(60))
         },
         [FomeTypes.subplanck]: {
-            [FomeDims.height]: createDimBuyable(FomeTypes.subplanck, FomeDims.height, amount => Decimal.pow(7, Decimal.pow(amount, 1.15)).times(15)),
-            [FomeDims.width]: createDimBuyable(FomeTypes.subplanck, FomeDims.width, amount => Decimal.pow(9, Decimal.pow(amount, 1.15)).times(25)),
-            [FomeDims.depth]: createDimBuyable(FomeTypes.subplanck, FomeDims.depth, amount => Decimal.pow(11, Decimal.pow(amount, 1.15)).times(90))
+            [FomeDims.height]: createDimRepeatable(FomeTypes.subplanck, FomeDims.height, amount => Decimal.pow(7, Decimal.pow(amount, 1.15)).times(15)),
+            [FomeDims.width]: createDimRepeatable(FomeTypes.subplanck, FomeDims.width, amount => Decimal.pow(9, Decimal.pow(amount, 1.15)).times(25)),
+            [FomeDims.depth]: createDimRepeatable(FomeTypes.subplanck, FomeDims.depth, amount => Decimal.pow(11, Decimal.pow(amount, 1.15)).times(90))
         },
         [FomeTypes.quantum]: {
-            [FomeDims.height]: createDimBuyable(FomeTypes.quantum, FomeDims.height, amount => Decimal.pow(8, Decimal.pow(amount, 1.15)).times(20)),
-            [FomeDims.width]: createDimBuyable(FomeTypes.quantum, FomeDims.width, amount => Decimal.pow(10, Decimal.pow(amount, 1.15)).times(30)),
-            [FomeDims.depth]: createDimBuyable(FomeTypes.quantum, FomeDims.depth, amount => Decimal.pow(12, Decimal.pow(amount, 1.15)).times(100))
+            [FomeDims.height]: createDimRepeatable(FomeTypes.quantum, FomeDims.height, amount => Decimal.pow(8, Decimal.pow(amount, 1.15)).times(20)),
+            [FomeDims.width]: createDimRepeatable(FomeTypes.quantum, FomeDims.width, amount => Decimal.pow(10, Decimal.pow(amount, 1.15)).times(30)),
+            [FomeDims.depth]: createDimRepeatable(FomeTypes.quantum, FomeDims.depth, amount => Decimal.pow(12, Decimal.pow(amount, 1.15)).times(100))
         }
     };
-    function createDimBuyable(type: FomeTypes, dim: FomeDims, cost: (amount: DecimalSource) => DecimalSource) {
-        const display = dimBuyableDisplay(type, dim);
-        return createBuyable<FreeBuyableOptions>(() => ({
-            visibility() { return showIf(Decimal.gt(unref(reformUpgrades[type].amount), 0)) },
-            resource: amounts[type],
+    function createDimRepeatable(type: FomeTypes, dim: FomeDims, cost: (amount: DecimalSource) => DecimalSource) {
+        const display = dimRepeatableDisplay(type, dim);
+        const repeatable = createRepeatable<RepeatableOptions & EffectFeatureOptions>(() => ({
+            visibility() { return Decimal.gt(unref(reformUpgrades[type].amount), 0) },
+            requirements: createCostRequirement(() => ({
+                resource: noPersist(amounts[type]),
+                cost() { return cost(unref(repeatable.amount))},
+                requiresPay: achievements[type].earned
+            })),
             display: display,
             effect() { return Decimal.add(unref(this.amount), 1); },
-            cost() { return cost(unref(this.amount)); },
             classes: () => ({ auto: unref(achievements[type].earned) }),
             onPurchase() {
                 const index = boosts[type].index;
                 const boost = boosts[type][unref(index)].amount;
                 boost.value = Decimal.add(unref(boost), 1);
                 index.value = (unref(index) === 5 ? 1 : unref(index) + 1) as 1|2|3|4|5;
-            },
-            isFree: achievements[type].earned
-        }), freeBuyableDecorator) as GenericFreeBuyable;
+            }
+        }), effectDecorator) as GenericRepeatable & GenericEffectFeature;
+        return repeatable;
     }
-    function dimBuyableDisplay(type: FomeTypes, dim: FomeDims) {
+    function dimRepeatableDisplay(type: FomeTypes, dim: FomeDims) {
         let dimName: string;
         switch (dim) {
             case FomeDims.height: dimName = "Height"; break;
@@ -257,46 +262,55 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 <b>Current {dimName}:</b> {format(unref(dimUpgrades[type][dim].amount))}m
                 <br />
                 <br />
-                <b>Cost:</b>{" "}
-                {format(unref((dimUpgrades[type][dim].cost as ProcessedComputable<DecimalSource>) || 0))}
+                <b>Cost:</b> {displayRequirements(dimUpgrades[type][dim].requirements)}
             </>
         ));
     }
 
     const condenseUpgrades: Record<FomeTypes, GenericUpgrade> = {
         [FomeTypes.protoversal]: createUpgrade(() => ({
-            visibility() { return showIf(!unref(this.bought)); },
-            resource: amounts[FomeTypes.protoversal],
+            visibility() { return !unref(this.bought); },
+            requirements: createCostRequirement(() => ({
+                resource: noPersist(amounts[FomeTypes.protoversal]),
+                cost: 1e4
+            })),
             display: { description: `Condense your ${amounts.protoversal.displayName}` },
-            cost: 1e4,
             onPurchase() { reformUpgrades.infinitesimal.amount.value = Decimal.dOne }
         })),
         [FomeTypes.infinitesimal]: createUpgrade(() => ({
-            visibility() { return showIf(!unref(this.bought) && unref(condenseUpgrades.protoversal.bought)); },
-            resource: amounts[FomeTypes.infinitesimal],
+            visibility() { return !unref(this.bought) && unref(condenseUpgrades.protoversal.bought); },
+            requirements: createCostRequirement(() => ({
+                resource: noPersist(amounts[FomeTypes.infinitesimal]),
+                cost: 2e4
+            })),
             display: { description: `Condense your ${amounts.infinitesimal.displayName}` },
-            cost: 2e4,
             onPurchase() { reformUpgrades.subspatial.amount.value = Decimal.dOne }
         })),
         [FomeTypes.subspatial]: createUpgrade(() => ({
-            visibility() { return showIf(!unref(this.bought) && unref(condenseUpgrades.infinitesimal.bought)); },
-            resource: amounts[FomeTypes.subspatial],
+            visibility() { return !unref(this.bought) && unref(condenseUpgrades.infinitesimal.bought); },
+            requirements: createCostRequirement(() => ({
+                resource: noPersist(amounts[FomeTypes.subspatial]),
+                cost: 4e5
+            })),
             display: { description: `Condense your ${amounts.subspatial.displayName}` },
-            cost: 4e5,
             onPurchase() { reformUpgrades.subplanck.amount.value = Decimal.dOne }
         })),
         [FomeTypes.subplanck]: createUpgrade(() => ({
-            visibility() { return showIf(!unref(this.bought) && unref(condenseUpgrades.subspatial.bought)); },
-            resource: amounts[FomeTypes.subplanck],
+            visibility() { return !unref(this.bought) && unref(condenseUpgrades.subspatial.bought); },
+            requirements: createCostRequirement(() => ({
+                resource: noPersist(amounts[FomeTypes.subplanck]),
+                cost: 1e6
+            })),
             display: { description: `Condense your ${amounts.subplanck.displayName}` },
-            cost: 1e6,
             onPurchase() { reformUpgrades.quantum.amount.value = Decimal.dOne }
         })),
         [FomeTypes.quantum]: createUpgrade(() => ({
-            visibility() { return showIf(!unref(this.bought) && unref(condenseUpgrades.subplanck.bought)); },
-            resource: amounts[FomeTypes.quantum],
-            display: { description: `Condense your ${amounts.quantum.displayName}` },
-            cost: 1e5
+            visibility() { return !unref(this.bought) && unref(condenseUpgrades.subplanck.bought); },
+            requirements: createCostRequirement(() => ({
+                resource: noPersist(amounts[FomeTypes.quantum]),
+                cost: 1e5
+            })),
+            display: { description: `Condense your ${amounts.quantum.displayName}` }
         }))
     };
 
@@ -321,46 +335,44 @@ const layer = createLayer(id, function (this: BaseLayer) {
         [FomeTypes.subplanck]: amounts.subspatial,
         [FomeTypes.quantum]: amounts.subplanck
     }
-    type ReformUpgrade = GenericBuyable & { requires: Ref<DecimalSource>};
+    type ReformUpgrade = GenericRepeatable & GenericEffectFeature;
     const reformUpgrades = Object.fromEntries(
         Object.values(FomeTypes).map(type => [
             type,
-            createBuyable(() => ({
-                visibility() { return showIf(unref(condenseUpgrades[type].bought)); },
-                resource: amounts[type],
+            createRepeatable<RepeatableOptions & EffectFeatureOptions>(() => ({
+                visibility() { return unref(condenseUpgrades[type].bought); },
+                requirements: [
+                    createBooleanRequirement(() => Decimal.lt(unref(reformUpgrades[type].amount), unref(reformLimits[type]))),
+                    createCostRequirement(() => ({
+                        cost() { return reformCosts[type](new Decimal(unref(reformUpgrades[type].amount))); },
+                        resource: noPersist(amounts[type])
+                    })),
+                ],
                 display: jsx(() => {
                     const buyable = reformUpgrades[type];
                     const description = <>Re-form your {amounts[type].displayName}</>
                     const amountDisplay = <>Amount: {formatWhole(unref(buyable.amount))}</>
                     const requirementDisplay = <>Requires: {reformLimitResource[type].displayName}<sup>{formatWhole(unref(Decimal.add(unref(buyable.amount), 2)))}</sup></>
-                    const costDisplay = <>Cost: {format(unref(buyable.cost ?? 0))} {buyable.resource?.displayName}</>
+                    const costDisplay = displayRequirements(buyable.requirements)
                     return (
                         <>
                             {description}
                             <div><br />
                             {amountDisplay}</div>
                             <div><br />
-                            {Decimal.gte(unref(buyable.amount), unref(buyable.requires)) ? requirementDisplay : costDisplay}</div>
+                            {requirementDisplay}{costDisplay}</div>
                         </>
                     );
                 }),
-                cost() { return reformCosts[type](new Decimal(unref(this.amount))); },
                 classes: () => ({ auto: unref(achievements.reform.earned) }),
-                requires: reformLimits[type],
-                effect() { return Decimal.cbrt(unref(this.amount)); },
-                canPurchase() {
-                    return unref(this.visibility) === Visibility.Visible &&
-                    unref(this.canAfford) &&
-                    Decimal.lt(unref(this.amount), unref((this as ReformUpgrade).requires)) &&
-                    Decimal.lt(unref(this.amount), unref(convertComputable(this.purchaseLimit)))
-                }
-            }))
+                effect() { return Decimal.cbrt(unref(this.amount)); }
+            }), effectDecorator)
         ])
     ) as Record<FomeTypes, ReformUpgrade>;
     
     const globalBoost = computed(() => Decimal.add(getUpgradeEffect(entropy.enhancements.entitlement, 0), getUpgradeEffect(timecube.upgrades.tier, 0)))
 
-    const boosts: Record<FomeTypes, { [key in 1|2|3|4|5]: GenericBoost } & { index: Persistent<1|2|3|4|5> }> = {
+    const boosts: Record<FomeTypes, Record<1|2|3|4|5, GenericBoost> & { index: Persistent<1|2|3|4|5> }> = {
         [FomeTypes.protoversal]: {
             index: persistent<1|2|3|4|5>(1),
             1: createFomeBoost(FomeTypes.protoversal, 1,
@@ -616,19 +628,20 @@ const layer = createLayer(id, function (this: BaseLayer) {
     }
 
     function createBoost<T extends BoostOptions>(optionsFunc: OptionsFunc<T, BaseBoost, GenericBoost>): Boost<T> {
-        return createLazyProxy(persistent => {
-            const boost = Object.assign(persistent, optionsFunc());
+        const amount = persistent<DecimalSource>(0);
+        return createLazyProxy(() => {
+            const boost = optionsFunc();
 
             boost.id = getUniqueID("boost-");
             boost.type = BoostType;
-            boost.amount = boost[PersistentState];
+            boost.amount = amount;
 
             processComputable(boost as T, "display");
             processComputable(boost as T, "effect");
             processComputable(boost as T, "bonus");
 
             return boost as unknown as Boost<T>;
-        }, persistent<DecimalSource>(0));
+        });
     }
 });
 
