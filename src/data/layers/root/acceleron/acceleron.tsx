@@ -2,7 +2,7 @@ import { createResetButton } from "data/common";
 import { createAchievement } from "features/achievements/achievement";
 import { createClickable } from "features/clickables/clickable";
 import { createCumulativeConversion } from "features/conversion";
-import { CoercableComponent, jsx, Visibility } from "features/feature";
+import { jsx, Visibility } from "features/feature";
 import { createResource, trackBest, trackTotal } from "features/resources/resource";
 import { createTab } from "features/tabs/tab";
 import { createTabFamily, GenericTabFamily } from "features/tabs/tabFamily";
@@ -12,7 +12,7 @@ import { noPersist, persistent } from "game/persistence";
 import Decimal, { DecimalSource } from "lib/break_eternity";
 import { format, formatSmall, formatTime, formatWhole } from "util/break_eternity";
 import { ProcessedComputable } from "util/computed";
-import { joinJSX, render } from "util/vue";
+import { render } from "util/vue";
 import { computed, ComputedRef, unref } from "vue";
 import skyrmion from "../skyrmion/skyrmion";
 import fome, { FomeTypes } from "../fome/fome";
@@ -26,7 +26,7 @@ import SpacerVue from "components/layout/Spacer.vue";
 import LoopDescriptionsVue from "./LoopDescriptions.vue";
 import LoopsVue from "./Loops.vue";
 import UpgradeRingVue from "./UpgradeRing.vue";
-import { createCostRequirement, displayRequirements, Requirements } from "game/requirements";
+import { createCostRequirement, displayRequirements } from "game/requirements";
 import { effectDecorator } from "features/decorators/common";
 
 export const id = "acceleron";
@@ -52,10 +52,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
     })
     
     const conversion = createCumulativeConversion(() => ({
-            formula: accelerons => accelerons.times(getUpgradeEffect(upgrades.translation))
-                                             .times(getUpgradeEffect(upgrades.fluctuation))
-                                             .dividedBy(() => entangled.isFirstBranch(id) ? 1e6 : 1e80)
-                                             .pow(() => entangled.isFirstBranch(id) ? 0.1 : 0.05),
+            formula: fome => fome.times(getUpgradeEffect(upgrades.translation))
+                                 .times(getUpgradeEffect(upgrades.fluctuation))
+                                 .dividedBy(() => entangled.isFirstBranch(id) ? 1e6 : 1e80)
+                                 .pow(() => entangled.isFirstBranch(id) ? 0.1 : 0.05),
             baseResource: noPersist(fome.amounts[FomeTypes.quantum]),
             gainResource: noPersist(accelerons),
             onConvert() {

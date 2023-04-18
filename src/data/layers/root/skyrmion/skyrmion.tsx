@@ -680,8 +680,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
         display: jsx(() => (
             <>
                 <MainDisplayVue resource={skyrmions} color={unref(color)} />
-                {Decimal.gt(unref(fome.getFomeBoost(FomeTypes.subspatial, 4)), 0) ? 
-                    <>Your {fome.amounts.subspatial.displayName} is granting an additional <h2 style={{ color: unref(color), textShadow: `0px 0px 10px ${unref(color)}` }}>
+                {Decimal.gt(unref(fome.getFomeBoost(FomeTypes.subspatial, 4)), 0)
+                ?   <>Your {fome.amounts.subspatial.displayName} is granting an additional <h2 style={{ color: unref(color), textShadow: `0px 0px 10px ${unref(color)}` }}>
                         {format(unref(fome.getFomeBoost(FomeTypes.subspatial, 4)))}
                     </h2> {skyrmions.displayName}</>
                 : null}
@@ -775,7 +775,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
                     cost: data.cost,
                     resource: noPersist(skyrmions),
                     requiresPay: false
-                }))
+                })),
+                onPurchase: data.onPurchase
             }));
 
         addTooltip(upgrade, {

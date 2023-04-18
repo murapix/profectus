@@ -31,10 +31,10 @@ export const root = createLayer(id, () => {
         [layer.name, () => ({
             display: layer.name,
             tab: createTab(() => ({
-                style: computed(() => ({
-                    "--layer-color": unref(layer.color),
-                    ...(unref(layer.style) as Record<string, unknown>)
-                })),
+                // style: computed(() => ({
+                //     "--layer-color": unref(layer.color),
+                //     ...(unref(layer.style) as Record<string, unknown>)
+                // })),
                 display: jsx(() => (
                     <>
                         <div>
@@ -53,16 +53,10 @@ export const root = createLayer(id, () => {
         name: "Root",
         minWidth: 300,
         minimizable: false,
-        display: jsx(() => (
-            <>
-                {unref(fome.unlocked)
-                    ? render(tabs)
-                    : <div style={{"--layer-color": unref(skyrmion.color)}}>
-                        {render(unref(tabs.tabs[skyrmion.name].tab))}
-                    </div>
-                }
-            </>
-        )),
+        display: jsx(() => unref(fome.unlocked)
+            ? <>{render(tabs)}</>
+            : <div style={{"--layer-color": unref(skyrmion.color)}}>{render(unref(tabs.tabs[skyrmion.name].tab))}</div>
+        ),
         tabs
     };
 });
