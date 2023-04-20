@@ -1,7 +1,7 @@
 import { isArray } from "@vue/shared";
 import Toggle from "components/fields/Toggle.vue";
 import ChallengeComponent from "features/challenges/Challenge.vue";
-import { Decorator } from "features/decorators/common";
+import { GenericDecorator } from "features/decorators/common";
 import type {
     CoercableComponent,
     GenericComponent,
@@ -12,17 +12,17 @@ import type {
 import {
     Component,
     GatherProps,
+    Visibility,
     getUniqueID,
     isVisible,
     jsx,
-    setDefault,
-    Visibility
+    setDefault
 } from "features/feature";
 import type { GenericReset } from "features/reset";
 import { globalBus } from "game/events";
 import type { Persistent } from "game/persistence";
 import { persistent } from "game/persistence";
-import { maxRequirementsMet, Requirements } from "game/requirements";
+import { Requirements, maxRequirementsMet } from "game/requirements";
 import settings, { registerSettingField } from "game/settings";
 import type { DecimalSource } from "util/bignum";
 import Decimal from "util/bignum";
@@ -150,13 +150,16 @@ export type GenericChallenge = Replace<
  */
 export function createChallenge<T extends ChallengeOptions>(
     optionsFunc: OptionsFunc<T, BaseChallenge, GenericChallenge>,
-    ...decorators: Decorator<T, BaseChallenge, GenericChallenge>[]
+    ...decorators: GenericDecorator[]
 ): Challenge<T> {
     const completions = persistent(0);
     const active = persistent(false, false);
-    const decoratedData = decorators.reduce((current, next) => Object.assign(current, next.getPersistentData?.()), {});
-    return createLazyProxy(() => {
-        const challenge = optionsFunc();
+    const decoratedData = decorators.reduce(
+        (current, next) => Object.assign(current, next.getPersistentData?.()),
+        {}
+    );
+    return createLazyProxy(feature => {
+        const challenge = optionsFunc.call(feature, feature);
 
         challenge.id = getUniqueID("challenge-");
         challenge.type = ChallengeType;
@@ -271,7 +274,10 @@ export function createChallenge<T extends ChallengeOptions>(
             decorator.postConstruct?.(challenge);
         }
 
-        const decoratedProps = decorators.reduce((current, next) => Object.assign(current, next.getGatheredProps?.(challenge)), {});
+        const decoratedProps = decorators.reduce(
+            (current, next) => Object.assign(current, next.getGatheredProps?.(challenge)),
+            {}
+        );
         challenge[GatherProps] = function (this: GenericChallenge) {
             const {
                 active,

@@ -7,14 +7,14 @@ import type {
     Replace,
     StyleValue
 } from "features/feature";
-import { Component, GatherProps, getUniqueID, jsx, setDefault, Visibility } from "features/feature";
+import { Component, GatherProps, Visibility, getUniqueID, jsx, setDefault } from "features/feature";
 import { DefaultValue, Persistent, persistent } from "game/persistence";
 import {
+    Requirements,
     createVisibilityRequirement,
     displayRequirements,
     maxRequirementsMet,
     payRequirements,
-    Requirements,
     requirementsMet
 } from "game/requirements";
 import type { DecimalSource } from "util/bignum";
@@ -30,7 +30,7 @@ import { createLazyProxy } from "util/proxies";
 import { coerceComponent, isCoercableComponent } from "util/vue";
 import type { Ref } from "vue";
 import { computed, unref } from "vue";
-import { Decorator } from "./decorators/common";
+import { GenericDecorator } from "./decorators/common";
 
 /** A symbol used to identify {@link Repeatable} features. */
 export const RepeatableType = Symbol("Repeatable");
@@ -131,12 +131,15 @@ export type GenericRepeatable = Replace<
  */
 export function createRepeatable<T extends RepeatableOptions>(
     optionsFunc: OptionsFunc<T, BaseRepeatable, GenericRepeatable>,
-    ...decorators: Decorator<T, BaseRepeatable, GenericRepeatable>[]
+    ...decorators: GenericDecorator[]
 ): Repeatable<T> {
     const amount = persistent<DecimalSource>(0);
-    const decoratedData = decorators.reduce((current, next) => Object.assign(current, next.getPersistentData?.()), {});
-    return createLazyProxy(() => {
-        const repeatable = optionsFunc();
+    const decoratedData = decorators.reduce(
+        (current, next) => Object.assign(current, next.getPersistentData?.()),
+        {}
+    );
+    return createLazyProxy<Repeatable<T>, Repeatable<T>>(feature => {
+        const repeatable = optionsFunc.call(feature, feature);
 
         repeatable.id = getUniqueID("repeatable-");
         repeatable.type = RepeatableType;
@@ -233,10 +236,10 @@ export function createRepeatable<T extends RepeatableOptions>(
                             <div>
                                 <br />
                                 joinJSX(
-                                    <>Amount: {formatWhole(genericRepeatable.amount.value)}</>,
-                                    {unref(genericRepeatable.limit) !== Decimal.dInf ? (
-                                        <> / {formatWhole(unref(genericRepeatable.limit))}</>
-                                    ) : undefined}
+                                <>Amount: {formatWhole(genericRepeatable.amount.value)}</>,
+                                {unref(genericRepeatable.limit) !== Decimal.dInf ? (
+                                    <> / {formatWhole(unref(genericRepeatable.limit))}</>
+                                ) : undefined}
                                 )
                             </div>
                         )}
@@ -274,7 +277,10 @@ export function createRepeatable<T extends RepeatableOptions>(
             decorator.postConstruct?.(repeatable);
         }
 
-        const decoratedProps = decorators.reduce((current, next) => Object.assign(current, next.getGatheredProps?.(repeatable)), {});
+        const decoratedProps = decorators.reduce(
+            (current, next) => Object.assign(current, next.getGatheredProps?.(repeatable)),
+            {}
+        );
         repeatable[GatherProps] = function (this: GenericRepeatable) {
             const { display, visibility, style, classes, onClick, canClick, small, mark, id } =
                 this;

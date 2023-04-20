@@ -1,5 +1,5 @@
 import { isArray } from "@vue/shared";
-import { Decorator, EffectFeatureOptions, GenericEffectFeature } from "features/decorators/common";
+import { EffectFeatureOptions, GenericDecorator, GenericEffectFeature } from "features/decorators/common";
 import type {
     CoercableComponent,
     GenericComponent,
@@ -9,22 +9,20 @@ import type {
 } from "features/feature";
 import {
     Component,
-    findFeatures,
     GatherProps,
+    Visibility,
+    findFeatures,
     getUniqueID,
-    setDefault,
-    Visibility
+    setDefault
 } from "features/feature";
-import { createResource } from "features/resources/resource";
 import UpgradeComponent from "features/upgrades/Upgrade.vue";
 import type { GenericLayer } from "game/layers";
 import type { Persistent } from "game/persistence";
 import { persistent } from "game/persistence";
 import {
-createCostRequirement,
+    Requirements,
     createVisibilityRequirement,
     payRequirements,
-    Requirements,
     requirementsMet
 } from "game/requirements";
 import { isFunction } from "util/common";
@@ -122,12 +120,15 @@ export type EffectUpgrade = GenericUpgrade & GenericEffectFeature;
  */
 export function createUpgrade<T extends UpgradeOptions>(
     optionsFunc: OptionsFunc<T, BaseUpgrade, GenericUpgrade>,
-    ...decorators: Decorator<T, BaseUpgrade, GenericUpgrade>[]
+    ...decorators: GenericDecorator[]
 ): Upgrade<T> {
     const bought = persistent<boolean>(false, false);
-    const decoratedData = decorators.reduce((current, next) => Object.assign(current, next.getPersistentData?.()), {});
-    return createLazyProxy(() => {
-        const upgrade = optionsFunc();
+    const decoratedData = decorators.reduce(
+        (current, next) => Object.assign(current, next.getPersistentData?.()),
+        {}
+    );
+    return createLazyProxy(feature => {
+        const upgrade = optionsFunc.call(feature, feature);
         upgrade.id = getUniqueID("upgrade-");
         upgrade.type = UpgradeType;
         upgrade[Component] = UpgradeComponent as GenericComponent;
@@ -168,7 +169,10 @@ export function createUpgrade<T extends UpgradeOptions>(
             decorator.postConstruct?.(upgrade);
         }
 
-        const decoratedProps = decorators.reduce((current, next) => Object.assign(current, next.getGatheredProps?.(upgrade)), {});
+        const decoratedProps = decorators.reduce(
+            (current, next) => Object.assign(current, next.getGatheredProps?.(upgrade)),
+            {}
+        );
         upgrade[GatherProps] = function (this: GenericUpgrade) {
             const {
                 display,

@@ -1,4 +1,4 @@
-import { Decorator } from "features/decorators/common";
+import { Decorator, GenericDecorator } from "features/decorators/common";
 import type {
     CoercableComponent,
     GenericComponent,
@@ -103,11 +103,16 @@ export type GenericTreeNode = Replace<
  */
 export function createTreeNode<T extends TreeNodeOptions>(
     optionsFunc?: OptionsFunc<T, BaseTreeNode, GenericTreeNode>,
-    ...decorators: Decorator<T, BaseTreeNode, GenericTreeNode>[]
+    ...decorators: GenericDecorator[]
 ): TreeNode<T> {
-    const decoratedData = decorators.reduce((current, next) => Object.assign(current, next.getPersistentData?.()), {});
-    return createLazyProxy(() => {
-        const treeNode = optionsFunc?.() ?? ({} as ReturnType<NonNullable<typeof optionsFunc>>);
+    const decoratedData = decorators.reduce(
+        (current, next) => Object.assign(current, next.getPersistentData?.()),
+        {}
+    );
+    return createLazyProxy(feature => {
+        const treeNode =
+            optionsFunc?.call(feature, feature) ??
+            ({} as ReturnType<NonNullable<typeof optionsFunc>>);
         treeNode.id = getUniqueID("treeNode-");
         treeNode.type = TreeNodeType;
         treeNode[Component] = TreeNodeComponent as GenericComponent;
@@ -150,7 +155,10 @@ export function createTreeNode<T extends TreeNodeOptions>(
             };
         }
 
-        const decoratedProps = decorators.reduce((current, next) => Object.assign(current, next.getGatheredProps?.(treeNode)), {});
+        const decoratedProps = decorators.reduce(
+            (current, next) => Object.assign(current, next.getGatheredProps?.(treeNode)),
+            {}
+        );
         treeNode[GatherProps] = function (this: GenericTreeNode) {
             const {
                 display,
@@ -257,8 +265,8 @@ export type GenericTree = Replace<
 export function createTree<T extends TreeOptions>(
     optionsFunc: OptionsFunc<T, BaseTree, GenericTree>
 ): Tree<T> {
-    return createLazyProxy(() => {
-        const tree = optionsFunc();
+    return createLazyProxy(feature => {
+        const tree = optionsFunc.call(feature, feature);
         tree.id = getUniqueID("tree-");
         tree.type = TreeType;
         tree[Component] = TreeComponent as GenericComponent;

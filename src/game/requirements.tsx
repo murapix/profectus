@@ -3,6 +3,7 @@ import {
     CoercableComponent,
     isVisible,
     jsx,
+    OptionsFunc,
     Replace,
     setDefault,
     Visibility
@@ -108,10 +109,10 @@ export type CostRequirement = Replace<
  * @param optionsFunc Cost requirement options.
  */
 export function createCostRequirement<T extends CostRequirementOptions>(
-    optionsFunc: () => T
+    optionsFunc: OptionsFunc<T>
 ): CostRequirement {
-    return createLazyProxy(() => {
-        const req = optionsFunc() as T & Partial<Requirement>;
+    return createLazyProxy(feature => {
+        const req = optionsFunc.call(feature, feature) as T & Partial<Requirement>;
 
         req.partialDisplay = amount => (
             <span
@@ -266,6 +267,7 @@ export function displayRequirements(requirements: Requirements, amount: DecimalS
                     <div>
                         Costs:{" "}
                         {joinJSX(
+                            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
                             withCosts.map(r => r.partialDisplay!(amount)),
                             <>, </>
                         )}
@@ -275,6 +277,7 @@ export function displayRequirements(requirements: Requirements, amount: DecimalS
                     <div>
                         Requires:{" "}
                         {joinJSX(
+                            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
                             withoutCosts.map(r => r.partialDisplay!(amount)),
                             <>, </>
                         )}

@@ -31,7 +31,7 @@ import { coerceComponent, isCoercableComponent, render } from "util/vue";
 import { computed, Ref, ref, unref } from "vue";
 import { BarOptions, createBar, GenericBar } from "./bars/bar";
 import { ClickableOptions } from "./clickables/clickable";
-import { Decorator } from "./decorators/common";
+import { Decorator, GenericDecorator } from "./decorators/common";
 
 /** A symbol used to identify {@link Action} features. */
 export const ActionType = Symbol("Action");
@@ -104,12 +104,17 @@ export type GenericAction = Replace<
  */
 export function createAction<T extends ActionOptions>(
     optionsFunc?: OptionsFunc<T, BaseAction, GenericAction>,
-    ...decorators: Decorator<T, BaseAction, GenericAction>[]
+    ...decorators: GenericDecorator[]
 ): Action<T> {
     const progress = persistent<DecimalSource>(0);
-    const decoratedData = decorators.reduce((current, next) => Object.assign(current, next.getPersistentData?.()), {});
-    return createLazyProxy(() => {
-        const action = optionsFunc?.() ?? ({} as ReturnType<NonNullable<typeof optionsFunc>>);
+    const decoratedData = decorators.reduce(
+        (current, next) => Object.assign(current, next.getPersistentData?.()),
+        {}
+    );
+    return createLazyProxy(feature => {
+        const action =
+            optionsFunc?.call(feature, feature) ??
+            ({} as ReturnType<NonNullable<typeof optionsFunc>>);
         action.id = getUniqueID("action-");
         action.type = ActionType;
         action[Component] = ClickableComponent as GenericComponent;
@@ -239,7 +244,9 @@ export function createAction<T extends ActionOptions>(
             decorator.postConstruct?.(action);
         }
 
-        const decoratedProps = decorators.reduce((current, next) => Object.assign(current, next.getGatheredProps?.(action)));
+        const decoratedProps = decorators.reduce((current, next) =>
+            Object.assign(current, next.getGatheredProps?.(action))
+        );
         action[GatherProps] = function (this: GenericAction) {
             const {
                 display,

@@ -1,5 +1,5 @@
 import ClickableComponent from "features/clickables/Clickable.vue";
-import { Decorator } from "features/decorators/common";
+import { GenericDecorator } from "features/decorators/common";
 import type {
     CoercableComponent,
     GenericComponent,
@@ -7,7 +7,7 @@ import type {
     Replace,
     StyleValue
 } from "features/feature";
-import { Component, GatherProps, getUniqueID, setDefault, Visibility } from "features/feature";
+import { Component, GatherProps, Visibility, getUniqueID, setDefault } from "features/feature";
 import type { BaseLayer } from "game/layers";
 import type { Unsubscribe } from "nanoevents";
 import type {
@@ -97,11 +97,16 @@ export type GenericClickable = Replace<
  */
 export function createClickable<T extends ClickableOptions>(
     optionsFunc?: OptionsFunc<T, BaseClickable, GenericClickable>,
-    ...decorators: Decorator<T, BaseClickable, GenericClickable>[]
+    ...decorators: GenericDecorator[]
 ): Clickable<T> {
-    const decoratedData = decorators.reduce((current, next) => Object.assign(current, next.getPersistentData?.()), {});
-    return createLazyProxy(() => {
-        const clickable = optionsFunc?.() ?? ({} as ReturnType<NonNullable<typeof optionsFunc>>);
+    const decoratedData = decorators.reduce(
+        (current, next) => Object.assign(current, next.getPersistentData?.()),
+        {}
+    );
+    return createLazyProxy(feature => {
+        const clickable =
+            optionsFunc?.call(feature, feature) ??
+            ({} as ReturnType<NonNullable<typeof optionsFunc>>);
         clickable.id = getUniqueID("clickable-");
         clickable.type = ClickableType;
         clickable[Component] = ClickableComponent as GenericComponent;
@@ -142,7 +147,10 @@ export function createClickable<T extends ClickableOptions>(
             decorator.postConstruct?.(clickable);
         }
 
-        const decoratedProps = decorators.reduce((current, next) => Object.assign(current, next.getGatheredProps?.(clickable)), {});
+        const decoratedProps = decorators.reduce(
+            (current, next) => Object.assign(current, next.getGatheredProps?.(clickable)),
+            {}
+        );
         clickable[GatherProps] = function (this: GenericClickable) {
             const {
                 display,

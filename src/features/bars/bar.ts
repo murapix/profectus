@@ -1,5 +1,5 @@
 import BarComponent from "features/bars/Bar.vue";
-import { Decorator } from "features/decorators/common";
+import { GenericDecorator } from "features/decorators/common";
 import type {
     CoercableComponent,
     GenericComponent,
@@ -7,7 +7,7 @@ import type {
     Replace,
     StyleValue
 } from "features/feature";
-import { Component, GatherProps, getUniqueID, setDefault, Visibility } from "features/feature";
+import { Component, GatherProps, Visibility, getUniqueID, setDefault } from "features/feature";
 import type { DecimalSource } from "util/bignum";
 import { Direction } from "util/common";
 import type {
@@ -103,11 +103,14 @@ export type GenericBar = Replace<
  */
 export function createBar<T extends BarOptions>(
     optionsFunc: OptionsFunc<T, BaseBar, GenericBar>,
-    ...decorators: Decorator<T, BaseBar, GenericBar>[]
+    ...decorators: GenericDecorator[]
 ): Bar<T> {
-    const decoratedData = decorators.reduce((current, next) => Object.assign(current, next.getPersistentData?.()), {});
-    return createLazyProxy(() => {
-        const bar = optionsFunc();
+    const decoratedData = decorators.reduce(
+        (current, next) => Object.assign(current, next.getPersistentData?.()),
+        {}
+    );
+    return createLazyProxy(feature => {
+        const bar = optionsFunc.call(feature, feature);
         bar.id = getUniqueID("bar-");
         bar.type = BarType;
         bar[Component] = BarComponent as GenericComponent;
@@ -137,7 +140,10 @@ export function createBar<T extends BarOptions>(
             decorator.postConstruct?.(bar);
         }
 
-        const decoratedProps = decorators.reduce((current, next) => Object.assign(current, next.getGatheredProps?.(bar)), {});
+        const decoratedProps = decorators.reduce(
+            (current, next) => Object.assign(current, next.getGatheredProps?.(bar)),
+            {}
+        );
         bar[GatherProps] = function (this: GenericBar) {
             const {
                 progress,
