@@ -165,7 +165,7 @@ export function createUpgrade<T extends UpgradeOptions>(
         processComputable(upgrade as T, "mark");
 
         for (const decorator of decorators) {
-            decorator.preConstruct?.(upgrade);
+            decorator.postConstruct?.(upgrade);
         }
 
         const decoratedProps = decorators.reduce((current, next) => Object.assign(current, next.getGatheredProps?.(upgrade)), {});

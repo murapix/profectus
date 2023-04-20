@@ -11,6 +11,7 @@ import { createTab } from "features/tabs/tab";
 import { createTabFamily } from "features/tabs/tabFamily";
 import { createUpgrade, GenericUpgrade } from "features/upgrades/upgrade";
 import Formula from "game/formulas/formulas";
+import { FormulaSource, GenericFormula, InvertibleFormula } from "game/formulas/types";
 import { BaseLayer, createLayer } from "game/layers";
 import { noPersist, persistent } from "game/persistence";
 import { createBooleanRequirement, createCostRequirement } from "game/requirements";
@@ -800,44 +801,45 @@ const layer = createLayer(id, function (this: BaseLayer) {
     ): GenericBuilding {
         return createLazyProxy(() => {
             let building = optionsFunc();
-            let repeatable = createRepeatable<BuildingOptions>(() => ({
-                bonusAmount() { return Decimal.times(unref(this.amount), 0) }, // 3rd abyssal spinor buyable
-                
-                visibility: building.display.visibility,
-                
-                requirements: [
-                    createBooleanRequirement(canBuild),
-                    createCostRequirement(() => ({
-                        cost() { return getBuildingCost(unref(building.cost.multiplier), unref(building.cost.base), unref(repeatable.amount))},
-                        resource: building.cost.resource,
-                        requiresPay: research.autobuild.researched
-                    }))
-                ],
+            return createRepeatable<BuildingOptions>(function (this: GenericRepeatable) {
+                return {
+                    bonusAmount() { return Decimal.times(unref(this.amount), 0) }, // 3rd abyssal spinor buyable
+                    visibility: building.display.visibility,
+                    requirements: [
+                        createBooleanRequirement(canBuild),
+                        createCostRequirement(() => ({
+                            cost: getBuildingCost(Formula.variable(this.amount), building.cost.multiplier, building.cost.base),
+                            resource: building.cost.resource,
+                            requiresPay: () => !unref(research.autobuild.researched)
+                        }))
+                    ],
 
-                effect() {
-                    return building.effect(Decimal.add(unref(this.amount), unref(this.bonusAmount as ProcessedComputable<DecimalSource>))
-                        .times(getResearchEffect(research.biggerBuildings, {effect: 1}).effect)
-                        .times(unref(repeatables.buildingSize.effect).effect))
-                },
-                display: {
-                    title: building.display.title,
-                    description: building.display.description,
-                    effectDisplay: building.display.effect
-                },
-                style: buildingStyle
-            }), effectDecorator, bonusAmountDecorator) as GenericBuilding
-            return repeatable;
+                    effect() {
+                        return building.effect(Decimal.add(unref(this.amount), unref(this.bonusAmount as ProcessedComputable<DecimalSource>))
+                            .times(getResearchEffect(research.biggerBuildings, {effect: 1}).effect)
+                            .times(unref(repeatables.buildingSize.effect).effect))
+                    },
+                    display: {
+                        title: building.display.title,
+                        description: building.display.description,
+                        effectDisplay: building.display.effect
+                    },
+                    style: buildingStyle
+                };
+            }, effectDecorator, bonusAmountDecorator) as GenericBuilding;
         });
     }
 
-    function getBuildingCost(multiplier: DecimalSource, base: DecimalSource, amount: DecimalSource) {
-        amount = Decimal.div(amount, unref(repeatables.buildingCost.effect))
-                        .div(1) // 3rd abyssal pion buyable
-        if (unref(research.autobuild.researched))
-            return Decimal.pow(base, amount).times(multiplier);
-
-        let size = unref(buildingSize);
-        return Decimal.pow(base, size).minus(1).times(multiplier).times(Decimal.pow(base, amount)).dividedBy(Decimal.minus(base, 1));
+    function getBuildingCost(amount: GenericFormula, multiplier: FormulaSource, base: FormulaSource) {
+        return amount.div(unref(repeatables.buildingCost.effect))
+                   .div(1) // 3rd abyssal pion buyable
+                   .if(research.autobuild.researched,
+                        (amount: GenericFormula) => amount.pow_base(base).times(multiplier),
+                        (amount: GenericFormula) => {
+                            const sizeMultiplier = Formula.pow(base, buildingSize).minus(1).times(multiplier);
+                            const baseDivider = Formula.minus(base, 1);
+                            return amount.pow_base(base).times(sizeMultiplier).dividedBy(baseDivider);
+                       })
     }
 })
 

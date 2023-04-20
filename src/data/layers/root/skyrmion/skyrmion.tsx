@@ -27,6 +27,8 @@ import { bonusAmountDecorator, BonusAmountFeatureOptions, GenericBonusAmountFeat
 import { effectDecorator, EffectFeatureOptions, GenericEffectFeature } from "features/decorators/common";
 import { createBooleanRequirement, createCostRequirement, displayRequirements } from "game/requirements";
 import { noPersist } from "game/persistence"
+import { GenericFormula, IntegrableFormula, InvertibleFormula, InvertibleIntegralFormula } from "game/formulas/types";
+import Formula from "game/formulas/formulas";
 
 interface SkyrmionUpgradeData {
     visibility?: ProcessedComputable<Visibility | boolean> | ((this: GenericUpgrade) => Visibility | boolean);
@@ -41,7 +43,7 @@ interface SkyrmionUpgradeData {
 interface SkyrmionRepeatableData {
     name: string;
     description: JSX.Element;
-    cost: (amount: DecimalSource) => DecimalSource;
+    cost: (amount: InvertibleFormula & IntegrableFormula & InvertibleIntegralFormula) => GenericFormula;
     effect: (amount: DecimalSource) => any; // eslint-disable-line @typescript-eslint/no-explicit-any
     effectDisplay?: (effect: any) => CoercableComponent; // eslint-disable-line @typescript-eslint/no-explicit-any
     isFree: Computable<boolean>;
@@ -326,13 +328,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
         alpha: createPionUpgrade({
             name: "α",
             description: <>Gain 50% more Pions and Spinors</>,
-            cost(amount: DecimalSource) {
-                const cost: Decimal = (() => {
-                    if (Decimal.gte(amount, 90)) return Decimal.pow(187.5, Decimal.sub(amount, 90)).times(2.65e77);
-                    else if (Decimal.gte(amount, 25)) return Decimal.pow(9.5, Decimal.sub(amount, 25)).times(9.5);
-                    else return Decimal.pow(1.2, amount).times(0.1);
-                })();
-                return cost.times(fome.getFomeBoost(FomeTypes.protoversal, 1));
+            cost(amount: InvertibleFormula & IntegrableFormula & InvertibleIntegralFormula) {
+                return amount.pow_base(1.2).times(0.1)
+                             .step(25, value => value.times(value.pow_base(7.9)).times(3.42e-23))
+                             .step(90, value => value.times(value.pow_base(19.75)).times(2.08e-104))
+                             .times(fome.getFomeBoost(FomeTypes.protoversal, 1));
             },
             effect: amount => Decimal.pow(1.5, amount),
             bonusAmount: () => fome.getFomeBoost(FomeTypes.protoversal, 2),
@@ -341,12 +341,13 @@ const layer = createLayer(id, function (this: BaseLayer) {
         beta: createPionUpgrade({
             name: "β",
             description: <>Reduce the nerf to Spinor upgrade cost by 10%</>,
-            cost(amount: DecimalSource) {
-                const cost: Decimal = (() => {
+            cost(amount: InvertibleFormula & IntegrableFormula & InvertibleIntegralFormula) {
+                /*const cost: Decimal = (() => {
                     if (Decimal.gte(amount, 45)) return Decimal.pow(292.5, Decimal.sub(amount, 45)).times(3.01e39);
                     else if (Decimal.gte(amount, 15)) return Decimal.pow(10, Decimal.sub(amount, 15)).times(6);
                     else return Decimal.pow(1.3, amount).times(0.1);
-                })();
+                })();*/
+const cost = amount;
                 return cost.plus(0.9);
             },
             effect: amount => Decimal.pow(0.9, amount),
@@ -357,12 +358,13 @@ const layer = createLayer(id, function (this: BaseLayer) {
         gamma: createPionUpgrade({
             name: "γ",
             description: <>Gain 75% more Spinors</>,
-            cost(amount: DecimalSource) {
-                const cost: Decimal = (() => {
+            cost(amount: InvertibleFormula & IntegrableFormula & InvertibleIntegralFormula) {
+                /*const cost: Decimal = (() => {
                     if (Decimal.gte(amount, 60)) return Decimal.pow(367.5, Decimal.sub(amount, 60)).times(1.97e71);
                     else if (Decimal.gte(amount, 10)) return Decimal.pow(12.5, Decimal.sub(amount, 10)).times(25);
                     else return Decimal.pow(1.7, amount).times(0.1);
-                })();
+                })();*/
+const cost = amount;
                 return cost.plus(4.9).times(fome.getFomeBoost(FomeTypes.infinitesimal, 5));
             },
             effect: amount => Decimal.pow(1.75, amount),
@@ -372,9 +374,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
         delta: createPionUpgrade({
             name: "δ",
             description: <>Gain 70% more Protoversal Foam from Skyrmions</>,
-            cost(amount: DecimalSource) {
-                if (Decimal.gte(amount, 60)) return Decimal.pow(225, Decimal.sub(amount, 60)).times(1.1e72);
-                else return Decimal.pow(6, amount).times(30);
+            cost(amount: InvertibleFormula & IntegrableFormula & InvertibleIntegralFormula) {
+                /*if (Decimal.gte(amount, 60)) return Decimal.pow(225, Decimal.sub(amount, 60)).times(1.1e72);
+                else return Decimal.pow(6, amount).times(30);*/
+return amount;
             },
             effect: amount => Decimal.pow(1.7, amount),
             bonusAmount: () => fome.getFomeBoost(FomeTypes.subplanck, 2),
@@ -384,9 +387,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
         epsilon: createPionUpgrade({
             name: "ε",
             description: <>Increase Protoversal Foam gain by 50% per order of magnitude of Infinitesimal Foam</>,
-            cost(amount: DecimalSource) {
-                if (Decimal.gte(amount, 60)) return Decimal.pow(144, Decimal.sub(amount, 60)).times(2.82e66);
-                else return Decimal.pow(5, amount).times(50);
+            cost(amount: InvertibleFormula & IntegrableFormula & InvertibleIntegralFormula) {
+                /*if (Decimal.gte(amount, 60)) return Decimal.pow(144, Decimal.sub(amount, 60)).times(2.82e66);
+                else return Decimal.pow(5, amount).times(50);*/
+return amount;
             },
             effect: amount => Decimal.max(unref(fome.amounts.infinitesimal), 0).plus(1).log10().times(amount).times(0.5).plus(1),
             bonusAmount: () => fome.getFomeBoost(FomeTypes.subplanck, 3),
@@ -396,9 +400,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
         zeta: createPionUpgrade({
             name: "ζ",
             description: <>Increase Subspatial Foam gain by 5% per Skyrmion</>,
-            cost(amount: DecimalSource) {
-                if (Decimal.gte(amount, 60)) return Decimal.pow(196, Decimal.sub(amount, 60)).times(1.71e73);
-                else return Decimal.pow(5.5, amount).times(5e3);
+            cost(amount: InvertibleFormula & IntegrableFormula & InvertibleIntegralFormula) {
+                /*if (Decimal.gte(amount, 60)) return Decimal.pow(196, Decimal.sub(amount, 60)).times(1.71e73);
+                else return Decimal.pow(5.5, amount).times(5e3);*/
+return amount;
             },
             effect: amount => fome.getFomeBoost(FomeTypes.subspatial, 4).plus(unref(skyrmions)).times(amount).times(0.05).plus(1),
             bonusAmount: () => fome.getFomeBoost(FomeTypes.subplanck, 4),
@@ -408,9 +413,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
         eta: createPionUpgrade({
             name: "η",
             description: <>Gain a free level of <b>Spinor Upgrade ε</b></>,
-            cost(amount: DecimalSource) {
-                if (Decimal.gte(amount, 60)) return Decimal.pow(144, Decimal.sub(amount, 60)).times(1.69e71);
-                else return Decimal.pow(5, amount).times(3e5);
+            cost(amount: InvertibleFormula & IntegrableFormula & InvertibleIntegralFormula) {
+                /*if (Decimal.gte(amount, 60)) return Decimal.pow(144, Decimal.sub(amount, 60)).times(1.69e71);
+                else return Decimal.pow(5, amount).times(3e5);*/
+return amount;
             },
             effect: amount => amount,
             effectDisplay: effect => `${format(effect)} free levels`,
@@ -421,9 +427,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
         theta: createPionUpgrade({
             name: "θ",
             description: <>Increase Protoversal Foam gain by 100% per order of magnitude of Subspatial Foam</>,
-            cost(amount: DecimalSource) {
-                if (Decimal.gte(amount, 45)) return Decimal.pow(169, Decimal.sub(amount, 45)).times(6.86e72);
-                else return Decimal.pow(6.5, amount).times(7e5);
+            cost(amount: InvertibleFormula & IntegrableFormula & InvertibleIntegralFormula) {
+                /*if (Decimal.gte(amount, 45)) return Decimal.pow(169, Decimal.sub(amount, 45)).times(6.86e72);
+                else return Decimal.pow(6.5, amount).times(7e5);*/
+return amount;
             },
             effect: amount => Decimal.max(unref(fome.amounts.subspatial), 0).plus(1).log10().times(amount).plus(1),
             bonusAmount: () => fome.getFomeBoost(FomeTypes.quantum, 2),
@@ -433,9 +440,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
         iota: createPionUpgrade({
             name: "ι",
             description: <>Your Spinors increase Infinitesimal Foam generation by 2% per order of magnitude</>,
-            cost(amount: DecimalSource) {
-                if (Decimal.gte(amount, 45)) return Decimal.pow(225, Decimal.sub(amount, 45)).times(1.68e67);
-                else return Decimal.pow(7.5, amount).times(4e8);
+            cost(amount: InvertibleFormula & IntegrableFormula & InvertibleIntegralFormula) {
+                /*if (Decimal.gte(amount, 45)) return Decimal.pow(225, Decimal.sub(amount, 45)).times(1.68e67);
+                else return Decimal.pow(7.5, amount).times(4e8);*/
+return amount;
             },
             effect: amount => Decimal.max(unref(spinors), 0).plus(1).log10().times(amount).times(0.02).plus(1),
             bonusAmount: () => fome.getFomeBoost(FomeTypes.quantum, 4),
@@ -445,10 +453,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
         kappa: createPionUpgrade({
             name: "κ",
             description: <>Protoversal Boost 1 levels each increase other Foam Boost 1 effects by 30%</>,
-            cost(amount: DecimalSource) {
-                if (Decimal.gte(amount, 45))
-                    return Decimal.pow(182, Decimal.sub(amount, 45)).times(3.66e68);
-                else return Decimal.pow(7, amount).times(5e9);
+            cost(amount: InvertibleFormula & IntegrableFormula & InvertibleIntegralFormula) {
+                /*if (Decimal.gte(amount, 45)) return Decimal.pow(182, Decimal.sub(amount, 45)).times(3.66e68);
+                else return Decimal.pow(7, amount).times(5e9);*/
+return amount;
             },
             effect: amount => Decimal.add(unref(fome.boosts.protoversal[1].amount), unref(fome.boosts.protoversal[1].bonus)).times(amount).times(0.3).plus(1),
             bonusAmount: () => fome.getFomeBoost(FomeTypes.quantum, 4),
@@ -458,9 +466,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
         lambda: createPionUpgrade({
             name: "λ",
             description: <>Double the Infinitesimal Foam Boost 1 effect</>,
-            cost(amount: DecimalSource) {
-                if (Decimal.gte(amount, 45)) return Decimal.pow(100, Decimal.pow(amount, 1.1).minus(45)).times(4.92e76);
-                else return Decimal.pow(5, Decimal.pow(amount, 1.1)).times(7e2);
+            cost(amount: InvertibleFormula & IntegrableFormula & InvertibleIntegralFormula) {
+                /*if (Decimal.gte(amount, 45)) return Decimal.pow(100, Decimal.pow(amount, 1.1).minus(45)).times(4.92e76);
+                else return Decimal.pow(5, Decimal.pow(amount, 1.1)).times(7e2);*/
+return amount;
             },
             effect: amount => Decimal.pow(2, amount),
             isFree: skyrmionUpgrades.lambda.bought,
@@ -469,9 +478,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
         mu: createPionUpgrade({
             name: "μ",
             description: <>Gain 2% more Spinors per order of magnitude<sup>2</sup> of stored Inflatons</>,
-            cost(amount: DecimalSource) {
-                if (Decimal.gte(amount, 45)) return Decimal.pow(100, Decimal.sub(amount, 45)).times(7e65);
-                else return Decimal.pow(5, amount).times(7e10);
+            cost(amount: InvertibleFormula & IntegrableFormula & InvertibleIntegralFormula) {
+                /*if (Decimal.gte(amount, 45)) return Decimal.pow(100, Decimal.sub(amount, 45)).times(7e65);
+                else return Decimal.pow(5, amount).times(7e10);*/
+return amount;
             },
             effect: amount => Decimal.clamp(1, 1, 1).plus(9).log10().log10().times(0.02).plus(1).pow(amount),
             isFree: skyrmionUpgrades.mu.bought,
@@ -484,12 +494,13 @@ const layer = createLayer(id, function (this: BaseLayer) {
         alpha: createSpinorUpgrade({
             name: "α",
             description: <>Gain 50% more Skyrmions</>,
-            cost(amount: DecimalSource) {
-                const cost: Decimal = (() => {
+            cost(amount: InvertibleFormula & IntegrableFormula & InvertibleIntegralFormula) {
+                /*const cost: Decimal = (() => {
                     if (Decimal.gte(amount, 90)) return Decimal.pow(187.5, Decimal.sub(amount, 90)).times(2.65e77);
                     else if (Decimal.gte(amount, 25)) return Decimal.pow(9.5, Decimal.sub(amount, 25)).times(9.5);
                     else return Decimal.pow(1.2, amount).times(0.1);
-                })();
+                })();*/
+const cost = amount;
                 return cost.times(fome.getFomeBoost(FomeTypes.protoversal, 1));
             },
             effect: amount => Decimal.pow(1.5, amount),
@@ -499,12 +510,13 @@ const layer = createLayer(id, function (this: BaseLayer) {
         beta: createSpinorUpgrade({
             name: "β",
             description: <>Reduce the nerf to Pion upgrade cost by 10%</>,
-            cost(amount: DecimalSource) {
-                const cost: Decimal = (() => {
+            cost(amount: InvertibleFormula & IntegrableFormula & InvertibleIntegralFormula) {
+                /*const cost: Decimal = (() => {
                     if (Decimal.gte(amount, 45)) return Decimal.pow(292.5, Decimal.sub(amount, 45)).times(3.01e39);
                     else if (Decimal.gte(amount, 15)) return Decimal.pow(9.5, Decimal.sub(amount, 15)).times(6);
                     else return Decimal.pow(1.3, amount).times(0.1);
-                })();
+                })();*/
+const cost = amount;
                 return cost.plus(0.9);
             },
             effect: amount => Decimal.pow(0.9, amount),
@@ -515,12 +527,13 @@ const layer = createLayer(id, function (this: BaseLayer) {
         gamma: createSpinorUpgrade({
             name: "γ",
             description: <>Gain 75% more Pions</>,
-            cost(amount: DecimalSource) {
-                const cost: Decimal = (() => {
+            cost(amount: InvertibleFormula & IntegrableFormula & InvertibleIntegralFormula) {
+                /*const cost: Decimal = (() => {
                     if (Decimal.gte(amount, 60)) return Decimal.pow(367.5, Decimal.sub(amount, 60)).times(1.97e71);
                     else if (Decimal.gte(amount, 10)) return Decimal.pow(12.5, Decimal.sub(amount, 10)).times(25);
                     else return Decimal.pow(1.7, amount).times(0.1);
-                })();
+                })();*/
+const cost = amount;
                 return cost.plus(4.9).times(fome.getFomeBoost(FomeTypes.infinitesimal, 5));
             },
             effect: amount => Decimal.pow(1.75, amount),
@@ -530,9 +543,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
         delta: createSpinorUpgrade({
             name: "δ",
             description: <>Gain 70% more Protoversal Foam Boost 1 effect</>,
-            cost(amount: DecimalSource) {
-                if (Decimal.gte(amount, 60)) return Decimal.pow(225, Decimal.sub(amount, 60)).times(1.1e72);
-                else return Decimal.pow(6, amount).times(30);
+            cost(amount: InvertibleFormula & IntegrableFormula & InvertibleIntegralFormula) {
+                /*if (Decimal.gte(amount, 60)) return Decimal.pow(225, Decimal.sub(amount, 60)).times(1.1e72);
+                else return Decimal.pow(6, amount).times(30);*/
+return amount;
             },
             effect: amount => Decimal.pow(1.7, amount),
             bonusAmount: () => fome.getFomeBoost(FomeTypes.subplanck, 2),
@@ -542,9 +556,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
         epsilon: createSpinorUpgrade({
             name: "ε",
             description: <>Increase Infinitesimal Foam gain by 50% per order of magnitude of Protoversal Foam</>,
-            cost(amount: DecimalSource) {
-                if (Decimal.gte(amount, 60)) return Decimal.pow(144, Decimal.sub(amount, 60)).times(2.82e66);
-                else return Decimal.pow(5, amount).times(50);
+            cost(amount: InvertibleFormula & IntegrableFormula & InvertibleIntegralFormula) {
+                /*if (Decimal.gte(amount, 60)) return Decimal.pow(144, Decimal.sub(amount, 60)).times(2.82e66);
+                else return Decimal.pow(5, amount).times(50);*/
+return amount;
             },
             effect: amount => Decimal.max(unref(fome.amounts.protoversal), 0).plus(1).log10().times(amount).times(0.5).plus(1),
             bonusAmount: () => fome.getFomeBoost(FomeTypes.subplanck, 3).plus(unref(pionUpgrades.eta.effect)),
@@ -554,9 +569,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
         zeta: createSpinorUpgrade({
             name: "ζ",
             description: <>Increase Pion and Spinor gain by 30% per order of magnitude of Subspatial Foam</>,
-            cost(amount: DecimalSource) {
-                if (Decimal.gte(amount, 60)) return Decimal.pow(196, Decimal.sub(amount, 60)).times(1.71e73);
-                else return Decimal.pow(5.5, amount).times(5e3);
+            cost(amount: InvertibleFormula & IntegrableFormula & InvertibleIntegralFormula) {
+                /*if (Decimal.gte(amount, 60)) return Decimal.pow(196, Decimal.sub(amount, 60)).times(1.71e73);
+                else return Decimal.pow(5.5, amount).times(5e3);*/
+return amount;
             },
             effect: amount => Decimal.max(unref(fome.amounts.subspatial), 0).plus(1).log10().times(amount).times(0.3).plus(1),
             bonusAmount: () => fome.getFomeBoost(FomeTypes.subplanck, 4)
@@ -567,9 +583,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
         eta: createSpinorUpgrade({
             name: "η",
             description: <>Gain 120% increased Foam generation</>,
-            cost(amount: DecimalSource) {
-                if (Decimal.gte(amount, 60)) return Decimal.pow(144, Decimal.sub(amount, 60)).times(1.69e71);
-                else return Decimal.pow(5, amount).times(3e5);
+            cost(amount: InvertibleFormula & IntegrableFormula & InvertibleIntegralFormula) {
+                /*if (Decimal.gte(amount, 60)) return Decimal.pow(144, Decimal.sub(amount, 60)).times(1.69e71);
+                else return Decimal.pow(5, amount).times(3e5);*/
+return amount;
             },
             effect: amount => Decimal.times(amount, 1.2).plus(1),
             bonusAmount: () => fome.getFomeBoost(FomeTypes.subplanck, 5),
@@ -579,9 +596,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
         theta: createSpinorUpgrade({
             name: "θ",
             description: <>Increase Subspatial Foam gain by 30% per order of magnitude of Protoversal and Infinitesimal Foam</>,
-            cost(amount: DecimalSource) {
-                if (Decimal.gte(amount, 45)) return Decimal.pow(169, Decimal.sub(amount, 45)).times(6.86e72);
-                else return Decimal.pow(6.5, amount).times(7e5);
+            cost(amount: InvertibleFormula & IntegrableFormula & InvertibleIntegralFormula) {
+                /*if (Decimal.gte(amount, 45)) return Decimal.pow(169, Decimal.sub(amount, 45)).times(6.86e72);
+                else return Decimal.pow(6.5, amount).times(7e5);*/
+return amount;
             },
             effect: amount => Decimal.add(Decimal.max(unref(fome.amounts.protoversal), 0).plus(1).log10(), Decimal.max(unref(fome.amounts.infinitesimal), 0).plus(1).log10()).times(amount).times(0.3).plus(1),
             bonusAmount: () => fome.getFomeBoost(FomeTypes.quantum, 2),
@@ -591,9 +609,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
         iota: createSpinorUpgrade({
             name: "ι",
             description: <>Your Pions increase Infinitesimal Foam generation by 2% per order of magnitude</>,
-            cost(amount: DecimalSource) {
-                if (Decimal.gte(amount, 45)) return Decimal.pow(225, Decimal.sub(amount, 45)).times(1.68e67);
-                else return Decimal.pow(7.5, amount).times(4e8);
+            cost(amount: InvertibleFormula & IntegrableFormula & InvertibleIntegralFormula) {
+                /*if (Decimal.gte(amount, 45)) return Decimal.pow(225, Decimal.sub(amount, 45)).times(1.68e67);
+                else return Decimal.pow(7.5, amount).times(4e8);*/
+return amount;
             },
             effect: amount => Decimal.max(unref(pions), 0).plus(1).log10().times(amount).times(0.02).plus(1),
             bonusAmount: () => fome.getFomeBoost(FomeTypes.quantum, 4),
@@ -603,10 +622,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
         kappa: createSpinorUpgrade({
             name: "κ",
             description: <>Increase Subplanck Boost 1 effect by 40% per order of magnitude of Subplanck Foam</>,
-            cost(amount: DecimalSource) {
-                if (Decimal.gte(amount, 45))
-                    return Decimal.pow(182, Decimal.sub(amount, 45)).times(3.66e68);
-                else return Decimal.pow(7, amount).times(5e9);
+            cost(amount: InvertibleFormula & IntegrableFormula & InvertibleIntegralFormula) {
+                /*if (Decimal.gte(amount, 45)) return Decimal.pow(182, Decimal.sub(amount, 45)).times(3.66e68);
+                else return Decimal.pow(7, amount).times(5e9);*/
+return amount;
             },
             effect: amount => Decimal.max(unref(fome.amounts.subplanck), 0).plus(1).log10().times(amount).times(0.4).plus(1),
             bonusAmount: () => fome.getFomeBoost(FomeTypes.quantum, 4),
@@ -616,9 +635,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
         lambda: createSpinorUpgrade({
             name: "λ",
             description: <>ln(Best Accelerons) increases Pion and Spinor gain</>,
-            cost(amount: DecimalSource) {
-                if (Decimal.gte(amount, 45)) return Decimal.pow(100, Decimal.pow(amount, 1.1).minus(45)).times(4.92e76);
-                else return Decimal.pow(5, Decimal.pow(amount, 1.1)).times(7e2);
+            cost(amount: InvertibleFormula & IntegrableFormula & InvertibleIntegralFormula) {
+                /*if (Decimal.gte(amount, 45)) return Decimal.pow(100, Decimal.pow(amount, 1.1).minus(45)).times(4.92e76);
+                else return Decimal.pow(5, Decimal.pow(amount, 1.1)).times(7e2);*/
+return amount;
             },
             effect: amount => Decimal.max(unref(acceleron.bestAccelerons), 0).plus(1).ln().times(amount).plus(1),
             isFree: skyrmionUpgrades.lambda.bought,
@@ -627,9 +647,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
         mu: createSpinorUpgrade({
             name: "μ",
             description: <>Gain 2% more Pions per order of magnitude<sup>2</sup> of stored Inflatons</>,
-            cost(amount: DecimalSource) {
-                if (Decimal.gte(amount, 45)) return Decimal.pow(100, Decimal.sub(amount, 45)).times(7e65);
-                else return Decimal.pow(5, amount).times(7e10);
+            cost(amount: InvertibleFormula & IntegrableFormula & InvertibleIntegralFormula) {
+                /*if (Decimal.gte(amount, 45)) return Decimal.pow(100, Decimal.sub(amount, 45)).times(7e65);
+                else return Decimal.pow(5, amount).times(7e10);*/
+return amount;
             },
             effect: amount => Decimal.clamp(1, 1, 1).plus(9).log10().log10().times(0.02).plus(1).pow(amount),
             isFree: skyrmionUpgrades.mu.bought,
@@ -725,10 +746,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
         processComputable(data, "visibility");
 
         if (!data.effectDisplay) data.effectDisplay = effect => `${formatSmall(effect)}x`;
-        let costFunc!: (cost: DecimalSource) => DecimalSource;
+        let costFunc!: (cost: GenericFormula) => GenericFormula;
         switch (resource) {
-            case pions: costFunc = cost => unref(pionCostNerf).times(cost); break;
-            case spinors: costFunc = cost => unref(spinorCostNerf).times(cost); break;
+            case pions: costFunc = cost => cost.times(pionCostNerf); break;
+            case spinors: costFunc = cost => cost.times(spinorCostNerf); break;
             default: costFunc = cost => cost; break;
         }
         let buyFunc: () => void;
@@ -736,19 +757,21 @@ const layer = createLayer(id, function (this: BaseLayer) {
             case pions: buyFunc = () => pionUpgrades.amount.value = Decimal.add(unref(pionUpgrades.amount), 1); break;
             case spinors: buyFunc = () => spinorUpgrades.amount.value = Decimal.add(unref(spinorUpgrades.amount), 1);
         }
-        const buyable = createRepeatable<SkyrmionRepeatableOptions>(() => ({
+        const buyable = createRepeatable<SkyrmionRepeatableOptions>(function(this: SkyrmionRepeatable) {
+            return {
                 display: data.name,
                 bonusAmount: data.bonusAmount ?? 0,
                 requirements: createCostRequirement(() => ({
-                    cost() { return costFunc(data.cost(unref(buyable.amount)))},
-                    requiresPay: data.isFree,
+                    cost: costFunc(data.cost(Formula.variable(this.amount))),
+                    requiresPay: () => !unref(data.isFree),
                     resource
                 })),
                 effect() { return data.effect(Decimal.add(unref(this.amount), unref(this.bonusAmount as ProcessedComputable<DecimalSource>))); },
                 onClick: buyFunc,
                 resource: resource,
                 visibility() { return unref(abyssChallenge.active) === abyss ? unref(data.visibility as ProcessedComputable<Visibility> ?? Visibility.Visible) : Visibility.None; }
-            }), effectDecorator, bonusAmountDecorator) as SkyrmionRepeatable;
+            }
+        }, effectDecorator, bonusAmountDecorator) as SkyrmionRepeatable;
 
         addTooltip(buyable, {
             direction: Direction.Down,

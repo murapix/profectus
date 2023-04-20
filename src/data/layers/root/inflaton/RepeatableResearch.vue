@@ -1,9 +1,9 @@
 <template>
     <button
-        v-if="unref(visibility) !== Visibility.None"
+        v-if="isVisible(visibility)"
         :style="[
             {
-                visibility: unref(visibility) === Visibility.Hidden ? 'hidden' : undefined,
+                visibility: isHidden(visibility) ? 'hidden' : undefined,
                 '--fill-percent': `${format(unref(fillPercent))}%`
             }
         ]"
@@ -24,7 +24,7 @@
 </template>
 
 <script lang="tsx">
-import { jsx, Visibility } from 'features/feature';
+import { isHidden, isVisible, jsx, Visibility } from 'features/feature';
 import Decimal, { DecimalSource } from 'lib/break_eternity';
 import { format, formatWhole } from 'util/break_eternity';
 import { coerceComponent, isCoercableComponent, processedPropType, unwrapRef } from 'util/vue';
@@ -36,7 +36,7 @@ import Node from 'components/Node.vue';
 export default defineComponent({
     props: {
         visibility: {
-            type: processedPropType<Visibility>(Number),
+            type: processedPropType<Visibility | boolean>(Number, Boolean),
             required: true
         },
         display: {
@@ -108,6 +108,8 @@ export default defineComponent({
             formatRoman,
             Visibility,
             Decimal,
+            isVisible,
+            isHidden,
 
             fillPercent
         };

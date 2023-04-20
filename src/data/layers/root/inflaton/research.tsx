@@ -1,4 +1,5 @@
-import { CoercableComponent, Component, GatherProps, getUniqueID, jsx, OptionsFunc, OptionsObject, Replace, setDefault, Visibility } from "features/feature";
+import { Decorator } from "features/decorators/common";
+import { CoercableComponent, Component, GatherProps, GenericComponent, getUniqueID, jsx, OptionsFunc, OptionsObject, Replace, setDefault, Visibility } from "features/feature";
 import { persistent, Persistent, State } from "game/persistence";
 import Decimal, { DecimalSource } from "lib/break_eternity";
 import { format } from "util/break_eternity";
@@ -7,8 +8,8 @@ import { Computable, GetComputableType, GetComputableTypeWithDefault, processCom
 import { createLazyProxy } from "util/proxies";
 import { coerceComponent, isCoercableComponent } from "util/vue";
 import { computed, ComputedRef, isRef, Ref, unref, watch } from "vue";
-import RepeatableResearchVue from "./RepeatableResearch.vue";
-import ResearchVue from "./Research.vue";
+import RepeatableResearchComponent from "./RepeatableResearch.vue";
+import ResearchComponent from "./Research.vue";
 
 export const ResearchType = Symbol("Research");
 
@@ -40,7 +41,7 @@ export interface BaseResearch {
     research: (force: boolean) => void;
     isResearching: Computable<boolean>;
     type: typeof ResearchType;
-    [Component]: typeof ResearchVue;
+    [Component]: GenericComponent;
     [GatherProps]: () => Record<string, unknown>;
 }
 
@@ -74,17 +75,16 @@ type ResearchDecorator<T extends ResearchOptions, P extends State = State> = {
 
 export function createResearch<T extends ResearchOptions>(
     optionsFunc: OptionsFunc<T, BaseResearch, GenericResearch>,
-    ...decorators: ResearchDecorator<T>[]
+    ...decorators: Decorator<T, BaseResearch, GenericResearch>[]
 ): Research<T> {
     const progress = persistent<DecimalSource>(0);
-
-    const persistents = decorators.map(decorator => decorator.getPersistents?.() ?? {}).reduce((current, next) => Object.assign(current, next), {});
-
+    const decoratedData = decorators.reduce((current, next) => Object.assign(current, next.getPersistentData?.()), {});
     return createLazyProxy(() => {
         const research = optionsFunc();
+        
         research.id = getUniqueID("research-");
         research.type = ResearchType;
-        research[Component] = ResearchVue;
+        research[Component] = ResearchComponent as GenericComponent;
 
         if (research.visibility == null && research.requirements == null) {
             console.warn(
@@ -93,11 +93,12 @@ export function createResearch<T extends ResearchOptions>(
             );
         }
 
-        decorators.forEach(decorator => decorator.preConstruct?.(research));
+        for (const decorator of decorators) {
+            decorator.preConstruct?.(research);
+        }
 
         research.progress = progress;
-
-        Object.assign(research, persistents);
+        Object.assign(research, decoratedData);
 
         processComputable(research as T, "canResearch");
         const canResearch = research.canResearch;
@@ -133,7 +134,11 @@ export function createResearch<T extends ResearchOptions>(
         });
         research.researched = computed(() => Decimal.gte(unref(research.progressPercentage!), 1));
 
-        const gatheredProps: Partial<T> = decorators.map(decorator => decorator.getGatheredProps?.(research) ?? {}).reduce((current, next) => Object.assign(current, next), {});
+        for (const decorator of decorators) {
+            decorator.postConstruct?.(research);
+        }
+
+        const decoratedProps = decorators.reduce((current, next) => Object.assign(current, next.getGatheredProps?.(research)), {});
         research[GatherProps] = function (this: GenericResearch) {
             const {
                 visibility,
@@ -158,11 +163,9 @@ export function createResearch<T extends ResearchOptions>(
                 progress,
                 progressPercentage,
                 researched,
-                ...gatheredProps
+                ...decoratedProps
             }
         }
-
-        decorators.forEach(decorator => decorator.postConstruct?.(research));
 
         return research as Research<T>;
     });
@@ -216,7 +219,7 @@ export const repeatableResearchDecorator: ResearchDecorator<RepeatableResearchOp
         }
     },
     preConstruct(research) {
-        research[Component] = RepeatableResearchVue;
+        research[Component] = RepeatableResearchComponent as GenericComponent;
 
         if (isCoercableComponent(research.display)) return;
         if (isRef(research.display)) return;

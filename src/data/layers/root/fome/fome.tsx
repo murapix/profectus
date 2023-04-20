@@ -1,4 +1,4 @@
-import { CoercableComponent, getUniqueID, jsx, OptionsFunc, Replace, Visibility } from "features/feature";
+import { CoercableComponent, getUniqueID, jsx, OptionsFunc, Replace } from "features/feature";
 import { createResource, PersistentResource, Resource } from "features/resources/resource";
 import { createRepeatable, GenericRepeatable, RepeatableOptions } from "features/repeatable";
 import { createUpgrade, GenericUpgrade, getUpgradeEffect } from "features/upgrades/upgrade";
@@ -7,8 +7,8 @@ import { createTab } from "features/tabs/tab";
 import { createAchievement, GenericAchievement } from "features/achievements/achievement";
 import { addTooltip } from "features/tooltips/tooltip";
 import { BaseLayer, createLayer } from "game/layers";
-import { noPersist, Persistent, persistent, PersistentState } from "game/persistence";
-import { Computable, convertComputable, GetComputableType, processComputable, ProcessedComputable } from "util/computed";
+import { noPersist, Persistent, persistent } from "game/persistence";
+import { Computable, GetComputableType, processComputable, ProcessedComputable } from "util/computed";
 import { createLazyProxy } from "util/proxies";
 import { formatWhole } from "util/break_eternity";
 import Decimal, { DecimalSource, format } from "util/bignum";
@@ -25,7 +25,6 @@ import acceleron from "../acceleron/acceleron";
 import entropy from "../acceleron/entropy";
 import timecube from "../timecube/timecube";
 import inflaton from "../inflaton/inflaton";
-import { getResearchEffect } from "../inflaton/research";
 import { createBooleanRequirement, createCostRequirement, displayRequirements } from "game/requirements";
 import { effectDecorator, EffectFeatureOptions, GenericEffectFeature } from "features/decorators/common";
 
