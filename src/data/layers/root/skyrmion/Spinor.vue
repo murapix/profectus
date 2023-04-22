@@ -18,17 +18,12 @@
 <script lang="ts">
 import { render } from "util/vue";
 import { defineComponent, unref } from "vue";
-import skyrmion from "./skyrmion";
 import { StyleValue, Visibility } from "features/feature";
+import spinor from "./spinor"
 
 export default defineComponent({
     setup() {
-        const upgrades = Object.fromEntries(
-            Object.entries(skyrmion.spinorUpgrades).filter(([key]) => key !== "amount")
-        ) as Record<
-            keyof Omit<typeof skyrmion.spinorUpgrades, "amount">,
-            typeof skyrmion.spinorUpgrades[keyof Omit<typeof skyrmion.spinorUpgrades, "amount">]
-        >;
+        const upgrades = spinor.upgrades;
         const positions: Record<keyof typeof upgrades, { row: number; col: number }> = {
             alpha: { row: 1, col: 1 },
             beta: { row: 2, col: 3 },

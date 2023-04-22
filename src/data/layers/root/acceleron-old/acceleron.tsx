@@ -15,11 +15,11 @@ import { ProcessedComputable } from "util/computed";
 import { render } from "util/vue";
 import { computed, ComputedRef, unref } from "vue";
 import skyrmion from "../skyrmion/skyrmion";
-import fome, { FomeTypes } from "../fome/fome";
+import fome, { FomeTypes } from "../fome-old/fome";
 import entropy from "./entropy";
-import timecube from "../timecube/timecube";
-import inflaton from "../inflaton/inflaton";
-import entangled from "../entangled/entangled";
+import timecube from "../timecube-old/timecube";
+import inflaton from "../inflaton-old/inflaton";
+import entangled from "../entangled-old/entangled";
 import { createLoop, GenericLoop } from "./loop";
 import MainDisplayVue from "features/resources/MainDisplay.vue";
 import SpacerVue from "components/layout/Spacer.vue";
@@ -28,6 +28,7 @@ import LoopsVue from "./Loops.vue";
 import UpgradeRingVue from "./UpgradeRing.vue";
 import { createCostRequirement, displayRequirements } from "game/requirements";
 import { effectDecorator } from "features/decorators/common";
+import { GenericRepeatable } from "features/repeatable";
 
 export const id = "acceleron";
 const layer = createLayer(id, function (this: BaseLayer) {
@@ -134,8 +135,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
             },
             trigger(intervals) {
                 const gain = new Decimal(unref(this.triggerRequirement as ProcessedComputable<DecimalSource>)).times(unref(this.effect)).times(intervals);
-                skyrmion.pions.value = gain.times(unref(skyrmion.pionRate)).plus(unref(skyrmion.pions));
-                skyrmion.spinors.value = gain.times(unref(skyrmion.spinorRate)).plus(unref(skyrmion.spinors));
+                skyrmion.pion.pions.value = gain.times(unref(1)).plus(unref(skyrmion.pion.pions));
+                skyrmion.spinor.spinors.value = gain.times(unref(1)).plus(unref(skyrmion.spinor.spinors));
                 Object.values(FomeTypes).forEach(type => fome.amounts[type].value = gain.times(unref(fome.rates[type])).plus(unref(fome.amounts[type])));
             }
         })),
@@ -360,7 +361,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                     {displayRequirements(upgrades.translation.requirements)}
                 </>
             )),
-            effect() { return Object.values(fome.reformUpgrades).map(upgrade => unref(upgrade.amount)).reduce((a,b) => Decimal.add(a, b)) },
+            effect() { return Object.values(fome.reformUpgrades).map(upgrade => unref((upgrade as GenericRepeatable).amount)).reduce((a,b) => Decimal.add(a, b)) },
             requirements: createCostRequirement(() => ({
                 cost: new Decimal(5),
                 resource: noPersist(accelerons)

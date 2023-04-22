@@ -26,7 +26,7 @@ import skyrmion from "./skyrmion";
 
 export default defineComponent({
     setup() {
-        const upgrades = skyrmion.skyrmionUpgrades;
+        const upgrades = skyrmion.upgrades;
         const positions: Record<keyof typeof upgrades, { row: number; col: number }> = {
             fome: { row: 2, col: 7 },
             autoGain: { row: 2, col: 11 },

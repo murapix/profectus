@@ -18,17 +18,12 @@
 <script lang="ts">
 import { render } from "util/vue";
 import { defineComponent, unref } from "vue";
-import skyrmion from "./skyrmion";
 import { StyleValue, Visibility } from "features/feature";
+import pion from "./pion";
 
 export default defineComponent({
     setup() {
-        const upgrades = Object.fromEntries(
-            Object.entries(skyrmion.pionUpgrades).filter(([key]) => key !== "amount")
-        ) as Record<
-            keyof Omit<typeof skyrmion.pionUpgrades, "amount">,
-            typeof skyrmion.pionUpgrades[keyof Omit<typeof skyrmion.pionUpgrades, "amount">]
-        >;
+        const upgrades = pion.upgrades;
         const positions: Record<keyof typeof upgrades, { row: number; col: number }> = {
             alpha: { row: 1, col: 7 },
             beta: { row: 2, col: 5 },

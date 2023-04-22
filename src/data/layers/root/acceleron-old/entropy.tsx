@@ -13,8 +13,8 @@ import { format, formatTime, formatWhole } from "util/break_eternity";
 import { Computable, GetComputableType, GetComputableTypeWithDefault, processComputable, ProcessedComputable } from "util/computed";
 import { coerceComponent, render } from "util/vue";
 import { computed, ComputedRef, unref, watch } from "vue";
-import fome from "../fome/fome";
-import timecube from "../timecube/timecube";
+import fome from "../fome-old/fome";
+import timecube from "../timecube-old/timecube";
 import acceleron from "./acceleron";
 import EnhancementsVue from "./Enhancements.vue";
 import { noPersist } from "game/persistence"
@@ -239,7 +239,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         optionsFunc: OptionsFunc<T, {}, GenericEnhancement>
     ): [string, EffectUpgrade] {
         return [id, (() => {
-            const enhancement = optionsFunc();
+            const enhancement = optionsFunc.call({}, {});
 
             processComputable(enhancement as T, "visibility");
             processComputable(enhancement as T, "effect");

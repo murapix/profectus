@@ -1,7 +1,7 @@
 import ColumnVue from "components/layout/Column.vue";
 import SpacerVue from "components/layout/Spacer.vue";
 import { createClickable, GenericClickable } from "features/clickables/clickable";
-import { BaseBonusAmountFeature, bonusAmountDecorator, BonusAmountFeatureOptions, GenericBonusAmountFeature } from "features/decorators/bonusDecorator";
+import { bonusAmountDecorator, BonusAmountFeatureOptions, GenericBonusAmountFeature } from "features/decorators/bonusDecorator";
 import { effectDecorator, EffectFeatureOptions, GenericEffectFeature } from "features/decorators/common";
 import { CoercableComponent, jsx, OptionsFunc, Visibility } from "features/feature";
 import { createRepeatable, BaseRepeatable, GenericRepeatable, RepeatableOptions } from "features/repeatable";
@@ -11,7 +11,7 @@ import { createTab } from "features/tabs/tab";
 import { createTabFamily } from "features/tabs/tabFamily";
 import { createUpgrade, GenericUpgrade } from "features/upgrades/upgrade";
 import Formula from "game/formulas/formulas";
-import { FormulaSource, GenericFormula, InvertibleFormula } from "game/formulas/types";
+import { FormulaSource, GenericFormula } from "game/formulas/types";
 import { BaseLayer, createLayer } from "game/layers";
 import { noPersist, persistent } from "game/persistence";
 import { createBooleanRequirement, createCostRequirement } from "game/requirements";
@@ -21,9 +21,9 @@ import { Computable, ProcessedComputable } from "util/computed";
 import { createLazyProxy } from "util/proxies";
 import { render, renderRow } from "util/vue";
 import { computed, ComputedRef, unref } from "vue";
-import acceleron from "../acceleron/acceleron";
-import entangled from "../entangled/entangled";
-import fome, { FomeTypes } from "../fome/fome";
+import acceleron from "../acceleron-old/acceleron";
+import entangled from "../entangled-old/entangled";
+import fome, { FomeTypes } from "../fome-old/fome";
 import { createResearch, GenericRepeatableResearch, GenericResearch, getResearchEffect, repeatableResearchDecorator, RepeatableResearchOptions } from "./research";
 import ResearchQueueVue from "./ResearchQueue.vue";
 import ResearchTreeVue from "./ResearchTree.vue";
@@ -95,12 +95,12 @@ const layer = createLayer(id, function (this: BaseLayer) {
     function startInflation() {
         inflating.value = true;
         inflatons.value = unref(research.instantInflation.researched)
-            ? Decimal.reciprocate(unref(buildings.condenser.effect)).dividedBy(10).pow10()
+            ? Decimal.reciprocate(unref(buildings.condenser.effect as DecimalSource)).dividedBy(10).pow10()
             : Decimal.add(unref(inflatons), 1);
     };
     function endInflation() {
         inflating.value = false;
-        inflatons.value = Decimal.min(unref(inflatons), unref(buildings.storage.effect));
+        inflatons.value = Decimal.min(unref(inflatons), unref(buildings.storage.effect as DecimalSource));
     };
 
     const inflating = persistent<boolean>(false);
@@ -130,8 +130,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
         if (unref(inflating)) {
             inflatons.value = Decimal.add(unref(inflatons), unref(inflatonGain).times(diff));
         }
-        else if (Decimal.gt(unref(inflatons), unref(buildings.storage.effect))) {
-            inflatons.value = unref(buildings.storage.effect);
+        else if (Decimal.gt(unref(inflatons), unref(buildings.storage.effect as DecimalSource))) {
+            inflatons.value = unref(buildings.storage.effect as DecimalSource);
         }
     });
 
@@ -211,7 +211,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 visibility() { return unref(upgrades.subspaceBuildings.bought) },
                 title: 'M-Field Condenser',
                 description: 'Slightly reduce the loss of resources to Inflation',
-                effect: jsx(() => <>{formatSmall(unref(buildings.condenser.effect))}x</>)
+                effect: jsx(() => <>{formatSmall(unref(buildings.condenser.effect as DecimalSource))}x</>)
             }
         })),
         lab: createBuilding(() => ({
@@ -229,7 +229,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 visibility() { return unref(upgrades.research.bought) },
                 title: 'Quantum Flux Analyzer',
                 description: 'Study fluctuations in the quantum field',
-                effect: jsx(() => <>+{formatWhole(unref(buildings.lab.effect))} research points/s</>)
+                effect: jsx(() => <>+{formatWhole(unref(buildings.lab.effect as DecimalSource))} research points/s</>)
             }
         })),
         storage: createBuilding(() => ({
@@ -247,7 +247,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 visibility() { return unref(research.storage.researched) },
                 title: 'Inflaton Containment Unit',
                 description: 'Specialized storage facilities designed to keep Inflatons separated and inert',
-                effect: jsx(() => <>Safely store up to {formatWhole(unref(buildings.storage.effect))} Inflatons</>)
+                effect: jsx(() => <>Safely store up to {formatWhole(unref(buildings.storage.effect as DecimalSource))} Inflatons</>)
             }
         }))
     };
@@ -656,7 +656,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
     };
 
     const baseResearchGain = computed<Decimal>(() => {
-        return Decimal.times(unref(buildings.lab.effect), getResearchEffect(research.researchBoost)).times(1) /* 1st abyssal pion buyable */
+        return Decimal.times(unref(buildings.lab.effect as DecimalSource), getResearchEffect(research.researchBoost)).times(1) /* 1st abyssal pion buyable */
     });
     const finalResearchGain = computed<Decimal>(() => {
         return unref(baseResearchGain);
@@ -799,8 +799,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
     function createBuilding(
         optionsFunc: OptionsFunc<BuildingData, BaseRepeatable, GenericBuilding>
     ): GenericBuilding {
-        return createLazyProxy(() => {
-            let building = optionsFunc();
+        return createLazyProxy(feature => {
+            let building = optionsFunc.call(feature, feature);
             return createRepeatable<BuildingOptions>(function (this: GenericRepeatable) {
                 return {
                     bonusAmount() { return Decimal.times(unref(this.amount), 0) }, // 3rd abyssal spinor buyable

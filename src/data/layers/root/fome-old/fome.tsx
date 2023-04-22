@@ -21,13 +21,12 @@ import FomeVue from "./Fome.vue";
 import FomeBoostVue from "./FomeBoost.vue";
 
 import skyrmion from "../skyrmion/skyrmion";
-import acceleron from "../acceleron/acceleron";
-import entropy from "../acceleron/entropy";
-import timecube from "../timecube/timecube";
-import inflaton from "../inflaton/inflaton";
+import acceleron from "../acceleron-old/acceleron";
+import entropy from "../acceleron-old/entropy";
+import timecube from "../timecube-old/timecube";
+import inflaton from "../inflaton-old/inflaton";
 import { createBooleanRequirement, createCostRequirement, displayRequirements } from "game/requirements";
 import { effectDecorator, EffectFeatureOptions, GenericEffectFeature } from "features/decorators/common";
-
 
 export enum FomeTypes {
     protoversal = "protoversal",
@@ -50,7 +49,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
     const name = "Quantum Foam";
     const color = "#ffffff";
 
-    const unlocked: Ref<boolean> = skyrmion.skyrmionUpgrades.fome.bought;
+    const unlocked: Ref<boolean> = skyrmion.upgrades.fome.bought;
 
     const amounts: Record<FomeTypes, PersistentResource<DecimalSource>> = {
         [FomeTypes.protoversal]: createResource<DecimalSource>(0, "Protoversal Foam"),
@@ -71,7 +70,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
     const baseGenRate = computed(() =>
         Decimal.add(unref(skyrmion.skyrmions), getFomeBoost(FomeTypes.subspatial, 4))
             .divide(100)
-            .times(unref(skyrmion.spinorUpgrades.eta.effect))
+            .times(unref(skyrmion.spinor.upgrades.eta.effect as DecimalSource))
             .times(getUpgradeEffect(acceleron.upgrades.acceleration))
             .times(getUpgradeEffect(entropy.enhancements.invention))
             .times(unref(acceleron.loops.tempFoam.currentBoost!))
@@ -84,7 +83,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
     const enlargeMulti = Object.fromEntries(
         Object.values(FomeTypes).map(type => [
             type,
-            computed(() => Object.values(dimUpgrades[type]).map(upgrade => unref(upgrade.effect)).reduce((a, b) => a.times(b)))
+            computed(() => Object.values(dimUpgrades[type]).map(upgrade => unref(upgrade.effect as DecimalSource)).reduce((a: Decimal, b) => a.times(b), Decimal.dOne))
         ])
     ) as Record<FomeTypes, ComputedRef<Decimal>>;
 
@@ -96,9 +95,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
         [FomeTypes.quantum]: computed(() => Decimal.dOne)
     };
     const miscMulti: Record<FomeTypes, ComputedRef<Decimal>> = {
-        [FomeTypes.protoversal]: computed(() => new Decimal(unref(skyrmion.pionUpgrades.delta.effect)).times(unref(skyrmion.pionUpgrades.epsilon.effect)).times(unref(skyrmion.pionUpgrades.theta.effect))),
-        [FomeTypes.infinitesimal]: computed(() => new Decimal(unref(skyrmion.pionUpgrades.iota.effect)).times(unref(skyrmion.spinorUpgrades.epsilon.effect)).times(unref(skyrmion.spinorUpgrades.iota.effect)).times(getUpgradeEffect(entropy.enhancements.extension))),
-        [FomeTypes.subspatial]: computed(() => new Decimal(unref(skyrmion.pionUpgrades.zeta.effect)).times(unref(skyrmion.spinorUpgrades.theta.effect)).times(1/* acceleron upgrade 23 */).times(getUpgradeEffect(entropy.enhancements.configuration))),
+        [FomeTypes.protoversal]: computed(() => new Decimal(unref(skyrmion.pion.upgrades.delta.effect as DecimalSource)).times(unref(skyrmion.pion.upgrades.epsilon.effect as DecimalSource)).times(unref(skyrmion.pion.upgrades.theta.effect as DecimalSource))),
+        [FomeTypes.infinitesimal]: computed(() => new Decimal(unref(skyrmion.pion.upgrades.iota.effect as DecimalSource)).times(unref(skyrmion.spinor.upgrades.epsilon.effect as DecimalSource)).times(unref(skyrmion.spinor.upgrades.iota.effect as DecimalSource)).times(getUpgradeEffect(entropy.enhancements.extension))),
+        [FomeTypes.subspatial]: computed(() => new Decimal(unref(skyrmion.pion.upgrades.zeta.effect as DecimalSource)).times(unref(skyrmion.spinor.upgrades.theta.effect as DecimalSource)).times(1/* acceleron upgrade 23 */).times(getUpgradeEffect(entropy.enhancements.configuration))),
         [FomeTypes.subplanck]: computed(() => getUpgradeEffect(entropy.enhancements.invention)),
         [FomeTypes.quantum]: computed(() => Decimal.dOne)
     };
@@ -109,7 +108,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                     .times(unref(enlargeMulti[type]))
                     .times(unref(boostMulti[type]))
                     .times(unref(miscMulti[type]))
-                    .pow(unref(reformUpgrades[type].effect))
+                    .pow(unref(reformUpgrades[type].effect as DecimalSource))
                     .times(1) // left timeline bonus
                     .div(1) // left timeline nerf
                     .times(1) // timecube upgrade 45, per-foam
@@ -374,7 +373,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             index: persistent<1|2|3|4|5>(1),
             1: createFomeBoost(FomeTypes.protoversal, 1,
                 effect => `Multiply the generation of Protoversal Foam by ${format(effect)}`,
-                total => total.times(1).plus(1).times(unref(skyrmion.pionUpgrades.kappa.effect)).times(unref(skyrmion.spinorUpgrades.delta.effect)),
+                total => total.times(1).plus(1).times(unref(skyrmion.pion.upgrades.kappa.effect as DecimalSource)).times(unref(skyrmion.spinor.upgrades.delta.effect as DecimalSource)),
                 () => unref(globalBoost).plus(unref(globalBoost).plus(getFomeBoost(FomeTypes.protoversal, 5)).plus(getFomeBoost(FomeTypes.subspatial, 3)).plus(getFomeBoost(FomeTypes.quantum, 5)))
             ),
             2: createFomeBoost(FomeTypes.protoversal, 2,
@@ -402,8 +401,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
             index: persistent<1|2|3|4|5>(1),
             1: createFomeBoost(FomeTypes.infinitesimal, 1,
                 effect => `Multiply the generation of Infinitesimal Foam by ${format(effect)}x`,
-                total => total.times(1).plus(1).times(unref(skyrmion.pionUpgrades.lambda.effect)),
-                () => unref(globalBoost).plus(getFomeBoost(FomeTypes.subspatial, 3).add(getFomeBoost(FomeTypes.quantum, 5))).times(unref(skyrmion.pionUpgrades.lambda.effect))
+                total => total.times(1).plus(1).times(unref(skyrmion.pion.upgrades.lambda.effect as DecimalSource)),
+                () => unref(globalBoost).plus(getFomeBoost(FomeTypes.subspatial, 3).add(getFomeBoost(FomeTypes.quantum, 5))).times(unref(skyrmion.pion.upgrades.lambda.effect as DecimalSource))
             ),
             2: createFomeBoost(FomeTypes.infinitesimal, 2,
                 effect => `Increase Pion and Spinor gain by ${format(effect.minus(1).times(100))}%`,
@@ -430,7 +429,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             index: persistent<1|2|3|4|5>(1),
             1: createFomeBoost(FomeTypes.subspatial, 1,
                 effect => `Multiply the generation of Subspatial Foam by ${format(effect)}x`,
-                total => total.times(1).plus(1).times(unref(skyrmion.spinorUpgrades.kappa.effect)),
+                total => total.times(1).plus(1).times(unref(skyrmion.spinor.upgrades.kappa.effect as DecimalSource)),
                 () => unref(globalBoost).plus(getFomeBoost(FomeTypes.subspatial, 3).add(getFomeBoost(FomeTypes.quantum, 5)))
             ),
             2: createFomeBoost(FomeTypes.subspatial, 2,
@@ -525,7 +524,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                             You have{" "}
                             <ResourceVue resource={amounts[unref(highestFome)]} color={color} />{" "}
                             {amounts[unref(highestFome)].displayName}
-                            {unref(reformUpgrades[unref(highestFome)].amount) > 1 ? (
+                            {Decimal.gt(unref(reformUpgrades[unref(highestFome)].amount), 1) ? (
                                 <sup>{formatWhole(unref(reformUpgrades[unref(highestFome)].amount))}</sup>
                             ) : null}
                         </div>
@@ -604,13 +603,13 @@ const layer = createLayer(id, function (this: BaseLayer) {
             display() {
                 const amount = unref(boosts[type][index].amount);
                 const bonus = unref(boosts[type][index].bonus);
-                if (amount > 0 || bonus > 0)
+                if (Decimal.gt(amount, 0) || Decimal.gt(bonus, 0))
                     return [
                         `${amounts[type].displayName.split(" ")[0]} Boost ${index}`,
                         '[',
                         formatWhole(amount),
-                        bonus > 0 ? '+' : '',
-                        bonus > 0 ? format(bonus) : '',
+                        Decimal.gt(bonus, 0) ? '+' : '',
+                        Decimal.gt(bonus, 0) ? format(bonus) : '',
                         ']:',
                         display(unref(boosts[type][index].effect))
                     ];
@@ -626,8 +625,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
 
     function createBoost<T extends BoostOptions>(optionsFunc: OptionsFunc<T, BaseBoost, GenericBoost>): Boost<T> {
         const amount = persistent<DecimalSource>(0);
-        return createLazyProxy(() => {
-            const boost = optionsFunc();
+        return createLazyProxy(feature => {
+            const boost = optionsFunc.call(feature, feature);
 
             boost.id = getUniqueID("boost-");
             boost.type = BoostType;

@@ -55,8 +55,8 @@ export function createLoop<T extends LoopOptions>(optionsFunc: OptionsFunc<T, Ba
     const buildProgress = persistent<DecimalSource>(0);
     const built = persistent<boolean>(false);
     const persistentBoost = persistent<DecimalSource>(0);
-    return createLazyProxy(() => {
-        const loop = optionsFunc();
+    return createLazyProxy(feature => {
+        const loop = optionsFunc.call(feature, feature);
 
         loop.id = getUniqueID("loop-");
         loop.type = LoopType;
