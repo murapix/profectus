@@ -84,7 +84,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 resource: noPersist(amount),
                 cost: () => Decimal.pow(unref(feature.amount), 1.15).pow_base(4).times(2),
                 requiresPay: () => !unref(fome.achievements[FomeTypes.protoversal].earned),
-                spendResources: false
+                canMaximize: false
             })),
             display: getDimDisplay(FomeTypes.protoversal, FomeDims.height),
             effect() { return Decimal.add(unref(this.amount), 1); },
@@ -97,7 +97,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 resource: noPersist(amount),
                 cost: () => Decimal.pow(unref(feature.amount), 1.15).pow_base(6).times(5),
                 requiresPay: () => !unref(fome.achievements[FomeTypes.protoversal].earned),
-                spendResources: false
+                canMaximize: false
             })),
             display: getDimDisplay(FomeTypes.protoversal, FomeDims.width),
             effect() { return Decimal.add(unref(this.amount), 1); },
@@ -110,7 +110,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 resource: noPersist(amount),
                 cost: () => Decimal.pow(unref(feature.amount), 1.15).pow_base(8).times(20),
                 requiresPay: () => !unref(fome.achievements[FomeTypes.protoversal].earned),
-                spendResources: false
+                canMaximize: false
             })),
             display: getDimDisplay(FomeTypes.protoversal, FomeDims.depth),
             effect() { return Decimal.add(unref(this.amount), 1); },

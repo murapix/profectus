@@ -269,7 +269,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 resource: noPersist(spinors),
                 cost: cost(Formula.variable(repeatable.amount)).times(costNerf),
                 requiresPay: () => !unref(shouldAutobuy),
-                spendResources: false
+                canMaximize: false
             }))
         });
         skyrmion.on("update", () => {

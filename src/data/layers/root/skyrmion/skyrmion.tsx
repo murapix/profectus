@@ -36,7 +36,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             createCostRequirement(() => ({
                 resource: pion.pions,
                 requiresPay: () => !unref(upgrades.autoGain.bought),
-                spendResources: false,
+                canMaximize: false,
                 cost: Formula.variable(feature.amount)
                              .pow10()
                              .dividedBy(fome.infinitesimal.boosts[4].effect)
@@ -45,7 +45,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             createCostRequirement(() => ({
                 resource: spinor.spinors,
                 requiresPay: () => !unref(upgrades.autoGain.bought),
-                spendResources: false,
+                canMaximize: false,
                 cost: Formula.variable(feature.amount)
                              .pow10()
                              .dividedBy(fome.infinitesimal.boosts[4].effect)

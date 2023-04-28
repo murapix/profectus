@@ -92,6 +92,10 @@ export interface CostRequirementOptions {
      * @see {@link cost} for restrictions on maximizing support.
      */
     pay?: (amount?: DecimalSource) => void;
+    /**
+     * Override for maximizing the amount purchasable
+     */
+    canMaximize?: Computable<boolean>;
 }
 
 export type CostRequirement = Replace<
@@ -126,7 +130,9 @@ export function createCostRequirement<T extends CostRequirementOptions>(
                 {displayResource(
                     req.resource,
                     req.cost instanceof Formula
-                        ? calculateCost(req.cost, amount ?? 1, unref(req.spendResources) as boolean)
+                        ? unref(req.canMaximize)
+                            ? calculateCost(req.cost, amount ?? 1, unref(req.spendResources) as boolean)
+                            : req.cost.evaluate()
                         : unref(req.cost as ProcessedComputable<DecimalSource>)
                 )}{" "}
                 {req.resource.displayName}
@@ -138,7 +144,9 @@ export function createCostRequirement<T extends CostRequirementOptions>(
                 {displayResource(
                     req.resource,
                     req.cost instanceof Formula
-                        ? calculateCost(req.cost, amount ?? 1, unref(req.spendResources) as boolean)
+                        ? unref(req.canMaximize)
+                            ? calculateCost(req.cost, amount ?? 1, unref(req.spendResources) as boolean)
+                            : req.cost.evaluate()
                         : unref(req.cost as ProcessedComputable<DecimalSource>)
                 )}{" "}
                 {req.resource.displayName}
@@ -155,19 +163,23 @@ export function createCostRequirement<T extends CostRequirementOptions>(
         setDefault(req, "pay", function (amount?: DecimalSource) {
             const cost =
                 req.cost instanceof Formula
-                    ? calculateCost(req.cost, amount ?? 1, unref(req.spendResources) as boolean)
+                    ? unref(req.canMaximize)
+                        ? calculateCost(req.cost, amount ?? 1, unref(req.spendResources) as boolean)
+                        : req.cost.evaluate()
                     : unref(req.cost as ProcessedComputable<DecimalSource>);
             req.resource.value = Decimal.sub(req.resource.value, cost).max(0);
         });
 
-        req.canMaximize = computed(
-            () =>
-                req.cost instanceof Formula &&
-                req.cost.isInvertible() &&
-                (unref(req.spendResources) === false || req.cost.isIntegrable())
-        );
+        if (req.canMaximize === undefined) {
+            req.canMaximize = computed(
+                () =>
+                    req.cost instanceof Formula &&
+                    req.cost.isInvertible() &&
+                    (unref(req.spendResources) === false || req.cost.isIntegrable())
+            );
+        }
 
-        if (req.cost instanceof Formula && req.cost.isInvertible()) {
+        if (req.cost instanceof Formula && req.cost.isInvertible() && req.canMaximize) {
             const maxAffordable = calculateMaxAffordable(
                 req.cost,
                 req.resource,
