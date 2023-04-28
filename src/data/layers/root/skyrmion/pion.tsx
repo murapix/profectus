@@ -10,7 +10,7 @@ import spinor from "./spinor";
 import { GenericFormula } from "game/formulas/types";
 import { Computable } from "util/computed";
 import { SkyrmionRepeatable, createSkyrmionRepeatable } from "./repeatable"
-import { createCostRequirement } from "game/requirements";
+import { createCostRequirement, requirementsMet } from "game/requirements";
 import { noPersist } from "game/persistence";
 import Formula from "game/formulas/formulas";
 import fome, { FomeTypes } from "../fome/fome";
@@ -273,7 +273,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             }))
         });
         skyrmion.on("update", () => {
-            if (unref(shouldAutobuy) && unref(repeatable.canClick)) {
+            if (unref(shouldAutobuy) && requirementsMet(repeatable.requirements)) {
                 repeatable.onClick();
             }
         });

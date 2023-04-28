@@ -51,7 +51,7 @@ export default defineComponent({
     max-width: 1200px;
 }
 
-.fome-grid > :deep(.clickable) {
+.fome-grid > :deep(.clickable), .fome-grid > :deep(.upgrade) {
     width: 100%;
     min-height: 100px;
 }

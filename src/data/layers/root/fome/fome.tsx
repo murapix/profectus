@@ -7,7 +7,7 @@ import { Modifier, createMultiplicativeModifier } from "game/modifiers";
 import acceleron from "../acceleron-old/acceleron";
 import entropy from "../acceleron-old/entropy";
 import { EffectUpgrade, GenericUpgrade, getUpgradeEffect } from "features/upgrades/upgrade";
-import { formatWhole } from "util/break_eternity";
+import { format, formatWhole } from "util/break_eternity";
 import { GenericRepeatable } from "features/repeatable";
 import { GenericEffectFeature } from "features/decorators/common";
 import timecube from "../timecube-old/timecube";
@@ -21,7 +21,7 @@ import { render, renderRowJSX } from "util/vue";
 import { createTab } from "features/tabs/tab";
 import FomeBoostVue from "../fome/FomeBoost.vue";
 import { createTabFamily } from "features/tabs/tabFamily";
-import { createBooleanRequirement } from "game/requirements";
+import { CostRequirementOptions, createBooleanRequirement, displayRequirements } from "game/requirements";
 import { addTooltip } from "features/tooltips/tooltip";
 import infinitesimal from "./infinitesimal";
 import inflaton from "../inflaton-old/inflaton";
@@ -53,6 +53,36 @@ export function onDimRepeatable(type: FomeTypes) {
     const boost = layer[type].boosts[unref(index)].amount;
     boost.value = Decimal.add(unref(boost), 1);
     index.value = (unref(index) === 5 ? 1 : unref(index) + 1) as 1|2|3|4|5;
+}
+
+export function getDimDisplay(fomeType: FomeTypes, dim: FomeDims) {
+    let dimName: string;
+    switch (dim) {
+        case FomeDims.height: dimName = "Height"; break;
+        case FomeDims.width: dimName = "Width"; break;
+        case FomeDims.depth: dimName = "Depth"; break;
+    }
+    return jsx(() => (
+        <>
+            <h3>Enlarge {layer[fomeType].amount.displayName} {dimName} by 1m</h3><br />
+            <br />
+            Current {dimName}: {format(unref(layer[fomeType].upgrades[dim].amount))}m<br />
+            <br />
+            {displayRequirements(layer[fomeType].upgrades[dim].requirements)}
+        </>
+    ));
+}
+
+export function getReformDisplay(fomeType: FomeTypes) {
+    return jsx(() => (
+        <>
+            Re-form your {layer[fomeType].amount.displayName}<br />
+            <br />
+            Amount: {formatWhole(unref(layer[fomeType].upgrades.reform.amount))}<br />
+            <br />
+            {displayRequirements(layer[fomeType].upgrades.reform.requirements)}
+        </>
+    ));
 }
 
 const id = "fome";

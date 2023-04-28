@@ -2,7 +2,7 @@ import { createResource } from "features/resources/resource";
 import { createLayer, BaseLayer } from "game/layers";
 import { createExponentialModifier, createMultiplicativeModifier, createSequentialModifier } from "game/modifiers";
 import Decimal, { DecimalSource } from "lib/break_eternity";
-import fome, { FomeDims, FomeTypes, FomeUpgrade, FomeUpgrades, onDimRepeatable } from "./fome";
+import fome, { FomeDims, FomeTypes, FomeUpgrade, FomeUpgrades, getDimDisplay, getReformDisplay, onDimRepeatable } from "./fome";
 import { RepeatableOptions, createRepeatable } from "features/repeatable";
 import { EffectFeatureOptions, effectDecorator } from "features/decorators/common";
 import { createUpgrade } from "features/upgrades/upgrade";
@@ -86,7 +86,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 requiresPay: () => !unref(fome.achievements[FomeTypes.protoversal].earned),
                 spendResources: false
             })),
-            display: jsx(() => (<>TODO</>)),
+            display: getDimDisplay(FomeTypes.protoversal, FomeDims.height),
             effect() { return Decimal.add(unref(this.amount), 1); },
             classes: () => ({ auto: unref(fome.achievements[FomeTypes.protoversal].earned) }),
             onClick: () => onDimRepeatable(FomeTypes.protoversal)
@@ -99,7 +99,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 requiresPay: () => !unref(fome.achievements[FomeTypes.protoversal].earned),
                 spendResources: false
             })),
-            display: jsx(() => (<>TODO</>)),
+            display: getDimDisplay(FomeTypes.protoversal, FomeDims.width),
             effect() { return Decimal.add(unref(this.amount), 1); },
             classes: () => ({ auto: unref(fome.achievements[FomeTypes.protoversal].earned) }),
             onClick: () => onDimRepeatable(FomeTypes.protoversal)
@@ -112,7 +112,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 requiresPay: () => !unref(fome.achievements[FomeTypes.protoversal].earned),
                 spendResources: false
             })),
-            display: jsx(() => (<>TODO</>)),
+            display: getDimDisplay(FomeTypes.protoversal, FomeDims.depth),
             effect() { return Decimal.add(unref(this.amount), 1); },
             classes: () => ({ auto: unref(fome.achievements[FomeTypes.protoversal].earned) }),
             onClick: () => onDimRepeatable(FomeTypes.protoversal)
@@ -134,7 +134,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 requiresPay: () => !unref(fome.achievements.reform.earned),
                 spendResource: false
             })),
-            display: jsx(() => (<>TODO</>)),
+            display: getReformDisplay(FomeTypes.protoversal),
             effect() { return Decimal.cbrt(unref(this.amount)) },
             classes: () => ({ auto: unref(fome.achievements.reform.earned) })
         }), effectDecorator) as FomeUpgrade
@@ -164,7 +164,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         })),
         2: createBoost(feature => ({
             display: () => `Gain ${format(getFomeBoost(FomeTypes.protoversal, 2))} bonus Pion and Spinor Upgrade α levels`,
-            effect: feature.total,
+            effect: () => new Decimal(unref(feature.total)),
             bonus: fullBoostBonus
         })),
         3: createBoost(feature => ({
@@ -174,7 +174,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         })),
         4: createBoost(feature => ({
             display: () => `Gain ${format(getFomeBoost(FomeTypes.protoversal, 4))} bonus Pion and Spinor Upgrade γ levels`,
-            effect: feature.total,
+            effect: () => new Decimal(unref(feature.total)),
             bonus: fullBoostBonus
         })),
         5: createBoost(feature => ({

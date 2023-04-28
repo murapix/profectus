@@ -5,7 +5,7 @@ import { createMultiplicativeModifier } from "game/modifiers";
 import Decimal, { DecimalSource } from "lib/break_eternity";
 import { computed, unref } from "vue";
 import { createSkyrmionUpgrade } from "./upgrade";
-import { createCostRequirement } from "game/requirements";
+import { createCostRequirement, requirementsMet } from "game/requirements";
 import { Computable } from "util/computed";
 import fome, { FomeTypes } from "../fome/fome";
 import pion from "./pion";
@@ -67,6 +67,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
             </>
         ))
     });
+    this.on("update", () => {
+        if (unref(upgrades.autoGain.bought) && requirementsMet(conversion.requirements)) {
+            conversion.onClick();
+        }
+    })
 
     const skyrmions = createResource<DecimalSource>(conversion.amount, name);
     const totalSkyrmions = computed(() => Decimal.add(unref(skyrmions), 0));
@@ -276,11 +281,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
         upgrades,
         display: jsx(() => (
             <>
-                You have <ResourceVue resource={skyrmions} color={color} tag="h3" /> {skyrmions.displayName}
+                You have <ResourceVue resource={skyrmions} color={color} tag="h2" /> {skyrmions.displayName}
                 {Decimal.gt(getFomeBoost(FomeTypes.subspatial, 4), 0)
-                ?   <>Your {fome.subspatial.amount.displayName} is granting an additional <h2 style={{ color, textShadow: `0px 0px 10px ${color}` }}>
+                ?   <><br />Your {fome.subspatial.amount.displayName} is granting an additional <h3 style={{ color, textShadow: `0px 0px 10px ${color}` }}>
                         {format(getFomeBoost(FomeTypes.subspatial, 4))}
-                    </h2> {skyrmions.displayName}</>
+                    </h3> {skyrmions.displayName}</>
                 : undefined}
                 <SpacerVue />
                 <RowVue><div style={{ flexFlow: "row nowrap" }}>

@@ -12,7 +12,7 @@ import { SkyrmionRepeatable, createSkyrmionRepeatable } from "./repeatable";
 import Formula from "game/formulas/formulas";
 import { GenericFormula } from "game/formulas/types";
 import { noPersist } from "game/persistence";
-import { createCostRequirement } from "game/requirements";
+import { createCostRequirement, requirementsMet } from "game/requirements";
 import fome, { FomeTypes } from "../fome/fome";
 import ColumnVue from "components/layout/Column.vue";
 import ResourceVue from "features/resources/Resource.vue";
@@ -273,7 +273,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             }))
         });
         skyrmion.on("update", () => {
-            if (unref(shouldAutobuy) && unref(repeatable.canClick)) {
+            if (unref(shouldAutobuy) && requirementsMet(repeatable.requirements)) {
                 repeatable.onClick();
             }
         });

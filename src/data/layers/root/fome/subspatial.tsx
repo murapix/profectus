@@ -2,7 +2,7 @@ import { createResource } from "features/resources/resource";
 import { createLayer, BaseLayer } from "game/layers";
 import { createExponentialModifier, createMultiplicativeModifier, createSequentialModifier } from "game/modifiers";
 import Decimal, { DecimalSource } from "lib/break_eternity";
-import fome, { FomeDims, FomeTypes, FomeUpgrade, FomeUpgrades, onDimRepeatable } from "./fome";
+import fome, { FomeDims, FomeTypes, FomeUpgrade, FomeUpgrades, getDimDisplay, getReformDisplay, onDimRepeatable } from "./fome";
 import { RepeatableOptions, createRepeatable } from "features/repeatable";
 import { EffectFeatureOptions, effectDecorator } from "features/decorators/common";
 import { createUpgrade } from "features/upgrades/upgrade";
@@ -17,6 +17,7 @@ import { format, formatWhole } from "util/break_eternity";
 import acceleron from "../acceleron-old/acceleron";
 import timecube from "../timecube-old/timecube";
 import entropy from "../acceleron-old/entropy";
+import { createReformRequirement } from "./ReformRequirement";
 
 const id = "subspatial";
 const layer = createLayer(id, function (this: BaseLayer) {
@@ -93,7 +94,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 requiresPay: () => !unref(fome.achievements[FomeTypes.subspatial].earned),
                 spendResources: false
             })),
-            display: jsx(() => (<>TODO</>)),
+            display: getDimDisplay(FomeTypes.subspatial, FomeDims.height),
             effect() { return Decimal.add(unref(this.amount), 1); },
             classes: () => ({ auto: unref(fome.achievements[FomeTypes.subspatial].earned) }),
             onClick: () => onDimRepeatable(FomeTypes.subspatial)
@@ -106,7 +107,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 requiresPay: () => !unref(fome.achievements[FomeTypes.subspatial].earned),
                 spendResources: false
             })),
-            display: jsx(() => (<>TODO</>)),
+            display: getDimDisplay(FomeTypes.subspatial, FomeDims.width),
             effect() { return Decimal.add(unref(this.amount), 1); },
             classes: () => ({ auto: unref(fome.achievements[FomeTypes.subspatial].earned) }),
             onClick: () => onDimRepeatable(FomeTypes.subspatial)
@@ -119,7 +120,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 requiresPay: () => !unref(fome.achievements[FomeTypes.subspatial].earned),
                 spendResources: false
             })),
-            display: jsx(() => (<>TODO</>)),
+            display: getDimDisplay(FomeTypes.subspatial, FomeDims.depth),
             effect() { return Decimal.add(unref(this.amount), 1); },
             classes: () => ({ auto: unref(fome.achievements[FomeTypes.subspatial].earned) }),
             onClick: () => onDimRepeatable(FomeTypes.subspatial)
@@ -137,19 +138,17 @@ const layer = createLayer(id, function (this: BaseLayer) {
             visibility: upgrades.condense.bought,
             requirements: [
                 createCostRequirement(() => ({
-                    resource: createResource(fome.infinitesimal.upgrades.reform.amount, ""),
-                    cost: Formula.variable(feature.amount).plus(2),
-                    spendResources: false,
-                    requiresPay: false
-                })),
-                createCostRequirement(() => ({
                     resource: noPersist(amount),
                     cost: () => Decimal.minus(unref(feature.amount), 3).max(2).pow_base(unref(feature.amount)).plus(1).times(6).pow10().dividedBy(2.5),
                     requiresPay: () => !unref(fome.achievements.reform.earned),
                     spendResource: false
+                })),
+                createReformRequirement(() => ({
+                    fomeType: FomeTypes.infinitesimal,
+                    cost: Formula.variable(feature.amount).plus(1)
                 }))
             ],
-            display: jsx(() => (<>TODO</>)),
+            display: getReformDisplay(FomeTypes.subspatial),
             effect() { return Decimal.cbrt(unref(this.amount)) },
             classes: () => ({ auto: unref(fome.achievements.reform.earned) })
         }), effectDecorator) as FomeUpgrade
@@ -177,7 +176,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         })),
         2: createBoost(feature => ({
             display: () => `The Pion and Spinor nerfs act as if you had ${format(getFomeBoost(FomeTypes.subspatial, 2))} fewer upgrades`,
-            effect: feature.total,
+            effect: () => new Decimal(unref(feature.total)),
             bonus: fullBoostBonus
         })),
         3: createBoost(feature => ({
@@ -187,7 +186,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         })),
         4: createBoost(feature => ({
             display: () => `Increase effective Skyrmion count by ${format(getFomeBoost(FomeTypes.subspatial, 4))}`,
-            effect: feature.total,
+            effect: () => new Decimal(unref(feature.total)),
             bonus: boostBonus
         })),
         5: createBoost(feature => ({

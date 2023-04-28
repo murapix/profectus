@@ -1,8 +1,8 @@
-import { createResource } from "features/resources/resource";
+import { createResource, displayResource } from "features/resources/resource";
 import { createLayer, BaseLayer } from "game/layers";
 import { createExponentialModifier, createMultiplicativeModifier, createSequentialModifier } from "game/modifiers";
 import Decimal, { DecimalSource } from "lib/break_eternity";
-import fome, { FomeDims, FomeTypes, FomeUpgrade, FomeUpgrades, onDimRepeatable } from "./fome";
+import fome, { FomeDims, FomeTypes, FomeUpgrade, FomeUpgrades, getDimDisplay, getReformDisplay, onDimRepeatable } from "./fome";
 import { RepeatableOptions, createRepeatable } from "features/repeatable";
 import { EffectFeatureOptions, effectDecorator } from "features/decorators/common";
 import { createUpgrade } from "features/upgrades/upgrade";
@@ -17,6 +17,7 @@ import { format, formatWhole } from "util/break_eternity";
 import acceleron from "../acceleron-old/acceleron";
 import timecube from "../timecube-old/timecube";
 import entropy from "../acceleron-old/entropy";
+import { createReformRequirement } from "./ReformRequirement";
 
 const id = "infinitesimal";
 const layer = createLayer(id, function (this: BaseLayer) {
@@ -93,7 +94,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 requiresPay: () => !unref(fome.achievements[FomeTypes.infinitesimal].earned),
                 spendResources: false
             })),
-            display: jsx(() => (<>TODO</>)),
+            display: getDimDisplay(FomeTypes.infinitesimal, FomeDims.height),
             effect() { return Decimal.add(unref(this.amount), 1); },
             classes: () => ({ auto: unref(fome.achievements[FomeTypes.infinitesimal].earned) }),
             onClick: () => onDimRepeatable(FomeTypes.infinitesimal)
@@ -106,7 +107,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 requiresPay: () => !unref(fome.achievements[FomeTypes.infinitesimal].earned),
                 spendResources: false
             })),
-            display: jsx(() => (<>TODO</>)),
+            display: getDimDisplay(FomeTypes.infinitesimal, FomeDims.width),
             effect() { return Decimal.add(unref(this.amount), 1); },
             classes: () => ({ auto: unref(fome.achievements[FomeTypes.infinitesimal].earned) }),
             onClick: () => onDimRepeatable(FomeTypes.infinitesimal)
@@ -119,7 +120,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 requiresPay: () => !unref(fome.achievements[FomeTypes.infinitesimal].earned),
                 spendResources: false
             })),
-            display: jsx(() => (<>TODO</>)),
+            display: getDimDisplay(FomeTypes.infinitesimal, FomeDims.depth),
             effect() { return Decimal.add(unref(this.amount), 1); },
             classes: () => ({ auto: unref(fome.achievements[FomeTypes.infinitesimal].earned) }),
             onClick: () => onDimRepeatable(FomeTypes.infinitesimal)
@@ -137,19 +138,17 @@ const layer = createLayer(id, function (this: BaseLayer) {
             visibility: upgrades.condense.bought,
             requirements: [
                 createCostRequirement(() => ({
-                    resource: createResource(fome.protoversal.upgrades.reform.amount, ""),
-                    cost: Formula.variable(feature.amount).plus(2),
-                    spendResources: false,
-                    requiresPay: false
-                })),
-                createCostRequirement(() => ({
                     resource: noPersist(amount),
                     cost: () => Decimal.minus(unref(feature.amount), 3).max(2).pow_base(unref(feature.amount)).plus(1).times(5).pow10().dividedBy(5),
                     requiresPay: () => !unref(fome.achievements.reform.earned),
                     spendResource: false
+                })),
+                createReformRequirement(() => ({
+                    fomeType: FomeTypes.protoversal,
+                    cost: Formula.variable(feature.amount).plus(1)
                 }))
             ],
-            display: jsx(() => (<>TODO</>)),
+            display: getReformDisplay(FomeTypes.infinitesimal),
             effect() { return Decimal.cbrt(unref(this.amount)) },
             classes: () => ({ auto: unref(fome.achievements.reform.earned) })
         }), effectDecorator) as FomeUpgrade
@@ -167,13 +166,12 @@ const layer = createLayer(id, function (this: BaseLayer) {
     })
 
     const boostBonus = computed(() => unref(fome.globalBoostBonus).plus(getFomeBoost(FomeTypes.quantum, 5)).plus(getFomeBoost(FomeTypes.subspatial, 3)));
-    const fullBoostBonus = computed(() => unref(boostBonus).plus(unref(skyrmion.pion.upgrades.lambda.effect)));
     const boosts: Record<1|2|3|4|5, GenericBoost> & { index: Persistent<1|2|3|4|5> } = {
         index: persistent<1|2|3|4|5>(1),
         1: createBoost(feature => ({
             display: () => `Multiply the generation of Infinitesimal Foam by ${format(getFomeBoost(FomeTypes.infinitesimal, 1))}`,
             effect: () => new Decimal(unref(feature.total)).times(unref(skyrmion.pion.upgrades.lambda.effect)).plus(1),
-            bonus: fullBoostBonus
+            bonus: boostBonus
         })),
         2: createBoost(feature => ({
             display: () => `Increase Pion and Spinor gain by ${format(Decimal.minus(getFomeBoost(FomeTypes.infinitesimal, 2), 1).times(100))}%`,
