@@ -1,0 +1,209 @@
+import { createResource } from "features/resources/resource";
+import { createLayer, BaseLayer } from "game/layers";
+import { createExponentialModifier, createMultiplicativeModifier, createSequentialModifier } from "game/modifiers";
+import Decimal, { DecimalSource } from "lib/break_eternity";
+import fome, { FomeDims, FomeTypes, FomeUpgrade, FomeUpgrades, onDimRepeatable } from "./fome";
+import { RepeatableOptions, createRepeatable } from "features/repeatable";
+import { EffectFeatureOptions, effectDecorator } from "features/decorators/common";
+import { createUpgrade } from "features/upgrades/upgrade";
+import { createCostRequirement } from "game/requirements";
+import { ComputedRef, Ref, computed, unref } from "vue";
+import { Persistent, noPersist, persistent } from "game/persistence";
+import { jsx } from "features/feature";
+import { GenericBoost, createBoost, getFomeBoost } from "./boost";
+import skyrmion from "../skyrmion/skyrmion";
+import Formula from "game/formulas/formulas";
+import { format, formatWhole } from "util/break_eternity";
+import acceleron from "../acceleron-old/acceleron";
+import timecube from "../timecube-old/timecube";
+import entropy from "../acceleron-old/entropy";
+
+const id = "infinitesimal";
+const layer = createLayer(id, function (this: BaseLayer) {
+    const amount = createResource<DecimalSource>(0, "Infinitesimal Foam");
+
+    const productionModifiers = createSequentialModifier(() => [
+        ...fome.production,
+        createMultiplicativeModifier(() => ({
+            multiplier: upgrades[FomeDims.height].effect,
+            enabled: () => Decimal.gt(unref(upgrades[FomeDims.height].amount), 0),
+            description: jsx(() => (<>[{fome.name}] Infinitesimal Foam Height ({formatWhole(unref(upgrades[FomeDims.height].amount))})</>))
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: upgrades[FomeDims.width].effect,
+            enabled: () => Decimal.gt(unref(upgrades[FomeDims.width].amount), 0),
+            description: jsx(() => (<>[{fome.name}] Infinitesimal Foam Width ({formatWhole(unref(upgrades[FomeDims.width].amount))})</>))
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: upgrades[FomeDims.depth].effect,
+            enabled: () => Decimal.gt(unref(upgrades[FomeDims.depth].amount), 0),
+            description: jsx(() => (<>[{fome.name}] Infinitesimal Foam Depth ({formatWhole(unref(upgrades[FomeDims.depth].amount))})</>))
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: boosts[1].effect,
+            enabled: () => Decimal.gt(unref(boosts[1].total), 0),
+            description: jsx(() => (<>[{fome.name}] Infinitesimal Boost 1 ({formatWhole(unref(boosts[1].total))})</>))
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: skyrmion.pion.upgrades.iota.effect,
+            enabled: () => Decimal.gt(unref(skyrmion.pion.upgrades.iota.totalAmount), 0),
+            description: jsx(() => (<>[{skyrmion.name}] Pion Upgrade ι ({formatWhole(unref(skyrmion.pion.upgrades.iota.totalAmount))})</>))
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: skyrmion.spinor.upgrades.epsilon.effect,
+            enabled: () => Decimal.gt(unref(skyrmion.spinor.upgrades.epsilon.totalAmount), 0),
+            description: jsx(() => (<>[{skyrmion.name}] Spinor Upgrade ε ({formatWhole(unref(skyrmion.spinor.upgrades.epsilon.totalAmount))})</>))
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: skyrmion.spinor.upgrades.iota.effect,
+            enabled: () => Decimal.gt(unref(skyrmion.spinor.upgrades.iota.totalAmount), 0),
+            description: jsx(() => (<>[{skyrmion.name}] Spinor Upgrade ι ({formatWhole(unref(skyrmion.spinor.upgrades.iota.totalAmount))})</>))
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: entropy.enhancements.extension.effect as Ref<DecimalSource>,
+            enabled: entropy.enhancements.extension.bought,
+            description: jsx(() => (<>[{acceleron.name}] Entropic Extension</>))
+        })),
+        createExponentialModifier(() => ({
+            exponent: upgrades.reform.effect,
+            enabled: Decimal.gt(unref(upgrades.reform.amount), 1),
+            description: jsx(() => (<>[{fome.name}] Infinitesimal Foam<sup>{formatWhole(unref(upgrades.reform.amount))}</sup></>))
+        })),
+        ...fome.timelineProduction,
+        createMultiplicativeModifier(() => ({
+            multiplier: Decimal.dOne,
+            enabled: false,
+            description: jsx(() => (<>[{timecube.name}] Timecube Upgrade 45, Infinitesimal Foam bonus</>))
+        }))
+    ]);
+    const production: ComputedRef<DecimalSource> = computed(() => productionModifiers.apply(unref(skyrmion.totalSkyrmions).times(0.01)));
+    fome.on("preUpdate", (diff: number) => {
+        if (!unref(fome.unlocked)) return;
+
+        const delta = unref(acceleron.timeMult).times(diff);
+        amount.value = delta.times(unref(production)).plus(amount.value);
+    });
+
+    const upgrades: FomeUpgrades = {
+        [FomeDims.height]: createRepeatable<RepeatableOptions & EffectFeatureOptions>(feature => ({
+            visibility: () => Decimal.gt(unref(upgrades.reform.amount), 0),
+            requirements: createCostRequirement(() => ({
+                resource: noPersist(amount),
+                cost: () => Decimal.pow(unref(feature.amount), 1.15).pow_base(5).times(6),
+                requiresPay: () => !unref(fome.achievements[FomeTypes.infinitesimal].earned),
+                spendResources: false
+            })),
+            display: jsx(() => (<>TODO</>)),
+            effect() { return Decimal.add(unref(this.amount), 1); },
+            classes: () => ({ auto: unref(fome.achievements[FomeTypes.infinitesimal].earned) }),
+            onClick: () => onDimRepeatable(FomeTypes.infinitesimal)
+        }), effectDecorator) as FomeUpgrade,
+        [FomeDims.width]: createRepeatable<RepeatableOptions & EffectFeatureOptions>(feature => ({
+            visibility: () => Decimal.gt(unref(upgrades.reform.amount), 0),
+            requirements: createCostRequirement(() => ({
+                resource: noPersist(amount),
+                cost: () => Decimal.pow(unref(feature.amount), 1.15).pow_base(7).times(10),
+                requiresPay: () => !unref(fome.achievements[FomeTypes.infinitesimal].earned),
+                spendResources: false
+            })),
+            display: jsx(() => (<>TODO</>)),
+            effect() { return Decimal.add(unref(this.amount), 1); },
+            classes: () => ({ auto: unref(fome.achievements[FomeTypes.infinitesimal].earned) }),
+            onClick: () => onDimRepeatable(FomeTypes.infinitesimal)
+        }), effectDecorator) as FomeUpgrade,
+        [FomeDims.depth]: createRepeatable<RepeatableOptions & EffectFeatureOptions>(feature => ({
+            visibility: () => Decimal.gt(unref(upgrades.reform.amount), 0),
+            requirements: createCostRequirement(() => ({
+                resource: noPersist(amount),
+                cost: () => Decimal.pow(unref(feature.amount), 1.15).pow_base(9).times(25),
+                requiresPay: () => !unref(fome.achievements[FomeTypes.infinitesimal].earned),
+                spendResources: false
+            })),
+            display: jsx(() => (<>TODO</>)),
+            effect() { return Decimal.add(unref(this.amount), 1); },
+            classes: () => ({ auto: unref(fome.achievements[FomeTypes.infinitesimal].earned) }),
+            onClick: () => onDimRepeatable(FomeTypes.infinitesimal)
+        }), effectDecorator) as FomeUpgrade,
+        condense: createUpgrade(feature => ({
+            visibility: () => !unref(feature.bought) && unref(fome[FomeTypes.protoversal].upgrades.condense.bought),
+            requirements: createCostRequirement(() => ({
+                resource: noPersist(amount),
+                cost: 2e4
+            })),
+            display: { description: `Condense your ${amount.displayName}` },
+            onPurchase() { fome.subspatial.upgrades.reform.amount.value = Decimal.dOne }
+        })),
+        reform: createRepeatable<RepeatableOptions & EffectFeatureOptions>(feature => ({
+            visibility: upgrades.condense.bought,
+            requirements: [
+                createCostRequirement(() => ({
+                    resource: createResource(fome.protoversal.upgrades.reform.amount, ""),
+                    cost: Formula.variable(feature.amount).plus(2),
+                    spendResources: false,
+                    requiresPay: false
+                })),
+                createCostRequirement(() => ({
+                    resource: noPersist(amount),
+                    cost: () => Decimal.minus(unref(feature.amount), 3).max(2).pow_base(unref(feature.amount)).plus(1).times(5).pow10().dividedBy(5),
+                    requiresPay: () => !unref(fome.achievements.reform.earned),
+                    spendResource: false
+                }))
+            ],
+            display: jsx(() => (<>TODO</>)),
+            effect() { return Decimal.cbrt(unref(this.amount)) },
+            classes: () => ({ auto: unref(fome.achievements.reform.earned) })
+        }), effectDecorator) as FomeUpgrade
+    }
+    fome.on("update", () => {
+        if (unref(fome.achievements.reform.earned)) {
+            if (!unref(upgrades.condense.bought) && unref(upgrades.condense.canPurchase)) upgrades.condense.purchase();
+            if (unref(upgrades.reform.canClick)) upgrades.reform.onClick();
+        }
+        if (unref(fome.achievements[FomeTypes.infinitesimal].earned)) {
+            for (const dim of Object.values(FomeDims)) {
+                if (unref(upgrades[dim].canClick)) upgrades[dim].onClick();
+            }
+        }
+    })
+
+    const boostBonus = computed(() => unref(fome.globalBoostBonus).plus(getFomeBoost(FomeTypes.quantum, 5)).plus(getFomeBoost(FomeTypes.subspatial, 3)));
+    const fullBoostBonus = computed(() => unref(boostBonus).plus(unref(skyrmion.pion.upgrades.lambda.effect)));
+    const boosts: Record<1|2|3|4|5, GenericBoost> & { index: Persistent<1|2|3|4|5> } = {
+        index: persistent<1|2|3|4|5>(1),
+        1: createBoost(feature => ({
+            display: () => `Multiply the generation of Infinitesimal Foam by ${format(getFomeBoost(FomeTypes.infinitesimal, 1))}`,
+            effect: () => new Decimal(unref(feature.total)).times(unref(skyrmion.pion.upgrades.lambda.effect)).plus(1),
+            bonus: fullBoostBonus
+        })),
+        2: createBoost(feature => ({
+            display: () => `Increase Pion and Spinor gain by ${format(Decimal.minus(getFomeBoost(FomeTypes.infinitesimal, 2), 1).times(100))}%`,
+            effect: () => Decimal.times(unref(feature.total), 0.5).plus(1),
+            bonus: boostBonus
+        })),
+        3: createBoost(feature => ({
+            display: () => `Reduce Pion and Spinor α costs by ${format(Decimal.sub(1, getFomeBoost(FomeTypes.infinitesimal, 3)).times(100))}%`,
+            effect: () => Decimal.pow(0.8, unref(feature.total)),
+            bonus: boostBonus
+        })),
+        4: createBoost(feature => ({
+            display: () => `Increase Skyrmion gain by ${format(Decimal.minus(getFomeBoost(FomeTypes.infinitesimal, 4), 1).times(100))}%`,
+            effect: () => Decimal.times(unref(feature.total), 0.5).plus(1),
+            bonus: boostBonus
+        })),
+        5: createBoost(feature => ({
+            display: () => `Reduce Pion and Spinor Upgrade γ costs by ${format(Decimal.sub(1, getFomeBoost(FomeTypes.infinitesimal, 5)).times(100))}%`,
+            effect: () => Decimal.pow(0.8, unref(feature.total)),
+            bonus: boostBonus
+        }))
+    }
+
+    return {
+        amount,
+        upgrades,
+        boosts,
+        production,
+        display: "This page intentionally left blank"
+    }
+});
+
+export default layer;

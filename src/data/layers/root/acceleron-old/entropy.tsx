@@ -13,7 +13,7 @@ import { format, formatTime, formatWhole } from "util/break_eternity";
 import { Computable, GetComputableType, GetComputableTypeWithDefault, processComputable, ProcessedComputable } from "util/computed";
 import { coerceComponent, render } from "util/vue";
 import { computed, ComputedRef, unref, watch } from "vue";
-import fome from "../fome-old/fome";
+import fome, { FomeTypes } from "../fome/fome";
 import timecube from "../timecube-old/timecube";
 import acceleron from "./acceleron";
 import EnhancementsVue from "./Enhancements.vue";
@@ -139,7 +139,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             visibility: timecube.upgrades.tetrate.bought,
             title: 'Entropic Inversion',
             description: 'Increase Acceleron gain based on Quantum Foam',
-            effect() { return Decimal.max(unref(fome.amounts.quantum), 0).plus(1).log10().plus(1) }
+            effect() { return Decimal.max(unref(fome[FomeTypes.quantum].amount), 0).plus(1).log10().plus(1) }
         })),
         createEnhancement('tesselation', () => ({
             row: 4,

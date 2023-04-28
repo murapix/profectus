@@ -11,13 +11,12 @@ import { render } from "util/vue";
 import { computed, Ref, unref } from "vue";
 
 import skyrmion from "./layers/root/skyrmion/skyrmion";
-import fome from "./layers/root/fome-old/fome";
+import fome from "./layers/root/fome/fome";
 import acceleron from "./layers/root/acceleron-old/acceleron";
 import entropy from "./layers/root/acceleron-old/entropy";
 import timecube from "./layers/root/timecube-old/timecube";
 import inflaton from "./layers/root/inflaton-old/inflaton";
 import entangled from "./layers/root/entangled-old/entangled";
-import abyss from "./layers/root/skyrmion/abyss";
 
 /**
  * @hidden
@@ -32,10 +31,12 @@ export const root = createLayer(id, () => {
         [layer.name, () => ({
             display: layer.name,
             tab: createTab(() => ({
-                // style: computed(() => ({
-                //     "--layer-color": unref(layer.color),
-                //     ...(unref(layer.style) as Record<string, unknown>)
-                // })),
+                style() {
+                    return {
+                        "--layer-color": unref(layer.color),
+                        ...(unref(layer.style) as Record<string, unknown>)
+                    }
+                },
                 display: jsx(() => (
                     <>
                         <div>
@@ -54,11 +55,10 @@ export const root = createLayer(id, () => {
         name: "Root",
         minWidth: 300,
         minimizable: false,
-        // display: jsx(() => unref(fome.unlocked)
-        //     ? <>{render(tabs)}</>
-        //     : <div style={{"--layer-color": unref(skyrmion.color)}}>{render(unref(tabs.tabs[skyrmion.name].tab))}</div>
-        // ),
-        display: jsx(() => <div style={{"--layer-color": unref(abyss.challenge.active) ? abyss.color : skyrmion.color}}>{render(unref(tabs.tabs[skyrmion.name].tab))}</div>),
+        display: jsx(() => unref(fome.unlocked)
+            ? <>{render(tabs)}</>
+            : <div style={{"--layer-color": unref(skyrmion.color)}}>{render(unref(tabs.tabs[skyrmion.name].tab))}</div>
+        ),
         tabs
     };
 });

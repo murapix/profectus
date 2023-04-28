@@ -69,14 +69,12 @@ export const bonusAmountDecorator: Decorator<
     BaseBonusAmountFeature,
     GenericBonusAmountFeature
 > = {
-    preConstruct(feature) {
+    postConstruct(feature) {
         if (feature.amount === undefined) {
             console.error(
                 `Decorated feature ${feature.id} does not contain the required 'amount' property"`
             );
         }
-    },
-    postConstruct(feature) {
         processComputable(feature, "bonusAmount");
         if (feature.totalAmount === undefined) {
             feature.totalAmount = computed(() =>
@@ -92,6 +90,7 @@ export const bonusAmountDecorator: Decorator<
 /**
  * Allows the addition of "bonus levels" to the decorated feature, with an accompanying "total amount".
  * To function properly, the `createFeature()` function must have its generic type extended by {@linkcode BonusCompletionFeatureOptions}.
+ * Additionally, the base feature must have an `amount` property.
  * To allow access to the decorated values outside the `createFeature()` function, the output type must be extended by {@linkcode GenericBonusCompletionFeature}.
  * @example ```ts
  * createChallenge<ChallengeOptions & BonusCompletionFeatureOptions>(() => ({
@@ -106,6 +105,11 @@ export const bonusCompletionsDecorator: Decorator<
     GenericBonusCompletionsFeature
 > = {
     postConstruct(feature) {
+        if (feature.completions === undefined) {
+            console.error(
+                `Decorated feature ${feature.id} does not contain the required 'completions' property"`
+            );
+        }
         processComputable(feature, "bonusCompletions");
         if (feature.totalCompletions === undefined) {
             feature.totalCompletions = computed(() =>

@@ -13,7 +13,6 @@
             <div v-if="isTab('behaviour')">
                 <Toggle :title="unthrottledTitle" v-model="unthrottled" />
                 <Toggle v-if="projInfo.enablePausing" :title="isPausedTitle" v-model="isPaused" />
-                <Toggle :title="offlineProdTitle" v-model="offlineProd" />
                 <Toggle :title="autosaveTitle" v-model="autosave" />
                 <FeedbackButton v-if="!autosave" class="button save-button" @click="save()">Manually save</FeedbackButton>
             </div>
@@ -73,7 +72,7 @@ const settingFieldsComponent = computed(() => {
 });
 
 const { showTPS, theme, unthrottled, alignUnits } = toRefs(settings);
-const { autosave, offlineProd } = toRefs(player);
+const { autosave } = toRefs(player);
 const isPaused = computed({
     get() {
         return player.devSpeed === 0;
@@ -87,12 +86,6 @@ const unthrottledTitle = jsx(() => (
     <span class="option-title">
         Unthrottled
         <desc>Allow the game to run as fast as possible. Not battery friendly.</desc>
-    </span>
-));
-const offlineProdTitle = jsx(() => (
-    <span class="option-title">
-        Offline Production<Tooltip display="Save-specific" direction={Direction.Right}>*</Tooltip>
-        <desc>Simulate production that occurs while the game is closed.</desc>
     </span>
 ));
 const autosaveTitle = jsx(() => (

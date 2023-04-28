@@ -35,7 +35,7 @@ export async function load(): Promise<void> {
     loadSettings();
 
     try {
-        let save = null//localStorage.getItem(settings.active);
+        let save = localStorage.getItem(settings.active);
         if (save == null) {
             await loadSave(newSave());
             return;
@@ -113,16 +113,16 @@ export async function loadSave(playerObj: Partial<Player>): Promise<void> {
     globalBus.emit("onLoad");
 }
 
-// setInterval(() => {
-//     if (player.autosave) {
-//         save();
-//     }
-// }, 1000);
-// window.onbeforeunload = () => {
-//     if (player.autosave) {
-//         save();
-//     }
-// };
+setInterval(() => {
+    if (player.autosave) {
+        save();
+    }
+}, 1000);
+window.onbeforeunload = () => {
+    if (player.autosave) {
+        save();
+    }
+};
 
 declare global {
     /**

@@ -42,23 +42,6 @@ function update() {
 
     loadingSave.value = false;
 
-    // Add offline time if any
-    if (player.offlineTime != undefined) {
-        if (Decimal.gt(player.offlineTime, projInfo.offlineLimit * 3600)) {
-            player.offlineTime = projInfo.offlineLimit * 3600;
-        }
-        if (Decimal.gt(player.offlineTime, 0) && player.devSpeed !== 0) {
-            const offlineDiff = Math.max(player.offlineTime / 10, diff);
-            player.offlineTime = player.offlineTime - offlineDiff;
-            diff += offlineDiff;
-        } else if (player.devSpeed === 0) {
-            player.offlineTime += diff;
-        }
-        if (!player.offlineProd || Decimal.lt(player.offlineTime, 0)) {
-            player.offlineTime = null;
-        }
-    }
-
     // Cap at max tick length
     diff = Math.min(diff, projInfo.maxTickLength);
 

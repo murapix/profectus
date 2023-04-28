@@ -1,4 +1,3 @@
-import { AutobuyFeatureOptions, autobuyDecorator } from "features/decorators/autobuyDecorator";
 import { BonusAmountFeatureOptions, GenericBonusAmountFeature, bonusAmountDecorator } from "features/decorators/bonusDecorator";
 import { EffectFeatureOptions, GenericEffectFeature, effectDecorator } from "features/decorators/common";
 import { CoercableComponent, Visibility, jsx } from "features/feature";
@@ -10,9 +9,8 @@ import { Requirements, displayRequirements } from "game/requirements";
 import Decimal, { DecimalSource } from "lib/break_eternity";
 import { formatSmall, formatWhole } from "util/break_eternity";
 import { Direction } from "util/common";
-import { Computable } from "util/computed";
+import { Computable, ProcessedComputable } from "util/computed";
 import { unref } from "vue";
-import skyrmion from "./skyrmion";
 
 export interface SkyrmionRepeatableData {
     visibility?: Computable<Visibility | boolean>;
@@ -22,13 +20,12 @@ export interface SkyrmionRepeatableData {
         description: JSX.Element;
         effect?(effect: unknown): CoercableComponent;
     };
-    shouldAutobuy: Computable<boolean>;
-    effect?(amount: DecimalSource): unknown;
+    effect?(amount: DecimalSource): DecimalSource;
     bonusAmount?: Computable<DecimalSource>;
 }
 
-export interface SkyrmionRepeatableOptions extends RepeatableOptions, EffectFeatureOptions, BonusAmountFeatureOptions, AutobuyFeatureOptions {};
-export type SkyrmionRepeatable = GenericRepeatable & GenericEffectFeature & GenericBonusAmountFeature;
+export interface SkyrmionRepeatableOptions extends RepeatableOptions, EffectFeatureOptions, BonusAmountFeatureOptions {};
+export type SkyrmionRepeatable = GenericRepeatable & GenericEffectFeature & {effect: ProcessedComputable<DecimalSource>} & GenericBonusAmountFeature;
 
 export function createSkyrmionRepeatable(
     data: SkyrmionRepeatableData
@@ -43,11 +40,9 @@ export function createSkyrmionRepeatable(
         visibility: data.visibility,
         requirements: data.requirements,
         display: data.display.name,
-        shouldAutobuy: data.shouldAutobuy,
-        eventEmitter: skyrmion.on,
         effect: () => data.effect!(unref((feature as SkyrmionRepeatable).totalAmount)),
         bonusAmount: data.bonusAmount ?? 0
-    }), effectDecorator, bonusAmountDecorator, autobuyDecorator) as SkyrmionRepeatable;
+    }), effectDecorator, bonusAmountDecorator) as SkyrmionRepeatable;
 
     addTooltip(repeatable, {
         direction: Direction.Down,

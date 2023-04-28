@@ -15,7 +15,7 @@ import { ProcessedComputable } from "util/computed";
 import { render } from "util/vue";
 import { computed, ComputedRef, unref } from "vue";
 import skyrmion from "../skyrmion/skyrmion";
-import fome, { FomeTypes } from "../fome-old/fome";
+import fome, { FomeTypes } from "../fome/fome";
 import entropy from "./entropy";
 import timecube from "../timecube-old/timecube";
 import inflaton from "../inflaton-old/inflaton";
@@ -57,7 +57,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                                  .times(getUpgradeEffect(upgrades.fluctuation))
                                  .dividedBy(() => entangled.isFirstBranch(id) ? 1e6 : 1e80)
                                  .pow(() => entangled.isFirstBranch(id) ? 0.1 : 0.05),
-            baseResource: noPersist(fome.amounts[FomeTypes.quantum]),
+            baseResource: noPersist(fome[FomeTypes.quantum].amount),
             gainResource: noPersist(accelerons),
             onConvert() {
                 if (entangled.isFirstBranch(id)) entangled.branchOrder.value = id;
@@ -137,7 +137,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 const gain = new Decimal(unref(this.triggerRequirement as ProcessedComputable<DecimalSource>)).times(unref(this.effect)).times(intervals);
                 skyrmion.pion.pions.value = gain.times(unref(1)).plus(unref(skyrmion.pion.pions));
                 skyrmion.spinor.spinors.value = gain.times(unref(1)).plus(unref(skyrmion.spinor.spinors));
-                Object.values(FomeTypes).forEach(type => fome.amounts[type].value = gain.times(unref(fome.rates[type])).plus(unref(fome.amounts[type])));
+                Object.values(FomeTypes).forEach(type => fome[type].amount.value = gain.times(unref(fome[type].production)).plus(unref(fome[type].amount)));
             }
         })),
         timecube: createLoop(() => ({
@@ -361,7 +361,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                     {displayRequirements(upgrades.translation.requirements)}
                 </>
             )),
-            effect() { return Object.values(fome.reformUpgrades).map(upgrade => unref((upgrade as GenericRepeatable).amount)).reduce((a,b) => Decimal.add(a, b)) },
+            effect() { return Object.values(FomeTypes).map(fomeType => unref(fome[fomeType].upgrades.reform.amount)).reduce((a,b) => a.plus(b), Decimal.dZero) },
             requirements: createCostRequirement(() => ({
                 cost: new Decimal(5),
                 resource: noPersist(accelerons)

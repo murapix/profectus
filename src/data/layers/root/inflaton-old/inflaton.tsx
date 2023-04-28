@@ -23,7 +23,7 @@ import { render, renderRow } from "util/vue";
 import { computed, ComputedRef, unref } from "vue";
 import acceleron from "../acceleron-old/acceleron";
 import entangled from "../entangled-old/entangled";
-import fome, { FomeTypes } from "../fome-old/fome";
+import fome, { FomeTypes } from "../fome/fome";
 import { createResearch, GenericRepeatableResearch, GenericResearch, getResearchEffect, repeatableResearchDecorator, RepeatableResearchOptions } from "./research";
 import ResearchQueueVue from "./ResearchQueue.vue";
 import ResearchTreeVue from "./ResearchTree.vue";
@@ -57,13 +57,13 @@ const layer = createLayer(id, function (this: BaseLayer) {
     const conversionCost = computed(() => entangled.isFirstBranch(id) ? 1e6 : 1e50);
     const conversion = createClickable(() => ({
         canClick() {
-            return Decimal.gte(unref(fome.amounts[FomeTypes.quantum]), unref(conversionCost));
+            return Decimal.gte(unref(fome[FomeTypes.quantum].amount), unref(conversionCost));
         },
         display: jsx(() => (
             <>
                 1 {inflatons.displayName}<br />
                 <br />
-                Requires: {format(unref(fome.amounts[FomeTypes.quantum]))} / {format(unref(conversionCost))} {fome.amounts[FomeTypes.quantum].displayName}
+                Requires: {format(unref(fome[FomeTypes.quantum].amount))} / {format(unref(conversionCost))} {fome[FomeTypes.quantum].amount.displayName}
             </>
         )),
         onClick() {
@@ -123,7 +123,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             : Decimal.dOne.times(getResearchEffect(research.fomeGain))
                           .times(getResearchEffect(research.moreFomeGain))
                           .times(getResearchEffect(research.evenMoreFoamGain))
-                        //   .times(getResearchEffect(repeatables.fome))
+                          .times(getResearchEffect(repeatables.fome))
                           .min(unref(inflatonNerf));
     });
     this.on("postUpdate", diff => {
@@ -138,17 +138,17 @@ const layer = createLayer(id, function (this: BaseLayer) {
     const currentSize = createResource(computed(() => {
         if (Decimal.lt(unref(inflatons), 1)) return Decimal.dZero;
 
-        let size = Formula.constant(inflatons).max(2)
-            .log2().log2()
-            .times(getResearchEffect(research.doubleSize))
-            .times(getResearchEffect(research.quadrupleSize))
-            .times(1) // size repeatable effect
-            .step(6.187e10, size => size.pow(0.1))
-            .times(1) // top time square effect
-            .div(1) // top timeline nerf
-            .times(1) // top timeline bonus
+        return Decimal.max(unref(inflatons), 2)
+                      .log2().log2()
+                      .times(getResearchEffect(research.doubleSize))
+                      .times(getResearchEffect(research.quadrupleSize))
+                      .times(1) // size repeatable effect
+        //     .step(6.187e10, size => size.pow(0.1))
+        //     .times(1) // top time square effect
+        //     .div(1) // top timeline nerf
+        //     .times(1) // top timeline bonus
 
-        return size.evaluate();
+        // return size.evaluate();
     }), "planck lengths");
     const maxSize = trackBest(currentSize);
     const usedSize = persistent<DecimalSource>(0);
@@ -165,7 +165,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             },
             requirements: createCostRequirement(() => ({
                 cost: () => entangled.isFirstBranch(id) ? new Decimal(5e13) : new Decimal(5e46),
-                resource: noPersist(fome.amounts[FomeTypes.quantum])
+                resource: noPersist(fome[FomeTypes.quantum].amount)
             })),
             visibility() { return true },
             style: upgradeStyle
@@ -177,7 +177,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             },
             requirements: createCostRequirement(() => ({
                 cost: () => entangled.isFirstBranch(id) ? new Decimal(1e14) : new Decimal(1e47),
-                resource: noPersist(fome.amounts[FomeTypes.quantum])
+                resource: noPersist(fome[FomeTypes.quantum].amount)
             })),
             visibility() { return unref(this.bought) || unref(upgrades.subspaceBuildings.bought) },
             style: upgradeStyle
@@ -203,7 +203,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             },
             cost: {
                 free: research.autobuild.researched,
-                resource: noPersist(fome.amounts[FomeTypes.subspatial]),
+                resource: noPersist(fome[FomeTypes.subspatial].amount),
                 multiplier: computed(() => entangled.isFirstBranch(id) ? 1e30 : 1e82),
                 base: 1.1
             },
@@ -221,7 +221,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             },
             cost: {
                 free: research.autobuild.researched,
-                resource: noPersist(fome.amounts[FomeTypes.subspatial]),
+                resource: noPersist(fome[FomeTypes.subspatial].amount),
                 multiplier: computed(() => entangled.isFirstBranch(id) ? 1e30 : 1e82),
                 base: computed(() => unref(research.cheaperLabs.researched) ? 1.5 : 15)
             },
@@ -239,7 +239,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             },
             cost: {
                 free: research.autobuild.researched,
-                resource: noPersist(fome.amounts[FomeTypes.quantum]),
+                resource: noPersist(fome[FomeTypes.quantum].amount),
                 multiplier: computed(() => entangled.isFirstBranch(id) ? 1e15 : 1e48),
                 base: 1.2
             },
@@ -753,7 +753,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                         <div class='row' style={{flexFlow: 'row-reverse nowrap', alignItems: 'flex-start', justifyContent: 'space-evenly'}}>
                             <ResearchQueueVue locations={researchLocations} parallel={parallelSize} queue={computed(() => Array.from({...unref(researchQueue), length: Math.max(unref(researchQueue).length, unref(queueLength))}))} />
                             <ResearchTreeVue research={research} />
-                            <ColumnVue mergeAdjacent={false}>
+                            <ColumnVue>
                                 {...Object.values(repeatables).map(render).map(element => <div style={{margin: 'var(--feature-margin) 0px'}}>{element}</div>)}
                             </ColumnVue>
                         </div>
@@ -810,7 +810,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
                         createCostRequirement(() => ({
                             cost: getBuildingCost(Formula.variable(this.amount), building.cost.multiplier, building.cost.base),
                             resource: building.cost.resource,
-                            requiresPay: () => !unref(research.autobuild.researched)
+                            requiresPay: () => !unref(research.autobuild.researched),
+                            spendResource: false
                         }))
                     ],
 

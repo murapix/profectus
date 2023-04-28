@@ -6,7 +6,7 @@ import { createCostRequirement } from "game/requirements";
 import { computed, unref, watch } from "vue";
 import skyrmion from "./skyrmion";
 import { render } from "util/vue";
-import { persistent } from "game/persistence";
+import { noPersist, persistent } from "game/persistence";
 import Decimal, { DecimalSource } from "lib/break_eternity";
 import pion from "./pion";
 import spinor from "./spinor"
@@ -27,7 +27,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             boxShadow: "0"
         },
         requirements: createCostRequirement(() => ({
-            cost: feature.completions,
+            cost: noPersist(feature.completions),
             resource: upgradeCount
         })),
         completionLimit: 4

@@ -1,61 +1,64 @@
 import { Visibility, jsx } from "features/feature";
 import { createResource } from "features/resources/resource";
 import { createLayer, BaseLayer } from "game/layers";
-import { createAdditiveModifier, createMultiplicativeModifier } from "game/modifiers";
+import { createMultiplicativeModifier } from "game/modifiers";
 import Decimal, { DecimalSource } from "lib/break_eternity";
 import { computed, unref } from "vue";
 import { createSkyrmionUpgrade } from "./upgrade";
 import { createCostRequirement } from "game/requirements";
 import { Computable } from "util/computed";
-import fome, { FomeTypes } from "../fome-old/fome";
+import fome, { FomeTypes } from "../fome/fome";
 import pion from "./pion";
 import spinor from "./spinor";
 import { GenericUpgrade } from "features/upgrades/upgrade";
-import MainDisplayVue from "features/resources/MainDisplay.vue";
 import SpacerVue from "components/layout/Spacer.vue";
 import RowVue from "components/layout/Row.vue";
 import { render } from "util/vue";
 import SkyrmionVue from "./Skyrmion.vue";
 import { GenericRepeatable, createRepeatable } from "features/repeatable";
-import Formula from "game/formulas/formulas";
 import { addTooltip } from "features/tooltips/tooltip";
 import { Direction } from "util/common";
 import { format } from "util/break_eternity";
 import abyss from "./abyss";
+import ResourceVue from "features/resources/Resource.vue";
+import Formula from "game/formulas/formulas";
+import { getFomeBoost } from "../fome/boost";
 
 const id = "skyrmion";
 const layer = createLayer(id, function (this: BaseLayer) {
     const name = "Skyrmions";
     const color = "#37d7ff";
 
-    const conversion: GenericRepeatable = createRepeatable(feature => {
-        const cost = Formula.variable(feature.amount)
-                            .pow10()
-                            .dividedBy(fome.boosts[FomeTypes.infinitesimal][4].effect)
-                            .dividedBy(spinor.upgrades.alpha.effect)
-        return {
-            maximize: true,
-            initialAmount: 1,
-            requirements: [
-                createCostRequirement(() => ({
-                    resource: pion.pions,
-                    spendResources: () => !unref(upgrades.autoGain.bought),
-                    cost
-                })),
-                createCostRequirement(() => ({
-                    resource: spinor.spinors,
-                    spendResources: () => !unref(upgrades.autoGain.bought),
-                    cost
-                }))
-            ],
-            style: { paddingHorizontal: "20px" },
-            display: jsx(() => (
-                <>
-                    <h3>Convert 10<sup>X</sup> Pions and Spinors to X Skyrmions</h3>
-                </>
-            ))
-        }
-    });
+    const conversion: GenericRepeatable = createRepeatable(feature => ({
+        maximize: true,
+        initialAmount: 1,
+        requirements: [
+            createCostRequirement(() => ({
+                resource: pion.pions,
+                requiresPay: () => !unref(upgrades.autoGain.bought),
+                spendResources: false,
+                cost: Formula.variable(feature.amount)
+                             .pow10()
+                             .dividedBy(fome.infinitesimal.boosts[4].effect)
+                             .dividedBy(spinor.upgrades.alpha.effect)
+            })),
+            createCostRequirement(() => ({
+                resource: spinor.spinors,
+                requiresPay: () => !unref(upgrades.autoGain.bought),
+                spendResources: false,
+                cost: Formula.variable(feature.amount)
+                             .pow10()
+                             .dividedBy(fome.infinitesimal.boosts[4].effect)
+                             .dividedBy(spinor.upgrades.alpha.effect)
+            }))
+        ],
+        style: { paddingHorizontal: "20px" },
+        display: jsx(() => (
+            <>
+                <h3>Convert 10<sup>X</sup> Pions and Spinors to X Skyrmions</h3>
+            </>
+        ))
+    }));
     addTooltip(conversion, {
         direction: Direction.Up,
         display: jsx(() => (
@@ -68,21 +71,20 @@ const layer = createLayer(id, function (this: BaseLayer) {
     const skyrmions = createResource<DecimalSource>(conversion.amount, name);
     const totalSkyrmions = computed(() => Decimal.add(unref(skyrmions), 0));
     const generalProductionModifiers = [
-        createAdditiveModifier(() => ({
-            addend: totalSkyrmions,
-            description: "Base Skyrmion Production"
+        createMultiplicativeModifier(() => ({
+            multiplier: pion.upgrades.alpha.effect,
+            enabled: () => Decimal.gt(unref(pion.upgrades.alpha.totalAmount), 0),
+            description: jsx(() => (<>[{name}] Pion Upgrade α ({format(unref(pion.upgrades.alpha.totalAmount))})</>))
         })),
         createMultiplicativeModifier(() => ({
-            multiplier: pion.upgrades.alpha.effect as Computable<DecimalSource>,
-            description: jsx(() => (<>Pion Upgrade α ({0})</>))
+            multiplier: spinor.upgrades.zeta.effect,
+            enabled: () => Decimal.gt(unref(spinor.upgrades.zeta.totalAmount), 0),
+            description: jsx(() => (<>[{name}] Spinor Upgrade ζ ({format(unref(spinor.upgrades.zeta.totalAmount))})</>))
         })),
         createMultiplicativeModifier(() => ({
-            multiplier: spinor.upgrades.zeta.effect as Computable<DecimalSource>,
-            description: jsx(() => (<>Spinor Upgrade ζ ({0})</>))
-        })),
-        createMultiplicativeModifier(() => ({
-            multiplier: spinor.upgrades.lambda.effect as Computable<DecimalSource>,
-            description: jsx(() => (<>Spinor Upgrade λ ({0})</>))
+            multiplier: spinor.upgrades.lambda.effect,
+            enabled: () => Decimal.gt(unref(spinor.upgrades.lambda.totalAmount), 0),
+            description: jsx(() => (<>[{name}] Spinor Upgrade λ ({format(unref(spinor.upgrades.lambda.totalAmount))})</>))
         }))
     ];
 
@@ -93,7 +95,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 description: <>Begin Foam generation</>
             },
             cost: 10,
-            onPurchase() { fome.reformUpgrades.protoversal.amount.value = Decimal.dOne }
+            onPurchase() { fome.protoversal.upgrades.reform.amount.value = Decimal.dOne }
         }),
         autoGain: createUpgrade({
             display: {
@@ -274,10 +276,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
         upgrades,
         display: jsx(() => (
             <>
-                <MainDisplayVue resource={skyrmions} color={color} />
-                {Decimal.gt(unref(fome.getFomeBoost(FomeTypes.subspatial, 4)), 0)
-                ?   <>Your {fome.amounts.subspatial.displayName} is granting an additional <h2 style={{ color, textShadow: `0px 0px 10px ${color}` }}>
-                        {format(unref(fome.getFomeBoost(FomeTypes.subspatial, 4)))}
+                You have <ResourceVue resource={skyrmions} color={color} tag="h3" /> {skyrmions.displayName}
+                {Decimal.gt(getFomeBoost(FomeTypes.subspatial, 4), 0)
+                ?   <>Your {fome.subspatial.amount.displayName} is granting an additional <h2 style={{ color, textShadow: `0px 0px 10px ${color}` }}>
+                        {format(getFomeBoost(FomeTypes.subspatial, 4))}
                     </h2> {skyrmions.displayName}</>
                 : undefined}
                 <SpacerVue />
@@ -290,6 +292,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 <SkyrmionVue>{render(conversion)}</SkyrmionVue>
             </>
         )),
+        
         pion,
         spinor,
         abyss
