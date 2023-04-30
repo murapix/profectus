@@ -21,7 +21,7 @@ import { render, renderRowJSX } from "util/vue";
 import { createTab } from "features/tabs/tab";
 import FomeBoostVue from "../fome/FomeBoost.vue";
 import { createTabFamily } from "features/tabs/tabFamily";
-import { CostRequirementOptions, createBooleanRequirement, displayRequirements } from "game/requirements";
+import { createBooleanRequirement, displayRequirements } from "game/requirements";
 import { addTooltip } from "features/tooltips/tooltip";
 import infinitesimal from "./infinitesimal";
 import inflaton from "../inflaton-old/inflaton";

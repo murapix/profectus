@@ -28,7 +28,6 @@ import LoopsVue from "./Loops.vue";
 import UpgradeRingVue from "./UpgradeRing.vue";
 import { createCostRequirement, displayRequirements } from "game/requirements";
 import { effectDecorator } from "features/decorators/common";
-import { GenericRepeatable } from "features/repeatable";
 
 export const id = "acceleron";
 const layer = createLayer(id, function (this: BaseLayer) {
@@ -361,7 +360,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                     {displayRequirements(upgrades.translation.requirements)}
                 </>
             )),
-            effect() { return Object.values(FomeTypes).map(fomeType => unref(fome[fomeType].upgrades.reform.amount)).reduce((a,b) => a.plus(b), Decimal.dZero) },
+            effect() { return Object.values(FomeTypes).map(fomeType => unref(fome[fomeType].upgrades.reform.amount)).reduce((a: Decimal,b) => a.plus(b), Decimal.dZero) },
             requirements: createCostRequirement(() => ({
                 cost: new Decimal(5),
                 resource: noPersist(accelerons)

@@ -11,7 +11,7 @@
         :class="{
             feature: true,
             upgrade: true,
-            can: unref(canPurchase),
+            can: unref(canPurchase) && !unref(bought),
             locked: !unref(canPurchase),
             bought: unref(bought),
             ...unref(classes)
