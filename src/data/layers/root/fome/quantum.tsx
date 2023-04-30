@@ -54,6 +54,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
     const production: ComputedRef<DecimalSource> = computed(() => productionModifiers.apply(unref(skyrmion.totalSkyrmions).times(0.01)));
     fome.on("preUpdate", (diff: number) => {
         if (!unref(fome.unlocked)) return;
+        if (Decimal.eq(unref(upgrades.reform.amount), 0)) return;
 
         const delta = unref(acceleron.timeMult).times(diff);
         amount.value = delta.times(unref(production)).plus(amount.value);
@@ -66,7 +67,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 resource: noPersist(amount),
                 cost: () => Decimal.pow(unref(feature.amount), 1.15).pow_base(8).times(20),
                 requiresPay: () => !unref(fome.achievements[FomeTypes.subplanck].earned),
-                canMaximize: false
+                spendResources: false
             })),
             display: getDimDisplay(FomeTypes.quantum, FomeDims.height),
             effect() { return Decimal.add(unref(this.amount), 1); },
@@ -79,7 +80,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 resource: noPersist(amount),
                 cost: () => Decimal.pow(unref(feature.amount), 1.15).pow_base(10).times(30),
                 requiresPay: () => !unref(fome.achievements[FomeTypes.subplanck].earned),
-                canMaximize: false
+                spendResources: false
             })),
             display: getDimDisplay(FomeTypes.quantum, FomeDims.width),
             effect() { return Decimal.add(unref(this.amount), 1); },
@@ -92,7 +93,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 resource: noPersist(amount),
                 cost: () => Decimal.pow(unref(feature.amount), 1.15).pow_base(12).times(100),
                 requiresPay: () => !unref(fome.achievements[FomeTypes.subplanck].earned),
-                canMaximize: false
+                spendResources: false
             })),
             display: getDimDisplay(FomeTypes.quantum, FomeDims.depth),
             effect() { return Decimal.add(unref(this.amount), 1); },
