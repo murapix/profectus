@@ -58,8 +58,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
         alpha: createUpgrade({
             cost(amount) {
                 return amount.pow_base(1.2).times(0.1)
-                             .step(25, value => value.times(value.pow_base(7.9)).times(3.42e-23))
-                             .step(90, value => value.times(value.pow_base(19.75)).times(2.08e-104))
+                             .if(() => Decimal.gt(amount.evaluate(), 25), value => value.times(value.pow_base(7.9)).times(3.42e-23))
+                             .if(() => Decimal.gt(amount.evaluate(), 90), value => value.times(value.pow_base(19.75)).times(2.08e-104))
                              .times(getFomeBoost(FomeTypes.infinitesimal, 2));
             },
             shouldAutobuy: skyrmion.upgrades.alpha.bought,
@@ -73,8 +73,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
         beta: createUpgrade({
             cost(amount) {
                 return amount.pow_base(1.3).times(0.1)
-                             .step(15, value => value.times(value.pow_base(7.7)).times(6e-14))
-                             .step(45, value => value.times(value.pow_base(29.25)).times(1e-39))
+                             .if(() => Decimal.gt(amount.evaluate(), 15), value => value.times(value.pow_base(7.7)).times(6e-14))
+                             .if(() => Decimal.gt(amount.evaluate(), 45), value => value.times(value.pow_base(29.25)).times(1e-39))
                              .plus(0.9);
             },
             shouldAutobuy: skyrmion.upgrades.beta.bought,
@@ -89,8 +89,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
         gamma: createUpgrade({
             cost(amount) {
                 return amount.pow_base(1.7).times(0.1)
-                             .step(10, value => value.times(value.pow_base(7.35)).times(2.68e-9))
-                             .step(60, value => value.times(value.pow_base(29.4)).times(8.9e-74))
+                             .if(() => Decimal.gt(amount.evaluate(), 10), value => value.times(value.pow_base(7.35)).times(2.68e-9))
+                             .if(() => Decimal.gt(amount.evaluate(), 60), value => value.times(value.pow_base(29.4)).times(8.9e-74))
                              .plus(4.9).times(getFomeBoost(FomeTypes.infinitesimal, 5));
             },
             shouldAutobuy: skyrmion.upgrades.gamma.bought,
@@ -105,7 +105,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             visibility: () => Decimal.gt(unref(fome[FomeTypes.protoversal].boosts[1].total), 0),
             cost(amount) {
                 return amount.pow_base(6).times(30)
-                             .step(60, value => value.times(value.pow_base(37.5)).times(2.7e-71))
+                             .if(() => Decimal.gt(amount.evaluate(), 60), value => value.times(value.pow_base(37.5)).times(2.7e-71))
             },
             shouldAutobuy: skyrmion.upgrades.delta.bought,
             display: {
@@ -119,7 +119,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             visibility: () => Decimal.gt(unref(fome[FomeTypes.infinitesimal].upgrades.reform.amount), 0),
             cost(amount) {
                 return amount.pow_base(5).times(50)
-                             .step(60, value => value.times(value.pow_base(28.8)).times(1.77e-65))
+                             .if(() => Decimal.gt(amount.evaluate(), 60), value => value.times(value.pow_base(28.8)).times(1.77e-65))
             },
             shouldAutobuy: skyrmion.upgrades.epsilon.bought,
             display: {
@@ -127,13 +127,14 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 description: <>Increase Infinitesimal Foam gain by 50% per order of magnitude of Protoversal Foam</>
             },
             effect: amount => Decimal.max(unref(fome[FomeTypes.protoversal].amount), 0).plus(1).log10().times(amount).times(0.5).plus(1),
-            bonusAmount: fome[FomeTypes.subplanck].boosts[3].effect
+            // bonusAmount: () => Decimal.add(unref(fome[FomeTypes.subplanck].boosts[3].effect))
+            bonusAmount: () => Decimal.add(getFomeBoost(FomeTypes.subplanck, 3), unref(pion.upgrades.eta.effect))
         }),
         zeta: createUpgrade({
             visibility: () => Decimal.gt(unref(fome[FomeTypes.subspatial].upgrades.reform.amount), 0),
             cost(amount) {
                 return amount.pow_base(5.5).times(5e3)
-                             .step(60, value => value.times(value.pow_base(35.64)).times(1e-68))
+                             .if(() => Decimal.gt(amount.evaluate(), 60), value => value.times(value.pow_base(35.64)).times(1e-68))
             },
             shouldAutobuy: skyrmion.upgrades.zeta.bought,
             display: {
@@ -147,7 +148,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             visibility: () => Decimal.gt(unref(fome[FomeTypes.protoversal].upgrades.reform.amount), 1),
             cost(amount) {
                 return amount.pow_base(5).times(3e5)
-                             .step(60, value => value.times(value.pow_base(28.8)).times(1.77e-64))
+                             .if(() => Decimal.gt(amount.evaluate(), 60), value => value.times(value.pow_base(28.8)).times(1.77e-64))
             },
             shouldAutobuy: skyrmion.upgrades.eta.bought,
             display: {
@@ -161,7 +162,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             visibility: () => Decimal.gt(unref(fome[FomeTypes.subplanck].upgrades.reform.amount), 0),
             cost(amount) {
                 return amount.pow_base(6.5).times(7e5)
-                             .step(45, value => value.times(value.pow_base(26)).times(5.45e-34))
+                             .if(() => Decimal.gt(amount.evaluate(), 45), value => value.times(value.pow_base(26)).times(5.45e-34))
             },
             shouldAutobuy: skyrmion.upgrades.theta.bought,
             display: {
@@ -175,7 +176,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             visibility: () => Decimal.gt(unref(fome[FomeTypes.protoversal].upgrades.reform.amount), 2),
             cost(amount) {
                 return amount.pow_base(7.5).times(4e8)
-                             .step(45, value => value.times(value.pow_base(30)).times(5.95e-48))
+                             .if(() => Decimal.gt(amount.evaluate(), 45), value => value.times(value.pow_base(30)).times(5.95e-48))
             },
             shouldAutobuy: skyrmion.upgrades.iota.bought,
             display: {
@@ -189,7 +190,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             visibility: () => Decimal.gt(unref(fome[FomeTypes.infinitesimal].upgrades.reform.amount), 1),
             cost(amount) {
                 return amount.pow_base(7).times(5e9)
-                             .step(45, value => value.times(value.pow_base(26)).times(1.45e-43))
+                             .if(() => Decimal.gt(amount.evaluate(), 45), value => value.times(value.pow_base(26)).times(1.45e-43))
             },
             shouldAutobuy: skyrmion.upgrades.kappa.bought,
             display: {
@@ -203,7 +204,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             visibility: acceleron.upgrades.skyrmion.bought,
             cost(amount) {
                 return amount.pow_base(5).times(7e10)
-                             .step(45, value => value.times(value.pow_base(20)).times(1e-35))
+                             .if(() => Decimal.gt(amount.evaluate(), 45), value => value.times(value.pow_base(20)).times(1e-35))
             },
             shouldAutobuy: skyrmion.upgrades.lambda.bought,
             display: {
@@ -216,7 +217,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             visibility: () => false,
             cost(amount) {
                 return amount.pow_base(5).times(7e10)
-                             .step(45, value => value.times(value.pow_base(20)).times(1e-35))
+                             .if(() => Decimal.gt(amount.evaluate(), 45), value => value.times(value.pow_base(20)).times(1e-35))
             },
             shouldAutobuy: skyrmion.upgrades.mu.bought,
             display: {
@@ -269,7 +270,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 resource: noPersist(spinors),
                 cost: cost(Formula.variable(repeatable.amount)).times(costNerf),
                 requiresPay: () => !unref(shouldAutobuy),
-                canMaximize: false
+                spendResources: false
             }))
         });
         skyrmion.on("update", () => {
