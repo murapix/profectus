@@ -18,7 +18,7 @@ import acceleron from "../acceleron-old/acceleron";
 import timecube from "../timecube-old/timecube";
 import { createReformRequirement } from "./ReformRequirement";
 
-const id = "subplanck";
+const id = "quantum";
 const layer = createLayer(id, function (this: BaseLayer) {
     const amount = createResource<DecimalSource>(0, "Quantum Foam");
 
@@ -66,39 +66,39 @@ const layer = createLayer(id, function (this: BaseLayer) {
             requirements: createCostRequirement(() => ({
                 resource: noPersist(amount),
                 cost: () => Decimal.pow(unref(feature.amount), 1.15).pow_base(8).times(20),
-                requiresPay: () => !unref(fome.achievements[FomeTypes.subplanck].earned),
+                requiresPay: () => !unref(fome.achievements[FomeTypes.quantum].earned),
                 spendResources: false
             })),
             display: getDimDisplay(FomeTypes.quantum, FomeDims.height),
             effect() { return Decimal.add(unref(this.amount), 1); },
-            classes: () => ({ auto: unref(fome.achievements[FomeTypes.subplanck].earned) }),
-            onClick: () => onDimRepeatable(FomeTypes.subplanck)
+            classes: () => ({ auto: unref(fome.achievements[FomeTypes.quantum].earned) }),
+            onClick: () => onDimRepeatable(FomeTypes.quantum)
         }), effectDecorator) as FomeUpgrade,
         [FomeDims.width]: createRepeatable<RepeatableOptions & EffectFeatureOptions>(feature => ({
             visibility: () => Decimal.gt(unref(upgrades.reform.amount), 0),
             requirements: createCostRequirement(() => ({
                 resource: noPersist(amount),
                 cost: () => Decimal.pow(unref(feature.amount), 1.15).pow_base(10).times(30),
-                requiresPay: () => !unref(fome.achievements[FomeTypes.subplanck].earned),
+                requiresPay: () => !unref(fome.achievements[FomeTypes.quantum].earned),
                 spendResources: false
             })),
             display: getDimDisplay(FomeTypes.quantum, FomeDims.width),
             effect() { return Decimal.add(unref(this.amount), 1); },
-            classes: () => ({ auto: unref(fome.achievements[FomeTypes.subplanck].earned) }),
-            onClick: () => onDimRepeatable(FomeTypes.subplanck)
+            classes: () => ({ auto: unref(fome.achievements[FomeTypes.quantum].earned) }),
+            onClick: () => onDimRepeatable(FomeTypes.quantum)
         }), effectDecorator) as FomeUpgrade,
         [FomeDims.depth]: createRepeatable<RepeatableOptions & EffectFeatureOptions>(feature => ({
             visibility: () => Decimal.gt(unref(upgrades.reform.amount), 0),
             requirements: createCostRequirement(() => ({
                 resource: noPersist(amount),
                 cost: () => Decimal.pow(unref(feature.amount), 1.15).pow_base(12).times(100),
-                requiresPay: () => !unref(fome.achievements[FomeTypes.subplanck].earned),
+                requiresPay: () => !unref(fome.achievements[FomeTypes.quantum].earned),
                 spendResources: false
             })),
             display: getDimDisplay(FomeTypes.quantum, FomeDims.depth),
             effect() { return Decimal.add(unref(this.amount), 1); },
-            classes: () => ({ auto: unref(fome.achievements[FomeTypes.subplanck].earned) }),
-            onClick: () => onDimRepeatable(FomeTypes.subplanck)
+            classes: () => ({ auto: unref(fome.achievements[FomeTypes.quantum].earned) }),
+            onClick: () => onDimRepeatable(FomeTypes.quantum)
         }), effectDecorator) as FomeUpgrade,
         condense: createUpgrade(feature => ({
             visibility: () => !unref(feature.bought) && unref(fome[FomeTypes.subplanck].upgrades.condense.bought),
@@ -118,7 +118,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                     spendResource: false
                 })),
                 createReformRequirement(() => ({
-                    fomeType: FomeTypes.subplanck,
+                    fomeType: FomeTypes.quantum,
                     cost: Formula.variable(feature.amount).plus(1)
                 }))
             ],
@@ -132,7 +132,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             if (!unref(upgrades.condense.bought) && unref(upgrades.condense.canPurchase)) upgrades.condense.purchase();
             if (unref(upgrades.reform.canClick)) upgrades.reform.onClick();
         }
-        if (unref(fome.achievements[FomeTypes.subplanck].earned)) {
+        if (unref(fome.achievements[FomeTypes.quantum].earned)) {
             for (const dim of Object.values(FomeDims)) {
                 if (unref(upgrades[dim].canClick)) upgrades[dim].onClick();
             }
