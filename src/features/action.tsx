@@ -169,7 +169,6 @@ export function createAction<T extends ActionOptions>(
             direction: Direction.Right,
             width: 100,
             height: 10,
-            style: "margin-top: 8px",
             borderStyle: "border-color: black",
             baseStyle: "margin-top: -1px",
             progress: () => Decimal.div(progress.value, unref(genericAction.duration)),
@@ -244,8 +243,9 @@ export function createAction<T extends ActionOptions>(
             decorator.postConstruct?.(action);
         }
 
-        const decoratedProps = decorators.reduce((current, next) =>
-            Object.assign(current, next.getGatheredProps?.(action))
+        const decoratedProps = decorators.reduce(
+            (current, next) => Object.assign(current, next.getGatheredProps?.(action)),
+            {}
         );
         action[GatherProps] = function (this: GenericAction) {
             const {
