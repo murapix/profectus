@@ -63,9 +63,9 @@ export function createReformRequirement<T extends ReformRequirementOptions>(
 
         req.canMaximize = req.cost instanceof Formula && req.cost.isInvertible();
 
-        if (req.canMaximize) {
+        if (req.cost instanceof Formula && req.cost.isInvertible()) {
             req.requirementMet = calculateMaxAffordable(
-                req.cost as InvertibleFormula,
+                req.cost,
                 createResource(computed(() => unref(fome[req.fomeType].upgrades.reform.amount)), ""),
                 false
             );
