@@ -43,7 +43,7 @@ export enum FomeDims {
     depth = "depth"
 }
 
-export type FomeUpgrade = GenericRepeatable & GenericEffectFeature & { effect: ProcessedComputable<DecimalSource> };
+export type FomeUpgrade = GenericRepeatable & GenericEffectFeature<DecimalSource>;
 export type FomeUpgrades = Record<FomeDims, FomeUpgrade>
                          & { condense: GenericUpgrade }
                          & { reform: FomeUpgrade };
@@ -107,7 +107,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             description: jsx(() => (<>[{skyrmion.name}] Spinor Upgrade η ({formatWhole(unref(skyrmion.spinor.upgrades.eta.totalAmount))})</>))
         })),
         createMultiplicativeModifier(() => ({
-            multiplier: (acceleron.upgrades.acceleration as EffectUpgrade).effect as Ref<DecimalSource>,
+            multiplier: (acceleron.upgrades.acceleration as EffectUpgrade<DecimalSource>).effect,
             enabled: acceleron.upgrades.acceleration.bought,
             description: jsx(() => (<>[{acceleron.name}] Acceleration</>))
         })),

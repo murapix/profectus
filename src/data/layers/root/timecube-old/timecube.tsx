@@ -30,7 +30,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             display: {
                 title: 'Tile',
                 description: 'log10(Accelerons) increases Time Cube gain',
-                effectDisplay: jsx(() => <>{format(unref((upgrades.tile as EffectUpgrade).effect as DecimalSource))}x</>)
+                effectDisplay: jsx(() => <>{format(unref((upgrades.tile as EffectUpgrade<DecimalSource>).effect))}x</>)
             },
             requirements: createCostRequirement(() => ({
                 resource: noPersist(timecubes),
@@ -43,7 +43,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             display: {
                 title: 'Time',
                 description: 'log10(Best Time Cubes) increases Acceleron effect',
-                effectDisplay: jsx(() => <>{format(unref((upgrades.time as EffectUpgrade).effect as DecimalSource))}x</>)
+                effectDisplay: jsx(() => <>{format(unref((upgrades.time as EffectUpgrade<DecimalSource>).effect))}x</>)
             },
             requirements: createCostRequirement(() => ({
                 resource: noPersist(timecubes),
@@ -56,7 +56,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             display: {
                 title: 'Tier',
                 description: 'Each upgrade in this row gives a free level of every Foam Boost',
-                effectDisplay: jsx(() => <>+{formatWhole(unref((upgrades.tier as EffectUpgrade).effect as DecimalSource))} free levels</>)
+                effectDisplay: jsx(() => <>+{formatWhole(unref((upgrades.tier as EffectUpgrade<DecimalSource>).effect))} free levels</>)
             },
             requirements: createCostRequirement(() => ({
                 resource: noPersist(timecubes),

@@ -170,7 +170,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             effect() { return unref(effectiveEnhancements).times(0.1) },
             effectDisplay: (effect) => `${format(effect, 1)} free levels`
         })),
-    ]) as Record<Enhancements, EffectUpgrade>;
+    ]) as Record<Enhancements, EffectUpgrade<DecimalSource>>;
 
     const respec = createClickable(() => ({
         canClick() { return unref(totalEnhancements) > 0 },

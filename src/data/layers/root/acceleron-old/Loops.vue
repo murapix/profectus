@@ -1,13 +1,13 @@
 <template>
     <div class="loop-container" :style="{width: `${size}px`, height: `${size}px`}">
         <svg :height="size" :width="size">
-            <g v-for="bar in processedBars.filter(bar => unref(bar.visibility) !== Visibility.None).reverse()"
+            <g v-for="bar in processedBars.filter(bar => isVisible(bar.visibility)).reverse()"
             v-bind:key="bar.id"
             fill="none"
             :transform="unref(bar.translation)"
             :class="`angle${unref(bar.angle)}`"
             >
-                <Loop v-if="unref(bar.visibility) === Visibility.Visible"
+                <Loop v-if="isVisible(bar.visibility) && !isHidden(bar.visibility)"
                     :color="bar.color"
                     :width="bar.width"
                     :radius="bar.radius"
@@ -22,7 +22,7 @@
 
 <script lang="ts">
 import { GenericClickable } from "features/clickables/clickable";
-import { Visibility } from "features/feature";
+import { isVisible, isHidden } from "features/feature";
 import Decimal from "lib/break_eternity";
 import { processedPropType, render, unwrapRef } from "util/vue";
 import { computed, ComputedRef, defineComponent, toRefs, unref } from "vue";
@@ -49,12 +49,12 @@ export default defineComponent({
 
         const radii: ComputedRef<number>[] = unwrapRef(bars).map((bar, index, bars) => {
             if (index === bars.length-1) {
-                return computed(() => bar.visibility !== Visibility.None
+                return computed(() => isVisible(bar.visibility)
                     ? unwrapRef(radius) - unref(bar.display).width/2
                     : unwrapRef(radius))
             }
             else {
-                return computed(() => bar.visibility !== Visibility.None
+                return computed(() => isVisible(bar.visibility)
                     ? unref(radii[index+1]) - unref(bars[index+1].display).width/2 - unref(bar.display).width/2
                     : unref(radii[index+1]))
             }
@@ -92,7 +92,8 @@ export default defineComponent({
         return {
             processedBars,
             size,
-            Visibility,
+            isVisible,
+            isHidden,
             unref,
             render
         };

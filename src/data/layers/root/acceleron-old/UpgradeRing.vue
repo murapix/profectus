@@ -7,7 +7,7 @@
                      :style="{...unref(upgrade.ring.position), '--shadow-id': `url(#${upgrade.upgrade.id}-shadow)` }"
                       class="ring-segment"
                      :id="`${upgrade.upgrade.id}-ring`"
-                      v-if="unref(upgrade.upgrade.upgrade.visibility) === Visibility.Visible"
+                      v-if="isVisible(upgrade.upgrade.upgrade.visibility)"
                      @mouseenter="onMouseEnter(upgrade.upgrade.id)"
                      @mouseleave="onMouseLeave(upgrade.upgrade.id)"
                      @click="upgrade.upgrade.upgrade.purchase">
@@ -31,7 +31,7 @@
                      :height="unref(upgrade.line.size).height"
                      :style="unref(upgrade.line.position)"
                      class="ring-line"
-                     v-if="unref(upgrade.upgrade.upgrade.visibility) === Visibility.Visible">
+                     v-if="isVisible(upgrade.upgrade.upgrade.visibility)">
                      <path :d="unref(upgrade.line.path)" :stroke="unref(upgrade.upgrade.color)" :stroke-width="`${values.global.border}px`" fill="none" />
                 </svg>
                 <div :id="`${upgrade.upgrade.id}-upgrade`">
@@ -51,7 +51,7 @@
 import { render, processedPropType, unwrapRef } from "util/vue";
 import { computed, ComputedRef, DefineComponent, defineComponent, toRefs, unref } from "vue";
 import { GenericUpgrade } from "features/upgrades/upgrade";
-import { Visibility } from "features/feature";
+import { isVisible } from "features/feature";
 
 export default defineComponent({
     props: {
@@ -106,8 +106,8 @@ export default defineComponent({
         }
 
         const visibleSegments: Record<Side, ComputedRef<number>> = {
-            left: computed(() => unwrapRef(left).filter(upgrade => unref(upgrade.visibility) !== Visibility.None).length),
-            right: computed(() => unwrapRef(right).filter(upgrade => unref(upgrade.visibility) !== Visibility.None).length)
+            left: computed(() => unwrapRef(left).filter(upgrade => isVisible(upgrade.visibility)).length),
+            right: computed(() => unwrapRef(right).filter(upgrade => isVisible(upgrade.visibility)).length)
         };
 
         const lengths = {
@@ -167,7 +167,7 @@ export default defineComponent({
                 base: {
                     index: (() => {
                         if (index === 0) return computed(() => 0);
-                        return computed(() => unref(upgradeData.left[index-1].base.index) + (unref(array[index-1].visibility) !== Visibility.None ? 1 : 0));
+                        return computed(() => unref(upgradeData.left[index-1].base.index) + (isVisible(array[index-1].visibility) ? 1 : 0));
                     })(),
                     angle: computed(() => Math.PI - unref(anglePerSegment) * (unref(upgradeData.left[index].base.index) - unref(visibleSegments.left)/2 + 0.5))
                 },
@@ -331,7 +331,7 @@ export default defineComponent({
                 base: {
                     index: (() => {
                         if (index === 0) return computed(() => 0);
-                        return computed(() => unref(upgradeData.right[index-1].base.index) + (unref(array[index-1].visibility) !== Visibility.None ? 1 : 0));
+                        return computed(() => unref(upgradeData.right[index-1].base.index) + (isVisible(array[index-1].visibility) ? 1 : 0));
                     })(),
                     angle: computed(() => unref(anglePerSegment) * (unref(upgradeData.right[index].base.index) - unref(visibleSegments.right)/2 + 0.5))
                 },
@@ -506,7 +506,7 @@ export default defineComponent({
         return {
             render,
             unref,
-            Visibility,
+            isVisible,
 
             onMouseEnter,
             onMouseLeave,

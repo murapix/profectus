@@ -111,8 +111,8 @@ export type GenericUpgrade = Replace<
     }
 >;
 
-export interface EffectUpgradeOptions extends UpgradeOptions, EffectFeatureOptions {};
-export type EffectUpgrade = GenericUpgrade & GenericEffectFeature;
+export interface EffectUpgradeOptions<T = unknown> extends UpgradeOptions, EffectFeatureOptions<T> {};
+export type EffectUpgrade<T = unknown> = GenericUpgrade & GenericEffectFeature<T>;
 
 /**
  * Lazily creates an upgrade with the given options.

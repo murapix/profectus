@@ -2,7 +2,7 @@ import { createResetButton } from "data/common";
 import { createAchievement } from "features/achievements/achievement";
 import { createClickable } from "features/clickables/clickable";
 import { createCumulativeConversion } from "features/conversion";
-import { jsx, Visibility } from "features/feature";
+import { isHidden, isVisible, jsx } from "features/feature";
 import { createResource, trackBest, trackTotal } from "features/resources/resource";
 import { createTab } from "features/tabs/tab";
 import { createTabFamily, GenericTabFamily } from "features/tabs/tabFamily";
@@ -235,7 +235,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         }))
     }
     const numBuiltLoops = computed(() => Object.values(loops).filter(loop => unref(loop.built)).length);
-    const nextLoop = computed(() => Object.values(loops).find(loop => unref(loop.visibility) === Visibility.Visible && !unref(loop.built)));
+    const nextLoop = computed(() => Object.values(loops).find(loop => isVisible(loop.visibility) && !isHidden(loop.visibility) && !unref(loop.built)));
     this.on("postUpdate", diff => {
         const power = Decimal.pow(0.2, diff);
         if (Decimal.lte(unref(loops.tempFoam.currentBoost!), unref(loops.tempFoam.effect))) {

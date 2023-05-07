@@ -25,7 +25,7 @@ export interface SkyrmionRepeatableData {
 }
 
 export interface SkyrmionRepeatableOptions extends RepeatableOptions, EffectFeatureOptions, BonusAmountFeatureOptions {};
-export type SkyrmionRepeatable = GenericRepeatable & GenericEffectFeature & {effect: ProcessedComputable<DecimalSource>} & GenericBonusAmountFeature;
+export type SkyrmionRepeatable = GenericRepeatable & GenericEffectFeature<DecimalSource> & GenericBonusAmountFeature;
 
 export function createSkyrmionRepeatable(
     data: SkyrmionRepeatableData
