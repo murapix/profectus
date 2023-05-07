@@ -92,8 +92,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             requirements: createCostRequirement(() => ({
                 resource: noPersist(amount),
                 cost: () => Decimal.pow(unref(feature.amount), 1.15).pow_base(5).times(6),
-                requiresPay: () => !unref(fome.achievements[FomeTypes.infinitesimal].earned),
-                spendResources: false
+                requiresPay: () => !unref(fome.achievements[FomeTypes.infinitesimal].earned)
             })),
             display: getDimDisplay(FomeTypes.infinitesimal, FomeDims.height),
             effect() { return Decimal.add(unref(this.amount), 1); },
@@ -105,8 +104,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             requirements: createCostRequirement(() => ({
                 resource: noPersist(amount),
                 cost: () => Decimal.pow(unref(feature.amount), 1.15).pow_base(7).times(10),
-                requiresPay: () => !unref(fome.achievements[FomeTypes.infinitesimal].earned),
-                spendResources: false
+                requiresPay: () => !unref(fome.achievements[FomeTypes.infinitesimal].earned)
             })),
             display: getDimDisplay(FomeTypes.infinitesimal, FomeDims.width),
             effect() { return Decimal.add(unref(this.amount), 1); },
@@ -118,8 +116,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             requirements: createCostRequirement(() => ({
                 resource: noPersist(amount),
                 cost: () => Decimal.pow(unref(feature.amount), 1.15).pow_base(9).times(25),
-                requiresPay: () => !unref(fome.achievements[FomeTypes.infinitesimal].earned),
-                spendResources: false
+                requiresPay: () => !unref(fome.achievements[FomeTypes.infinitesimal].earned)
             })),
             display: getDimDisplay(FomeTypes.infinitesimal, FomeDims.depth),
             effect() { return Decimal.add(unref(this.amount), 1); },

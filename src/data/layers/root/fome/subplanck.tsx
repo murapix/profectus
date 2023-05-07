@@ -77,8 +77,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             requirements: createCostRequirement(() => ({
                 resource: noPersist(amount),
                 cost: () => Decimal.pow(unref(feature.amount), 1.15).pow_base(7).times(15),
-                requiresPay: () => !unref(fome.achievements[FomeTypes.subplanck].earned),
-                spendResources: false
+                requiresPay: () => !unref(fome.achievements[FomeTypes.subplanck].earned)
             })),
             display: getDimDisplay(FomeTypes.subplanck, FomeDims.height),
             effect() { return Decimal.add(unref(this.amount), 1); },
@@ -90,8 +89,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             requirements: createCostRequirement(() => ({
                 resource: noPersist(amount),
                 cost: () => Decimal.pow(unref(feature.amount), 1.15).pow_base(9).times(25),
-                requiresPay: () => !unref(fome.achievements[FomeTypes.subplanck].earned),
-                spendResources: false
+                requiresPay: () => !unref(fome.achievements[FomeTypes.subplanck].earned)
             })),
             display: getDimDisplay(FomeTypes.subplanck, FomeDims.width),
             effect() { return Decimal.add(unref(this.amount), 1); },
@@ -103,8 +101,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             requirements: createCostRequirement(() => ({
                 resource: noPersist(amount),
                 cost: () => Decimal.pow(unref(feature.amount), 1.15).pow_base(11).times(90),
-                requiresPay: () => !unref(fome.achievements[FomeTypes.subplanck].earned),
-                spendResources: false
+                requiresPay: () => !unref(fome.achievements[FomeTypes.subplanck].earned)
             })),
             display: getDimDisplay(FomeTypes.subplanck, FomeDims.depth),
             effect() { return Decimal.add(unref(this.amount), 1); },

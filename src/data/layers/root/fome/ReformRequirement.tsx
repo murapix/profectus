@@ -12,14 +12,12 @@ import { createResource } from "features/resources/resource";
 export interface ReformRequirementOptions {
     fomeType: FomeTypes;
     cost: Computable<DecimalSource> | GenericFormula;
-    visibility?: Computable<Visibility.Visible | Visibility.None | boolean>;
 }
 
 export type ReformRequirement = Replace<
     Requirement & ReformRequirementOptions,
     {
         cost: ProcessedComputable<DecimalSource> | GenericFormula;
-        visibility: ProcessedComputable<Visibility.Visible | Visibility.None | boolean>;
     }
 >;
 
@@ -56,31 +54,20 @@ export function createReformRequirement<T extends ReformRequirementOptions>(
             </div>
         );
 
-        processComputable(req as T, "visibility");
-        setDefault(req, "visibility", Visibility.Visible);
+        req.visibility = Visibility.Visible;
+        req.requiresPay = false;
         processComputable(req as T, "cost");
-        setDefault(req, "pay", () => {});
-
-        req.canMaximize = req.cost instanceof Formula && req.cost.isInvertible();
-
-        if (req.cost instanceof Formula && req.cost.isInvertible()) {
-            req.requirementMet = calculateMaxAffordable(
-                req.cost,
-                createResource(computed(() => unref(fome[req.fomeType].upgrades.reform.amount)), ""),
-                false
-            );
-        } else {
-            req.requirementMet = computed(() => {
-                if (req.cost instanceof Formula) {
-                    return Decimal.gte(fome[req.fomeType].upgrades.reform.amount.value, req.cost.evaluate());
-                } else {
-                    return Decimal.gte(
-                        fome[req.fomeType].upgrades.reform.amount.value,
-                        unref(req.cost as ProcessedComputable<DecimalSource>)
-                    );
-                }
-            });
-        }
+        
+        req.requirementMet = computed(() => {
+            if (req.cost instanceof Formula) {
+                return Decimal.gte(fome[req.fomeType].upgrades.reform.amount.value, req.cost.evaluate());
+            } else {
+                return Decimal.gte(
+                    fome[req.fomeType].upgrades.reform.amount.value,
+                    unref(req.cost as ProcessedComputable<DecimalSource>)
+                );
+            }
+        });
 
         return req as ReformRequirement;
     })

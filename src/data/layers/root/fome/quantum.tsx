@@ -66,8 +66,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             requirements: createCostRequirement(() => ({
                 resource: noPersist(amount),
                 cost: () => Decimal.pow(unref(feature.amount), 1.15).pow_base(8).times(20),
-                requiresPay: () => !unref(fome.achievements[FomeTypes.quantum].earned),
-                spendResources: false
+                requiresPay: () => !unref(fome.achievements[FomeTypes.quantum].earned)
             })),
             display: getDimDisplay(FomeTypes.quantum, FomeDims.height),
             effect() { return Decimal.add(unref(this.amount), 1); },
@@ -79,8 +78,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             requirements: createCostRequirement(() => ({
                 resource: noPersist(amount),
                 cost: () => Decimal.pow(unref(feature.amount), 1.15).pow_base(10).times(30),
-                requiresPay: () => !unref(fome.achievements[FomeTypes.quantum].earned),
-                spendResources: false
+                requiresPay: () => !unref(fome.achievements[FomeTypes.quantum].earned)
             })),
             display: getDimDisplay(FomeTypes.quantum, FomeDims.width),
             effect() { return Decimal.add(unref(this.amount), 1); },
@@ -92,8 +90,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             requirements: createCostRequirement(() => ({
                 resource: noPersist(amount),
                 cost: () => Decimal.pow(unref(feature.amount), 1.15).pow_base(12).times(100),
-                requiresPay: () => !unref(fome.achievements[FomeTypes.quantum].earned),
-                spendResources: false
+                requiresPay: () => !unref(fome.achievements[FomeTypes.quantum].earned)
             })),
             display: getDimDisplay(FomeTypes.quantum, FomeDims.depth),
             effect() { return Decimal.add(unref(this.amount), 1); },

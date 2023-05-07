@@ -84,8 +84,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             requirements: createCostRequirement(() => ({
                 resource: noPersist(amount),
                 cost: () => Decimal.pow(unref(feature.amount), 1.15).pow_base(4).times(2),
-                requiresPay: () => !unref(fome.achievements[FomeTypes.protoversal].earned),
-                spendResources: false
+                requiresPay: () => !unref(fome.achievements[FomeTypes.protoversal].earned)
             })),
             display: getDimDisplay(FomeTypes.protoversal, FomeDims.height),
             effect() { return Decimal.add(unref(this.amount), 1); },
@@ -97,8 +96,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             requirements: createCostRequirement(() => ({
                 resource: noPersist(amount),
                 cost: () => Decimal.pow(unref(feature.amount), 1.15).pow_base(6).times(5),
-                requiresPay: () => !unref(fome.achievements[FomeTypes.protoversal].earned),
-                spendResources: false
+                requiresPay: () => !unref(fome.achievements[FomeTypes.protoversal].earned)
             })),
             display: getDimDisplay(FomeTypes.protoversal, FomeDims.width),
             effect() { return Decimal.add(unref(this.amount), 1); },
@@ -110,8 +108,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             requirements: createCostRequirement(() => ({
                 resource: noPersist(amount),
                 cost: () => Decimal.pow(unref(feature.amount), 1.15).pow_base(8).times(20),
-                requiresPay: () => !unref(fome.achievements[FomeTypes.protoversal].earned),
-                spendResources: false
+                requiresPay: () => !unref(fome.achievements[FomeTypes.protoversal].earned)
             })),
             display: getDimDisplay(FomeTypes.protoversal, FomeDims.depth),
             effect() { return Decimal.add(unref(this.amount), 1); },
@@ -132,8 +129,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             requirements: createCostRequirement(() => ({
                 resource: noPersist(amount),
                 cost: () => Decimal.minus(unref(feature.amount), 3).max(2).pow_base(unref(feature.amount)).plus(1).times(4).pow10(),
-                requiresPay: () => !unref(fome.achievements.reform.earned),
-                spendResource: false
+                requiresPay: () => !unref(fome.achievements.reform.earned)
             })),
             display: getReformDisplay(FomeTypes.protoversal),
             effect() { return Decimal.cbrt(unref(this.amount)) },
