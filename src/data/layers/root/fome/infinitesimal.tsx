@@ -138,12 +138,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 createCostRequirement(() => ({
                     resource: noPersist(amount),
                     cost: () => Decimal.minus(unref(feature.amount), 3).max(2).pow_base(unref(feature.amount)).plus(1).times(5).pow10().dividedBy(5),
-                    requiresPay: () => !unref(fome.achievements.reform.earned),
-                    spendResource: false
+                    requiresPay: () => !unref(fome.achievements.reform.earned)
                 })),
                 createReformRequirement(() => ({
                     fomeType: FomeTypes.protoversal,
-                    cost: Formula.variable(feature.amount).plus(1)
+                    cost: Formula.variable(feature.amount).plus(2)
                 }))
             ],
             display: getReformDisplay(FomeTypes.infinitesimal),

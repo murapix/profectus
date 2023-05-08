@@ -54,8 +54,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
     const conversion = createCumulativeConversion(() => ({
             formula: fome => fome.times(getUpgradeEffect(upgrades.translation))
                                  .times(getUpgradeEffect(upgrades.fluctuation))
-                                 .dividedBy(() => entangled.isFirstBranch(id) ? 1e6 : 1e80)
-                                 .pow(() => entangled.isFirstBranch(id) ? 0.1 : 0.05),
+                                 .dividedBy(computed(() => entangled.isFirstBranch(id) ? 1e6 : 1e80))
+                                 .pow(computed(() => entangled.isFirstBranch(id) ? 0.1 : 0.05)),
             baseResource: noPersist(fome[FomeTypes.quantum].amount),
             gainResource: noPersist(accelerons),
             onConvert() {

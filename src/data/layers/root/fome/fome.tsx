@@ -171,7 +171,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
     const achievements: Record<FomeTypes | 'reform', GenericAchievement & { tooltip: { requirement: JSX.Element, effect: JSX.Element } }> = {
         [FomeTypes.protoversal]: createAchievement(() => ({
             display: jsx(() => <span style={achievementStyle}>P<sup style={{fontWeight: 'normal'}}>2</sup></span>),
-            requirements: createBooleanRequirement(false),//() => Decimal.gte(unref(protoversal.upgrades.reform.amount), 2)),
+            requirements: createBooleanRequirement(() => Decimal.gte(unref(protoversal.upgrades.reform.amount), 2)),
             tooltip: {
                 requirement: <>Re-form your Protoversal Foam</>,
                 effect: <>Unlock the Pion and Spinor Buy All button<br />Automatically enlarge your Protoversal Foam</>
@@ -179,7 +179,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         })),
         [FomeTypes.infinitesimal]: createAchievement(() => ({
             display: jsx(() => <><span style={achievementStyle}>P<sup style={{fontWeight: 'normal'}}>3</sup></span></>),
-            requirements: createBooleanRequirement(false),//() => Decimal.gte(unref(protoversal.upgrades.reform.amount), 3)),
+            requirements: createBooleanRequirement(() => Decimal.gte(unref(protoversal.upgrades.reform.amount), 3)),
             tooltip: {
                 requirement: <>Obtain Protoversal Foam<sup>3</sup></>,
                 effect: <>Automatically enlarge your Infinitesimal Foam</>
@@ -187,7 +187,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         })),
         [FomeTypes.subspatial]: createAchievement(() => ({
             display: jsx(() => <><span style={achievementStyle}>P<sup style={{fontWeight: 'normal'}}>4</sup></span></>),
-            requirements: createBooleanRequirement(false),//() => Decimal.gte(unref(protoversal.upgrades.reform.amount), 4)),
+            requirements: createBooleanRequirement(() => Decimal.gte(unref(protoversal.upgrades.reform.amount), 4)),
             tooltip: {
                 requirement: <>Obtain Protoversal Foam<sup>4</sup></>,
                 effect: <>Automatically enlarge your Subspatial Foam</>
@@ -195,7 +195,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         })),
         [FomeTypes.subplanck]: createAchievement(() => ({
             display: jsx(() => <><span style={achievementStyle}>P<sup style={{fontWeight: 'normal'}}>5</sup></span></>),
-            requirements: createBooleanRequirement(false),//() => Decimal.gte(unref(protoversal.upgrades.reform.amount), 5)),
+            requirements: createBooleanRequirement(() => Decimal.gte(unref(protoversal.upgrades.reform.amount), 5)),
             tooltip: {
                 requirement: <>Obtain Protoversal Foam<sup>5</sup></>,
                 effect: <>Automatically enlarge your Subplanck Foam</>
@@ -203,7 +203,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         })),
         [FomeTypes.quantum]: createAchievement(() => ({
             display: jsx(() => <><span style={achievementStyle}>P<sup style={{fontWeight: 'normal'}}>6</sup></span></>),
-            requirements: createBooleanRequirement(false),//() => Decimal.gte(unref(protoversal.upgrades.reform.amount), 6)),
+            requirements: createBooleanRequirement(() => Decimal.gte(unref(protoversal.upgrades.reform.amount), 6)),
             tooltip: {
                 requirement: <>Obtain Protoversal Foam<sup>6</sup></>,
                 effect: <>Automatically enlarge your Quantum Foam</>
@@ -211,7 +211,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         })),
         reform: createAchievement(() => ({
             display: jsx(() => <><span style={achievementStyle}>Q<sup style={{fontWeight: 'normal'}}>2</sup></span></>),
-            requirements: createBooleanRequirement(false),//() => Decimal.gte(unref(quantum.upgrades.reform.amount), 2)),
+            requirements: createBooleanRequirement(() => Decimal.gte(unref(quantum.upgrades.reform.amount), 2)),
             tooltip: {
                 requirement: <>Re-form your Quantum Foam</>,
                 effect: <>Automatically re-form your Foam</>

@@ -157,6 +157,7 @@ export function createRepeatable<T extends RepeatableOptions>(
                     (repeatable as GenericRepeatable).amount.value
                 )
             ),
+            canMaximize: true,
             requiresPay: false,
             visibility: Visibility.None
         } as const;
@@ -199,8 +200,9 @@ export function createRepeatable<T extends RepeatableOptions>(
             if (!unref(genericRepeatable.canClick)) {
                 return;
             }
-            payRequirements(repeatable.requirements, unref(repeatable.amountToIncrease));
-            genericRepeatable.amount.value = Decimal.add(genericRepeatable.amount.value, 1);
+            const amountToIncrease = unref(repeatable.amountToIncrease) ?? 1;
+            payRequirements(repeatable.requirements, amountToIncrease);
+            genericRepeatable.amount.value = Decimal.add(genericRepeatable.amount.value, amountToIncrease);
             onClick?.(event);
         };
         processComputable(repeatable as T, "display");

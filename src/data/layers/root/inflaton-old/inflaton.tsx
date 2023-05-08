@@ -810,8 +810,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                         createCostRequirement(() => ({
                             cost: getBuildingCost(Formula.variable(this.amount), building.cost.multiplier, building.cost.base),
                             resource: building.cost.resource,
-                            requiresPay: () => !unref(research.autobuild.researched),
-                            spendResource: false
+                            requiresPay: () => !unref(research.autobuild.researched)
                         }))
                     ],
 

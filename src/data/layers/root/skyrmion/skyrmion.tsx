@@ -5,8 +5,8 @@ import { createMultiplicativeModifier } from "game/modifiers";
 import Decimal, { DecimalSource } from "lib/break_eternity";
 import { computed, unref } from "vue";
 import { createSkyrmionUpgrade } from "./upgrade";
-import { createCostRequirement, requirementsMet } from "game/requirements";
-import { Computable } from "util/computed";
+import { createCostRequirement, maxRequirementsMet, requirementsMet } from "game/requirements";
+import { Computable, ProcessedComputable } from "util/computed";
 import fome, { FomeTypes } from "../fome/fome";
 import pion from "./pion";
 import spinor from "./spinor";
@@ -18,63 +18,74 @@ import SkyrmionVue from "./Skyrmion.vue";
 import { GenericRepeatable, createRepeatable } from "features/repeatable";
 import { addTooltip } from "features/tooltips/tooltip";
 import { Direction } from "util/common";
-import { format } from "util/break_eternity";
+import { format, formatWhole } from "util/break_eternity";
 import abyss from "./abyss";
 import ResourceVue from "features/resources/Resource.vue";
-import Formula from "game/formulas/formulas";
+import Formula, { calculateCost } from "game/formulas/formulas";
 import { getFomeBoost } from "../fome/boost";
+import { FormulaSource, GenericFormula } from "game/formulas/types";
+import { calculateMaxAffordable } from "game/formulas/formulas";
 
 const id = "skyrmion";
 const layer = createLayer(id, function (this: BaseLayer) {
     const name = "Skyrmions";
     const color = "#37d7ff";
 
-    const conversion: GenericRepeatable = createRepeatable(feature => ({
-        maximize: true,
-        initialAmount: 1,
-        requirements: [
-            createCostRequirement(() => ({
-                resource: pion.pions,
-                requiresPay: () => !unref(upgrades.autoGain.bought),
-                canMaximize: false,
-                cost: Formula.variable(feature.amount)
-                             .pow10()
-                             .dividedBy(fome.infinitesimal.boosts[4].effect)
-                             .dividedBy(spinor.upgrades.alpha.effect)
-            })),
-            createCostRequirement(() => ({
-                resource: spinor.spinors,
-                requiresPay: () => !unref(upgrades.autoGain.bought),
-                canMaximize: false,
-                cost: Formula.variable(feature.amount)
-                             .pow10()
-                             .dividedBy(fome.infinitesimal.boosts[4].effect)
-                             .dividedBy(spinor.upgrades.alpha.effect)
-            }))
-        ],
-        style: { paddingHorizontal: "20px" },
-        display: jsx(() => (
-            <>
-                <h3>Convert 10<sup>X</sup> Pions and Spinors to X Skyrmions</h3>
-            </>
-        ))
-    }));
-    addTooltip(conversion, {
+    const costFunc = (
+        amount: ProcessedComputable<DecimalSource>
+    ) => Formula.variable(amount)
+                .pow10()
+                .dividedBy(fome.infinitesimal.boosts[4].effect)
+                .dividedBy(spinor.upgrades.alpha.effect);
+    const skyrmions: GenericRepeatable = createRepeatable(feature => {
+        return {
+            initialAmount: 1,
+            requirements: [
+                createCostRequirement(() => ({
+                    resource: pion.pions,
+                    requiresPay: () => !unref(upgrades.autoGain.bought),
+                    cumulativeCost: true,
+                    maxBulkAmount: Decimal.dInf,
+                    cost: costFunc(feature.amount)
+                })),
+                createCostRequirement(() => ({
+                    resource: spinor.spinors,
+                    requiresPay: () => !unref(upgrades.autoGain.bought),
+                    cumulativeCost: true,
+                    maxBulkAmount: Decimal.dInf,
+                    cost: costFunc(feature.amount)
+                }))
+            ],
+            style: { paddingHorizontal: "20px" },
+            display: jsx(() => {
+                const formula = costFunc(feature.amount);
+                const maxAffordable = Decimal.clampMin(maxRequirementsMet(skyrmions.requirements), 1);
+                const cost = calculateCost(formula, Decimal.clampMin(maxAffordable, 1), true);
+                return <>
+                    <h3>Convert {format(cost)} Pions and Spinors to {formatWhole(maxAffordable)} Skyrmions</h3>
+                </>
+            })
+        }
+    });
+    addTooltip(skyrmions, {
         direction: Direction.Up,
-        display: jsx(() => (
-            <>
-                Next at 10<sup>X+1</sup> Pions and Spinors
+        display: jsx(() => {
+            const formula = costFunc(skyrmions.amount);
+            const maxAffordable = maxRequirementsMet(skyrmions.requirements);
+            const cost = calculateCost(formula, Decimal.add(maxAffordable, 1), true);
+            return <>
+                Next at {format(cost)} Pions and Spinors
             </>
-        ))
+        })
     });
     this.on("update", () => {
-        if (unref(upgrades.autoGain.bought) && requirementsMet(conversion.requirements)) {
-            conversion.onClick();
+        if (unref(upgrades.autoGain.bought) && requirementsMet(skyrmions.requirements)) {
+            skyrmions.onClick();
         }
     })
 
-    const skyrmions = createResource<DecimalSource>(conversion.amount, name);
-    const totalSkyrmions = computed(() => Decimal.add(unref(skyrmions), 0));
+    const resource = createResource<DecimalSource>(skyrmions.amount, name);
+    const totalSkyrmions = computed(() => Decimal.add(unref(resource), 0));
     const generalProductionModifiers = [
         createMultiplicativeModifier(() => ({
             multiplier: pion.upgrades.alpha.effect,
@@ -111,7 +122,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         }),
         alpha: createUpgrade({
             visibility(this: GenericUpgrade) {
-                return unref(this.bought) || Decimal.gte(unref(skyrmions), 20);
+                return unref(this.bought) || Decimal.gte(unref(resource), 20);
             },
             display: {
                 title: "Alteration",
@@ -121,7 +132,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         }),
         beta: createUpgrade({
             visibility(this: GenericUpgrade) {
-                return unref(this.bought) || Decimal.gte(unref(skyrmions), 25);
+                return unref(this.bought) || Decimal.gte(unref(resource), 25);
             },
             display: {
                 title: "Benediction",
@@ -131,7 +142,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         }),
         gamma: createUpgrade({
             visibility(this: GenericUpgrade) {
-                return unref(this.bought) || Decimal.gte(unref(skyrmions), 30);
+                return unref(this.bought) || Decimal.gte(unref(resource), 30);
             },
             display: {
                 title: "Consolidation",
@@ -141,7 +152,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         }),
         delta: createUpgrade({
             visibility(this: GenericUpgrade) {
-                return unref(this.bought) || Decimal.gte(unref(skyrmions), 35);
+                return unref(this.bought) || Decimal.gte(unref(resource), 35);
             },
             display: {
                 title: "Diversification",
@@ -151,7 +162,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         }),
         epsilon: createUpgrade({
             visibility(this: GenericUpgrade) {
-                return unref(this.bought) || Decimal.gte(unref(skyrmions), 40);
+                return unref(this.bought) || Decimal.gte(unref(resource), 40);
             },
             display: {
                 title: "Encapsulation",
@@ -161,7 +172,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         }),
         zeta: createUpgrade({
             visibility(this: GenericUpgrade) {
-                return unref(this.bought) || Decimal.gte(unref(skyrmions), 45);
+                return unref(this.bought) || Decimal.gte(unref(resource), 45);
             },
             display: {
                 title: "Fabrication",
@@ -171,7 +182,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         }),
         eta: createUpgrade({
             visibility(this: GenericUpgrade) {
-                return unref(this.bought) || Decimal.gte(unref(skyrmions), 50);
+                return unref(this.bought) || Decimal.gte(unref(resource), 50);
             },
             display: {
                 title: "Germination",
@@ -181,7 +192,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         }),
         theta: createUpgrade({
             visibility(this: GenericUpgrade) {
-                return unref(this.bought) || Decimal.gte(unref(skyrmions), 55);
+                return unref(this.bought) || Decimal.gte(unref(resource), 55);
             },
             display: {
                 title: "Hesitation",
@@ -191,7 +202,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         }),
         iota: createUpgrade({
             visibility(this: GenericUpgrade) {
-                return unref(this.bought) || Decimal.gte(unref(skyrmions), 60);
+                return unref(this.bought) || Decimal.gte(unref(resource), 60);
             },
             display: {
                 title: "Immitation",
@@ -201,7 +212,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         }),
         kappa: createUpgrade({
             visibility(this: GenericUpgrade) {
-                return unref(this.bought) || Decimal.gte(unref(skyrmions), 65);
+                return unref(this.bought) || Decimal.gte(unref(resource), 65);
             },
             display: {
                 title: "Juxtaposition",
@@ -211,7 +222,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         }),
         lambda: createUpgrade({
             visibility(this: GenericUpgrade) {
-                return unref(this.bought) || Decimal.gte(unref(skyrmions), 70);
+                return unref(this.bought) || Decimal.gte(unref(resource), 70);
             },
             display: {
                 title: "Lateralization",
@@ -221,7 +232,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         }),
         mu: createUpgrade({
             visibility(this: GenericUpgrade) {
-                return unref(this.bought) || Decimal.gte(unref(skyrmions), 75);
+                return unref(this.bought) || Decimal.gte(unref(resource), 75);
             },
             display: {
                 title: "Materialization",
@@ -274,18 +285,18 @@ const layer = createLayer(id, function (this: BaseLayer) {
     return {
         name,
         color,
-        conversion,
-        skyrmions,
+        conversion: skyrmions,
+        skyrmions: resource,
         totalSkyrmions,
         production: generalProductionModifiers,
         upgrades,
         display: jsx(() => (
             <>
-                You have <ResourceVue resource={skyrmions} color={color} tag="h2" /> {skyrmions.displayName}
+                You have <ResourceVue resource={resource} color={color} tag="h2" /> {resource.displayName}
                 {Decimal.gt(getFomeBoost(FomeTypes.subspatial, 4), 0)
                 ?   <><br />Your {fome.subspatial.amount.displayName} is granting an additional <h3 style={{ color, textShadow: `0px 0px 10px ${color}` }}>
                         {format(getFomeBoost(FomeTypes.subspatial, 4))}
-                    </h3> {skyrmions.displayName}</>
+                    </h3> {resource.displayName}</>
                 : undefined}
                 <SpacerVue />
                 <RowVue><div style={{ flexFlow: "row nowrap" }}>
@@ -294,7 +305,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                     {render(spinor.display)}
                 </div></RowVue>
                 <SpacerVue />
-                <SkyrmionVue>{render(conversion)}</SkyrmionVue>
+                <SkyrmionVue>{render(skyrmions)}</SkyrmionVue>
             </>
         )),
         
@@ -319,7 +330,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             visibility,
             requirements: createCostRequirement(() => ({
                 cost,
-                resource: skyrmions,
+                resource: resource,
                 requiresPay: false
             })),
             display,
