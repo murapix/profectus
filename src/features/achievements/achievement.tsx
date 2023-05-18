@@ -9,6 +9,7 @@ import {
     GatherProps,
     GenericComponent,
     OptionsFunc,
+    Replace,
     StyleValue,
     Visibility,
     getUniqueID,
@@ -29,10 +30,16 @@ import {
 } from "game/requirements";
 import settings, { registerSettingField } from "game/settings";
 import { camelToTitle } from "util/common";
-import { Computable, Defaults, ProcessedFeature, convertComputable } from "util/computed";
+import type {
+    Computable,
+    GetComputableType,
+    GetComputableTypeWithDefault,
+    ProcessedComputable
+} from "util/computed";
+import { processComputable } from "util/computed";
 import { createLazyProxy } from "util/proxies";
 import { coerceComponent, isCoercableComponent } from "util/vue";
-import { ComputedRef, nextTick, unref, watchEffect } from "vue";
+import { unref, watchEffect } from "vue";
 import { useToast } from "vue-toastification";
 
 const toast = useToast();
@@ -91,8 +98,6 @@ export interface AchievementOptions {
 export interface BaseAchievement {
     /** An auto-generated ID for identifying features that appear in the DOM. Will not persist between refreshes or updates. */
     id: string;
-    /** Whether this achievement should be visible. */
-    visibility: ComputedRef<Visibility | boolean>;
     /** Whether or not this achievement has been earned. */
     earned: Persistent<boolean>;
     /** A function to complete this achievement. */
@@ -106,191 +111,34 @@ export interface BaseAchievement {
 }
 
 /** An object that represents a feature with requirements that is passively earned upon meeting certain requirements. */
-// export type Achievement<T extends AchievementOptions> = Replace<
-//     T & BaseAchievement,
-//     {
-//         visibility: GetComputableTypeWithDefault<T["visibility"], Visibility.Visible>;
-//         display: GetComputableType<T["display"]>;
-//         mark: GetComputableType<T["mark"]>;
-//         image: GetComputableType<T["image"]>;
-//         style: GetComputableType<T["style"]>;
-//         classes: GetComputableType<T["classes"]>;
-//         showPopups: GetComputableTypeWithDefault<T["showPopups"], true>;
-//     }
-// >;
+export type Achievement<T extends AchievementOptions> = Replace<
+    T & BaseAchievement,
+    {
+        visibility: GetComputableTypeWithDefault<T["visibility"], Visibility.Visible>;
+        display: GetComputableType<T["display"]>;
+        mark: GetComputableType<T["mark"]>;
+        image: GetComputableType<T["image"]>;
+        style: GetComputableType<T["style"]>;
+        classes: GetComputableType<T["classes"]>;
+        showPopups: GetComputableTypeWithDefault<T["showPopups"], true>;
+    }
+>;
 
-// export interface Achievement extends AchievementOptions, BaseAchievement {
-//     visibility: GetComputableTypeWithDefault<AchievementOptions["visibility"], Visibility.Visible>;
-//     display: GetComputableType<AchievementOptions["display"]>;
-//     mark: GetComputableType<AchievementOptions["mark"]>;
-//     image: GetComputableType<AchievementOptions["image"]>;
-//     style: GetComputableType<AchievementOptions["style"]>;
-//     classes: GetComputableType<AchievementOptions["classes"]>;
-//     showPopups: GetComputableTypeWithDefault<AchievementOptions["showPopups"], true>;
-// }
-
-export type Achievement<T extends AchievementOptions> = BaseAchievement &
-    ProcessedFeature<AchievementOptions, Exclude<T, BaseAchievement>> &
-    Defaults<
-        Exclude<T, BaseAchievement>,
-        {
-            showPopups: true;
-        }
-    >;
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export type GenericAchievement = Achievement<any>;
+/** A type that matches any valid {@link Achievement} object. */
+export type GenericAchievement = Replace<
+    Achievement<AchievementOptions>,
+    {
+        visibility: ProcessedComputable<Visibility | boolean>;
+        showPopups: ProcessedComputable<boolean>;
+    }
+>;
 
 /**
  * Lazily creates an achievement with the given options.
  * @param optionsFunc Achievement options.
  */
-// export function createAchievement<T extends AchievementOptions>(
-//     optionsFunc?: OptionsFunc<T, GenericAchievement>,
-//     ...decorators: GenericDecorator[]
-// ): Achievement<T> {
-//     const earned = persistent<boolean>(false, false);
-//     const decoratedData = decorators.reduce(
-//         (current, next) => Object.assign(current, next.getPersistentData?.()),
-//         {}
-//     );
-//     return createLazyProxy(feature => {
-//         const achievement =
-//             optionsFunc?.call(feature, feature) ??
-//             ({} as ReturnType<NonNullable<typeof optionsFunc>>);
-//         achievement.id = getUniqueID("achievement-");
-//         achievement.type = AchievementType;
-//         achievement[Component] = AchievementComponent as GenericComponent;
-
-//         for (const decorator of decorators) {
-//             decorator.preConstruct?.(achievement);
-//         }
-
-//         achievement.display = convertComputable(achievement.display, achievement);
-//         achievement.mark = convertComputable(achievement.mark, achievement);
-//         achievement.small = convertComputable(achievement.small, achievement);
-//         achievement.image = convertComputable(achievement.image, achievement);
-//         achievement.style = convertComputable(achievement.style, achievement);
-//         achievement.classes = convertComputable(achievement.classes, achievement);
-//         achievement.showPopups = convertComputable(achievement.showPopups, achievement) ?? true;
-
-//         achievement.earned = earned;
-//         achievement.complete = function () {
-//             earned.value = true;
-//             achievement.onComplete?.();
-//             if (achievement.display != null && unref(achievement.showPopups) === true) {
-//                 const display = unref((achievement as GenericAchievement).display);
-//                 let Display;
-//                 if (isCoercableComponent(display)) {
-//                     Display = coerceComponent(display);
-//                 } else if (display.requirement != null) {
-//                     Display = coerceComponent(display.requirement);
-//                 } else {
-//                     Display = displayRequirements(achievement.requirements ?? []);
-//                 }
-//                 toast.info(
-//                     <div>
-//                         <h3>Achievement earned!</h3>
-//                         <div>
-//                             {/* eslint-disable-next-line @typescript-eslint/ban-ts-comment */}
-//                             {/* @ts-ignore */}
-//                             <Display />
-//                         </div>
-//                     </div>
-//                 );
-//             }
-//         };
-
-//         Object.assign(achievement, decoratedData);
-
-//         const visibility =
-//             convertComputable(achievement.visibility, achievement) ?? Visibility.Visible;
-//         achievement.visibility = computed(() => {
-//             const display = unref(achievement.display);
-//             switch (settings.msDisplay) {
-//                 default:
-//                 case AchievementDisplay.All:
-//                     return unref(visibility);
-//                 case AchievementDisplay.Configurable:
-//                     if (
-//                         unref(achievement.earned) &&
-//                         !(
-//                             display != null &&
-//                             typeof display == "object" &&
-//                             "optionsDisplay" in (display as Record<string, unknown>)
-//                         )
-//                     ) {
-//                         return Visibility.None;
-//                     }
-//                     return unref(visibility);
-//                 case AchievementDisplay.Incomplete:
-//                     if (unref(achievement.earned)) {
-//                         return Visibility.None;
-//                     }
-//                     return unref(visibility);
-//                 case AchievementDisplay.None:
-//                     return Visibility.None;
-//             }
-//         });
-
-//         for (const decorator of decorators) {
-//             decorator.postConstruct?.(achievement);
-//         }
-
-//         const decoratedProps = decorators.reduce(
-//             (current, next) => Object.assign(current, next.getGatheredProps?.(achievement)),
-//             {}
-//         );
-//         achievement[GatherProps] = function () {
-//             const {
-//                 visibility,
-//                 display,
-//                 requirements,
-//                 earned,
-//                 image,
-//                 style,
-//                 classes,
-//                 mark,
-//                 small,
-//                 id
-//             } = this;
-//             return {
-//                 visibility,
-//                 display,
-//                 requirements,
-//                 earned,
-//                 image,
-//                 style: unref(style),
-//                 classes,
-//                 mark,
-//                 small,
-//                 id,
-//                 ...decoratedProps
-//             };
-//         };
-
-//         if (achievement.requirements) {
-//             const requirements = [
-//                 createVisibilityRequirement(achievement),
-//                 createBooleanRequirement(() => !achievement.earned.value),
-//                 ...(isArray(achievement.requirements)
-//                     ? achievement.requirements
-//                     : [achievement.requirements])
-//             ];
-//             watchEffect(() => {
-//                 if (settings.active !== player.id) return;
-//                 if (requirementsMet(requirements)) {
-//                     achievement.complete();
-//                 }
-//             });
-//         }
-
-//         return achievement;
-//     });
-// }
-
 export function createAchievement<T extends AchievementOptions>(
-    optionsFunc?: OptionsFunc<T, GenericAchievement>,
+    optionsFunc?: OptionsFunc<T, BaseAchievement, GenericAchievement>,
     ...decorators: GenericDecorator[]
 ): Achievement<T> {
     const earned = persistent<boolean>(false, false);
@@ -298,25 +146,35 @@ export function createAchievement<T extends AchievementOptions>(
         (current, next) => Object.assign(current, next.getPersistentData?.()),
         {}
     );
-    return createLazyProxy(achievement => {
-        const options =
-            optionsFunc?.call(achievement, achievement) ??
+    return createLazyProxy(feature => {
+        const achievement =
+            optionsFunc?.call(feature, feature) ??
             ({} as ReturnType<NonNullable<typeof optionsFunc>>);
+        achievement.id = getUniqueID("achievement-");
+        achievement.type = AchievementType;
+        achievement[Component] = AchievementComponent as GenericComponent;
 
-        function complete() {
+        for (const decorator of decorators) {
+            decorator.preConstruct?.(achievement);
+        }
+
+        achievement.earned = earned;
+        achievement.complete = function () {
             earned.value = true;
-            (achievement as GenericAchievement).onComplete?.();
-            if (achievement.display != null && unref(achievement.showPopups) === true) {
-                const display = unref((achievement as GenericAchievement).display);
+            const genericAchievement = achievement as GenericAchievement;
+            genericAchievement.onComplete?.();
+            if (
+                genericAchievement.display != null &&
+                unref(genericAchievement.showPopups) === true
+            ) {
+                const display = unref(genericAchievement.display);
                 let Display;
                 if (isCoercableComponent(display)) {
                     Display = coerceComponent(display);
                 } else if (display.requirement != null) {
                     Display = coerceComponent(display.requirement);
                 } else {
-                    Display = displayRequirements(
-                        (achievement as GenericAchievement).requirements ?? []
-                    );
+                    Display = displayRequirements(genericAchievement.requirements ?? []);
                 }
                 toast.info(
                     <div>
@@ -329,16 +187,19 @@ export function createAchievement<T extends AchievementOptions>(
                     </div>
                 );
             }
-        }
+        };
 
-        const optionsVisibility =
-            convertComputable(options.visibility, options) ?? Visibility.Visible;
-        const visibility = computed(() => {
-            const display = unref(achievement.display);
+        Object.assign(achievement, decoratedData);
+
+        processComputable(achievement as T, "visibility");
+        setDefault(achievement, "visibility", Visibility.Visible);
+        const visibility = achievement.visibility as ProcessedComputable<Visibility | boolean>;
+        achievement.visibility = computed(() => {
+            const display = unref((achievement as GenericAchievement).display);
             switch (settings.msDisplay) {
                 default:
                 case AchievementDisplay.All:
-                    return unref(optionsVisibility);
+                    return unref(visibility);
                 case AchievementDisplay.Configurable:
                     if (
                         unref(achievement.earned) &&
@@ -350,21 +211,29 @@ export function createAchievement<T extends AchievementOptions>(
                     ) {
                         return Visibility.None;
                     }
-                    return unref(optionsVisibility);
+                    return unref(visibility);
                 case AchievementDisplay.Incomplete:
                     if (unref(achievement.earned)) {
                         return Visibility.None;
                     }
-                    return unref(optionsVisibility);
+                    return unref(visibility);
                 case AchievementDisplay.None:
                     return Visibility.None;
             }
         });
 
+        processComputable(achievement as T, "display");
+        processComputable(achievement as T, "mark");
+        processComputable(achievement as T, "small");
+        processComputable(achievement as T, "image");
+        processComputable(achievement as T, "style");
+        processComputable(achievement as T, "classes");
+        processComputable(achievement as T, "showPopups");
+        setDefault(achievement, "showPopups", true);
+
         for (const decorator of decorators) {
-            decorator.preConstruct?.(achievement);
+            decorator.postConstruct?.(achievement);
         }
-        Object.assign(achievement, decoratedData);
 
 <<<<<<< HEAD
         achievement.earned = earned;
@@ -403,8 +272,7 @@ export function createAchievement<T extends AchievementOptions>(
             (current, next) => Object.assign(current, next.getGatheredProps?.(achievement)),
             {}
         );
-
-        function gatherProps(this: Achievement<T>) {
+        achievement[GatherProps] = function (this: GenericAchievement) {
             const {
                 visibility,
                 display,
@@ -430,66 +298,28 @@ export function createAchievement<T extends AchievementOptions>(
                 id,
                 ...decoratedProps
             };
+        };
+
+        if (achievement.requirements) {
+            const genericAchievement = achievement as GenericAchievement;
+            const requirements = [
+                createVisibilityRequirement(genericAchievement),
+                createBooleanRequirement(() => !genericAchievement.earned.value),
+                ...(isArray(achievement.requirements)
+                    ? achievement.requirements
+                    : [achievement.requirements])
+            ];
+            watchEffect(() => {
+                if (settings.active !== player.id) return;
+                if (requirementsMet(requirements)) {
+                    genericAchievement.complete();
+                }
+            });
         }
 
-        nextTick(() => {
-            for (const decorator of decorators) {
-                decorator.postConstruct?.(achievement);
-            }
-
-            if (achievement.requirements) {
-                const requirements = [
-                    createVisibilityRequirement(achievement as GenericAchievement),
-                    createBooleanRequirement(() => !achievement.earned.value),
-                    ...(isArray(achievement.requirements)
-                        ? achievement.requirements
-                        : [achievement.requirements])
-                ];
-                watchEffect(() => {
-                    if (settings.active !== player.id) return;
-                    if (requirementsMet(requirements)) {
-                        achievement.complete();
-                    }
-                });
-            }
-        });
-
-        return {
-            id: getUniqueID("achievement-"),
-            visibility,
-            earned,
-            complete,
-            type: AchievementType,
-            [Component]: AchievementComponent as GenericComponent,
-            [GatherProps]: gatherProps,
-            requirements: options.requirements,
-            display: convertComputable(options.display, options),
-            mark: convertComputable(options.mark, options),
-            small: convertComputable(options.small, options),
-            image: convertComputable(options.image, options),
-            style: convertComputable(options.style, options),
-            classes: convertComputable(options.classes, options),
-            showPopups: convertComputable(options.showPopups, options) ?? true,
-            onComplete: options.onComplete
-        } /* as Achievement<T>*/;
+        return achievement as unknown as Achievement<T>;
     });
 }
-
-const ach = createAchievement(ach => ({
-    image: "",
-    showPopups: computed(() => false),
-    small: () => true,
-    foo: "bar",
-    bar: () => "foo"
-}));
-ach;
-ach.image; // string
-ach.showPopups; // ComputedRef<false>
-ach.small; // ComputedRef<true>
-ach.foo; // "bar"
-ach.bar; // () => "foo"
-ach.mark; // TS should yell about this not existing (or at least mark it undefined)
-ach.visibility; // ComputedRef<Visibility | boolean>
 
 declare module "game/settings" {
     interface Settings {
