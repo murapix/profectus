@@ -2,7 +2,7 @@ import { Resource } from "features/resources/resource";
 import { NonPersistent } from "game/persistence";
 import Decimal, { DecimalSource, format } from "util/bignum";
 import { Computable, ProcessedComputable, convertComputable } from "util/computed";
-import { ComputedRef, Ref, computed, ref, unref } from "vue";
+import { Ref, computed, ref, unref } from "vue";
 import * as ops from "./operations";
 import type {
     EvaluateFunction,
@@ -104,7 +104,7 @@ export abstract class InternalFormula<T extends [FormulaSource] | FormulaSource[
 
     private setupConstant({ inputs }: { inputs: [FormulaSource] }): InternalFormulaProperties<T> {
         if (inputs.length !== 1) {
-            throw new Error("Evaluate function is required if inputs is not length 1");
+            console.error("Evaluate function is required if inputs is not length 1");
         }
         return {
             inputs: inputs as T,
@@ -229,15 +229,16 @@ export abstract class InternalFormula<T extends [FormulaSource] | FormulaSource[
         start: Computable<DecimalSource>,
         formulaModifier: (value: InvertibleIntegralFormula) => GenericFormula
     ) {
-        const lhsRef = ref<DecimalSource>(0);
-        const formula = formulaModifier(Formula.variable(lhsRef));
+        const formula = formulaModifier(Formula.variable(0));
         const processedStart = convertComputable(start);
         function evalStep(lhs: DecimalSource) {
             if (Decimal.lt(lhs, unref(processedStart))) {
                 return lhs;
             }
-            lhsRef.value = Decimal.sub(lhs, unref(processedStart));
-            return Decimal.add(formula.evaluate(), unref(processedStart));
+            return Decimal.add(
+                formula.evaluate(Decimal.sub(lhs, unref(processedStart))),
+                unref(processedStart)
+            );
         }
         function invertStep(value: DecimalSource, lhs: FormulaSource) {
             if (hasVariable(lhs) && formula.isInvertible()) {
@@ -249,7 +250,8 @@ export abstract class InternalFormula<T extends [FormulaSource] | FormulaSource[
                 }
                 return lhs.invert(value);
             }
-            throw new Error("Could not invert due to no input being a variable");
+            console.error("Could not invert due to no input being a variable");
+            return 0;
         }
         return new Formula({
             inputs: [value],
@@ -293,7 +295,8 @@ export abstract class InternalFormula<T extends [FormulaSource] | FormulaSource[
                 !formula.isInvertible() ||
                 (elseFormula != null && !elseFormula.isInvertible())
             ) {
-                throw new Error("Could not invert due to no input being a variable");
+                console.error("Could not invert due to no input being a variable");
+                return 0;
             }
             if (unref(processedCondition)) {
                 return lhs.invert(formula.invert(value));
@@ -1259,7 +1262,8 @@ export default class Formula<
         } else if (this.inputs.length === 1 && this.hasVariable()) {
             return value;
         }
-        throw new Error("Cannot invert non-invertible formula");
+        console.error("Cannot invert non-invertible formula");
+        return 0;
     }
 
     /**
@@ -1269,7 +1273,8 @@ export default class Formula<
      */
     evaluateIntegral(variable?: DecimalSource): DecimalSource {
         if (!this.isIntegrable()) {
-            throw new Error("Cannot evaluate integral of formula without integral");
+            console.error("Cannot evaluate integral of formula without integral");
+            return 0;
         }
         return this.getIntegralFormula().evaluate(variable);
     }
@@ -1281,7 +1286,8 @@ export default class Formula<
      */
     invertIntegral(value: DecimalSource): DecimalSource {
         if (!this.isIntegrable() || !this.getIntegralFormula().isInvertible()) {
-            throw new Error("Cannot invert integral of formula without invertible integral");
+            console.error("Cannot invert integral of formula without invertible integral");
+            return 0;
         }
         return (this.getIntegralFormula() as InvertibleFormula).invert(value);
     }
@@ -1308,7 +1314,8 @@ export default class Formula<
                 // We're the complex operation of this formula
                 stack = [];
                 if (this.internalIntegrate == null) {
-                    throw new Error("Cannot integrate formula with non-integrable operation");
+                    console.error("Cannot integrate formula with non-integrable operation");
+                    return Formula.constant(0);
                 }
                 let value = this.internalIntegrate.call(this, stack, ...this.inputs);
                 stack.forEach(func => (value = func(value)));
@@ -1328,14 +1335,16 @@ export default class Formula<
                 ) {
                     this.integralFormula = this;
                 } else {
-                    throw new Error("Cannot integrate formula without variable");
+                    console.error("Cannot integrate formula without variable");
+                    return Formula.constant(0);
                 }
             }
             return this.integralFormula;
         } else {
             // "Inner" part of the formula
             if (this.applySubstitution == null) {
-                throw new Error("Cannot have two complex operations in an integrable formula");
+                console.error("Cannot have two complex operations in an integrable formula");
+                return Formula.constant(0);
             }
             stack.push((variable: GenericFormula) =>
                 // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
@@ -1352,7 +1361,8 @@ export default class Formula<
             ) {
                 return this;
             } else {
-                throw new Error("Cannot integrate formula without variable");
+                console.error("Cannot integrate formula without variable");
+                return Formula.constant(0);
             }
         }
     }
@@ -1427,15 +1437,17 @@ export function calculateMaxAffordable(
         let affordable: DecimalSource = 0;
         if (Decimal.gt(maxBulkAmount, directSum)) {
             if (!formula.isInvertible()) {
-                throw new Error(
+                console.error(
                     "Cannot calculate max affordable of non-invertible formula with more maxBulkAmount than directSum"
                 );
+                return 0;
             }
             if (cumulativeCost) {
                 if (!formula.isIntegralInvertible()) {
-                    throw new Error(
+                    console.error(
                         "Cannot calculate max affordable of formula with non-invertible integral"
                     );
+                    return 0;
                 }
                 affordable = Decimal.floor(
                     formula.invertIntegral(Decimal.add(resource.value, formula.evaluateIntegral()))
@@ -1446,6 +1458,7 @@ export function calculateMaxAffordable(
         }
         affordable = Decimal.clampMax(affordable, maxBulkAmount);
         if (directSum > 0) {
+            const preSumAffordable = affordable;
             affordable = Decimal.sub(affordable, directSum).clampMin(0);
             let summedCost;
             if (cumulativeCost) {
@@ -1457,7 +1470,8 @@ export function calculateMaxAffordable(
             }
             while (
                 Decimal.lt(affordable, maxBulkAmount) &&
-                Decimal.lt(affordable, Number.MAX_SAFE_INTEGER)
+                Decimal.lt(affordable, Number.MAX_SAFE_INTEGER) &&
+                Decimal.add(preSumAffordable, 1).gte(affordable)
             ) {
                 const nextCost = formula.evaluate(
                     affordable.add(unref(formula.innermostVariable) ?? 0)
@@ -1514,13 +1528,15 @@ export function calculateCost(
     // Indirect sum
     if (Decimal.gt(amountToBuy, directSum)) {
         if (!formula.isInvertible()) {
-            throw new Error("Cannot calculate cost with indirect sum of non-invertible formula");
+            console.error("Cannot calculate cost with indirect sum of non-invertible formula");
+            return 0;
         }
         if (cumulativeCost) {
             if (!formula.isIntegrable()) {
-                throw new Error(
+                console.error(
                     "Cannot calculate cost with cumulative cost of non-integrable formula"
                 );
+                return 0;
             }
             cost = Decimal.sub(formula.evaluateIntegral(newValue), formula.evaluateIntegral());
             if (targetValue.gt(1e308)) {

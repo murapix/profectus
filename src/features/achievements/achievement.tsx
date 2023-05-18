@@ -190,7 +190,11 @@ export function createAchievement<T extends AchievementOptions>(
             {}
         );
 
-        function complete() {
+        achievement.earned = earned;
+        achievement.complete = function () {
+            if (earned.value) {
+                return;
+            }
             earned.value = true;
             achievement.onComplete?.();
             if (achievement.display != null && unref(achievement.showPopups) === true) {

@@ -28,7 +28,16 @@
                         v-for="link in unref(links) || []"
                         :key="`${link.startNode.id}-${link.endNode.id}`"
                     >
-                        <BoardLinkVue :link="link" />
+                        <BoardLinkVue
+                            :link="link"
+                            :dragging="unref(draggingNode)"
+                            :dragged="
+                                link.startNode === unref(draggingNode) ||
+                                link.endNode === unref(draggingNode)
+                                    ? dragged
+                                    : undefined
+                            "
+                        />
                     </g>
                 </transition-group>
                 <transition-group name="grow" :duration="500" appear>
@@ -38,10 +47,12 @@
                             :nodeType="types[node.type]"
                             :dragging="unref(draggingNode)"
                             :dragged="unref(draggingNode) === node ? dragged : undefined"
-                            :hasDragged="hasDragged"
-                            :receivingNode="unref(receivingNode)?.id === node.id"
-                            :selectedNode="unref(selectedNode)"
-                            :selectedAction="unref(selectedAction)"
+                            :hasDragged="unref(draggingNode) == null ? false : hasDragged"
+                            :receivingNode="unref(receivingNode) === node"
+                            :isSelected="unref(selectedNode) === node"
+                            :selectedAction="
+                                unref(selectedNode) === node ? unref(selectedAction) : null
+                            "
                             @mouseDown="mouseDown"
                             @endDragging="endDragging"
                             @clickAction="(actionId: string) => clickAction(node, actionId)"
@@ -97,6 +108,10 @@ const stage = ref<any>(null);
 
 const sortedNodes = computed(() => {
     const nodes = props.nodes.value.slice();
+    if (props.selectedNode.value) {
+        const node = nodes.splice(nodes.indexOf(props.selectedNode.value), 1)[0];
+        nodes.push(node);
+    }
     if (props.draggingNode.value) {
         const node = nodes.splice(nodes.indexOf(props.draggingNode.value), 1)[0];
         nodes.push(node);
