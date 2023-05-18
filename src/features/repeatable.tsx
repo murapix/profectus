@@ -157,7 +157,6 @@ export function createRepeatable<T extends RepeatableOptions>(
                     (repeatable as GenericRepeatable).amount.value
                 )
             ),
-            canMaximize: true,
             requiresPay: false,
             visibility: Visibility.None,
             canMaximize: true

@@ -235,39 +235,6 @@ export function createAchievement<T extends AchievementOptions>(
             decorator.postConstruct?.(achievement);
         }
 
-<<<<<<< HEAD
-        achievement.earned = earned;
-        achievement.complete = function () {
-            if (earned.value) {
-                return;
-            }
-            earned.value = true;
-            achievement.onComplete?.();
-            if (achievement.display != null && unref(achievement.showPopups) === true) {
-                const display = unref(achievement.display);
-                let Display;
-                if (isCoercableComponent(display)) {
-                    Display = coerceComponent(display);
-                } else if (display.requirement != null) {
-                    Display = coerceComponent(display.requirement);
-                } else {
-                    Display = displayRequirements(achievement.requirements ?? []);
-                }
-                toast.info(
-                    <div>
-                        <h3>Achievement earned!</h3>
-                        <div>
-                            {/* eslint-disable-next-line @typescript-eslint/ban-ts-comment */}
-                            {/* @ts-ignore */}
-                            <Display />
-                        </div>
-                    </div>
-                );
-            }
-        }
-
-=======
->>>>>>> parent of cf069ce (Update PoC)
         const decoratedProps = decorators.reduce(
             (current, next) => Object.assign(current, next.getGatheredProps?.(achievement)),
             {}
