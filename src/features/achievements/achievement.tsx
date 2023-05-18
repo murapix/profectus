@@ -182,13 +182,6 @@ export function createAchievement<T extends AchievementOptions>(
             decorator.preConstruct?.(achievement);
         }
         Object.assign(achievement, decoratedData);
-        for (const decorator of decorators) {
-            decorator.postConstruct?.(achievement);
-        }
-        const decoratedProps = decorators.reduce(
-            (current, next) => Object.assign(current, next.getGatheredProps?.(achievement)),
-            {}
-        );
 
         achievement.earned = earned;
         achievement.complete = function () {
@@ -220,7 +213,12 @@ export function createAchievement<T extends AchievementOptions>(
             }
         }
 
-        function gatherProps(this: GenericAchievement): Record<string, unknown> {
+        const decoratedProps = decorators.reduce(
+            (current, next) => Object.assign(current, next.getGatheredProps?.(achievement)),
+            {}
+        );
+
+        function gatherProps(this: Achievement<T>): Record<string, unknown> {
             const {
                 visibility,
                 display,
@@ -246,6 +244,10 @@ export function createAchievement<T extends AchievementOptions>(
                 id,
                 ...decoratedProps
             };
+        }
+
+        for (const decorator of decorators) {
+            decorator.postConstruct?.(achievement);
         }
 
         if (achievement.requirements != null) {
