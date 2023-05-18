@@ -1,36 +1,42 @@
 <template>
-    <div class="tabs-container">
-        <div v-for="(tab, index) in tabs" :key="index" class="tab" :ref="`tab-${index}`">
+    <div class="tabs-container" :class="{ useHeader }">
+        <div
+            v-for="(tab, index) in tabs"
+            :key="index"
+            class="tab"
+            :style="unref(layers[tab]?.style)"
+            :class="unref(layers[tab]?.classes)"
+        >
             <Nav v-if="index === 0 && !useHeader" />
             <div class="inner-tab">
                 <Layer
                     v-if="layerKeys.includes(tab)"
                     v-bind="gatherLayerProps(layers[tab]!)"
                     :index="index"
-                    :tab="() => (($refs[`tab-${index}`] as HTMLElement[] | undefined)?.[0])"
+                    @set-minimized="(value: boolean) => (layers[tab]!.minimized.value = value)"
                 />
                 <component :is="tab" :index="index" v-else />
             </div>
-            <div class="separator" v-if="index !== tabs.length - 1"></div>
         </div>
     </div>
 </template>
 
 <script setup lang="ts">
-import modInfo from "@/data/modInfo.json";
-import { GenericLayer, layers } from "@/game/layers";
-import player from "@/game/player";
-import { computed, toRef } from "vue";
+import projInfo from "data/projInfo.json";
+import type { GenericLayer } from "game/layers";
+import { layers } from "game/layers";
+import player from "game/player";
+import { computed, toRef, unref } from "vue";
 import Layer from "./Layer.vue";
 import Nav from "./Nav.vue";
 
 const tabs = toRef(player, "tabs");
 const layerKeys = computed(() => Object.keys(layers));
-const useHeader = modInfo.useHeader;
+const useHeader = projInfo.useHeader;
 
 function gatherLayerProps(layer: GenericLayer) {
-    const { display, minimized, minWidth, name, color, style, classes, links, minimizable } = layer;
-    return { display, minimized, minWidth, name, color, style, classes, links, minimizable };
+    const { display, minimized, name, color, minimizable, nodes, minimizedDisplay } = layer;
+    return { display, minimized, name, color, minimizable, nodes, minimizedDisplay };
 }
 </script>
 
@@ -41,6 +47,11 @@ function gatherLayerProps(layer: GenericLayer) {
     overflow-x: auto;
     overflow-y: hidden;
     display: flex;
+}
+
+.tabs-container:not(.useHeader) {
+    width: calc(100vw - 50px);
+    margin-left: 50px;
 }
 
 .tab {
@@ -61,14 +72,8 @@ function gatherLayerProps(layer: GenericLayer) {
     flex-grow: 1;
 }
 
-.separator {
-    position: absolute;
-    right: -4px;
-    top: 0;
-    bottom: 0;
-    width: 8px;
-    background: var(--outline);
-    z-index: 1;
+.tab + .tab > .inner-tab {
+    border-left: solid 4px var(--outline);
 }
 </style>
 
@@ -77,7 +82,7 @@ function gatherLayerProps(layer: GenericLayer) {
     height: 4px;
     border: none;
     background: var(--outline);
-    margin: var(--feature-margin) -10px;
+    margin: var(--feature-margin) 0;
 }
 
 .tab .modal-body hr {

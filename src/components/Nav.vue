@@ -1,9 +1,9 @@
 <template>
     <div class="nav" v-if="useHeader" v-bind="$attrs">
-        <img v-if="banner" :src="banner" height="100%" :alt="title" />
+        <img v-if="banner" :src="banner" class="banner" :alt="title" />
         <div v-else class="title">{{ title }}</div>
         <div @click="changelog?.open()" class="version-container">
-            <Tooltip display="Changelog" bottom class="version"
+            <Tooltip display="Changelog" :direction="Direction.Down" class="version"
                 ><span>v{{ versionNumber }}</span></Tooltip
             >
         </div>
@@ -11,11 +11,11 @@
         <div class="discord">
             <span @click="openDiscord" class="material-icons">discord</span>
             <ul class="discord-links">
-                <li v-if="discordLink !== 'https://discord.gg/WzejVAx'">
+                <li v-if="discordLink">
                     <a :href="discordLink" target="_blank">{{ discordName }}</a>
                 </li>
                 <li>
-                    <a href="https://discord.gg/WzejVAx" target="_blank"
+                    <a href="https://discord.gg/yJ4fjnjU54" target="_blank"
                         >The Paper Pilot Community</a
                     >
                 </li>
@@ -26,51 +26,51 @@
         </div>
         <div>
             <a href="https://forums.moddingtree.com/" target="_blank">
-                <Tooltip display="Forums" bottom yoffset="5px">
+                <Tooltip display="Forums" :direction="Direction.Down" yoffset="5px">
                     <span class="material-icons">forum</span>
                 </Tooltip>
             </a>
         </div>
         <div @click="info?.open()">
-            <Tooltip display="Info" bottom class="info">
+            <Tooltip display="Info" :direction="Direction.Down" class="info">
                 <span class="material-icons">info</span>
             </Tooltip>
         </div>
         <div @click="savesManager?.open()">
-            <Tooltip display="Saves" bottom xoffset="-20px">
+            <Tooltip display="Saves" :direction="Direction.Down" xoffset="-20px">
                 <span class="material-icons">library_books</span>
             </Tooltip>
         </div>
         <div @click="options?.open()">
-            <Tooltip display="Options" bottom xoffset="-66px">
+            <Tooltip display="Settings" :direction="Direction.Down" xoffset="-66px">
                 <span class="material-icons">settings</span>
             </Tooltip>
         </div>
     </div>
     <div v-else class="overlay-nav" v-bind="$attrs">
         <div @click="changelog?.open()" class="version-container">
-            <Tooltip display="Changelog" right xoffset="25%" class="version">
+            <Tooltip display="Changelog" :direction="Direction.Right" xoffset="25%" class="version">
                 <span>v{{ versionNumber }}</span>
             </Tooltip>
         </div>
         <div @click="savesManager?.open()">
-            <Tooltip display="Saves" right>
+            <Tooltip display="Saves" :direction="Direction.Right">
                 <span class="material-icons">library_books</span>
             </Tooltip>
         </div>
         <div @click="options?.open()">
-            <Tooltip display="Options" right>
+            <Tooltip display="Settings" :direction="Direction.Right">
                 <span class="material-icons">settings</span>
             </Tooltip>
         </div>
         <div @click="info?.open()">
-            <Tooltip display="Info" right>
+            <Tooltip display="Info" :direction="Direction.Right">
                 <span class="material-icons">info</span>
             </Tooltip>
         </div>
         <div>
             <a href="https://forums.moddingtree.com/" target="_blank">
-                <Tooltip display="Forums" right xoffset="7px">
+                <Tooltip display="Forums" :direction="Direction.Right" xoffset="7px">
                     <span class="material-icons">forum</span>
                 </Tooltip>
             </a>
@@ -78,11 +78,11 @@
         <div class="discord">
             <span @click="openDiscord" class="material-icons">discord</span>
             <ul class="discord-links">
-                <li v-if="discordLink !== 'https://discord.gg/WzejVAx'">
+                <li v-if="discordLink">
                     <a :href="discordLink" target="_blank">{{ discordName }}</a>
                 </li>
                 <li>
-                    <a href="https://discord.gg/WzejVAx" target="_blank"
+                    <a href="https://discord.gg/yJ4fjnjU54" target="_blank"
                         >The Paper Pilot Community</a
                     >
                 </li>
@@ -99,13 +99,15 @@
 </template>
 
 <script setup lang="ts">
-import Changelog from "@/data/Changelog.vue";
-import modInfo from "@/data/modInfo.json";
-import { ComponentPublicInstance, ref } from "vue";
+import Changelog from "data/Changelog.vue";
+import projInfo from "data/projInfo.json";
+import Tooltip from "features/tooltips/Tooltip.vue";
+import { Direction } from "util/common";
+import type { ComponentPublicInstance } from "vue";
+import { ref } from "vue";
 import Info from "./Info.vue";
 import Options from "./Options.vue";
 import SavesManager from "./SavesManager.vue";
-import Tooltip from "./Tooltip.vue";
 
 const info = ref<ComponentPublicInstance<typeof Info> | null>(null);
 const savesManager = ref<ComponentPublicInstance<typeof SavesManager> | null>(null);
@@ -114,7 +116,7 @@ const options = ref<ComponentPublicInstance<typeof Options> | null>(null);
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const changelog = ref<ComponentPublicInstance<any> | null>(null);
 
-const { useHeader, banner, title, discordName, discordLink, versionNumber } = modInfo;
+const { useHeader, banner, title, discordName, discordLink, versionNumber } = projInfo;
 
 function openDiscord() {
     window.open(discordLink, "mywindow");
@@ -141,13 +143,18 @@ function openDiscord() {
     flex-shrink: 0;
 }
 
+.nav > .banner {
+    height: 100%;
+    width: unset;
+}
+
 .overlay-nav {
-    position: absolute;
+    position: fixed;
     top: 10px;
     left: 10px;
     display: flex;
     flex-direction: column;
-    z-index: 1;
+    z-index: 2;
 }
 
 .overlay-nav > * {

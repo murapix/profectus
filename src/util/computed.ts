@@ -1,5 +1,7 @@
-import { computed, Ref } from "vue";
-import { isFunction } from "./common";
+import type { JSXFunction } from "features/feature";
+import { isFunction } from "util/common";
+import type { Ref } from "vue";
+import { computed } from "vue";
 
 export const DoNotCache = Symbol("DoNotCache");
 
@@ -15,9 +17,9 @@ export type GetComputableType<T> = T extends { [DoNotCache]: true }
 export type GetComputableTypeWithDefault<T, S> = undefined extends T
     ? S
     : GetComputableType<NonNullable<T>>;
-type UnwrapComputableType<T> = T extends Ref<infer S> ? S : T extends () => infer S ? S : T;
+export type UnwrapComputableType<T> = T extends Ref<infer S> ? S : T extends () => infer S ? S : T;
 
-type ComputableKeysOf<T> = Pick<
+export type ComputableKeysOf<T> = Pick<
     T,
     {
         [K in keyof T]: T[K] extends Computable<unknown> ? K : never;
@@ -31,17 +33,22 @@ export function processComputable<T, S extends keyof ComputableKeysOf<T>>(
     key: S
 ): asserts obj is T & { [K in S]: ProcessedComputable<UnwrapComputableType<T[S]>> } {
     const computable = obj[key];
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    if (isFunction(computable) && computable.length === 0 && !(computable as any)[DoNotCache]) {
+    if (
+        isFunction(computable) &&
+        computable.length === 0 &&
+        !(computable as unknown as JSXFunction)[DoNotCache]
+    ) {
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore
         obj[key] = computed(computable.bind(obj));
+    } else if (isFunction(computable)) {
+        obj[key] = computable.bind(obj) as unknown as T[S];
+        (obj[key] as unknown as JSXFunction)[DoNotCache] = true;
     }
 }
 
 export function convertComputable<T>(obj: Computable<T>): ProcessedComputable<T> {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    if (isFunction(obj) && !(obj as any)[DoNotCache]) {
+    if (isFunction(obj) && !(obj as unknown as JSXFunction)[DoNotCache]) {
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore
         obj = computed(obj);

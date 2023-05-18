@@ -1,5 +1,6 @@
-import Decimal, { DecimalSource } from "@/lib/break_eternity";
-import modInfo from "@/data/modInfo.json";
+import projInfo from "data/projInfo.json";
+import type { DecimalSource } from "lib/break_eternity";
+import Decimal from "lib/break_eternity";
 
 export default Decimal;
 
@@ -13,7 +14,7 @@ export function exponentialFormat(num: DecimalSource, precision: number, mantiss
         e = e.add(1);
     }
     const eString = e.gte(1e9)
-        ? format(e, Math.max(Math.max(precision, 3), modInfo.defaultDecimalsShown))
+        ? format(e, Math.max(Math.max(precision, 3), projInfo.defaultDecimalsShown))
         : e.gte(10000)
         ? commaFormat(e, 0)
         : e.toStringWithDecimalPlaces(0);
@@ -48,7 +49,10 @@ export function regularFormat(num: DecimalSource, precision: number): string {
         return (0).toFixed(precision);
     }
     if (num.mag < 0.1 && precision !== 0) {
-        precision = Math.max(Math.max(precision, 4), modInfo.defaultDecimalsShown);
+        precision = Math.max(
+            Math.max(precision, num.log10().negate().ceil().toNumber()),
+            projInfo.defaultDecimalsShown
+        );
     }
     return num.toStringWithDecimalPlaces(precision);
 }
@@ -63,8 +67,8 @@ const nearOne = new Decimal(0.98);
 const thousandth = new Decimal(0.001);
 const zero = new Decimal(0);
 export function format(num: DecimalSource, precision?: number, small?: boolean): string {
-    if (precision == null) precision = modInfo.defaultDecimalsShown;
-    small = small || modInfo.allowSmall;
+    if (precision == null) precision = projInfo.defaultDecimalsShown;
+    small = small ?? projInfo.defaultShowSmall;
     num = new Decimal(num);
     if (isNaN(num.sign) || isNaN(num.layer) || isNaN(num.mag)) {
         return "NaN";

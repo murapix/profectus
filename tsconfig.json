@@ -15,15 +15,11 @@
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
     "sourceMap": true,
-    "baseUrl": ".",
+    "baseUrl": "src",
     "types": [
-      "webpack-env"
+      "vite/client",
+      "node"
     ],
-    "paths": {
-      "@/*": [
-        "src/*"
-      ]
-    },
     "lib": [
       "esnext",
       "dom",
@@ -40,5 +36,15 @@
   ],
   "exclude": [
     "node_modules"
-  ]
+  ],
+  "typedocOptions": {
+      "entryPoints": ["src"],
+      "entryPointStrategy": "expand",
+      "cleanOutputDir": true,
+      "name": "Profectus",
+      "includeVersion": true,
+      "categorizeByGroup": false,
+      "readme": "none",
+      "out": "../docs/api"
+  }
 }

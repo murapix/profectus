@@ -1,10 +1,11 @@
-import Decimal from "./bignum";
+import type { Persistent } from "game/persistence";
+import { NonPersistent } from "game/persistence";
+import Decimal from "util/bignum";
 
 export const ProxyState = Symbol("ProxyState");
 export const ProxyPath = Symbol("ProxyPath");
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export type ProxiedWithState<T> = NonNullable<T> extends Record<PropertyKey, any>
+export type ProxiedWithState<T> = NonNullable<T> extends Record<PropertyKey, unknown>
     ? NonNullable<T> extends Decimal
         ? T
         : {
@@ -15,17 +16,37 @@ export type ProxiedWithState<T> = NonNullable<T> extends Record<PropertyKey, any
           }
     : T;
 
+export type Proxied<T> = NonNullable<T> extends Record<PropertyKey, unknown>
+    ? NonNullable<T> extends Persistent<infer S>
+        ? NonPersistent<S>
+        : NonNullable<T> extends Decimal
+        ? T
+        : {
+              [K in keyof T]: Proxied<T[K]>;
+          } & {
+              [ProxyState]: T;
+          }
+    : T;
+
 // Takes a function that returns an object and pretends to be that object
 // Note that the object is lazily calculated
-export function createLazyProxy<T extends object>(objectFunc: () => T): T {
-    const obj: T | Record<string, never> = {};
+export function createLazyProxy<T extends object, S extends T>(
+    objectFunc: (this: S, baseObject: S) => T & S,
+    baseObject: S = {} as S
+): T {
+    const obj: S & Partial<T> = baseObject;
     let calculated = false;
+    let calculating = false;
     function calculateObj(): T {
         if (!calculated) {
-            Object.assign(obj, objectFunc());
+            if (calculating) {
+                console.error("Cyclical dependency detected. Cannot evaluate lazy proxy.");
+            }
+            calculating = true;
+            Object.assign(obj, objectFunc.call(obj, obj));
             calculated = true;
         }
-        return obj as T;
+        return obj as S & T;
     }
 
     return new Proxy(obj, {
@@ -34,11 +55,17 @@ export function createLazyProxy<T extends object>(objectFunc: () => T): T {
                 return calculateObj();
             }
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            return (calculateObj() as any)[key];
+            const val = (calculateObj() as any)[key];
+            if (val != null && typeof val === "object" && NonPersistent in val) {
+                return val[NonPersistent];
+            }
+            return val;
         },
-        set() {
-            console.error("Layers and features are shallow readonly");
-            return false;
+        set(target, key, value) {
+            // TODO give warning about this? It should only be done with caution
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            (calculateObj() as any)[key] = value;
+            return true;
         },
         has(target, key) {
             if (key === ProxyState) {
@@ -51,10 +78,10 @@ export function createLazyProxy<T extends object>(objectFunc: () => T): T {
         },
         getOwnPropertyDescriptor(target, key) {
             if (!calculated) {
-                Object.assign(obj, objectFunc());
+                Object.assign(obj, objectFunc.call(obj, obj));
                 calculated = true;
             }
             return Object.getOwnPropertyDescriptor(target, key);
         }
-    }) as T;
+    }) as S & T;
 }

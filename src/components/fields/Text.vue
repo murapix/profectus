@@ -9,7 +9,7 @@
                 v-model="value"
                 :placeholder="placeholder"
                 :maxHeight="maxHeight"
-                @blur="submit"
+                @blur="blur"
                 ref="field"
             />
             <input
@@ -18,7 +18,7 @@
                 v-model="value"
                 :placeholder="placeholder"
                 :class="{ fullWidth: !title }"
-                @blur="submit"
+                @blur="blur"
                 ref="field"
             />
         </div>
@@ -26,37 +26,36 @@
 </template>
 
 <script setup lang="ts">
-import { CoercableComponent } from "@/features/feature";
-import { coerceComponent } from "@/util/vue";
-import { computed, onMounted, ref, toRefs, unref } from "vue";
+import "components/common/fields.css";
+import type { CoercableComponent } from "features/feature";
+import { computeOptionalComponent } from "util/vue";
+import { computed, onMounted, shallowRef, toRef, unref } from "vue";
 import VueTextareaAutosize from "vue-textarea-autosize";
-import "@/components/common/fields.css";
 
-const _props = defineProps<{
+const props = defineProps<{
     title?: CoercableComponent;
     modelValue?: string;
     textArea?: boolean;
     placeholder?: string;
     maxHeight?: number;
+    submitOnBlur?: boolean;
 }>();
-const props = toRefs(_props);
 const emit = defineEmits<{
     (e: "update:modelValue", value: string): void;
     (e: "submit"): void;
+    (e: "cancel"): void;
 }>();
 
-const titleComponent = computed(
-    () => props.title?.value && coerceComponent(unref(props.title.value), "span")
-);
+const titleComponent = computeOptionalComponent(toRef(props, "title"), "span");
 
-const field = ref<HTMLElement | null>(null);
+const field = shallowRef<HTMLElement | null>(null);
 onMounted(() => {
     field.value?.focus();
 });
 
 const value = computed({
     get() {
-        return unref(props.modelValue) || "";
+        return unref(props.modelValue) ?? "";
     },
     set(value: string) {
         emit("update:modelValue", value);
@@ -65,6 +64,14 @@ const value = computed({
 
 function submit() {
     emit("submit");
+}
+
+function blur() {
+    if (props.submitOnBlur !== false) {
+        emit("submit");
+    } else {
+        emit("cancel");
+    }
 }
 </script>
 

@@ -1,57 +1,48 @@
 <template>
-    <div
-        v-if="unref(visibility) !== Visibility.None"
-        :style="{ visibility: unref(visibility) === Visibility.Hidden ? 'hidden' : undefined }"
+    <button
+        v-if="isVisible(visibility)"
+        :style="[
+            { visibility: isHidden(visibility) ? 'hidden' : undefined },
+            unref(style) ?? []
+        ]"
+        @click="onClick"
+        @mousedown="start"
+        @mouseleave="stop"
+        @mouseup="stop"
+        @touchstart.passive="start"
+        @touchend.passive="stop"
+        @touchcancel.passive="stop"
+        :class="{
+            feature: true,
+            clickable: true,
+            can: unref(canClick),
+            locked: !unref(canClick),
+            small,
+            ...unref(classes)
+        }"
     >
-        <button
-            :style="unref(style)"
-            @click="onClick"
-            @mousedown="start"
-            @mouseleave="stop"
-            @mouseup="stop"
-            @touchstart="start"
-            @touchend="stop"
-            @touchcancel="stop"
-            :disabled="!unref(canClick)"
-            :class="{
-                feature: true,
-                clickable: true,
-                can: unref(canClick),
-                locked: !unref(canClick),
-                small,
-                ...unref(classes)
-            }"
-        >
-            <component v-if="unref(comp)" :is="unref(comp)" />
-            <MarkNode :mark="unref(mark)" />
-            <LinkNode :id="id" />
-        </button>
-    </div>
+        <component v-if="unref(comp)" :is="unref(comp)" />
+        <MarkNode :mark="unref(mark)" />
+        <Node :id="id" />
+    </button>
 </template>
 
 <script lang="tsx">
-import "@/components/common/features.css";
-import LinkNode from "@/components/links/LinkNode.vue";
-import MarkNode from "@/components/MarkNode.vue";
-import { GenericClickable } from "@/features/clickables/clickable";
-import { jsx, StyleValue, Visibility } from "@/features/feature";
+import "components/common/features.css";
+import MarkNode from "components/MarkNode.vue";
+import Node from "components/Node.vue";
+import type { GenericClickable } from "features/clickables/clickable";
+import type { StyleValue } from "features/feature";
+import { isHidden, isVisible, jsx, Visibility } from "features/feature";
 import {
     coerceComponent,
     isCoercableComponent,
     processedPropType,
     setupHoldToClick,
     unwrapRef
-} from "@/util/vue";
-import {
-    Component,
-    defineComponent,
-    PropType,
-    shallowRef,
-    toRefs,
-    unref,
-    UnwrapRef,
-    watchEffect
-} from "vue";
+} from "util/vue";
+import type { Component, PropType, UnwrapRef } from "vue";
+import { defineComponent, shallowRef, toRefs, unref, watchEffect } from "vue";
 
 export default defineComponent({
     props: {
@@ -64,12 +55,12 @@ export default defineComponent({
             required: true
         },
         visibility: {
-            type: processedPropType<Visibility>(Number),
+            type: processedPropType<Visibility | boolean>(Number, Boolean),
             required: true
         },
         style: processedPropType<StyleValue>(Object, String, Array),
         classes: processedPropType<Record<string, boolean>>(Object),
-        onClick: Function as PropType<VoidFunction>,
+        onClick: Function as PropType<(e?: MouseEvent | TouchEvent) => void>,
         onHold: Function as PropType<VoidFunction>,
         canClick: {
             type: processedPropType<boolean>(Boolean),
@@ -83,7 +74,7 @@ export default defineComponent({
         }
     },
     components: {
-        LinkNode,
+        Node,
         MarkNode
     },
     setup(props) {
@@ -101,12 +92,12 @@ export default defineComponent({
                 comp.value = coerceComponent(currDisplay);
                 return;
             }
-            const Title = coerceComponent(currDisplay.title || "", "h3");
+            const Title = coerceComponent(currDisplay.title ?? "", "h3");
             const Description = coerceComponent(currDisplay.description, "div");
             comp.value = coerceComponent(
                 jsx(() => (
                     <span>
-                        {currDisplay.title ? (
+                        {currDisplay.title != null ? (
                             <div>
                                 <Title />
                             </div>
@@ -124,6 +115,8 @@ export default defineComponent({
             stop,
             comp,
             Visibility,
+            isVisible,
+            isHidden,
             unref
         };
     }
@@ -139,5 +132,9 @@ export default defineComponent({
 
 .clickable.small {
     min-height: unset;
+}
+
+.clickable > * {
+    pointer-events: none;
 }
 </style>

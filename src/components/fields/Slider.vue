@@ -1,16 +1,17 @@
 <template>
     <div class="field">
         <span class="field-title" v-if="title">{{ title }}</span>
-        <Tooltip :display="`${value}`" :class="{ fullWidth: !title }">
+        <Tooltip :display="`${value}`" :class="{ fullWidth: !title }" :direction="Direction.Down">
             <input type="range" v-model="value" :min="min" :max="max" />
         </Tooltip>
     </div>
 </template>
 
 <script setup lang="ts">
+import "components/common/fields.css";
+import Tooltip from "features/tooltips/Tooltip.vue";
+import { Direction } from "util/common";
 import { computed, toRefs, unref } from "vue";
-import Tooltip from "../Tooltip.vue";
-import "@/components/common/fields.css";
 
 const _props = defineProps<{
     title?: string;
@@ -25,7 +26,7 @@ const emit = defineEmits<{
 
 const value = computed({
     get() {
-        return String(unref(props.modelValue) || 0);
+        return String(unref(props.modelValue) ?? 0);
     },
     set(value: string) {
         emit("update:modelValue", Number(value));

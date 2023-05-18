@@ -1,11 +1,11 @@
 <template>
     <div
-        v-if="unref(visibility) !== Visibility.None"
+        v-if="isVisible(visibility)"
         :style="[
             {
                 width: unref(width) + 'px',
                 height: unref(height) + 'px',
-                visibility: unref(visibility) === Visibility.Hidden ? 'hidden' : undefined
+                visibility: isHidden(visibility) ? 'hidden' : undefined
             },
             unref(style) ?? {}
         ]"
@@ -21,12 +21,9 @@
                 unref(borderStyle) ?? {}
             ]"
         >
-            <component
-                v-if="component"
-                class="overlayText"
-                :style="unref(textStyle)"
-                :is="component"
-            />
+            <span v-if="component" class="overlayText" :style="unref(textStyle)">
+                <component :is="component" />
+            </span>
         </div>
         <div
             class="border"
@@ -40,18 +37,20 @@
             <div class="fill" :style="[barStyle, unref(style) ?? {}, unref(fillStyle) ?? {}]" />
         </div>
         <MarkNode :mark="unref(mark)" />
-        <LinkNode :id="id" />
+        <Node :id="id" />
     </div>
 </template>
 
 <script lang="ts">
-import { Direction } from "./bar";
-import { CoercableComponent, Visibility } from "@/features/feature";
-import Decimal, { DecimalSource } from "@/util/bignum";
-import { computeOptionalComponent, processedPropType, unwrapRef } from "@/util/vue";
-import { computed, CSSProperties, defineComponent, StyleValue, toRefs, unref } from "vue";
-import LinkNode from "@/components/links/LinkNode.vue";
-import MarkNode from "@/components/MarkNode.vue";
+import MarkNode from "components/MarkNode.vue";
+import Node from "components/Node.vue";
+import { CoercableComponent, isHidden, isVisible, Visibility } from "features/feature";
+import type { DecimalSource } from "util/bignum";
+import Decimal from "util/bignum";
+import { Direction } from "util/common";
+import { computeOptionalComponent, processedPropType, unwrapRef } from "util/vue";
+import type { CSSProperties, StyleValue } from "vue";
+import { computed, defineComponent, toRefs, unref } from "vue";
 
 export default defineComponent({
     props: {
@@ -73,7 +72,7 @@ export default defineComponent({
         },
         display: processedPropType<CoercableComponent>(Object, String, Function),
         visibility: {
-            type: processedPropType<Visibility>(Number),
+            type: processedPropType<Visibility | boolean>(Number, Boolean),
             required: true
         },
         style: processedPropType<StyleValue>(Object, String, Array),
@@ -90,7 +89,7 @@ export default defineComponent({
     },
     components: {
         MarkNode,
-        LinkNode
+        Node
     },
     setup(props) {
         const { progress, width, height, direction, display } = toRefs(props);
@@ -137,7 +136,9 @@ export default defineComponent({
             barStyle,
             component,
             unref,
-            Visibility
+            Visibility,
+            isVisible,
+            isHidden
         };
     }
 });
@@ -178,5 +179,6 @@ export default defineComponent({
     margin-left: -0.5px;
     transition-duration: 0.2s;
     z-index: 2;
+    transition-duration: 0.05s;
 }
 </style>

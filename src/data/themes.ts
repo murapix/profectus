@@ -1,4 +1,5 @@
-interface ThemeVars {
+/** A object of all CSS variables determined by the current theme. */
+export interface ThemeVars {
     "--foreground": string;
     "--background": string;
     "--feature-foreground": string;
@@ -19,24 +20,33 @@ interface ThemeVars {
     "--feature-margin": string;
 }
 
+/** An object representing a theme the player can use to change the look of the game. */
 export interface Theme {
+    /** The values of the theme's CSS variables. */
     variables: ThemeVars;
-    stackedInfoboxes: boolean;
+    /** Whether or not tabs should "float" in the center of their container. */
     floatingTabs: boolean;
-    showSingleTab: boolean;
+    /** Whether or not adjacent features should merge together - removing the margin between them, and only applying the border radius to the first and last elements in the row or column. */
     mergeAdjacent: boolean;
+    /** Whether or not to show a pin icon on pinned tooltips. */
+    showPin: boolean;
 }
 
 declare module "@vue/runtime-dom" {
+    /** Make CSS properties accept any CSS variables usually controlled by a theme. */
     // eslint-disable-next-line @typescript-eslint/no-empty-interface
     interface CSSProperties extends Partial<ThemeVars> {}
+
+    interface HTMLAttributes {
+        style?: StyleValue;
+    }
 }
 
 const defaultTheme: Theme = {
     variables: {
         "--foreground": "#dfdfdf",
         "--background": "#0f0f0f",
-        "--feature-foreground": "#eee",
+        "--feature-foreground": "#0f0f0f",
         "--tooltip-background": "rgba(0, 0, 0, 0.75)",
         "--raised-background": "#0f0f0f",
         "--points": "#ffffff",
@@ -54,12 +64,12 @@ const defaultTheme: Theme = {
         "--modal-border": "solid 2px var(--color)",
         "--feature-margin": "0px"
     },
-    stackedInfoboxes: false,
     floatingTabs: true,
-    showSingleTab: false,
-    mergeAdjacent: true
+    mergeAdjacent: true,
+    showPin: true
 };
 
+/** An enum of all available themes and their internal IDs. The keys are their display names. */
 export enum Themes {
     Classic = "classic",
     Paper = "paper",
@@ -67,6 +77,7 @@ export enum Themes {
     Aqua = "aqua"
 }
 
+/** A dictionary of all available themes. */
 export default {
     classic: defaultTheme,
     paper: {
@@ -83,7 +94,6 @@ export default {
             "--modal-border": "",
             "--feature-margin": "5px"
         },
-        stackedInfoboxes: true,
         floatingTabs: false
     } as Theme,
     // Based on https://www.nordtheme.com
@@ -109,7 +119,6 @@ export default {
             "--modal-border": "solid 2px #3B4252",
             "--feature-margin": "5px"
         },
-        stackedInfoboxes: true,
         floatingTabs: false
     } as Theme,
     aqua: {

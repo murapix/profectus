@@ -1,17 +1,21 @@
 <template>
     <div
-        v-if="unref(visibility) !== Visibility.None"
+        v-if="isVisible(visibility)"
         class="tab-family-container"
         :class="{ ...unref(classes), ...tabClasses }"
         :style="[
             {
-                visibility: unref(visibility) === Visibility.Hidden ? 'hidden' : undefined
+                visibility: isHidden(visibility) ? 'hidden' : undefined
             },
             unref(style) ?? [],
             tabStyle ?? []
         ]"
     >
-        <Sticky class="tab-buttons-container">
+        <Sticky
+            class="tab-buttons-container"
+            :class="unref(buttonContainerClasses)"
+            :style="unref(buttonContainerStyle)"
+        >
             <div class="tab-buttons" :class="{ floating }">
                 <TabButton
                     v-for="(button, id) in unref(tabs)"
@@ -30,30 +34,22 @@
 </template>
 
 <script lang="ts">
-import Sticky from "@/components/layout/Sticky.vue";
-import themes from "@/data/themes";
-import { CoercableComponent, StyleValue, Visibility } from "@/features/feature";
-import { GenericTab } from "@/features/tabs/tab";
-import TabButton from "@/features/tabs/TabButton.vue";
-import { GenericTabButton } from "@/features/tabs/tabFamily";
-import settings from "@/game/settings";
-import { coerceComponent, isCoercableComponent, processedPropType, unwrapRef } from "@/util/vue";
-import {
-    Component,
-    computed,
-    defineComponent,
-    PropType,
-    Ref,
-    shallowRef,
-    toRefs,
-    unref,
-    watchEffect
-} from "vue";
+import Sticky from "components/layout/Sticky.vue";
+import themes from "data/themes";
+import type { CoercableComponent, StyleValue } from "features/feature";
+import { isHidden, isVisible, Visibility } from "features/feature";
+import type { GenericTab } from "features/tabs/tab";
+import TabButton from "features/tabs/TabButton.vue";
+import type { GenericTabButton } from "features/tabs/tabFamily";
+import settings from "game/settings";
+import { coerceComponent, isCoercableComponent, processedPropType, unwrapRef } from "util/vue";
+import type { Component, PropType, Ref } from "vue";
+import { computed, defineComponent, shallowRef, toRefs, unref, watchEffect } from "vue";
 
 export default defineComponent({
     props: {
         visibility: {
-            type: processedPropType<Visibility>(Number),
+            type: processedPropType<Visibility | boolean>(Number, Boolean),
             required: true
         },
         activeTab: {
@@ -69,7 +65,9 @@ export default defineComponent({
             required: true
         },
         style: processedPropType<StyleValue>(String, Object, Array),
-        classes: processedPropType<Record<string, boolean>>(Object)
+        classes: processedPropType<Record<string, boolean>>(Object),
+        buttonContainerStyle: processedPropType<StyleValue>(String, Object, Array),
+        buttonContainerClasses: processedPropType<Record<string, boolean>>(Object)
     },
     components: {
         Sticky,
@@ -115,7 +113,7 @@ export default defineComponent({
 
         function gatherButtonProps(button: GenericTabButton) {
             const { display, style, classes, glowColor, visibility } = button;
-            return { display, style, classes, glowColor, visibility };
+            return { display, style: unref(style), classes, glowColor, visibility };
         }
 
         return {
@@ -125,7 +123,9 @@ export default defineComponent({
             Visibility,
             component,
             gatherButtonProps,
-            unref
+            unref,
+            isVisible,
+            isHidden
         };
     }
 });
@@ -150,37 +150,40 @@ export default defineComponent({
     height: calc(100% + 50px);
 }
 
+.modal-body > .tab-family-container:first-child {
+    margin: calc(10px + var(--feature-margin)) 10px 0 10px;
+    border: none;
+}
+
 .tab-family-container > :nth-child(2) {
     margin-top: 20px;
+}
+
+.modal-body > .tab-family-container > :nth-child(2) {
+    /* TODO Why does it need this instead of 20px? */
+    margin-top: 50px;
 }
 
 .tab-family-container[data-v-f18896fc] > :last-child {
     margin-bottom: 20px;
 }
 
-.tab-family-container .sticky {
-    margin-left: -3px !important;
-    margin-right: -3px !important;
-}
-
 .tab-buttons-container {
-    width: calc(100% - 14px);
     z-index: 4;
 }
 
 .tab-buttons-container:not(.floating) {
-    border-top: solid 4px;
     border-bottom: solid 4px;
     border-color: inherit;
 }
 
+:not(.layer-tab):not(.modal-body) > .tab-family-container > .tab-buttons-container:not(.floating) {
+    width: calc(100% + 6px);
+    margin-left: -3px;
+}
+
 .tab-buttons-container:not(.floating) .tab-buttons {
-    width: calc(100% + 14px);
-    margin-left: -7px;
-    margin-right: -7px;
-    box-sizing: border-box;
     text-align: left;
-    padding-left: 14px;
     margin-bottom: -4px;
 }
 
@@ -219,8 +222,8 @@ export default defineComponent({
 }
 
 .showGoBack
-    > .tab-family-container
-    > .tab-buttons-container:not(.floating):first-child
+    > .tab-family-container:first-child
+    > .tab-buttons-container:not(.floating)
     .tab-buttons {
     padding-left: 70px;
 }
@@ -229,11 +232,7 @@ export default defineComponent({
     > .tab-family-container
     > .tab-buttons-container:not(.floating):first-child
     .tab-buttons {
-    padding-left: 2px;
-}
-
-.tab-buttons-container:not(.floating):first-child {
-    border-top: 0;
+    padding-left: 0;
 }
 
 .minimizable > .tab-buttons-container:not(.floating):first-child {

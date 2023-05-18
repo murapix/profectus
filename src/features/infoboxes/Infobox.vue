@@ -1,11 +1,11 @@
 <template>
     <div
         class="infobox"
-        v-if="unref(visibility) !== Visibility.None"
+        v-if="isVisible(visibility)"
         :style="[
             {
                 borderColor: unref(color),
-                visibility: unref(visibility) === Visibility.Hidden ? 'hidden' : undefined
+                visibility: isHidden(visibility) ? 'hidden' : undefined
             },
             unref(style) ?? {}
         ]"
@@ -24,23 +24,25 @@
                 <component :is="bodyComponent" :style="unref(bodyStyle)" />
             </div>
         </CollapseTransition>
-        <LinkNode :id="id" />
+        <Node :id="id" />
     </div>
 </template>
 
 <script lang="ts">
-import LinkNode from "@/components/links/LinkNode.vue";
-import themes from "@/data/themes";
-import { CoercableComponent, Visibility } from "@/features/feature";
-import settings from "@/game/settings";
-import { computeComponent, processedPropType } from "@/util/vue";
 import CollapseTransition from "@ivanv/vue-collapse-transition/src/CollapseTransition.vue";
-import { computed, defineComponent, PropType, Ref, StyleValue, toRefs, unref } from "vue";
+import Node from "components/Node.vue";
+import themes from "data/themes";
+import type { CoercableComponent } from "features/feature";
+import { isHidden, isVisible, Visibility } from "features/feature";
+import settings from "game/settings";
+import { computeComponent, processedPropType } from "util/vue";
+import type { PropType, Ref, StyleValue } from "vue";
+import { computed, defineComponent, toRefs, unref } from "vue";
 
 export default defineComponent({
     props: {
         visibility: {
-            type: processedPropType<Visibility>(Number),
+            type: processedPropType<Visibility | boolean>(Number, Boolean),
             required: true
         },
         display: {
@@ -66,7 +68,7 @@ export default defineComponent({
         }
     },
     components: {
-        LinkNode,
+        Node,
         CollapseTransition
     },
     setup(props) {
@@ -74,14 +76,16 @@ export default defineComponent({
 
         const titleComponent = computeComponent(title);
         const bodyComponent = computeComponent(display);
-        const stacked = computed(() => themes[settings.theme].stackedInfoboxes);
+        const stacked = computed(() => themes[settings.theme].mergeAdjacent);
 
         return {
             titleComponent,
             bodyComponent,
             stacked,
             unref,
-            Visibility
+            Visibility,
+            isVisible,
+            isHidden
         };
     }
 });

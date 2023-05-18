@@ -1,9 +1,9 @@
 <template>
     <div
-        v-if="unref(visibility) !== Visibility.None"
+        v-if="isVisible(visibility)"
         :style="[
             {
-                visibility: unref(visibility) === Visibility.Hidden ? 'hidden' : undefined
+                visibility: isHidden(visibility) ? 'hidden' : undefined
             },
             notifyStyle,
             unref(style) ?? {}
@@ -12,39 +12,36 @@
             feature: true,
             challenge: true,
             done: unref(completed),
-            canStart: unref(canStart),
+            canStart: unref(canStart) && !unref(maxed),
             maxed: unref(maxed),
             ...unref(classes)
         }"
     >
-        <button class="toggleChallenge" @click="toggle">
+        <button
+            class="toggleChallenge"
+            @click="toggle"
+            :disabled="!unref(canStart) || unref(maxed)"
+        >
             {{ buttonText }}
         </button>
         <component v-if="unref(comp)" :is="unref(comp)" />
         <MarkNode :mark="unref(mark)" />
-        <LinkNode :id="id" />
+        <Node :id="id" />
     </div>
 </template>
 
 <script lang="tsx">
-import "@/components/common/features.css";
-import { GenericChallenge } from "@/features/challenges/challenge";
-import { jsx, StyleValue, Visibility } from "@/features/feature";
-import { getHighNotifyStyle, getNotifyStyle } from "@/game/notifications";
-import { coerceComponent, isCoercableComponent, processedPropType, unwrapRef } from "@/util/vue";
-import {
-    Component,
-    computed,
-    defineComponent,
-    PropType,
-    shallowRef,
-    toRefs,
-    unref,
-    UnwrapRef,
-    watchEffect
-} from "vue";
-import LinkNode from "@/components/links/LinkNode.vue";
-import MarkNode from "@/components/MarkNode.vue";
+import "components/common/features.css";
+import MarkNode from "components/MarkNode.vue";
+import Node from "components/Node.vue";
+import type { GenericChallenge } from "features/challenges/challenge";
+import type { StyleValue } from "features/feature";
+import { isHidden, isVisible, jsx, Visibility } from "features/feature";
+import { getHighNotifyStyle, getNotifyStyle } from "game/notifications";
+import { displayRequirements, Requirements } from "game/requirements";
+import { coerceComponent, isCoercableComponent, processedPropType, unwrapRef } from "util/vue";
+import type { Component, PropType, UnwrapRef } from "vue";
+import { computed, defineComponent, shallowRef, toRefs, unref, watchEffect } from "vue";
 
 export default defineComponent({
     props: {
@@ -65,8 +62,9 @@ export default defineComponent({
             Object,
             Function
         ),
+        requirements: processedPropType<Requirements>(Object, Array),
         visibility: {
-            type: processedPropType<Visibility>(Number),
+            type: processedPropType<Visibility | boolean>(Number, Boolean),
             required: true
         },
         style: processedPropType<StyleValue>(String, Object, Array),
@@ -91,10 +89,10 @@ export default defineComponent({
     },
     components: {
         MarkNode,
-        LinkNode
+        Node
     },
     setup(props) {
-        const { active, maxed, canComplete, display } = toRefs(props);
+        const { active, maxed, canComplete, display, requirements } = toRefs(props);
 
         const buttonText = computed(() => {
             if (active.value) {
@@ -132,31 +130,29 @@ export default defineComponent({
             }
             const Title = coerceComponent(currDisplay.title || "", "h3");
             const Description = coerceComponent(currDisplay.description, "div");
-            const Goal = coerceComponent(currDisplay.goal || "");
+            const Goal = coerceComponent(currDisplay.goal != null ? currDisplay.goal : jsx(() => displayRequirements(unwrapRef(requirements) ?? [])), "h3");
             const Reward = coerceComponent(currDisplay.reward || "");
             const EffectDisplay = coerceComponent(currDisplay.effectDisplay || "");
             comp.value = coerceComponent(
                 jsx(() => (
                     <span>
-                        {currDisplay.title ? (
+                        {currDisplay.title != null ? (
                             <div>
                                 <Title />
                             </div>
                         ) : null}
                         <Description />
-                        {currDisplay.goal ? (
-                            <div>
-                                <br />
-                                Goal: <Goal />
-                            </div>
-                        ) : null}
-                        {currDisplay.reward ? (
+                        <div>
+                            <br />
+                            Goal: <Goal />
+                        </div>
+                        {currDisplay.reward != null ? (
                             <div>
                                 <br />
                                 Reward: <Reward />
                             </div>
                         ) : null}
-                        {currDisplay.effectDisplay ? (
+                        {currDisplay.effectDisplay != null ? (
                             <div>
                                 Currently: <EffectDisplay />
                             </div>
@@ -171,6 +167,8 @@ export default defineComponent({
             notifyStyle,
             comp,
             Visibility,
+            isVisible,
+            isHidden,
             unref
         };
     }

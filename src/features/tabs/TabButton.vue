@@ -1,11 +1,11 @@
 <template>
     <button
-        v-if="unref(visibility) !== Visibility.None"
+        v-if="isVisible(visibility)"
         @click="selectTab"
         class="tabButton"
         :style="[
             {
-                visibility: unref(visibility) === Visibility.Hidden ? 'hidden' : undefined
+                visibility: isHidden(visibility) ? 'hidden' : undefined
             },
             glowColorStyle,
             unref(style) ?? {}
@@ -20,15 +20,16 @@
 </template>
 
 <script lang="ts">
-import { CoercableComponent, StyleValue, Visibility } from "@/features/feature";
-import { getNotifyStyle } from "@/game/notifications";
-import { computeComponent, processedPropType, unwrapRef } from "@/util/vue";
+import type { CoercableComponent, StyleValue } from "features/feature";
+import { isHidden, isVisible, Visibility } from "features/feature";
+import { getNotifyStyle } from "game/notifications";
+import { computeComponent, processedPropType, unwrapRef } from "util/vue";
 import { computed, defineComponent, toRefs, unref } from "vue";
 
 export default defineComponent({
     props: {
         visibility: {
-            type: processedPropType<Visibility>(Number),
+            type: processedPropType<Visibility | boolean>(Number, Boolean),
             required: true
         },
         display: {
@@ -49,7 +50,7 @@ export default defineComponent({
 
         const glowColorStyle = computed(() => {
             const color = unwrapRef(glowColor);
-            if (!color) {
+            if (color == null || color === "") {
                 return {};
             }
             if (unref(floating)) {
@@ -67,7 +68,9 @@ export default defineComponent({
             component,
             glowColorStyle,
             unref,
-            Visibility
+            Visibility,
+            isVisible,
+            isHidden
         };
     }
 });
@@ -105,5 +108,9 @@ export default defineComponent({
 
 :not(.floating) .tabButton:not(.active) {
     border-bottom-color: transparent;
+}
+
+.tabButton > * {
+    pointer-events: none;
 }
 </style>

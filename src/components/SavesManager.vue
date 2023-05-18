@@ -3,11 +3,11 @@
         <template v-slot:header>
             <h2>Saves Manager</h2>
         </template>
-        <template v-slot:body>
+        <template #body="{ shown }">
             <Draggable
                 :list="settings.saves"
                 handle=".handle"
-                v-if="unref(modal?.isOpen)"
+                v-if="shown"
                 :itemKey="(save: string) => save"
             >
                 <template #item="{ element }">
@@ -15,7 +15,7 @@
                         :save="saves[element]"
                         @open="openSave(element)"
                         @export="exportSave(element)"
-                        @editName="name => editSave(element, name)"
+                        @editName="(name: string) => editSave(element, name)"
                         @duplicate="duplicateSave(element)"
                         @delete="deleteSave(element)"
                     />
@@ -33,12 +33,12 @@
                 <div class="field">
                     <span class="field-title">Create Save</span>
                     <div class="field-buttons">
-                        <button class="button" @click="newSave">New Game</button>
+                        <button class="button" @click="openSave(newSave().id)">New Game</button>
                         <Select
                             v-if="Object.keys(bank).length > 0"
                             :options="bank"
-                            :modelValue="undefined"
-                            @update:modelValue="preset => newFromPreset(preset as string)"
+                            :modelValue="selectedPreset"
+                            @update:modelValue="(preset: unknown) => newFromPreset(preset as string)"
                             closeOnSelect
                             placeholder="Select preset"
                             class="presets"
@@ -57,25 +57,21 @@
 </template>
 
 <script setup lang="ts">
-import Modal from "@/components/Modal.vue";
-import player, { PlayerData } from "@/game/player";
-import settings from "@/game/settings";
-import { getUniqueID, loadSave, save, newSave } from "@/util/save";
-import {
-    ComponentPublicInstance,
-    computed,
-    nextTick,
-    ref,
-    shallowReactive,
-    unref,
-    watch
-} from "vue";
+import Modal from "components/Modal.vue";
+import projInfo from "data/projInfo.json";
+import type { Player } from "game/player";
+import player, { stringifySave } from "game/player";
+import settings from "game/settings";
+import LZString from "lz-string";
+import { getUniqueID, loadSave, newSave, save } from "util/save";
+import type { ComponentPublicInstance } from "vue";
+import { computed, nextTick, ref, shallowReactive, watch } from "vue";
+import Draggable from "vuedraggable";
 import Select from "./fields/Select.vue";
 import Text from "./fields/Text.vue";
 import Save from "./Save.vue";
-import Draggable from "vuedraggable";
 
-export type LoadablePlayerData = Omit<Partial<PlayerData>, "id"> & { id: string; error?: unknown };
+export type LoadablePlayerData = Omit<Partial<Player>, "id"> & { id: string; error?: unknown };
 
 const isOpen = ref(false);
 const modal = ref<ComponentPublicInstance<typeof Modal> | null>(null);
@@ -88,22 +84,34 @@ defineExpose({
 
 const importingFailed = ref(false);
 const saveToImport = ref("");
+const selectedPreset = ref<string | null>(null);
 
-watch(saveToImport, save => {
-    if (save) {
+watch(saveToImport, importedSave => {
+    if (importedSave) {
         nextTick(() => {
             try {
-                const playerData = JSON.parse(decodeURIComponent(escape(atob(save))));
+                if (importedSave[0] === "{") {
+                    // plaintext. No processing needed
+                } else if (importedSave[0] === "e") {
+                    // Assumed to be base64, which starts with e
+                    importedSave = decodeURIComponent(escape(atob(importedSave)));
+                } else if (importedSave[0] === "ᯡ") {
+                    // Assumed to be lz, which starts with ᯡ
+                    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                    importedSave = LZString.decompressFromUTF16(importedSave)!;
+                } else {
+                    console.warn("Unable to determine preset encoding", importedSave);
+                    importingFailed.value = true;
+                    return;
+                }
+                const playerData = JSON.parse(importedSave);
                 if (typeof playerData !== "object") {
                     importingFailed.value = true;
                     return;
                 }
                 const id = getUniqueID();
                 playerData.id = id;
-                localStorage.setItem(
-                    id,
-                    btoa(unescape(encodeURIComponent(JSON.stringify(playerData))))
-                );
+                save(playerData);
                 saveToImport.value = "";
                 importingFailed.value = false;
 
@@ -117,13 +125,15 @@ watch(saveToImport, save => {
     }
 });
 
-let bankContext = require.context("raw-loader!../../saves", true, /\.txt$/);
+let bankContext = import.meta.globEager("./../../saves/*.txt", { as: "raw" });
 let bank = ref(
-    bankContext.keys().reduce((acc: Array<{ label: string; value: string }>, curr) => {
-        // .slice(2, -4) strips the leading ./ and the trailing .txt
+    Object.keys(bankContext).reduce((acc: Array<{ label: string; value: string }>, curr) => {
         acc.push({
-            label: curr.slice(2, -4),
-            value: bankContext(curr).default
+            // .slice(2, -4) strips the leading ./ and the trailing .txt
+            label: curr.split("/").slice(-1)[0].slice(0, -4),
+            // Have to perform this unholy cast because globEager's typing doesn't appear to know
+            // adding { as: "raw" } will make the object contain strings rather than modules
+            value: bankContext[curr] as unknown as string
         });
         return acc;
     }, [])
@@ -132,14 +142,30 @@ let bank = ref(
 const cachedSaves = shallowReactive<Record<string, LoadablePlayerData | undefined>>({});
 function getCachedSave(id: string) {
     if (cachedSaves[id] == null) {
-        const save = localStorage.getItem(id);
+        let save = localStorage.getItem(id);
         if (save == null) {
             cachedSaves[id] = { error: `Save doesn't exist in localStorage`, id };
         } else if (save === "dW5kZWZpbmVk") {
             cachedSaves[id] = { error: `Save is undefined`, id };
         } else {
             try {
-                cachedSaves[id] = { ...JSON.parse(decodeURIComponent(escape(atob(save)))), id };
+                if (save[0] === "{") {
+                    // plaintext. No processing needed
+                } else if (save[0] === "e") {
+                    // Assumed to be base64, which starts with e
+                    save = decodeURIComponent(escape(atob(save)));
+                } else if (save[0] === "ᯡ") {
+                    // Assumed to be lz, which starts with ᯡ
+                    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                    save = LZString.decompressFromUTF16(save)!;
+                } else {
+                    console.warn("Unable to determine preset encoding", save);
+                    importingFailed.value = true;
+                    cachedSaves[id] = { error: "Unable to determine preset encoding", id };
+                    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                    return cachedSaves[id]!;
+                }
+                cachedSaves[id] = { ...JSON.parse(save), id };
             } catch (error) {
                 cachedSaves[id] = { error, id };
                 console.warn(
@@ -168,9 +194,21 @@ const saves = computed(() =>
 function exportSave(id: string) {
     let saveToExport;
     if (player.id === id) {
-        saveToExport = save();
+        saveToExport = stringifySave(player);
     } else {
-        saveToExport = btoa(unescape(encodeURIComponent(JSON.stringify(saves.value[id]))));
+        saveToExport = JSON.stringify(saves.value[id]);
+    }
+    switch (projInfo.exportEncoding) {
+        default:
+            console.warn(`Unknown save encoding: ${projInfo.exportEncoding}. Defaulting to lz`);
+        case "lz":
+            saveToExport = LZString.compressToUTF16(saveToExport);
+            break;
+        case "base64":
+            saveToExport = btoa(unescape(encodeURIComponent(saveToExport)));
+            break;
+        case "plain":
+            break;
     }
 
     // Put on clipboard. Using the clipboard API asks for permissions and stuff
@@ -189,10 +227,7 @@ function duplicateSave(id: string) {
     }
 
     const playerData = { ...saves.value[id], id: getUniqueID() };
-    localStorage.setItem(
-        playerData.id,
-        btoa(unescape(encodeURIComponent(JSON.stringify(playerData))))
-    );
+    save(playerData as Player);
 
     settings.saves.push(playerData.id);
 }
@@ -207,6 +242,7 @@ function openSave(id: string) {
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     saves.value[player.id]!.time = player.time;
     save();
+    cachedSaves[player.id] = undefined;
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     loadSave(saves.value[id]!);
     // Delete cached version in case of opening it again
@@ -214,25 +250,43 @@ function openSave(id: string) {
 }
 
 function newFromPreset(preset: string) {
-    const playerData = JSON.parse(decodeURIComponent(escape(atob(preset))));
+    // Reset preset dropdown
+    selectedPreset.value = preset;
+    nextTick(() => {
+        selectedPreset.value = null;
+    });
+
+    if (preset[0] === "{") {
+        // plaintext. No processing needed
+    } else if (preset[0] === "e") {
+        // Assumed to be base64, which starts with e
+        preset = decodeURIComponent(escape(atob(preset)));
+    } else if (preset[0] === "ᯡ") {
+        // Assumed to be lz, which starts with ᯡ
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        preset = LZString.decompressFromUTF16(preset)!;
+    } else {
+        console.warn("Unable to determine preset encoding", preset);
+        return;
+    }
+    const playerData = JSON.parse(preset);
     playerData.id = getUniqueID();
-    localStorage.setItem(
-        playerData.id,
-        btoa(unescape(encodeURIComponent(JSON.stringify(playerData))))
-    );
+    save(playerData as Player);
 
     settings.saves.push(playerData.id);
+
+    openSave(playerData.id);
 }
 
 function editSave(id: string, newName: string) {
     const currSave = saves.value[id];
-    if (currSave) {
+    if (currSave != null) {
         currSave.name = newName;
         if (player.id === id) {
             player.name = newName;
             save();
         } else {
-            localStorage.setItem(id, btoa(unescape(encodeURIComponent(JSON.stringify(currSave)))));
+            save(currSave as Player);
             cachedSaves[id] = undefined;
         }
     }

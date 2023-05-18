@@ -14,9 +14,9 @@
 </template>
 
 <script setup lang="ts">
-import "@/components/common/fields.css";
-import { CoercableComponent } from "@/features/feature";
-import { computeOptionalComponent } from "@/util/vue";
+import "components/common/fields.css";
+import type { CoercableComponent } from "features/feature";
+import { computeOptionalComponent, unwrapRef } from "util/vue";
 import { ref, toRef, watch } from "vue";
 import VueNextSelect from "vue-next-select";
 import "vue-next-select/dist/index.css";
@@ -36,12 +36,12 @@ const emit = defineEmits<{
 
 const titleComponent = computeOptionalComponent(toRef(props, "title"), "span");
 
-const value = ref<SelectOption | undefined>(
-    props.options.find(option => option.value === props.modelValue)
+const value = ref<SelectOption | null>(
+    props.options.find(option => option.value === props.modelValue) ?? null
 );
 watch(toRef(props, "modelValue"), modelValue => {
-    if (value.value?.value !== modelValue) {
-        value.value = props.options.find(option => option.value === modelValue);
+    if (unwrapRef(value) !== modelValue) {
+        value.value = props.options.find(option => option.value === modelValue) ?? null;
     }
 });
 
@@ -70,7 +70,7 @@ function onUpdate(value: SelectOption) {
 }
 
 .vue-dropdown-item {
-    color: var(--feature-foreground);
+    color: var(--foreground);
 }
 
 .vue-dropdown-item,
@@ -85,6 +85,10 @@ function onUpdate(value: SelectOption) {
 .vue-dropdown-item.selected,
 .vue-dropdown-item.highlighted.selected {
     background-color: var(--bought);
+}
+
+.vue-input input {
+    font-size: inherit;
 }
 
 .vue-input input::placeholder {

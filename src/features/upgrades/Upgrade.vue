@@ -1,9 +1,9 @@
 <template>
     <button
-        v-if="unref(visibility) !== Visibility.None"
+        v-if="isVisible(visibility)"
         :style="[
             {
-                visibility: unref(visibility) === Visibility.Hidden ? 'hidden' : undefined
+                visibility: isHidden(visibility) ? 'hidden' : undefined
             },
             unref(style) ?? {}
         ]"
@@ -20,29 +20,21 @@
     >
         <component v-if="unref(component)" :is="unref(component)" />
         <MarkNode :mark="unref(mark)" />
-        <LinkNode :id="id" />
+        <Node :id="id" />
     </button>
 </template>
 
 <script lang="tsx">
-import "@/components/common/features.css";
-import LinkNode from "@/components/links/LinkNode.vue";
-import MarkNode from "@/components/MarkNode.vue";
-import { jsx, StyleValue, Visibility } from "@/features/feature";
-import { displayResource, Resource } from "@/features/resources/resource";
-import { GenericUpgrade } from "@/features/upgrades/upgrade";
-import { DecimalSource } from "@/lib/break_eternity";
-import { coerceComponent, isCoercableComponent, processedPropType, unwrapRef } from "@/util/vue";
-import {
-    Component,
-    defineComponent,
-    PropType,
-    shallowRef,
-    toRefs,
-    unref,
-    UnwrapRef,
-    watchEffect
-} from "vue";
+import "components/common/features.css";
+import MarkNode from "components/MarkNode.vue";
+import Node from "components/Node.vue";
+import type { StyleValue } from "features/feature";
+import { isHidden, isVisible, jsx, Visibility } from "features/feature";
+import type { GenericUpgrade } from "features/upgrades/upgrade";
+import { displayRequirements, Requirements } from "game/requirements";
+import { coerceComponent, isCoercableComponent, processedPropType, unwrapRef } from "util/vue";
+import type { Component, PropType, UnwrapRef } from "vue";
+import { defineComponent, shallowRef, toRefs, unref, watchEffect } from "vue";
 
 export default defineComponent({
     props: {
@@ -51,13 +43,15 @@ export default defineComponent({
             required: true
         },
         visibility: {
-            type: processedPropType<Visibility>(Number),
+            type: processedPropType<Visibility | boolean>(Number, Boolean),
             required: true
         },
         style: processedPropType<StyleValue>(String, Object, Array),
         classes: processedPropType<Record<string, boolean>>(Object),
-        resource: Object as PropType<Resource>,
-        cost: processedPropType<DecimalSource>(String, Object, Number),
+        requirements: {
+            type: Object as PropType<Requirements>,
+            required: true
+        },
         canPurchase: {
             type: processedPropType<boolean>(Boolean),
             required: true
@@ -77,11 +71,11 @@ export default defineComponent({
         }
     },
     components: {
-        LinkNode,
+        Node,
         MarkNode
     },
     setup(props) {
-        const { display, cost } = toRefs(props);
+        const { display, requirements, bought } = toRefs(props);
 
         const component = shallowRef<Component | string>("");
 
@@ -95,32 +89,24 @@ export default defineComponent({
                 component.value = coerceComponent(currDisplay);
                 return;
             }
-            const currCost = unwrapRef(cost);
             const Title = coerceComponent(currDisplay.title || "", "h3");
             const Description = coerceComponent(currDisplay.description, "div");
             const EffectDisplay = coerceComponent(currDisplay.effectDisplay || "");
             component.value = coerceComponent(
                 jsx(() => (
                     <span>
-                        {currDisplay.title ? (
+                        {currDisplay.title != null ? (
                             <div>
                                 <Title />
                             </div>
                         ) : null}
                         <Description />
-                        {currDisplay.effectDisplay ? (
+                        {currDisplay.effectDisplay != null ? (
                             <div>
                                 Currently: <EffectDisplay />
                             </div>
                         ) : null}
-                        {props.resource != null ? (
-                            <>
-                                <br />
-                                Cost: {props.resource &&
-                                    displayResource(props.resource, currCost)}{" "}
-                                {props.resource?.displayName}
-                            </>
-                        ) : null}
+                        {bought.value ? null : <><br />{displayRequirements(requirements.value)}</>}
                     </span>
                 ))
             );
@@ -129,7 +115,9 @@ export default defineComponent({
         return {
             component,
             unref,
-            Visibility
+            Visibility,
+            isVisible,
+            isHidden
         };
     }
 });
@@ -140,5 +128,9 @@ export default defineComponent({
     min-height: 120px;
     width: 120px;
     font-size: 10px;
+}
+
+.upgrade > * {
+    pointer-events: none;
 }
 </style>

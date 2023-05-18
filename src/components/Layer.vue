@@ -1,56 +1,52 @@
 <template>
-    <div class="layer-container" :style="{ '--layer-color': unref(color) }">
-        <button v-if="showGoBack" class="goBack" @click="goBack">←</button>
-        <button class="layer-tab minimized" v-if="minimized.value" @click="minimized.value = false">
-            <div>{{ unref(name) }}</div>
-        </button>
-        <div
-            class="layer-tab"
-            :style="unref(style)"
-            :class="[{ showGoBack }, unref(classes)]"
-            v-else
+    <ErrorVue v-if="errors.length > 0" :errors="errors" />
+    <div class="layer-container" :style="{ '--layer-color': unref(color) }" v-bind="$attrs" v-else>
+        <button v-if="showGoBack" class="goBack" @click="goBack">❌</button>
+
+        <button
+            class="layer-tab minimized"
+            v-if="unref(minimized)"
+            @click="$emit('setMinimized', false)"
         >
-            <Links :links="unref(links)">
+            <component v-if="minimizedComponent" :is="minimizedComponent" />
+            <div v-else>{{ unref(name) }}</div>
+        </button>
+        <div class="layer-tab" :class="{ showGoBack }" v-else>
+            <Context @update-nodes="updateNodes">
                 <component :is="component" />
-            </Links>
+            </Context>
         </div>
-        <button v-if="unref(minimizable)" class="minimize" @click="minimized.value = true">
+
+        <button v-if="unref(minimizable)" class="minimize" @click="$emit('setMinimized', true)">
             ▼
         </button>
     </div>
 </template>
 
 <script lang="ts">
-import Links from "@/components/links/Links.vue";
-import modInfo from "@/data/modInfo.json";
-import { CoercableComponent, StyleValue } from "@/features/feature";
-import { Link } from "@/features/links";
-import { PersistentRef } from "@/game/persistence";
-import player from "@/game/player";
-import { computeComponent, processedPropType, wrapRef } from "@/util/vue";
-import { computed, defineComponent, nextTick, PropType, toRefs, unref, watch } from "vue";
+import projInfo from "data/projInfo.json";
+import type { CoercableComponent } from "features/feature";
+import type { FeatureNode } from "game/layers";
+import player from "game/player";
+import { computeComponent, computeOptionalComponent, processedPropType, unwrapRef } from "util/vue";
+import { PropType, Ref, computed, defineComponent, onErrorCaptured, ref, toRefs, unref } from "vue";
+import Context from "./Context.vue";
+import ErrorVue from "./Error.vue";
 
 export default defineComponent({
-    components: { Links },
+    components: { Context, ErrorVue },
     props: {
         index: {
             type: Number,
-            required: true
-        },
-        tab: {
-            type: Function as PropType<() => HTMLElement | undefined>,
             required: true
         },
         display: {
             type: processedPropType<CoercableComponent>(Object, String, Function),
             required: true
         },
+        minimizedDisplay: processedPropType<CoercableComponent>(Object, String, Function),
         minimized: {
-            type: Object as PropType<PersistentRef<boolean>>,
-            required: true
-        },
-        minWidth: {
-            type: processedPropType<number>(Number),
+            type: Object as PropType<Ref<boolean>>,
             required: true
         },
         name: {
@@ -58,52 +54,47 @@ export default defineComponent({
             required: true
         },
         color: processedPropType<string>(String),
-        style: processedPropType<StyleValue>(String, Object, Array),
-        classes: processedPropType<Record<string, boolean>>(Object),
-        links: processedPropType<Link[]>(Array),
-        minimizable: processedPropType<boolean>(Boolean)
+        minimizable: processedPropType<boolean>(Boolean),
+        nodes: {
+            type: Object as PropType<Ref<Record<string, FeatureNode | undefined>>>,
+            required: true
+        }
     },
+    emits: ["setMinimized"],
     setup(props) {
-        const { display, index, minimized, minWidth, tab } = toRefs(props);
+        const { display, index, minimized, minimizedDisplay } = toRefs(props);
 
         const component = computeComponent(display);
+        const minimizedComponent = computeOptionalComponent(minimizedDisplay);
         const showGoBack = computed(
-            () => modInfo.allowGoBack && index.value > 0 && !minimized.value
+            () => projInfo.allowGoBack && index.value > 0 && !unwrapRef(minimized)
         );
 
         function goBack() {
             player.tabs.splice(unref(props.index), Infinity);
         }
 
-        nextTick(() => updateTab(minimized.value, unref(minWidth.value)));
-        watch([minimized, wrapRef(minWidth)], ([minimized, minWidth]) =>
-            updateTab(minimized, minWidth)
-        );
-
-        function updateTab(minimized: boolean, minWidth: number) {
-            const tabValue = tab.value();
-            if (tabValue != undefined) {
-                if (minimized) {
-                    tabValue.style.flexGrow = "0";
-                    tabValue.style.flexShrink = "0";
-                    tabValue.style.width = "60px";
-                    tabValue.style.minWidth = tabValue.style.flexBasis = "";
-                    tabValue.style.margin = "0";
-                } else {
-                    tabValue.style.flexGrow = "";
-                    tabValue.style.flexShrink = "";
-                    tabValue.style.width = "";
-                    tabValue.style.minWidth = tabValue.style.flexBasis = `${minWidth}px`;
-                    tabValue.style.margin = "";
-                }
-            }
+        function updateNodes(nodes: Record<string, FeatureNode | undefined>) {
+            props.nodes.value = nodes;
         }
+
+        const errors = ref<Error[]>([]);
+        onErrorCaptured((err, instance, info) => {
+            console.warn(`Error caught in "${props.name}" layer`, err, instance, info);
+            errors.value.push(
+                err instanceof Error ? (err as Error) : new Error(JSON.stringify(err))
+            );
+            return false;
+        });
 
         return {
             component,
+            minimizedComponent,
             showGoBack,
+            updateNodes,
             unref,
-            goBack
+            goBack,
+            errors
         };
     }
 });
@@ -149,9 +140,10 @@ export default defineComponent({
     background-color: transparent;
 }
 
-.layer-tab.minimized div {
+.layer-tab.minimized > * {
     margin: 0;
     writing-mode: vertical-rl;
+    text-align: left;
     padding-left: 10px;
     width: 50px;
 }
@@ -175,7 +167,6 @@ export default defineComponent({
     right: 9px;
     z-index: 7;
     line-height: 30px;
-    width: 30px;
     border: none;
     background: var(--background);
     box-shadow: var(--background) 0 2px 3px 5px;
@@ -183,7 +174,6 @@ export default defineComponent({
     color: var(--foreground);
     font-size: 40px;
     cursor: pointer;
-    padding: 0;
     margin-top: -44px;
     margin-right: -30px;
 }
@@ -196,20 +186,31 @@ export default defineComponent({
 }
 
 .goBack {
-    position: absolute;
-    top: 0;
-    left: 20px;
-    background-color: transparent;
-    border: 1px solid transparent;
+    position: sticky;
+    top: 10px;
+    left: 10px;
+    line-height: 30px;
+    margin-top: -50px;
+    margin-left: -35px;
+    border: none;
+    background: var(--background);
+    box-shadow: var(--background) 0 2px 3px 5px;
+    border-radius: 50%;
     color: var(--foreground);
-    font-size: 40px;
+    font-size: 30px;
     cursor: pointer;
-    line-height: 40px;
     z-index: 7;
 }
 
 .goBack:hover {
     transform: scale(1.1, 1.1);
     text-shadow: 0 0 7px var(--foreground);
+}
+</style>
+
+<style>
+.layer-tab.minimized > * > .desc {
+    color: var(--accent1);
+    font-size: 30px;
 }
 </style>

@@ -1,10 +1,10 @@
 <template>
     <button
-        v-if="unref(visibility) !== Visibility.None"
+        v-if="isVisible(visibility)"
         :class="{ feature: true, tile: true, can: unref(canClick), locked: !unref(canClick) }"
         :style="[
             {
-                visibility: unref(visibility) === Visibility.Hidden ? 'hidden' : undefined
+                visibility: isHidden(visibility) ? 'hidden' : undefined
             },
             unref(style) ?? {}
         ]"
@@ -12,36 +12,37 @@
         @mousedown="start"
         @mouseleave="stop"
         @mouseup="stop"
-        @touchstart="start"
-        @touchend="stop"
-        @touchcancel="stop"
-        :disabled="!unref(canClick)"
+        @touchstart.passive="start"
+        @touchend.passive="stop"
+        @touchcancel.passive="stop"
     >
         <div v-if="title"><component :is="titleComponent" /></div>
         <component :is="component" style="white-space: pre-line" />
-        <LinkNode :id="id" />
+        <Node :id="id" />
     </button>
 </template>
 
 <script lang="ts">
-import "@/components/common/features.css";
-import LinkNode from "@/components/links/LinkNode.vue";
-import { CoercableComponent, StyleValue, Visibility } from "@/features/feature";
+import "components/common/features.css";
+import Node from "components/Node.vue";
+import type { CoercableComponent, StyleValue } from "features/feature";
+import { isHidden, isVisible, Visibility } from "features/feature";
 import {
     computeComponent,
     computeOptionalComponent,
     processedPropType,
     setupHoldToClick
-} from "@/util/vue";
-import { defineComponent, PropType, toRefs, unref } from "vue";
+} from "util/vue";
+import type { PropType } from "vue";
+import { defineComponent, toRefs, unref } from "vue";
 
 export default defineComponent({
     props: {
         visibility: {
-            type: processedPropType<Visibility>(Number),
+            type: processedPropType<Visibility | boolean>(Number, Boolean),
             required: true
         },
-        onClick: Function as PropType<VoidFunction>,
+        onClick: Function as PropType<(e?: MouseEvent | TouchEvent) => void>,
         onHold: Function as PropType<VoidFunction>,
         display: {
             type: processedPropType<CoercableComponent>(Object, String, Function),
@@ -59,7 +60,7 @@ export default defineComponent({
         }
     },
     components: {
-        LinkNode
+        Node
     },
     setup(props) {
         const { onClick, onHold, title, display } = toRefs(props);
@@ -75,7 +76,9 @@ export default defineComponent({
             titleComponent,
             component,
             Visibility,
-            unref
+            unref,
+            isVisible,
+            isHidden
         };
     }
 });
@@ -87,5 +90,9 @@ export default defineComponent({
     width: 80px;
     font-size: 10px;
     background-color: var(--layer-color);
+}
+
+.tile > * {
+    pointer-events: none;
 }
 </style>

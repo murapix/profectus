@@ -5,7 +5,9 @@
                 <img class="info-modal-logo" v-if="logo" :src="logo" :alt="title" />
                 <div class="info-modal-title">
                     <h2>{{ title }}</h2>
-                    <h4>v{{ versionNumber }}: {{ versionTitle }}</h4>
+                    <h4>
+                        v{{ versionNumber }}<span v-if="versionTitle">: {{ versionTitle }}</span>
+                    </h4>
                 </div>
             </div>
         </template>
@@ -21,41 +23,54 @@
                 <div>
                     <a
                         :href="discordLink"
-                        v-if="discordLink !== 'https://discord.gg/WzejVAx'"
+                        v-if="discordLink"
                         class="info-modal-discord-link"
+                        target="_blank"
                     >
                         <span class="material-icons info-modal-discord">discord</span>
                         {{ discordName }}
                     </a>
                 </div>
                 <div>
-                    <a href="https://discord.gg/WzejVAx" class="info-modal-discord-link">
+                    <a
+                        href="https://discord.gg/yJ4fjnjU54"
+                        class="info-modal-discord-link"
+                        target="_blank"
+                    >
                         <span class="material-icons info-modal-discord">discord</span>
                         The Paper Pilot Community
                     </a>
                 </div>
                 <div>
-                    <a href="https://discord.gg/F3xveHV" class="info-modal-discord-link">
+                    <a
+                        href="https://discord.gg/F3xveHV"
+                        class="info-modal-discord-link"
+                        target="_blank"
+                    >
                         <span class="material-icons info-modal-discord">discord</span>
                         The Modding Tree
                     </a>
                 </div>
                 <br />
                 <div>Time Played: {{ timePlayed }}</div>
+                <component :is="infoComponent" />
             </div>
         </template>
     </Modal>
 </template>
 
-<script setup lang="ts">
-import Modal from "@/components/Modal.vue";
-import type Changelog from "@/data/Changelog.vue";
-import modInfo from "@/data/modInfo.json";
-import player from "@/game/player";
-import { formatTime } from "@/util/bignum";
+<script setup lang="tsx">
+import Modal from "components/Modal.vue";
+import type Changelog from "data/Changelog.vue";
+import projInfo from "data/projInfo.json";
+import { jsx } from "features/feature";
+import player from "game/player";
+import { infoComponents } from "game/settings";
+import { formatTime } from "util/bignum";
+import { coerceComponent, render } from "util/vue";
 import { computed, ref, toRefs, unref } from "vue";
 
-const { title, logo, author, discordName, discordLink, versionNumber, versionTitle } = modInfo;
+const { title, logo, author, discordName, discordLink, versionNumber, versionTitle } = projInfo;
 
 const _props = defineProps<{ changelog: typeof Changelog | null }>();
 const props = toRefs(_props);
@@ -63,6 +78,10 @@ const props = toRefs(_props);
 const isOpen = ref(false);
 
 const timePlayed = computed(() => formatTime(player.timePlayed));
+
+const infoComponent = computed(() => {
+    return coerceComponent(jsx(() => (<>{infoComponents.map(render)}</>)));
+});
 
 defineExpose({
     open() {
