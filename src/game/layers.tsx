@@ -185,7 +185,7 @@ export type GenericLayer = Replace<
     Layer<LayerOptions>,
     {
         name: ProcessedComputable<string>;
-        minWidth: ProcessedComputable<number | string>;
+        minWidth: ProcessedComputable<number>;
         minimizable: ProcessedComputable<boolean>;
     }
 >;

@@ -100,10 +100,6 @@ export interface CostRequirementOptions {
      * @see {@link cost} for restrictions on maximizing support.
      */
     pay?: (amount?: DecimalSource) => void;
-    /**
-     * Override for maximizing the amount purchasable
-     */
-    canMaximize?: Computable<boolean>;
 }
 
 export type CostRequirement = Replace<
