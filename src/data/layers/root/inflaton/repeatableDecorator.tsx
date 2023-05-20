@@ -1,0 +1,94 @@
+import { Component, GenericComponent, Replace, jsx, setDefault } from "features/feature";
+import { Persistent, persistent } from "game/persistence";
+import Decimal, { DecimalSource } from "lib/break_eternity";
+import { Computable, GetComputableTypeWithDefault, ProcessedComputable, processComputable } from "util/computed";
+import { Ref, computed, isRef, unref } from "vue";
+import { Decorator } from "features/decorators/common";
+import RepeatableResearchComponent from "../inflaton/RepeatableResearch.vue";
+import { coerceComponent, isCoercableComponent } from "util/vue";
+import { BaseResearch, ResearchOptions } from "./research";
+import { isFunction } from "util/common";
+import { format } from "util/break_eternity";
+
+export interface RepeatableResearchOptions<T = unknown> extends ResearchOptions<T> {
+    limit?: Computable<DecimalSource>;
+}
+
+export interface BaseRepeatableResearch extends BaseResearch {
+    amount: Persistent<DecimalSource>;
+    maxed: Ref<boolean>;
+}
+
+export type RepeatableResearch<T extends RepeatableResearchOptions> = Replace<
+    T,
+    { limit: GetComputableTypeWithDefault<T["limit"], 3998> }
+>;
+
+export type GenericRepeatableResearch<T = unknown> = Replace<
+    RepeatableResearch<RepeatableResearchOptions<T>>,
+    { limit: ProcessedComputable<DecimalSource> }
+>;
+
+export const repeatableDecorator: Decorator<RepeatableResearchOptions, BaseRepeatableResearch, GenericRepeatableResearch> = {
+    getPersistentData() {
+        return {
+            amount: persistent<DecimalSource>(0)
+        }
+    },
+    preConstruct(research) {
+        research[Component] = RepeatableResearchComponent as GenericComponent;
+
+        if (isCoercableComponent(research.display)) return;
+        if (isRef(research.display)) return;
+        if (isFunction(research.display)) return;
+
+        const title = research.display.title;
+        research.display.title = jsx(() => {
+            const Title = coerceComponent(title ?? "");
+            return <h3>Repeatable: <Title /> {formatRoman(Decimal.add(unref(research.amount ?? 0), 1))}</h3>
+        });
+    },
+    postConstruct(research) {
+        processComputable(research, "limit");
+        setDefault(research, "limit", 3998);
+
+        research.maxed = computed(() => Decimal.gte(
+            unref(research.amount!),
+            unref(research.limit as ProcessedComputable<DecimalSource>)
+        ));
+
+        research.researched = computed(() => Decimal.gt(unref(research.amount!), 0));
+
+        const onResearch = research.onResearch;
+        research.onResearch = () => {
+            onResearch?.();
+            research.amount!.value = Decimal.add(unref(research.amount!), 1);
+            research.progress!.value = 0;
+        }
+    },
+    getGatheredProps(research) {
+        return {
+            amount: research.amount
+        }
+    }
+}
+
+export function formatRoman(value: DecimalSource) {
+    const romanNumerals: [number, string][] = [
+        [1, 'I'], [4, 'IV'], [5, 'V'], [9, 'IX'], [10, 'X'], [40, 'XL'], [50, 'L'], [90, 'XC'], [100, 'C'], [400, 'CD'], [500, 'D'], [900, 'CM'], [1000, 'M']
+    ]
+
+    let num = new Decimal(value).trunc().toNumber();
+    if (num >= 4000) return format(value);
+    if (num < 1) return "Nulla";
+
+    const out = [];
+    for (let index = romanNumerals.length-1; num > 0; index--) {
+        for (let i = Math.floor(num / romanNumerals[index][0]); i > 0; i--) {
+            out.push(romanNumerals[index][1]);
+        }
+        num %= romanNumerals[index][0];
+    }
+
+    return out.join('');
+}

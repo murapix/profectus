@@ -30,8 +30,9 @@ import { format, formatWhole } from 'util/break_eternity';
 import { coerceComponent, isCoercableComponent, processedPropType, unwrapRef } from 'util/vue';
 import { PropType, Component, UnwrapRef, computed } from 'vue';
 import { defineComponent, unref, toRefs, shallowRef, watchEffect } from 'vue';
-import { formatRoman, GenericResearch } from './research'
+import { GenericResearch } from './research'
 import Node from 'components/Node.vue';
+import { formatRoman } from './repeatableDecorator';
 
 export default defineComponent({
     props: {
@@ -90,11 +91,11 @@ export default defineComponent({
             const Cost = unwrapRef(cost);
             const Title = coerceComponent(currentDisplay.title ?? "", "h3");
             const Description = coerceComponent(currentDisplay.description);
-            const EffectDisplay = coerceComponent(currentDisplay.effectDisplay ?? "");
+            const EffectDisplay = coerceComponent(currentDisplay.effect ?? "");
             component.value = coerceComponent(jsx(() => (<>
                         {currentDisplay.title ? <Title /> : null}
                         <span><Description /></span>
-                        {currentDisplay.effectDisplay ? <span>Currently: <EffectDisplay /></span> : null}
+                        {currentDisplay.effect ? <span>Currently: <EffectDisplay /></span> : null}
                         <span>{formatWhole(Cost ?? 0)} Research Points</span>
                 </>)));
         });

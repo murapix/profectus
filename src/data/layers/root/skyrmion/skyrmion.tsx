@@ -23,8 +23,6 @@ import abyss from "./abyss";
 import ResourceVue from "features/resources/Resource.vue";
 import Formula, { calculateCost } from "game/formulas/formulas";
 import { getFomeBoost } from "../fome/boost";
-import { FormulaSource, GenericFormula } from "game/formulas/types";
-import { calculateMaxAffordable } from "game/formulas/formulas";
 
 const id = "skyrmion";
 const layer = createLayer(id, function (this: BaseLayer) {
@@ -45,14 +43,14 @@ const layer = createLayer(id, function (this: BaseLayer) {
                     resource: pion.pions,
                     requiresPay: () => !unref(upgrades.autoGain.bought),
                     cumulativeCost: true,
-                    maxBulkAmount: Decimal.dInf,
+                    maxBulkAmount: 10, // TODO: Set to Decimal.dInf once integration is better
                     cost: costFunc(feature.amount)
                 })),
                 createCostRequirement(() => ({
                     resource: spinor.spinors,
                     requiresPay: () => !unref(upgrades.autoGain.bought),
                     cumulativeCost: true,
-                    maxBulkAmount: Decimal.dInf,
+                    maxBulkAmount: 10, // TODO: Set to Decimal.dInf once integration is better
                     cost: costFunc(feature.amount)
                 }))
             ],

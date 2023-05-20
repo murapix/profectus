@@ -1,24 +1,15 @@
 import ColumnVue from "components/layout/Column.vue";
 import SpacerVue from "components/layout/Spacer.vue";
-import { createClickable, GenericClickable } from "features/clickables/clickable";
-import { bonusAmountDecorator, BonusAmountFeatureOptions, GenericBonusAmountFeature } from "features/decorators/bonusDecorator";
-import { effectDecorator, EffectFeatureOptions, GenericEffectFeature } from "features/decorators/common";
-import { CoercableComponent, jsx, OptionsFunc, Visibility } from "features/feature";
-import { createRepeatable, BaseRepeatable, GenericRepeatable, RepeatableOptions } from "features/repeatable";
+import { jsx } from "features/feature";
 import MainDisplayVue from "features/resources/MainDisplay.vue";
-import { createResource, Resource, trackBest } from "features/resources/resource";
 import { createTab } from "features/tabs/tab";
 import { createTabFamily } from "features/tabs/tabFamily";
 import { createUpgrade, GenericUpgrade } from "features/upgrades/upgrade";
-import Formula from "game/formulas/formulas";
-import { FormulaSource, GenericFormula } from "game/formulas/types";
 import { BaseLayer, createLayer } from "game/layers";
 import { noPersist, persistent } from "game/persistence";
-import { createBooleanRequirement, createCostRequirement } from "game/requirements";
+import { createCostRequirement } from "game/requirements";
 import Decimal, { DecimalSource } from "lib/break_eternity";
-import { format, formatSmall, formatWhole } from "util/break_eternity";
-import { Computable, ProcessedComputable } from "util/computed";
-import { createLazyProxy } from "util/proxies";
+import { format, formatWhole } from "util/break_eternity";
 import { render, renderRow } from "util/vue";
 import { computed, ComputedRef, unref } from "vue";
 import acceleron from "../acceleron-old/acceleron";
@@ -28,269 +19,9 @@ import { createResearch, GenericRepeatableResearch, GenericResearch, getResearch
 import ResearchQueueVue from "./ResearchQueue.vue";
 import ResearchTreeVue from "./ResearchTree.vue";
 
-interface BuildingData {
-    effect: (amount: Decimal) => any;
-    cost: {
-        free: Computable<boolean>;
-        resource: Resource<DecimalSource>;
-        multiplier: ProcessedComputable<DecimalSource>;
-        base: ProcessedComputable<DecimalSource>;
-    };
-    display: {
-        visibility?: Computable<Visibility | boolean>;
-        title: CoercableComponent;
-        description: CoercableComponent;
-        effect: CoercableComponent;
-    }
-}
-
-interface BuildingOptions extends RepeatableOptions, EffectFeatureOptions, BonusAmountFeatureOptions {};
-type GenericBuilding = GenericRepeatable & GenericEffectFeature & GenericBonusAmountFeature;
-
 export const id = "inflaton";
 const layer = createLayer(id, function (this: BaseLayer) {
-    const name = "Inflatons";
-    const color = "#ff5e13";
-
-    const inflatons = createResource<DecimalSource>(0, "Inflatons");
-
-    const conversionCost = computed(() => entangled.isFirstBranch(id) ? 1e6 : 1e50);
-    const conversion = createClickable(() => ({
-        canClick() {
-            return Decimal.gte(unref(fome[FomeTypes.quantum].amount), unref(conversionCost));
-        },
-        display: jsx(() => (
-            <>
-                1 {inflatons.displayName}<br />
-                <br />
-                Requires: {format(unref(fome[FomeTypes.quantum].amount))} / {format(unref(conversionCost))} {fome[FomeTypes.quantum].amount.displayName}
-            </>
-        )),
-        onClick() {
-            inflatons.value = Decimal.dOne;
-            if (entangled.isFirstBranch(id)) entangled.branchOrder.value = id;
-        },
-        style: {
-            width: 'fit-content',
-            minHeight: '60px'
-        }
-    }));
-
-    const inflate = createClickable(() => ({
-        display: jsx(() => (
-            <>
-                INFLATE
-            </>
-        )),
-        onClick() {
-            if (unref(inflating)) endInflation();
-            else startInflation();
-        },
-        style: {
-            width: '150px',
-            minHeight: '60px'
-            
-        }
-    }));
-    function startInflation() {
-        inflating.value = true;
-        inflatons.value = unref(research.instantInflation.researched)
-            ? Decimal.reciprocate(unref(buildings.condenser.effect as DecimalSource)).dividedBy(10).pow10()
-            : Decimal.add(unref(inflatons), 1);
-    };
-    function endInflation() {
-        inflating.value = false;
-        inflatons.value = Decimal.min(unref(inflatons), unref(buildings.storage.effect as DecimalSource));
-    };
-
-    const inflating = persistent<boolean>(false);
-    const inflatonNerf = computed(() => {
-        let log = Decimal.max(unref(inflatons), 1).log10();
-        if (unref(inflating) || !unref(research.isolatedStorage.researched))
-            log = log.times(1); // m-field condenser effect
-        return log.pow_base(2);
-    });
-    const inflatonGain = computed(() => {
-        let exponent = Decimal.max(unref(inflatons), 1).log10().plus(1).dividedBy(10);
-        let gain = Decimal.times(unref(inflatons), exponent.pow_base(2));
-        return gain.layer >= 3
-            ? Decimal.fromComponents(gain.sign, gain.layer, gain.mag * 1.000000000000001)
-            : gain
-    });
-    const fomeBonus = computed(() => {
-        return unref(inflating)
-            ? Decimal.dOne
-            : Decimal.dOne.times(getResearchEffect(research.fomeGain))
-                          .times(getResearchEffect(research.moreFomeGain))
-                          .times(getResearchEffect(research.evenMoreFoamGain))
-                          .times(getResearchEffect(repeatables.fome))
-                          .min(unref(inflatonNerf));
-    });
-    this.on("postUpdate", diff => {
-        if (unref(inflating)) {
-            inflatons.value = Decimal.add(unref(inflatons), unref(inflatonGain).times(diff));
-        }
-        else if (Decimal.gt(unref(inflatons), unref(buildings.storage.effect as DecimalSource))) {
-            inflatons.value = unref(buildings.storage.effect as DecimalSource);
-        }
-    });
-
-    const currentSize = createResource(computed(() => {
-        if (Decimal.lt(unref(inflatons), 1)) return Decimal.dZero;
-
-        return Decimal.max(unref(inflatons), 2)
-                      .log2().log2()
-                      .times(getResearchEffect(research.doubleSize))
-                      .times(getResearchEffect(research.quadrupleSize))
-                      .times(1) // size repeatable effect
-        //     .step(6.187e10, size => size.pow(0.1))
-        //     .times(1) // top time square effect
-        //     .div(1) // top timeline nerf
-        //     .times(1) // top timeline bonus
-
-        // return size.evaluate();
-    }), "planck lengths");
-    const maxSize = trackBest(currentSize);
-    const usedSize = persistent<DecimalSource>(0);
-
-    const upgradeStyle = {
-        width: '250px'
-    };
-    type Upgrades = 'subspaceBuildings' | 'research'
-    const upgrades: Record<Upgrades, GenericUpgrade> = {
-        subspaceBuildings: createUpgrade(() => ({
-            display: {
-                title: 'Subspatial Field Stabilizers',
-                description: '<br/>Allow the creation of Subspatial Structures<br/>'
-            },
-            requirements: createCostRequirement(() => ({
-                cost: () => entangled.isFirstBranch(id) ? new Decimal(5e13) : new Decimal(5e46),
-                resource: noPersist(fome[FomeTypes.quantum].amount)
-            })),
-            visibility() { return true },
-            style: upgradeStyle
-        })),
-        research: createUpgrade(() => ({
-            display: {
-                title: 'Quantum Field Investigations',
-                description: `<br/>Stabilization isn't enough. Maybe the constant bubbling of the quantum field may hold the secret to sustaining inflation<br/>`
-            },
-            requirements: createCostRequirement(() => ({
-                cost: () => entangled.isFirstBranch(id) ? new Decimal(1e14) : new Decimal(1e47),
-                resource: noPersist(fome[FomeTypes.quantum].amount)
-            })),
-            visibility() { return unref(this.bought) || unref(upgrades.subspaceBuildings.bought) },
-            style: upgradeStyle
-        }))
-    };
-
-    const buildingStyle = computed(() => ({
-        ...upgradeStyle,
-        minHeight: '150px',
-        borderBottomLeftRadius: unref(research.respecs.researched) ? 0 : undefined,
-        borderBottomRightRadius: unref(research.respecs.researched) ? 0 : undefined,
-    }));
-    const buildingSize = computed(() => {
-        return Decimal.times(getResearchEffect(research.biggerBuildings, {size: 1}).size, getResearchEffect(repeatables.buildingSize, {size: 1}).size)
-    });
-    const canBuild = computed(() => Decimal.minus(unref(maxSize), unref(usedSize)).gte(unref(buildingSize)));
-    type Buildings = 'condenser' | 'lab' | 'storage'
-    const buildings: Record<Buildings, GenericBuilding> = {
-        condenser: createBuilding(() => ({
-            effect(amount: Decimal) {
-                return amount.times(getResearchEffect(research.quintupleCondenser))
-                             .pow_base(0.975);
-            },
-            cost: {
-                free: research.autobuild.researched,
-                resource: noPersist(fome[FomeTypes.subspatial].amount),
-                multiplier: computed(() => entangled.isFirstBranch(id) ? 1e30 : 1e82),
-                base: 1.1
-            },
-            display: {
-                visibility() { return unref(upgrades.subspaceBuildings.bought) },
-                title: 'M-Field Condenser',
-                description: 'Slightly reduce the loss of resources to Inflation',
-                effect: jsx(() => <>{formatSmall(unref(buildings.condenser.effect as DecimalSource))}x</>)
-            }
-        })),
-        lab: createBuilding(() => ({
-            effect(amount: Decimal) {
-                return amount.times(unref(research.researchBoost.researched) ? Decimal.times(unref(research.researchBoost.effect), 0.9) : 1)
-                             .times(1) // 1st abyssal pion buyable
-            },
-            cost: {
-                free: research.autobuild.researched,
-                resource: noPersist(fome[FomeTypes.subspatial].amount),
-                multiplier: computed(() => entangled.isFirstBranch(id) ? 1e30 : 1e82),
-                base: computed(() => unref(research.cheaperLabs.researched) ? 1.5 : 15)
-            },
-            display: {
-                visibility() { return unref(upgrades.research.bought) },
-                title: 'Quantum Flux Analyzer',
-                description: 'Study fluctuations in the quantum field',
-                effect: jsx(() => <>+{formatWhole(unref(buildings.lab.effect as DecimalSource))} research points/s</>)
-            }
-        })),
-        storage: createBuilding(() => ({
-            effect(amount: Decimal) {
-                return amount.times(getResearchEffect(research.improvedStorage, 1/3))
-                             .pow_base(500);
-            },
-            cost: {
-                free: research.autobuild.researched,
-                resource: noPersist(fome[FomeTypes.quantum].amount),
-                multiplier: computed(() => entangled.isFirstBranch(id) ? 1e15 : 1e48),
-                base: 1.2
-            },
-            display: {
-                visibility() { return unref(research.storage.researched) },
-                title: 'Inflaton Containment Unit',
-                description: 'Specialized storage facilities designed to keep Inflatons separated and inert',
-                effect: jsx(() => <>Safely store up to {formatWhole(unref(buildings.storage.effect as DecimalSource))} Inflatons</>)
-            }
-        }))
-    };
-    const respecStyle = {
-        width: '125px',
-        minHeight: '25px',
-        borderRadius: 0
-    };
-    const respecButtons = Object.fromEntries(Object.entries(buildings).map(([id, building]) => [
-        id,
-        {
-            one: createClickable(() => ({
-                visibility() { return unref(research.respecs.researched) },
-                canClick() { return Decimal.gt(unref(building.amount), 0) },
-                display: { description: 'Sell One' },
-                onClick() { building.amount.value = Decimal.minus(unref(building.amount), unref(buildingSize)).max(0) },
-                style: computed(() => ({...respecStyle, borderBottomLeftRadius: 'var(--border-radius)'}))
-            })) as GenericClickable,
-            all: createClickable(() => ({
-                visibility() { return unref(research.respecs.researched) },
-                canClick() { return Decimal.gt(unref(building.amount), 0) },
-                display: { description: 'Sell All' },
-                onClick() { building.amount.value = Decimal.dZero },
-                style: computed(() => ({...respecStyle, borderBottomRightRadius: 'var(--border-radius)'}))
-            })) as GenericClickable
-        }
-    ])) as Record<Buildings, Record<'one' | 'all', GenericClickable>>;
-    const respecAll = createClickable(() => ({
-        canClick() { return Object.values(buildings).some(building => Decimal.gt(unref(building.amount), 0)) },
-        display: { description: 'Sell All' },
-        onClick() { for (const building of Object.values(buildings)) building.amount.value = Decimal.dZero },
-        style: {...respecStyle, borderRadius: 'var(--border-radius)'}
-    }));
-    const buildingRenders = Object.fromEntries(Object.keys(buildings).map(id => [id, jsx(() => (
-        <div class="col mergeAdjacent">
-            {render(buildings[id as Buildings])}
-            <div class="row mergeAdjacent">
-                {render(respecButtons[id as Buildings].one)}
-                {render(respecButtons[id as Buildings].all)}
-            </div>
-        </div>
-    ))]));
-
+    
     const research: Record<string, GenericResearch> = {
         quintupleCondenser: createResearch(() => ({
             position: [0,0],
@@ -735,9 +466,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 display: jsx(() => (
                     <>
                         {render(header)}
-                        {renderRow(...Object.values(buildingRenders))}
+                        {/* {renderRow(...Object.values(buildingRenders))}
                         <SpacerVue />
-                        {render(respecAll)}
+                        {render(respecAll)} */}
                         <SpacerVue />
                         {renderRow(...Object.values(upgrades))}
                     </>
@@ -794,52 +525,6 @@ const layer = createLayer(id, function (this: BaseLayer) {
 
         queueLength,
         parallelSize
-    }
-    
-    function createBuilding(
-        optionsFunc: OptionsFunc<BuildingData, BaseRepeatable, GenericBuilding>
-    ): GenericBuilding {
-        return createLazyProxy(feature => {
-            let building = optionsFunc.call(feature, feature);
-            return createRepeatable<BuildingOptions>(function (this: GenericRepeatable) {
-                return {
-                    bonusAmount() { return Decimal.times(unref(this.amount), 0) }, // 3rd abyssal spinor buyable
-                    visibility: building.display.visibility,
-                    requirements: [
-                        createBooleanRequirement(canBuild),
-                        createCostRequirement(() => ({
-                            cost: getBuildingCost(Formula.variable(this.amount), building.cost.multiplier, building.cost.base),
-                            resource: building.cost.resource,
-                            requiresPay: () => !unref(research.autobuild.researched)
-                        }))
-                    ],
-
-                    effect() {
-                        return building.effect(Decimal.add(unref(this.amount), unref(this.bonusAmount as ProcessedComputable<DecimalSource>))
-                            .times(getResearchEffect(research.biggerBuildings, {effect: 1}).effect)
-                            .times(unref(repeatables.buildingSize.effect).effect))
-                    },
-                    display: {
-                        title: building.display.title,
-                        description: building.display.description,
-                        effectDisplay: building.display.effect
-                    },
-                    style: buildingStyle
-                };
-            }, effectDecorator, bonusAmountDecorator) as GenericBuilding;
-        });
-    }
-
-    function getBuildingCost(amount: GenericFormula, multiplier: FormulaSource, base: FormulaSource) {
-        return amount.div(unref(repeatables.buildingCost.effect))
-                   .div(1) // 3rd abyssal pion buyable
-                   .if(research.autobuild.researched,
-                        (amount: GenericFormula) => amount.pow_base(base).times(multiplier),
-                        (amount: GenericFormula) => {
-                            const sizeMultiplier = Formula.pow(base, buildingSize).minus(1).times(multiplier);
-                            const baseDivider = Formula.minus(base, 1);
-                            return amount.pow_base(base).times(sizeMultiplier).dividedBy(baseDivider);
-                       })
     }
 })
 

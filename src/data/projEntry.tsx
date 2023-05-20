@@ -31,12 +31,10 @@ export const root = createLayer(id, () => {
         [layer.name, () => ({
             display: layer.name,
             tab: createTab(() => ({
-                style() {
-                    return {
-                        "--layer-color": unref(layer.color),
-                        ...(unref(layer.style) as Record<string, unknown>)
-                    }
-                },
+                // style: computed(() => ({
+                //     "--layer-color": unref(layer.color),
+                //     ...(unref(layer.style) as Record<string, unknown>)
+                // })),
                 display: jsx(() => (
                     <>
                         <div>

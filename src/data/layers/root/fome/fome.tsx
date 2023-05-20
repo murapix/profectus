@@ -24,7 +24,7 @@ import { createTabFamily } from "features/tabs/tabFamily";
 import { createBooleanRequirement, displayRequirements } from "game/requirements";
 import { addTooltip } from "features/tooltips/tooltip";
 import infinitesimal from "./infinitesimal";
-import inflaton from "../inflaton-old/inflaton";
+import inflaton from "../inflaton/inflaton";
 import subspatial from "./subspatial";
 import subplanck from "./subplanck";
 import quantum from "./quantum";

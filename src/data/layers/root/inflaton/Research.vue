@@ -89,11 +89,11 @@ export default defineComponent({
             const Cost = unwrapRef(cost);
             const Title = coerceComponent(currentDisplay.title ?? "", "h3");
             const Description = coerceComponent(currentDisplay.description);
-            const EffectDisplay = coerceComponent(currentDisplay.effectDisplay ?? "");
+            const EffectDisplay = coerceComponent(currentDisplay.effect ?? "");
             component.value = coerceComponent(jsx(() => (<>
                         {currentDisplay.title ? <span><Title /></span> : null}
                         <span><Description /></span>
-                        {currentDisplay.effectDisplay ? <span>Currently: <EffectDisplay /></span> : null}
+                        {currentDisplay.effect ? <span>Currently: <EffectDisplay /></span> : null}
                         <span>{formatWhole(Cost ?? 0)} Research Points</span>
                 </>)));
         });

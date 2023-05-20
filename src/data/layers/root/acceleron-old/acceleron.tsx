@@ -18,7 +18,7 @@ import skyrmion from "../skyrmion/skyrmion";
 import fome, { FomeTypes } from "../fome/fome";
 import entropy from "./entropy";
 import timecube from "../timecube-old/timecube";
-import inflaton from "../inflaton-old/inflaton";
+import inflaton from "../inflaton/inflaton";
 import entangled from "../entangled-old/entangled";
 import { createLoop, GenericLoop } from "./loop";
 import MainDisplayVue from "features/resources/MainDisplay.vue";

@@ -46,13 +46,13 @@ export default defineComponent({
         });
 
         const links: ComputedRef<Link[]> = computed(() => Object.values(unwrapRef(research))
-            .flatMap(research => research.requirements
-                ?.map(requirement => ({
+            .flatMap(research => research.prerequisites
+                ?.map(prerequisite => ({
                     startNode: { id: research.id },
-                    endNode: { id: requirement.id },
+                    endNode: { id: prerequisite.id },
                     stroke: unref(research.visibility) === Visibility.None
                                 ? 'var(--locked)'
-                                : unref(requirement.researched)
+                                : unref(prerequisite.researched)
                                     ? 'var(--layer-color)'
                                     : 'white',
                     'stroke-width': '5px'
