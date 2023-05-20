@@ -52,9 +52,6 @@ export const main = createLayer("main", function (this: BaseLayer) {
                 {player.devSpeed != null && player.devSpeed !== 0 && player.devSpeed !== 1 ? (
                     <div>Dev Speed: {format(player.devSpeed)}x</div>
                 ) : null}
-                {player.offlineTime != null && player.offlineTime !== 0 ? (
-                    <div>Offline Time: {formatTime(player.offlineTime)}</div>
-                ) : null}
                 <div>
                     {Decimal.lt(points.value, "1e1000") ? <span>You have </span> : null}
                     <h2>{format(points.value)}</h2>

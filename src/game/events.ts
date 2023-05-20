@@ -19,7 +19,7 @@ export interface GlobalEvents {
     /**
      * Sent every game tick. Runs the life cycle of the project.
      * @param diff The delta time since last tick, in ms.
-     * @param trueDiff The delta time since last tick, in ms. Unaffected by time modifiers like {@link game/player.Player.devSpeed} or {@link game/player.Player.offlineTime}. Intended for things like updating animations.
+     * @param trueDiff The delta time since last tick, in ms. Unaffected by time modifiers like {@link game/player.Player.devSpeed}. Intended for things like updating animations.
      */
     update: (diff: number, trueDiff: number) => void;
     /**

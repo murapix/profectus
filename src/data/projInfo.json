@@ -1,10 +1,7 @@
 {
 	"$schema": "./projInfo-schema.json",
 
-	"title": "Profectus",
 	"description": "A project made in Profectus",
-	"id": "",
-	"author": "",
 	"discordName": "",
 	"discordLink": "",
 
@@ -20,7 +17,6 @@
 	"initialTabs": [ "main" ],
 
 	"maxTickLength": 3600,
-	"offlineLimit": 1,
 	"enablePausing": true,
 	"exportEncoding": "base64"
 }

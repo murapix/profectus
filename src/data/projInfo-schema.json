@@ -75,10 +75,6 @@
             "type": "number",
             "description": "The longest duration a single tick can be, in seconds. When calculating things like offline time, a single tick will be forced to be this amount or lower. This will make calculating offline time spread out across many ticks as necessary. The default value is 1 hour."
         },
-        "offlineLimit": {
-            "type": "number",
-            "description": "The max amount of time that can be stored as offline time, in hours."
-        },
         "enablePausing": {
             "type": "boolean",
             "description": "Whether or not to allow the player to pause the game. Turning this off disables the toggle from the options menu as well as the NaN screen. Developers can still manually pause by just setting player.devSpeed to 0 in console (or 1 to resume).",

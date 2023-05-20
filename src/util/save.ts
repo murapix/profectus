@@ -14,8 +14,6 @@ export function setupInitialStore(player: Partial<Player> = {}): Player {
             tabs: projInfo.initialTabs.slice(),
             time: Date.now(),
             autosave: true,
-            offlineProd: true,
-            offlineTime: 0,
             timePlayed: 0,
             keepGoing: false,
             modID: projInfo.id,
@@ -103,18 +101,7 @@ export async function loadSave(playerObj: Partial<Player>): Promise<void> {
     getInitialLayers(playerObj).forEach(layer => addLayer(layer, playerObj));
 
     playerObj = setupInitialStore(playerObj);
-    if (
-        playerObj.offlineProd &&
-        playerObj.time != null &&
-        playerObj.time &&
-        playerObj.devSpeed !== 0
-    ) {
-        if (playerObj.offlineTime == undefined) playerObj.offlineTime = 0;
-        playerObj.offlineTime += Math.min(
-            playerObj.offlineTime + (Date.now() - playerObj.time) / 1000,
-            projInfo.offlineLimit * 3600
-        );
-    }
+
     playerObj.time = Date.now();
     if (playerObj.modVersion !== projInfo.versionNumber) {
         fixOldSave(playerObj.modVersion, playerObj);

@@ -15,10 +15,6 @@ export interface Player {
     time: number;
     /** Whether or not to automatically save every couple of seconds and on tab close. */
     autosave: boolean;
-    /** Whether or not to apply offline time when loading this save. */
-    offlineProd: boolean;
-    /** How much offline time has been accumulated and not yet processed. */
-    offlineTime: number | null;
     /** How long, in ms, this game has been played. */
     timePlayed: number;
     /** Whether or not to continue playing after {@link data/projEntry.hasWon} is true. */
@@ -51,8 +47,6 @@ const player = reactive<Player>({
     tabs: [],
     time: -1,
     autosave: true,
-    offlineProd: true,
-    offlineTime: null,
     timePlayed: 0,
     keepGoing: false,
     modID: "",
