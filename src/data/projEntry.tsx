@@ -1,72 +1,65 @@
-import Spacer from "components/layout/Spacer.vue";
 import { jsx } from "features/feature";
-import { createResource, trackBest, trackOOMPS, trackTotal } from "features/resources/resource";
-import type { GenericTree } from "features/trees/tree";
-import { branchedResetPropagation, createTree } from "features/trees/tree";
-import { globalBus } from "game/events";
 import type { BaseLayer, GenericLayer } from "game/layers";
 import { createLayer } from "game/layers";
 import type { Player } from "game/player";
 import player from "game/player";
-import type { DecimalSource } from "util/bignum";
-import Decimal, { format, formatTime } from "util/bignum";
+import { format } from "util/bignum";
 import { render } from "util/vue";
-import { computed, toRaw } from "vue";
-import prestige from "./layers/prestige";
+import { computed, unref } from "vue";
+import { GenericTabFamily, createTabFamily } from "features/tabs/tabFamily";
+import factory from "./content/factory";
+import { createTab } from "features/tabs/tab";
+import { amounts } from "./content/resources";
+
+const layers: Record<string, GenericLayer> = { factory }
 
 /**
  * @hidden
  */
-export const main = createLayer("main", function (this: BaseLayer) {
-    const points = createResource<DecimalSource>(10);
-    const best = trackBest(points);
-    const total = trackTotal(points);
-
-    const pointGain = computed(() => {
-        // eslint-disable-next-line prefer-const
-        let gain = new Decimal(1);
-        return gain;
-    });
-    globalBus.on("update", diff => {
-        points.value = Decimal.add(points.value, Decimal.times(pointGain.value, diff));
-    });
-    const oomps = trackOOMPS(points, pointGain);
-
-    const tree = createTree(() => ({
-        nodes: [[prestige.treeNode]],
-        branches: [],
-        onReset() {
-            points.value = toRaw(this.resettingNode.value) === toRaw(prestige.treeNode) ? 0 : 10;
-            best.value = points.value;
-            total.value = points.value;
-        },
-        resetPropagation: branchedResetPropagation
-    })) as GenericTree;
-
+export const root = createLayer("main", function (this: BaseLayer) {
+    const tabs: GenericTabFamily = createTabFamily(
+        Object.fromEntries(
+            Object.values(
+                layers
+            ).map(layer => [
+                layer.name,
+                () => ({
+                    display: layer.name,
+                    tab: createTab(() => ({
+                        display: jsx(() => (
+                            <>
+                                <div style={{
+                                    height: '100%',
+                                    marginTop: 0
+                                }}>
+                                    {player.devSpeed === 0 ? <div>Game Paused</div> : null}
+                                    {player.devSpeed && player.devSpeed !== 1 ? <div>Dev Speed: {format(player.devSpeed)}x</div> : null}
+                                    {render(unref(layer.display))}
+                                </div>
+                            </>
+                        )),
+                        style: {
+                            height: '100%',
+                            marginBottom: 0,
+                            border: 0
+                        },
+                    })),
+                    visibility: 'unlocked' in layer ? () => unref(layer.unlocked) : true
+                })
+            ])
+        )
+    );
     return {
-        name: "Tree",
-        links: tree.links,
-        display: jsx(() => (
-            <>
-                {player.devSpeed === 0 ? <div>Game Paused</div> : null}
-                {player.devSpeed != null && player.devSpeed !== 0 && player.devSpeed !== 1 ? (
-                    <div>Dev Speed: {format(player.devSpeed)}x</div>
-                ) : null}
-                <div>
-                    {Decimal.lt(points.value, "1e1000") ? <span>You have </span> : null}
-                    <h2>{format(points.value)}</h2>
-                    {Decimal.lt(points.value, "1e1e6") ? <span> points</span> : null}
-                </div>
-                {Decimal.gt(pointGain.value, 0) ? <div>({oomps.value})</div> : null}
-                <Spacer />
-                {render(tree)}
-            </>
-        )),
-        points,
-        best,
-        total,
-        oomps,
-        tree
+        name: "Root",
+        minimizable: false,
+        display: jsx(() => true
+            ? <>{render(tabs)}</>
+            : <div>
+                {render(unref(tabs.tabs[factory.name].tab))}
+            </div>
+        ),
+        tabs,
+        amounts
     };
 });
 
@@ -77,7 +70,7 @@ export const main = createLayer("main", function (this: BaseLayer) {
 export const getInitialLayers = (
     /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
     player: Partial<Player>
-): Array<GenericLayer> => [main, prestige];
+): Array<GenericLayer> => [root, factory];
 
 /**
  * A computed ref whose value is true whenever the game is over.

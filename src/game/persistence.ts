@@ -61,7 +61,6 @@ export type State =
     | string
     | number
     | boolean
-    | DecimalSource
     | { [key: string]: State }
     | { [key: number]: State };
 
@@ -114,7 +113,7 @@ function checkNaNAndWrite<T extends State>(persistent: Persistent<T>, value: T) 
             player.autosave = false;
             state.hasNaN = true;
             state.NaNPath = persistent[SaveDataPath];
-            state.NaNPersistent = persistent as Persistent<DecimalSource>;
+            state.NaNPersistent = persistent as Persistent<string | number>;
         }
         console.error(`Attempted to save NaN value to ${persistent[SaveDataPath]?.join(".")}`);
     }

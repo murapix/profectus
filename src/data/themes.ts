@@ -64,7 +64,7 @@ const defaultTheme: Theme = {
         "--modal-border": "solid 2px var(--color)",
         "--feature-margin": "0px"
     },
-    floatingTabs: true,
+    floatingTabs: false,
     mergeAdjacent: true,
     showPin: true
 };
@@ -74,13 +74,14 @@ export enum Themes {
     Classic = "classic",
     Paper = "paper",
     Nordic = "nordic",
-    Aqua = "aqua"
+    Aqua = "aqua",
+    Console = "console"
 }
 
 /** A dictionary of all available themes. */
 export default {
-    classic: defaultTheme,
-    paper: {
+    [Themes.Classic]: defaultTheme,
+    [Themes.Paper]: {
         ...defaultTheme,
         variables: {
             ...defaultTheme.variables,
@@ -93,11 +94,10 @@ export default {
             "--border-radius": "4px",
             "--modal-border": "",
             "--feature-margin": "5px"
-        },
-        floatingTabs: false
+        }
     } as Theme,
     // Based on https://www.nordtheme.com
-    nordic: {
+    [Themes.Nordic]: {
         ...defaultTheme,
         variables: {
             ...defaultTheme.variables,
@@ -118,10 +118,9 @@ export default {
             "--border-radius": "4px",
             "--modal-border": "solid 2px #3B4252",
             "--feature-margin": "5px"
-        },
-        floatingTabs: false
+        }
     } as Theme,
-    aqua: {
+    [Themes.Aqua]: {
         ...defaultTheme,
         variables: {
             ...defaultTheme.variables,
@@ -133,5 +132,27 @@ export default {
             "--locked": "#c4a7b3",
             "--outline": "#bfdfff"
         }
-    } as Theme
+    } as Theme,
+    [Themes.Console]: {
+        ...defaultTheme,
+        variables: {
+            ...defaultTheme.variables,
+            "--foreground": "#F2F2F2", //
+            "--background": "#000000", //
+            "--feature-foreground": "#13A10E", //
+            "--raised-background": "#272727", // make darker?
+            "--points": "#F2F2F2", //
+            "--locked": "#272727",
+            // "--highlighted": "#434c5e",
+            // "--bought": "#767676",
+            "--danger": "#C50F1F", //
+            "--link": "#3A96DD", //
+            "--outline": "#13A10E", //
+            "--accent1": "#10570D",
+            // "--accent3": "#EBCB8B",
+            "--border-radius": "4px",
+            "--modal-border": "solid 2px #13A10E",
+            "--feature-margin": "5px"
+        }
+    }
 } as Record<Themes, Theme>;

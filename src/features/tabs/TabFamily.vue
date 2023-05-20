@@ -196,6 +196,7 @@ export default defineComponent({
     margin-bottom: 24px;
     display: flex;
     flex-flow: wrap;
+    justify-content: center;
     z-index: 4;
 }
 

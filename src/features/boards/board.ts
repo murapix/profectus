@@ -89,7 +89,7 @@ export type BoardData = {
  */
 export interface NodeTypeOptions {
     /** The title to display for the node. */
-    title: NodeComputable<string>;
+    title?: NodeComputable<string>;
     /** An optional label for the node. */
     label?: NodeComputable<NodeLabel | null>;
     /** The size of the node - diameter for circles, width and height for squares. */
@@ -604,13 +604,7 @@ export function getNodeProperty<T, S extends unknown[]>(
  * @param board The board feature to generate an ID for
  */
 export function getUniqueNodeID(board: GenericBoard): number {
-    let id = 0;
-    board.nodes.value.forEach(node => {
-        if (node.id >= id) {
-            id = node.id + 1;
-        }
-    });
-    return id;
+    return Math.max(0, ...board.nodes.value.map(node => node.id))+1
 }
 
 const listeners: Record<string, Unsubscribe | undefined> = {};

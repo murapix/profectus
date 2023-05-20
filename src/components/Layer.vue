@@ -150,7 +150,7 @@ export default defineComponent({
 
 .inner-tab > .layer-container > .layer-tab:not(.minimized) {
     margin: -50px -10px;
-    padding: 50px 10px;
+    padding: 50px 10px 0px 10px;
 }
 
 .modal-body .layer-tab {

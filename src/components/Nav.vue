@@ -170,6 +170,7 @@ function openDiscord() {
 .title {
     font-size: 36px;
     text-align: left;
+    align-items: end;
     margin-left: 12px;
     cursor: unset;
 }

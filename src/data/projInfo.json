@@ -1,7 +1,10 @@
 {
 	"$schema": "./projInfo-schema.json",
 
+	"title": "Nanite",
 	"description": "A project made in Profectus",
+	"id": "break-the-cycle",
+	"author": "Escapee",
 	"discordName": "",
 	"discordLink": "",
 

@@ -15,6 +15,7 @@
 
 <script setup lang="tsx">
 import "@fontsource/roboto-mono";
+import "@fontsource/courier-prime"
 import Error from "components/Error.vue";
 import { jsx } from "features/feature";
 import state from "game/state";
