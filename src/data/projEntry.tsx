@@ -7,7 +7,7 @@ import { format } from "util/bignum";
 import { render } from "util/vue";
 import { computed, unref } from "vue";
 import { GenericTabFamily, createTabFamily } from "features/tabs/tabFamily";
-import factory from "./content/factory";
+import factory from "./tabs/factory";
 import { createTab } from "features/tabs/tab";
 import { amounts } from "./content/resources";
 

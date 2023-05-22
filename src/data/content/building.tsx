@@ -5,7 +5,8 @@ import { createLazyProxy } from "util/proxies";
 
 export type Storage = {
     resources: Resources[];
-    limit: number | "node"
+    limit: number | "node";
+    default?: number;
 }
 
 export type Recipe = {
@@ -26,9 +27,9 @@ export type Building = {
 export const buildings: Record<string, Building> = {
     core: createLazyProxy(() => ({
         cost: {},
-        transfer: { rate: 5, range: 300 },
+        transfer: { rate: 5, range: 450 },
         storage: [
-            { resources: [Resources.Nanites], limit: 100 },
+            { resources: [Resources.Nanites], limit: 100, default: 100 },
             { resources: [Resources.Scrap], limit: 10 }
         ],
         recipes: [{
@@ -46,7 +47,7 @@ export const buildings: Record<string, Building> = {
     })),
     router: createLazyProxy(() => ({
         cost: { [Resources.Nanites]: 15 },
-        transfer: { rate: 5, range: 300 },
+        transfer: { rate: 5, range: 450 },
         display: "Transfer resources to further-away nodes"
     }))
 }

@@ -22,94 +22,28 @@
             @mouseup="mouseUp"
             @touchend.passive="mouseUp"
         >
-            <g v-if="shape === Shape.Circle">
-                <circle
-                    v-if="canAccept"
-                    class="receiver"
-                    :r="size + 8"
-                    :fill="backgroundColor"
-                    :stroke="receivingNode ? '#0F0' : '#0F03'"
-                    :stroke-width="2"
-                />
-
-                <circle
-                    class="body"
-                    :r="size"
-                    :fill="fillColor"
-                    :stroke="outlineColor"
-                    :stroke-width="4"
-                />
-
-                <circle
-                    class="progress progressFill"
-                    v-if="progressDisplay === ProgressDisplay.Fill"
-                    :r="Math.max(size * progress - 2, 0)"
-                    :fill="progressColor"
-                />
-                <circle
-                    v-else
-                    :r="size + 4.5"
-                    class="progress progressRing"
-                    fill="transparent"
-                    :stroke-dasharray="(size + 4.5) * 2 * Math.PI"
-                    :stroke-width="5"
-                    :stroke-dashoffset="
-                        (size + 4.5) * 2 * Math.PI - progress * (size + 4.5) * 2 * Math.PI
-                    "
-                    :stroke="progressColor"
-                />
-            </g>
-            <g v-else-if="shape === Shape.Diamond" transform="rotate(45, 0, 0)">
-                <rect
-                    v-if="canAccept"
-                    class="receiver"
-                    :width="size * sqrtTwo + 16"
-                    :height="size * sqrtTwo + 16"
-                    :transform="`translate(${-(size * sqrtTwo + 16) / 2}, ${
-                        -(size * sqrtTwo + 16) / 2
-                    })`"
-                    :fill="backgroundColor"
-                    :stroke="receivingNode ? '#0F0' : '#0F03'"
-                    :stroke-width="2"
-                />
-
-                <rect
-                    class="body"
-                    :width="size * sqrtTwo"
-                    :height="size * sqrtTwo"
-                    :transform="`translate(${(-size * sqrtTwo) / 2}, ${(-size * sqrtTwo) / 2})`"
-                    :fill="fillColor"
-                    :stroke="outlineColor"
-                    :stroke-width="4"
-                />
-
-                <rect
-                    v-if="progressDisplay === ProgressDisplay.Fill"
-                    class="progress progressFill"
-                    :width="Math.max(size * sqrtTwo * progress - 2, 0)"
-                    :height="Math.max(size * sqrtTwo * progress - 2, 0)"
-                    :transform="`translate(${-Math.max(size * sqrtTwo * progress - 2, 0) / 2}, ${
-                        -Math.max(size * sqrtTwo * progress - 2, 0) / 2
-                    })`"
-                    :fill="progressColor"
-                />
-                <rect
-                    v-else
-                    class="progress progressDiamond"
-                    :width="size * sqrtTwo + 9"
-                    :height="size * sqrtTwo + 9"
-                    :transform="`translate(${-(size * sqrtTwo + 9) / 2}, ${
-                        -(size * sqrtTwo + 9) / 2
-                    })`"
-                    fill="transparent"
-                    :stroke-dasharray="(size * sqrtTwo + 9) * 4"
-                    :stroke-width="5"
-                    :stroke-dashoffset="
-                        (size * sqrtTwo + 9) * 4 - progress * (size * sqrtTwo + 9) * 4
-                    "
-                    :stroke="progressColor"
-                />
-            </g>
+            <CircleNode v-if="component === CircleNode"
+                :receivingNode="receivingNode"
+                :canAccept="canAccept"
+                :size="size"
+                :progress="progress"
+                :progressDisplay="progressDisplay"
+                :progressColor="progressColor"
+                :backgroundColor="backgroundColor"
+                :fillColor="fillColor"
+                :outlineColor="outlineColor"
+            />
+            <DiamondNode v-if="component === DiamondNode"
+                :receivingNode="receivingNode"
+                :canAccept="canAccept"
+                :size="size"
+                :progress="progress"
+                :progressDisplay="progressDisplay"
+                :progressColor="progressColor"
+                :backgroundColor="backgroundColor"
+                :fillColor="fillColor"
+                :outlineColor="outlineColor"
+            />
 
             <text :fill="titleColor" class="node-title">{{ title }}</text>
         </g>
@@ -142,13 +76,13 @@
 <script setup lang="ts">
 import themes from "data/themes";
 import type { BoardNode, GenericBoardNodeAction, GenericNodeType } from "features/boards/board";
-import { ProgressDisplay, Shape, getNodeProperty } from "features/boards/board";
+import { getNodeProperty } from "features/boards/board";
 import { isVisible } from "features/feature";
 import settings from "game/settings";
 import { CSSProperties, computed, toRefs, unref, watch } from "vue";
 import BoardNodeAction from "./BoardNodeAction.vue";
-
-const sqrtTwo = Math.sqrt(2);
+import CircleNode from "./CircleNode.vue";
+import DiamondNode from "./DiamondNode.vue";
 
 const _props = defineProps<{
     node: BoardNode;
@@ -206,7 +140,7 @@ const position = computed(() => {
     return node.position;
 });
 
-const shape = computed(() => getNodeProperty(props.nodeType.value.shape, unref(props.node)));
+const component = computed(() => getNodeProperty(props.nodeType.value.component, unref(props.node)));
 const title = computed(() => getNodeProperty(props.nodeType.value.title, unref(props.node)));
 const label = computed(
     () =>
@@ -278,38 +212,24 @@ function mouseUp(e: MouseEvent | TouchEvent) {
     transition-duration: 0s;
 }
 
-.boardnode:hover .body {
+.boardnode:hover :deep(.body) {
     fill: var(--highlighted);
 }
 
-.boardnode.isSelected .body {
+.boardnode.isSelected :deep(.body) {
     fill: var(--accent1) !important;
 }
 
-.boardnode:not(.isDraggable) .body {
+.boardnode:not(.isDraggable) :deep(.body) {
     fill: var(--locked);
 }
 
 .node-title {
     text-anchor: middle;
-    dominant-baseline: middle;
     font-family: monospace;
     font-size: 200%;
     pointer-events: none;
     filter: drop-shadow(3px 3px 2px var(--tooltip-background));
-}
-
-.progress {
-    transition-duration: 0.05s;
-}
-
-.progressRing {
-    transform: rotate(-90deg);
-}
-
-.fade-enter-from,
-.fade-leave-to {
-    opacity: 0;
 }
 
 .pulsing {

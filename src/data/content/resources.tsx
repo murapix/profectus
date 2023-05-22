@@ -1,6 +1,6 @@
-import { CoercableComponent, Visibility } from "features/feature";
+import { CoercableComponent, Visibility, jsx } from "features/feature";
 import { computed } from "vue";
-import factory from "./factory";
+import factory from "../tabs/factory";
 import { FactoryNode } from "./nodes";
 import { Alignment, types } from "./types";
 import { ProcessedComputable } from "util/computed";
@@ -8,7 +8,12 @@ import { ProcessedComputable } from "util/computed";
 export enum Resources {
     Empty = "empty",
     Nanites = "nanites",
-    Scrap = "scrap"
+    Scrap = "scrap",
+    CircleResearch = "circleResearch",
+    SquareResearch = "squareResearch",
+    DiamondResearch = "diamondResearch",
+    TriangleResearch = "triangleResearch",
+    TriangleResearch2 = "triangleResearch2"
 }
 
 export const amounts = computed(() => {
@@ -23,8 +28,7 @@ export const amounts = computed(() => {
         const building = nodeType.building;
         if (!building.storage) continue;
         
-        const state = node.state! as { storage: {resource: Resources, amount: number}[] }
-        for (const storage of state.storage) {
+        for (const storage of node.storage) {
             if (amounts[storage.resource] === undefined) amounts[storage.resource] = 0;
             amounts[storage.resource]! += storage.amount;
         }
@@ -35,18 +39,42 @@ export const amounts = computed(() => {
 export const resources: Record<Resources, ResourceDisplay> = {
     [Resources.Empty]: {
         name: "Empty",
+        symbol: '',
         visibility: false
     },
     [Resources.Nanites]: {
-        name: "Nanites"
+        name: "Nanites",
+        symbol: '🔗&#xFE0E;'
     },
     [Resources.Scrap]: {
-        name: "Scrap"
+        name: "Scrap",
+        symbol: '<div style="transform: rotate(45deg)">📎&#xFE0E;</div>'
+    },
+    [Resources.CircleResearch]: {
+        name: "Circular Logic",
+        symbol: '🌀&#xFE0E;'
+    },
+    [Resources.SquareResearch]: {
+        name: "Logistical Notes",
+        symbol: '<div style="transform: rotate(45deg)">🔶&#xFE0E;</div>'
+    },
+    [Resources.DiamondResearch]: {
+        name: "Counterintuitivity",
+        symbol: '🔶&#xFE0E;'
+    },
+    [Resources.TriangleResearch]: {
+        name: "Consumption Reports",
+        symbol: '🔌&#xFE0E;'
+    },
+    [Resources.TriangleResearch2]: {
+        name: "Rampant Studies",
+        symbol: '<div style="transform: rotate(45deg)">💢&#xFE0E;</div>'
     }
 };
 
 export type ResourceDisplay = {
     name: CoercableComponent,
+    symbol: CoercableComponent,
     color?: string,
     visibility?: ProcessedComputable<Visibility | boolean>;
 }

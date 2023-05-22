@@ -5,8 +5,19 @@
         :class="{ pulsing: link.pulsing }"
         :x1="startPosition.x"
         :y1="startPosition.y"
+        :x2="corner.x"
+        :y2="corner.y"
+        stroke-linecap="round"
+    />
+    <line
+        class="link"
+        v-bind="link"
+        :class="{ pulsing: link.pulsing }"
+        :x1="corner.x"
+        :y1="corner.y"
         :x2="endPosition.x"
         :y2="endPosition.y"
+        stroke-linecap="round"
     />
 </template>
 
@@ -48,6 +59,34 @@ const endPosition = computed(() => {
         position.y += props.dragged?.value?.y ?? 0;
     }
     return position;
+});
+
+// start = [0,0], end = [200, -50]
+// x: +200 => 200
+const xDiff = computed(() => endPosition.value.x - startPosition.value.x);
+const absXDiff = computed(() => Math.abs(xDiff.value));
+// y: -50 => 50
+const yDiff = computed(() => endPosition.value.y - startPosition.value.y);
+const absYDiff = computed(() => Math.abs(yDiff.value));
+// Shared: min(200, 50) => 50, Unshared: max(200, 50) - shared => 200 - 50 = 150
+const sharedDistance = computed(() => Math.min(absXDiff.value, absYDiff.value));
+const unsharedDistance = computed(() => Math.max(absXDiff.value, absYDiff.value) - sharedDistance.value);
+
+const diagonalFirst = computed(() => sharedDistance.value > unsharedDistance.value);
+
+const corner = computed(() => {
+    if (diagonalFirst.value) {
+        return {
+            x: startPosition.value.x + (xDiff.value > 0 ? sharedDistance.value : -sharedDistance.value),
+            y: startPosition.value.y + (yDiff.value > 0 ? sharedDistance.value : -sharedDistance.value)
+        }
+    }
+    else {
+        return {
+            x: endPosition.value.x - (xDiff.value > 0 ? sharedDistance.value : -sharedDistance.value),
+            y: endPosition.value.y - (yDiff.value > 0 ? sharedDistance.value : -sharedDistance.value)
+        }
+    }
 });
 </script>
 

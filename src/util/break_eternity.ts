@@ -94,7 +94,7 @@ export function format(num: DecimalSource, precision?: number, small?: boolean):
         return exponentialFormat(num, 0, false);
     } else if (num.gte(e1000)) {
         return exponentialFormat(num, 0);
-    } else if (num.gte(e9)) {
+    } else if (num.gte(e6)) {
         return exponentialFormat(num, precision);
     } else if (num.gte(e3)) {
         return commaFormat(num, 0);
@@ -118,7 +118,7 @@ export function formatWhole(num: DecimalSource): string {
     if (num.sign < 0) {
         return "-" + formatWhole(num.neg());
     }
-    if (num.gte(e9)) {
+    if (num.gte(e6)) {
         return format(num);
     }
     if (num.lte(nearOne) && !num.eq(zero)) {

@@ -1,4 +1,6 @@
 import BoardComponent from "features/boards/Board.vue";
+import CircleNode from "./CircleNode.vue";
+import DiamondNode from "./DiamondNode.vue";
 import type { GenericComponent, OptionsFunc, Replace, StyleValue } from "features/feature";
 import {
     Component,
@@ -43,12 +45,6 @@ export enum ProgressDisplay {
     Fill = "Fill"
 }
 
-/** Node shapes. */
-export enum Shape {
-    Circle = "Circle",
-    Diamond = "Triangle"
-}
-
 /** An object representing a node on the board. */
 export interface BoardNode {
     id: number;
@@ -66,7 +62,7 @@ export interface BoardNodeLink extends Omit<Link, "startNode" | "endNode"> {
     startNode: BoardNode;
     endNode: BoardNode;
     stroke: string;
-    strokeWidth: number;
+    'stroke-width': number;
     pulsing?: boolean;
 }
 
@@ -101,7 +97,7 @@ export interface NodeTypeOptions {
     /** Whether the node is draggable or not. */
     draggable?: NodeComputable<boolean>;
     /** The shape of the node. */
-    shape: NodeComputable<Shape>;
+    component: NodeComputable<GenericComponent>;
     /** Whether the node can accept another node being dropped upon it. */
     canAccept?: NodeComputable<boolean, [BoardNode]>;
     /** The progress value of the node. */
@@ -146,7 +142,7 @@ export type NodeType<T extends NodeTypeOptions> = Replace<
         style: GetComputableType<T["style"]>;
         classes: GetComputableType<T["classes"]>;
         draggable: GetComputableTypeWithDefault<T["draggable"], false>;
-        shape: GetComputableTypeWithDefault<T["shape"], Shape.Circle>;
+        shape: GetComputableTypeWithDefault<T["component"], typeof CircleNode>;
         canAccept: GetComputableTypeWithDefault<T["canAccept"], false>;
         progress: GetComputableType<T["progress"]>;
         progressDisplay: GetComputableTypeWithDefault<T["progressDisplay"], ProgressDisplay.Fill>;
@@ -165,7 +161,7 @@ export type GenericNodeType = Replace<
     {
         size: NodeComputable<number>;
         draggable: NodeComputable<boolean>;
-        shape: NodeComputable<Shape>;
+        component: NodeComputable<GenericComponent>;
         canAccept: NodeComputable<boolean, [BoardNode]>;
         progressDisplay: NodeComputable<ProgressDisplay>;
         progressColor: NodeComputable<string>;
@@ -427,8 +423,8 @@ export function createBoard<T extends BoardOptions>(
             processComputable(nodeType as NodeTypeOptions, "classes");
             processComputable(nodeType as NodeTypeOptions, "draggable");
             setDefault(nodeType, "draggable", false);
-            processComputable(nodeType as NodeTypeOptions, "shape");
-            setDefault(nodeType, "shape", Shape.Circle);
+            processComputable(nodeType as NodeTypeOptions, "component");
+            setDefault(nodeType, "component", CircleNode as GenericComponent);
             processComputable(nodeType as NodeTypeOptions, "canAccept");
             setDefault(nodeType, "canAccept", false);
             processComputable(nodeType as NodeTypeOptions, "progress");
