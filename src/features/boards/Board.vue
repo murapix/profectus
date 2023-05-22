@@ -23,6 +23,27 @@
     >
         <svg class="stage" width="100%" height="100%">
             <g class="g1">
+                <transition-group name="transfer" :duration="500" appear>
+                    <g style="opacity: 0.5">
+                        <g v-for="node in sortedNodes" :key="node.id" style="transition-duration: 0s">
+                            <template v-if="(types[node.type] as unknown as FactoryNodeTypeOptions).building !== undefined">
+                                <g v-if="(types[node.type] as unknown as FactoryNodeTypeOptions).building!.transfer !== undefined"
+                                    :transform="`translate(${node.position.x} ${node.position.y})`"
+                                >
+                                    <path
+                                        :d="`M ${(types[node.type] as unknown as FactoryNodeTypeOptions).building!.transfer!.range + 25} 0
+                                             L 0 ${(types[node.type] as unknown as FactoryNodeTypeOptions).building!.transfer!.range + 25}
+                                             L -${(types[node.type] as unknown as FactoryNodeTypeOptions).building!.transfer!.range + 25} 0
+                                             L 0 -${(types[node.type] as unknown as FactoryNodeTypeOptions).building!.transfer!.range + 25}
+                                             Z
+                                        `"
+                                        fill="var(--accent1)"
+                                    />
+                                </g>
+                            </template>
+                        </g>
+                    </g>
+                </transition-group>
                 <transition-group name="link" appear>
                     <g
                         v-for="link in unref(links) || []"
@@ -77,6 +98,7 @@ import type { StyleValue } from "features/feature";
 import { Visibility, isVisible } from "features/feature";
 import type { ProcessedComputable } from "util/computed";
 import { Ref, computed, ref, toRefs, unref, watchEffect } from "vue";
+import { FactoryNodeTypeOptions } from "data/content/types";
 import BoardLinkVue from "./BoardLink.vue";
 import BoardNodeVue from "./BoardNode.vue";
 

@@ -1,9 +1,5 @@
-import { NodeTypeOptions } from "features/boards/board";
+import { NodeTypeOptions, Shape } from "features/boards/board";
 import { Building, buildings } from "./building";
-import DiamondNode from "features/boards/DiamondNode.vue";
-import CircleNode from "features/boards/CircleNode.vue";
-import Router from "data/nodes/Router.vue";
-import { GenericComponent } from "features/feature";
 
 export enum Alignment {
     Friendly = "friendly",
@@ -26,24 +22,24 @@ export interface FactoryNodeTypeOptions extends NodeTypeOptions {
 export const types: Record<FactoryNodeType, FactoryNodeTypeOptions> = {
     [FactoryNodeType.Core]: {
         size: 50,
-        component: DiamondNode as GenericComponent,
+        shape: () => Shape.Diamond,
         alignment: Alignment.Friendly,
         building: buildings.core
     },
     [FactoryNodeType.Scrap]: {
         size: 40,
-        component: CircleNode as GenericComponent,
+        shape: () => Shape.Circle,
         alignment: Alignment.Neutral
     },
     [FactoryNodeType.Extractor]: {
         size: 25,
-        component: DiamondNode as GenericComponent,
+        shape: () => Shape.Diamond,
         alignment: Alignment.Friendly,
         building: buildings.extractor
     },
     [FactoryNodeType.Router]: {
         size: 25,
-        component: CircleNode as GenericComponent,//Router,
+        shape: () => Shape.Router,
         alignment: Alignment.Friendly,
         building: buildings.router
     }

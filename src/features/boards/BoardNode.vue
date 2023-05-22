@@ -22,7 +22,7 @@
             @mouseup="mouseUp"
             @touchend.passive="mouseUp"
         >
-            <CircleNode v-if="component === CircleNode"
+            <CircleNode v-if="shape === Shape.Circle"
                 :receivingNode="receivingNode"
                 :canAccept="canAccept"
                 :size="size"
@@ -33,7 +33,7 @@
                 :fillColor="fillColor"
                 :outlineColor="outlineColor"
             />
-            <DiamondNode v-if="component === DiamondNode"
+            <DiamondNode v-if="shape === Shape.Diamond"
                 :receivingNode="receivingNode"
                 :canAccept="canAccept"
                 :size="size"
@@ -43,6 +43,9 @@
                 :backgroundColor="backgroundColor"
                 :fillColor="fillColor"
                 :outlineColor="outlineColor"
+            />
+            <Router v-if="shape === Shape.Router"
+                :node="(node as FactoryNode)"
             />
 
             <text :fill="titleColor" class="node-title">{{ title }}</text>
@@ -76,13 +79,15 @@
 <script setup lang="ts">
 import themes from "data/themes";
 import type { BoardNode, GenericBoardNodeAction, GenericNodeType } from "features/boards/board";
-import { getNodeProperty } from "features/boards/board";
+import { getNodeProperty, Shape } from "features/boards/board";
 import { isVisible } from "features/feature";
 import settings from "game/settings";
 import { CSSProperties, computed, toRefs, unref, watch } from "vue";
 import BoardNodeAction from "./BoardNodeAction.vue";
 import CircleNode from "./CircleNode.vue";
 import DiamondNode from "./DiamondNode.vue";
+import Router from "data/nodes/Router.vue";
+import { FactoryNode } from "data/content/nodes";
 
 const _props = defineProps<{
     node: BoardNode;
@@ -140,7 +145,7 @@ const position = computed(() => {
     return node.position;
 });
 
-const component = computed(() => getNodeProperty(props.nodeType.value.component, unref(props.node)));
+const shape = computed(() => getNodeProperty(props.nodeType.value.shape, unref(props.node)));
 const title = computed(() => getNodeProperty(props.nodeType.value.title, unref(props.node)));
 const label = computed(
     () =>

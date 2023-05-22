@@ -1,4 +1,4 @@
-import { createBoard } from "features/boards/board";
+import { Shape, createBoard } from "features/boards/board";
 import { jsx } from "features/feature";
 import { BaseLayer, createLayer } from "game/layers";
 import { render } from "util/vue";
