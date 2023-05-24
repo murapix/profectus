@@ -6,14 +6,14 @@
             <div class="build-row">
                 <div class="build-column">
                     <span>{{ BoardNodeType.Extractor }}</span>
-                    <svg width="150px" height="150px" viewBox="-40 -40 80 80">
-                        <Extractor />
+                    <svg width="150px" height="150px" viewBox="-40 -40 80 80" :class="{selected: selected === BoardNodeType.Extractor}">
+                        <Extractor @select-building="select(BoardNodeType.Extractor)"/>
                     </svg>
                 </div>
                 <div class="build-column">
                     <span>{{ BoardNodeType.Router }}</span>
-                    <svg width="150px" height="150px" viewBox="-40 -40 80 80">
-                        <Router />
+                    <svg width="150px" height="150px" viewBox="-40 -40 80 80" :class="{selected: selected === BoardNodeType.Router}">
+                        <Router @select-building="select(BoardNodeType.Router)"/>
                     </svg>
                 </div>
             </div>
@@ -26,6 +26,25 @@ import { BoardNodeType } from 'data/content/types';
 import Spacer from 'components/layout/Spacer.vue';
 import Router from 'data/nodes/Router.vue';
 import Extractor from 'data/nodes/Extractor.vue';
+import { computed } from 'vue';
+import factory from './factory';
+import { createNode } from 'data/content/nodes';
+
+const selected = computed(() => factory.board.draggingNode.value?.type);
+
+function select(nodeType: BoardNodeType) {
+    const selected = factory.board.draggingNode;
+    const selectedNode = selected.value
+    if (selectedNode === null || selectedNode.type !== nodeType) {
+        selected.value = createNode({
+            position: { x: 0, y: 0 },
+            type: nodeType
+        });
+    }
+    else {
+        selected.value = null;
+    }
+}
 </script>
 
 <style scoped>
@@ -83,4 +102,7 @@ span {
     color: var(--feature-foreground);
 }
 
+.selected {
+    transform: scale(1.2);
+}
 </style>

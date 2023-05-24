@@ -119,8 +119,7 @@ export function propagateDistance(nodes: BoardNode[], root: BoardNode, resetDist
     }
 }
 
-export function placeNode(data: BoardNodeOptions) {
-    const newNode = createNode(data);
+export function placeNode(newNode: BoardNode) {
     const nodes = factory.board.nodes.value.filter(node => canConnect(node, newNode));
     for (const node of nodes) {
         node.connectedNodes.push(newNode.id);

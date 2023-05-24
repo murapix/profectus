@@ -1,6 +1,8 @@
 import { BoardNode, NodeTypeOptions, Shape, getNodeProperty } from "features/boards/board";
 import { buildings } from "./building";
 import { createLazyProxy } from "util/proxies";
+import { Resources, resources } from "./resources";
+import factory from "data/tabs/factory";
 
 export enum Alignment {
     Friendly = "friendly",
@@ -26,7 +28,15 @@ export const types: Record<BoardNodeType, NodeTypeOptions> = createLazyProxy(() 
         [BoardNodeType.Scrap]: {
             size: 15,
             shape: () => Shape.Scrap,
-            alignment: Alignment.Neutral
+            alignment: Alignment.Neutral,
+            label: (node) => {
+                if (factory.board.selectedNode.value === node) {
+                    const storage = node.storage[0];
+                    return {
+                        text: `${resources[storage.resource].name}: ${storage.amount}`
+                    }
+                }
+            }
         },
         [BoardNodeType.Extractor]: {
             size: 10,
@@ -43,16 +53,12 @@ export const types: Record<BoardNodeType, NodeTypeOptions> = createLazyProxy(() 
     } as Record<BoardNodeType, NodeTypeOptions>;
 
     for (const type of Object.values(types)) {
-        type.title = getTempTitle;
+        // type.title = getTempTitle;
         type.canAccept = canPlaceOn;
     }
 
     return types;
 });
-
-function getTempTitle(node: BoardNode) {
-    return (node.distance).toFixed(0);
-}
 
 function canPlaceOn(node: BoardNode, otherNode: BoardNode) {
     const building = getNodeProperty(types[otherNode.type].building, otherNode);

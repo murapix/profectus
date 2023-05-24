@@ -10,7 +10,7 @@
         ]"
         :class="classes"
         selector=".g1"
-        :options="{ initialZoom: 1, minZoom: 0.1, maxZoom: 10, zoomDoubleClickSpeed: 1 }"
+        :options="{ initialZoom: 1, minZoom: 0.5, maxZoom: 5, zoomDoubleClickSpeed: 1 }"
         ref="stage"
         @init="onInit"
         @mousemove="drag"
@@ -19,7 +19,6 @@
         @touchstart.passive="(e: TouchEvent) => mouseDown(e)"
         @mouseup="() => endDragging(unref(draggingNode))"
         @touchend.passive="() => endDragging(unref(draggingNode))"
-        @mouseleave="() => endDragging(unref(draggingNode), true)"
     >
         <svg class="stage" width="100%" height="100%">
             <g class="g1">
@@ -137,8 +136,7 @@ const sortedNodes = computed(() => {
         nodes.push(node);
     }
     if (props.draggingNode.value) {
-        const node = nodes.splice(nodes.indexOf(props.draggingNode.value), 1)[0];
-        nodes.push(node);
+        nodes.push(props.draggingNode.value);
     }
     return nodes;
 });
@@ -261,10 +259,15 @@ function drag(e: MouseEvent | TouchEvent) {
     if (props.draggingNode.value != null) {
         e.preventDefault();
         e.stopPropagation();
+
+        props.draggingNode.value.position = {
+            x: Math.round((props.mousePosition.value.x - 300 / scale) / snapDistance) * snapDistance,
+            y: Math.round((props.mousePosition.value.y - 100 / scale) / snapDistance) * snapDistance
+        }
     }
 }
 
-function endDragging(node: BoardNode | null, mouseLeave = false) {
+function endDragging(node: BoardNode | null) {
     if (props.draggingNode.value != null && props.draggingNode.value === node) {
         if (props.receivingNode.value == null) {
             props.draggingNode.value.position.x += Math.round(dragged.value.x / snapDistance) * snapDistance;
@@ -282,7 +285,7 @@ function endDragging(node: BoardNode | null, mouseLeave = false) {
         }
 
         props.setDraggingNode.value(null);
-    } else if (!hasDragged.value && !mouseLeave) {
+    } else if (!hasDragged.value) {
         props.state.value.selectedNode = null;
         props.state.value.selectedAction = null;
     }

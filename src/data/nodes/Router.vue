@@ -1,7 +1,7 @@
 <template>
     <g @mouseup="mouseUp"
        @touchend.passive="mouseUp"
-       :style="{opacity: placing ? 0.5 : 1}"
+       :style="{opacity: placing ? 0.7 : 1}"
     >
         <circle
             class="body"
@@ -14,6 +14,7 @@
 </template>
 
 <script setup lang="ts">
+import factory from 'data/tabs/factory';
 import { BoardNode } from 'features/boards/board';
 import { computed } from 'vue';
 
@@ -24,7 +25,7 @@ const props = defineProps<{
 }>();
 
 const stroke = computed(() => {
-    if (props.node === undefined) {
+    if (props.node === undefined || factory.board.draggingNode.value === props.node) {
         return 'var(--outline)';
     }
 
@@ -39,16 +40,16 @@ const stroke = computed(() => {
 });
 
 const emit = defineEmits<{
-    (type: "select", event: MouseEvent | TouchEvent): void;
-    (type: "click", event: MouseEvent | TouchEvent, node: BoardNode): void;
+    (type: "select-building"): void;
+    (type: "place-building", event: MouseEvent | TouchEvent, node: BoardNode): void;
 }>();
 
 function mouseUp(event: MouseEvent | TouchEvent) {
     if (props.node) {
-        emit("click", event, props.node);
+        emit("place-building", event, props.node);
     }
     else {
-        emit("select", event);
+        emit("select-building");
     }
 }
 </script>

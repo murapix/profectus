@@ -6,6 +6,8 @@ import { types } from "../content/types";
 import { propagateDistance, placeNode, removeNode, startNodes } from "../content/nodes";
 import MapTabVue from "./MapTab.vue";
 import { persistent } from "game/persistence";
+import { createHotkey } from "features/hotkey";
+import { Ref } from "vue";
 
 const id = "factory";
 const layer = createLayer(id, function (this: BaseLayer) {
@@ -60,11 +62,21 @@ const layer = createLayer(id, function (this: BaseLayer) {
         }
     });
 
+    const dropBuilding = createHotkey(() => ({
+        enabled: board.draggingNode as unknown as Ref<boolean>,
+        key: "Escape",
+        description: "Deselect Building",
+        onPress() {
+            board.draggingNode.value = null;
+        }
+    }));
+
     return {
         name,
         color,
         board,
         dirty,
+        dropBuilding,
         display: jsx(() =>
             <MapTabVue>
                 {render(board)}

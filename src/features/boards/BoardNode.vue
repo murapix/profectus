@@ -55,10 +55,12 @@
             <Router v-else-if="shape === Shape.Router"
                 :node="node"
                 :size="size"
+                @place-building="placeBuilding"
             />
             <Extractor v-else-if="shape === Shape.Extractor"
                 :node="node"
                 :size="size"
+                @place-building="placeBuilding"
             />
 
             <text :fill="titleColor" class="node-title">{{ title }}</text>
@@ -103,6 +105,8 @@ import Scrap from "data/nodes/Scrap.vue";
 import Core from "data/nodes/Core.vue";
 import Router from "data/nodes/Router.vue";
 import Extractor from "data/nodes/Extractor.vue";
+import factory from "data/tabs/factory";
+import { createNode, placeNode } from "data/content/nodes";
 
 const _props = defineProps<{
     node: BoardNode;
@@ -222,6 +226,17 @@ function mouseUp(e: MouseEvent | TouchEvent) {
         emit("endDragging", props.node.value);
         props.nodeType.value.onClick?.(props.node.value);
         e.stopPropagation();
+    }
+}
+
+function placeBuilding(event: MouseEvent | TouchEvent, node: BoardNode) {
+    placeNode(node);
+    if (event.shiftKey) {
+        const { position, type } = node;
+        factory.board.draggingNode.value = createNode({ position, type });
+    }
+    else {
+        factory.board.draggingNode.value = null;
     }
 }
 </script>

@@ -1,7 +1,5 @@
 <template>
     <g transform="rotate(45, 0, 0)"
-       @mouseup="mouseUp"
-       @touchend.passive="mouseUp"
        :style="{opacity: placing ? 0.5 : 1}"
     >
         <rect
@@ -115,20 +113,6 @@ const scrapPath = computed(() => {
         'Z'
     ]).join(' ');
 });
-
-const emit = defineEmits<{
-    (type: "select", event: MouseEvent | TouchEvent): void;
-    (type: "click", event: MouseEvent | TouchEvent, node: BoardNode): void;
-}>();
-
-function mouseUp(event: MouseEvent | TouchEvent) {
-    if (props.node) {
-        emit("click", event, props.node);
-    }
-    else {
-        emit("select", event);
-    }
-}
 </script>
 
 <style scoped>

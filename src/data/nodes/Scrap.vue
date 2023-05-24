@@ -1,7 +1,5 @@
 <template>
-    <g @mouseup="mouseUp"
-       @touchend.passive="mouseUp"
-    >
+    <g>
         <rect
             class="body"
             :width="size"
@@ -24,12 +22,4 @@ const props = defineProps<{
 }>();
 const width = computed(() => props.size ?? 10);
 const offset = computed(() => -width.value/2);
-
-const emit = defineEmits<{
-    (type: "click", event: MouseEvent | TouchEvent, node: BoardNode): void;
-}>();
-
-function mouseUp(event: MouseEvent | TouchEvent) {
-    emit("click", event, props.node);
-}
 </script>
