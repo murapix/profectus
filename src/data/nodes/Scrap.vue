@@ -1,9 +1,10 @@
 <template>
     <g>
+        <Target v-if="canAccept" :size="width" />
         <rect
             class="body"
-            :width="size"
-            :height="size"
+            :width="width"
+            :height="width"
             :transform="`translate(${offset} ${offset})`"
             fill="var(--locked)"
             stroke="var(--highlighted)"
@@ -13,13 +14,15 @@
 </template>
 
 <script setup lang="ts">
-import { BoardNode } from 'features/boards/board';
 import { computed } from 'vue';
+import Target from './Target.vue'
 
 const props = defineProps<{
-    node: BoardNode;
     size?: number;
+    canAccept?: boolean;
 }>();
 const width = computed(() => props.size ?? 10);
 const offset = computed(() => -width.value/2);
+
+
 </script>

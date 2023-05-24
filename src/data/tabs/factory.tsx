@@ -2,12 +2,12 @@ import { BoardNode, BoardNodeLink, createBoard } from "features/boards/board";
 import { jsx } from "features/feature";
 import { BaseLayer, createLayer } from "game/layers";
 import { render } from "util/vue";
-import { types } from "../content/types";
-import { propagateDistance, placeNode, removeNode, startNodes } from "../content/nodes";
+import { tickRecipe, types } from "../content/types";
+import { propagateDistance, startNodes } from "../content/nodes";
 import MapTabVue from "./MapTab.vue";
 import { persistent } from "game/persistence";
 import { createHotkey } from "features/hotkey";
-import { Ref } from "vue";
+import { Ref, computed } from "vue";
 
 const id = "factory";
 const layer = createLayer(id, function (this: BaseLayer) {
@@ -19,12 +19,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
         types,
         links() {
             const links = [] as BoardNodeLink[];
-            const idToNode = {} as Record<number, BoardNode>;
             for (const node of board.nodes.value) {
-                idToNode[node.id] = node;
-            }
-            for (const node of board.nodes.value) {
-                for (const connectedNode of node.connectedNodes.map(id => idToNode[id])) {
+                for (const connectedNode of node.connectedNodes.map(id => idToNodeMap.value[id])) {
                     if (node.distance < connectedNode.distance ||
                         (
                             node.distance === connectedNode.distance &&
@@ -49,9 +45,19 @@ const layer = createLayer(id, function (this: BaseLayer) {
         }
     }));
     const dirty = persistent<boolean>(true);
+    const idToNodeMap = computed(() => {
+        const map = {} as Record<number, BoardNode>;
+        for (const node of board.nodes.value) {
+            map[node.id] = node;
+        }
+        return map;
+    });
 
     this.on('preUpdate', diff => {
         // tick all recipes
+        for (const node of board.nodes.value) {
+            tickRecipe(node, diff);
+        }
     });
     this.on('update', diff => {
         // transfer resouces to waiting recipes
@@ -75,15 +81,14 @@ const layer = createLayer(id, function (this: BaseLayer) {
         name,
         color,
         board,
+        idToNodeMap,
         dirty,
         dropBuilding,
         display: jsx(() =>
             <MapTabVue>
                 {render(board)}
             </MapTabVue>
-        ),
-        placeNode,
-        removeNode
+        )
     }
 })
 

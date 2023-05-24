@@ -68,7 +68,9 @@ export interface BoardNode {
     type: BoardNodeType,
     buildMaterials: Partial<Record<Resources, number>>;
     storage: { resource: Resources, amount: number, limit?: number }[];
-    recipes: number[];
+    transferRoute?: number[];
+    recipeTime: number;
+    activeRecipe?: number;
     connectedNodes: number[];
     distance: number;
 }

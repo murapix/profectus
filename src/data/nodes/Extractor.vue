@@ -1,4 +1,8 @@
 <template>
+    <Scrap
+        v-if="node !== undefined"
+        :size="getNodeProperty(types[BoardNodeType.Scrap].size, node)"
+    />
     <g transform="rotate(45, 0, 0)"
        @mouseup="mouseUp"
        @touchend.passive="mouseUp"
@@ -24,8 +28,10 @@
 
 <script setup lang="ts">
 import factory from 'data/tabs/factory';
-import { BoardNode } from 'features/boards/board';
+import { BoardNode, getNodeProperty } from 'features/boards/board';
 import { computed } from 'vue';
+import { types, BoardNodeType } from 'data/content/types';
+import Scrap from './Scrap.vue';
 
 const sqrtTwo = Math.sqrt(2);
 
@@ -61,7 +67,7 @@ const storage = computed(() => {
     return node.storage[0].amount / (node.storage[0].limit ?? 100)
 });
 const storagePath = computed(() => {
-    const innerWidth = 2*offset.value + 1;
+    const innerWidth = 2*offset.value + 2;
     if (storage.value < 0.5) {
         const start = { x: -innerWidth/2, y: -innerWidth/2 };
         return [
@@ -86,12 +92,12 @@ const storagePath = computed(() => {
 
 const emit = defineEmits<{
     (type: "select-building"): void;
-    (type: "place-building", event: MouseEvent | TouchEvent, node: BoardNode): void;
+    (type: "place-building", node: BoardNode): void;
 }>();
 
-function mouseUp(event: MouseEvent | TouchEvent) {
+function mouseUp() {
     if (props.node) {
-        emit("place-building", event, props.node);
+        emit("place-building", props.node);
     }
     else {
         emit("select-building");

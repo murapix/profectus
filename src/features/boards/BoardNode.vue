@@ -45,8 +45,8 @@
                 :outlineColor="outlineColor"
             />
             <Scrap v-else-if="shape === Shape.Scrap"
-                :node="node"
                 :size="size"
+                :canAccept="canAccept"
             />
             <Core v-else-if="shape === Shape.Core"
                 :node="node"
@@ -55,12 +55,12 @@
             <Router v-else-if="shape === Shape.Router"
                 :node="node"
                 :size="size"
-                @place-building="placeBuilding"
+                @place-building.once="placeBuilding"
             />
             <Extractor v-else-if="shape === Shape.Extractor"
                 :node="node"
                 :size="size"
-                @place-building="placeBuilding"
+                @place-building.once="placeBuilding"
             />
 
             <text :fill="titleColor" class="node-title">{{ title }}</text>
@@ -106,7 +106,8 @@ import Core from "data/nodes/Core.vue";
 import Router from "data/nodes/Router.vue";
 import Extractor from "data/nodes/Extractor.vue";
 import factory from "data/tabs/factory";
-import { createNode, placeNode } from "data/content/nodes";
+import { placeNode } from "data/content/nodes";
+import { types } from "data/content/types";
 
 const _props = defineProps<{
     node: BoardNode;
@@ -126,6 +127,7 @@ const emit = defineEmits<{
     (e: "mouseDown", event: MouseEvent | TouchEvent, node: BoardNode, isDraggable: boolean): void;
     (e: "endDragging", node: BoardNode): void;
     (e: "clickAction", actionId: string): void;
+    (e: "place-building"): void;
 }>();
 
 const isDraggable = computed(() =>
@@ -229,15 +231,16 @@ function mouseUp(e: MouseEvent | TouchEvent) {
     }
 }
 
-function placeBuilding(event: MouseEvent | TouchEvent, node: BoardNode) {
+function placeBuilding(node: BoardNode) {
+    const building = getNodeProperty(types[node.type].building, node);
+    if (building !== undefined) {
+        if (building.buildableOn !== undefined) {
+            return;   
+        }
+    }
     placeNode(node);
-    if (event.shiftKey) {
-        const { position, type } = node;
-        factory.board.draggingNode.value = createNode({ position, type });
-    }
-    else {
-        factory.board.draggingNode.value = null;
-    }
+    factory.board.draggingNode.value = null;
+    emit("place-building");
 }
 </script>
 

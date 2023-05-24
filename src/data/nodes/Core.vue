@@ -2,6 +2,12 @@
     <g transform="rotate(45, 0, 0)"
        :style="{opacity: placing ? 0.5 : 1}"
     >
+        <path
+            v-if="progress > 0"
+            class="progress"
+            :d="progressPath"
+            fill="var(--foreground)"
+        />
         <rect
             class="body"
             :width="width * sqrtTwo"
@@ -9,7 +15,7 @@
             :transform="`translate(${offset} ${offset})`"
             fill="var(--locked)"
             :stroke="stroke"
-            stroke-width=2
+            :stroke-width="strokeWidth"
         />
         <path
             v-if="storage[0] > 0"
@@ -29,14 +35,15 @@
             :x2="-width * sqrtTwo / 2"
             :y2="-width * sqrtTwo / 2"
             :stroke="stroke"
-            stroke-width=2
+            :stroke-width="strokeWidth"
         />
     </g>
 </template>
 
 <script setup lang="ts">
 import { buildings } from 'data/content/building';
-import { BoardNode } from 'features/boards/board';
+import { types } from 'data/content/types';
+import { BoardNode, getNodeProperty } from 'features/boards/board';
 import { computed } from 'vue';
 
 const sqrtTwo = Math.sqrt(2);
@@ -48,7 +55,8 @@ const props = defineProps<{
 }>();
 const width = computed(() => props.size ?? 10);
 const offset = computed(() => -width.value*sqrtTwo/2);
-const innerWidth = computed(() => 2*offset.value + 2);
+const innerWidth = computed(() => 2*offset.value + strokeWidth);
+const outerWidth = computed(() => 2*offset.value - strokeWidth);
 
 const stroke = computed(() => {
     if (props.node === undefined) {
@@ -64,6 +72,7 @@ const stroke = computed(() => {
     }
     return 'var(--outline)';
 });
+const strokeWidth = 2;
 
 const storage = computed(() => {
     const storage = buildings.core.storage!;
@@ -113,10 +122,72 @@ const scrapPath = computed(() => {
         'Z'
     ]).join(' ');
 });
+
+const progress = computed(() => {
+    if (props.node === undefined) return 0;
+    if (props.node.activeRecipe === undefined) return 0;
+    if (props.node.recipeTime <= 0) return 0;
+
+    const building = getNodeProperty(types[props.node.type].building, props.node);
+    if (building === undefined) return 0;
+    if (building.recipes === undefined) return 0;
+
+    return Math.max(0, 1 - props.node.recipeTime / building.recipes[props.node.activeRecipe].duration);
+});
+const progressPath = computed(() => {
+    const radius = -outerWidth.value/2 + strokeWidth;
+    const start = { x: radius, y: radius };
+    if (progress.value < 0.25) {
+        const p = progress.value*4;
+        return [
+            'M', 0, 0,
+            'L', start.x, start.y,
+            'L', start.x, start.y - 2*radius*p,
+            'Z'
+        ].join(' ');
+    }
+    else if (progress.value < 0.5) {
+        const p = (progress.value - 0.25)*4;
+        return [
+            'M', 0, 0,
+            'L', start.x, start.y,
+            'L', start.x, -start.y,
+            'L', start.x - 2*radius*p, -start.y,
+            'Z'
+        ].join(' ');
+    }
+    else if (progress.value < 0.75) {
+        const p = (progress.value - 0.5)*4;
+        return [
+            'M', 0, 0,
+            'L', start.x, start.y,
+            'L', start.x, -start.y,
+            'L', -start.x, -start.y,
+            'L', -start.x, -start.y + 2*radius*p,
+            'Z'
+        ].join(' ');
+    }
+    else {
+        const p = progress.value > 1 ? 1 : (progress.value - 0.75)*4;
+        return [
+            'M', 0, 0,
+            'L', start.x, start.y,
+            'L', start.x, -start.y,
+            'L', -start.x, -start.y,
+            'L', -start.x, start.y,
+            'L', -start.x + 2*radius*p, start.y,
+            'Z'
+        ].join(' ');
+    }
+})
 </script>
 
 <style scoped>
 .storage {
+    transition-duration: 0s;
+}
+
+.progress {
     transition-duration: 0s;
 }
 </style>

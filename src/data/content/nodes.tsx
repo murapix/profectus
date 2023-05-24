@@ -33,7 +33,10 @@ function generateFactoryData(
         }
 
         if (building.recipes) {
-            node.recipes = building.recipes.map(() => 0);
+            node.recipeTime = 0;
+            if (building.recipes.length === 1) {
+                node.activeRecipe = 0;
+            }
         }
     }
 
@@ -97,7 +100,6 @@ function initializeConnections(nodes: Partial<BoardNode>[]) {
 }
 
 export function propagateDistance(nodes: BoardNode[], root: BoardNode, resetDistances: boolean = false) {
-    const idMap = Object.fromEntries(nodes.map(node => [node.id, node]));
     if (resetDistances) {
         for (const node of nodes) {
             node.distance = -1;
@@ -108,7 +110,7 @@ export function propagateDistance(nodes: BoardNode[], root: BoardNode, resetDist
     const toCheck = [root];
     while (toCheck.length > 0) {
         const node = toCheck.shift()!;
-        for (const neighbor of node.connectedNodes.map(id => idMap[id])) {
+        for (const neighbor of node.connectedNodes.map(id => factory.idToNodeMap.value[id])) {
             if (neighbor.distance >= 0 && neighbor.distance <= node.distance+1) continue;
             neighbor.distance = node.distance+1;
             

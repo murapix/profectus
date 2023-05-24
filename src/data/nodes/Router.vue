@@ -41,12 +41,12 @@ const stroke = computed(() => {
 
 const emit = defineEmits<{
     (type: "select-building"): void;
-    (type: "place-building", event: MouseEvent | TouchEvent, node: BoardNode): void;
+    (type: "place-building", node: BoardNode): void;
 }>();
 
-function mouseUp(event: MouseEvent | TouchEvent) {
+function mouseUp() {
     if (props.node) {
-        emit("place-building", event, props.node);
+        emit("place-building", props.node);
     }
     else {
         emit("select-building");

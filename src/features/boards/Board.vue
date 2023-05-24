@@ -24,25 +24,25 @@
             <g class="g1">
                 <g style="opacity: 0.4">
                     <transition-group name="transfer" :duration="500" appear>
-                            <g v-for="node in sortedNodes" :key="node.id" style="transition-duration: 0s">
-                                <template v-if="types[node.type].building !== undefined">
-                                    <g v-if="getNodeProperty(types[node.type].building, node).transferDistance !== undefined
-                                          && node.distance !== -1
-                                          && Object.values(node.buildMaterials).every(amount => amount === 0)"
-                                        :transform="`translate(${node.position.x} ${node.position.y})`"
-                                    >
-                                        <path
-                                            :d="`M ${getNodeProperty(types[node.type].building, node).transferDistance} 0
-                                                L 0 ${getNodeProperty(types[node.type].building, node).transferDistance}
-                                                L -${getNodeProperty(types[node.type].building, node).transferDistance} 0
-                                                L 0 -${getNodeProperty(types[node.type].building, node).transferDistance}
-                                                Z
-                                            `"
-                                            fill="var(--accent1)"
-                                        />
-                                    </g>
-                                </template>
-                            </g>
+                        <g v-for="node in sortedNodes" :key="node.id" style="transition-duration: 0s">
+                            <template v-if="types[node.type].building !== undefined">
+                                <g v-if="getNodeProperty(types[node.type].building, node).transferDistance !== undefined
+                                        && node.distance !== -1
+                                        && Object.values(node.buildMaterials).every(amount => amount === 0)"
+                                    :transform="`translate(${node.position.x} ${node.position.y})`"
+                                >
+                                    <path
+                                        :d="`M ${getNodeProperty(types[node.type].building, node).transferDistance} 0
+                                            L 0 ${getNodeProperty(types[node.type].building, node).transferDistance}
+                                            L -${getNodeProperty(types[node.type].building, node).transferDistance} 0
+                                            L 0 -${getNodeProperty(types[node.type].building, node).transferDistance}
+                                            Z
+                                        `"
+                                        fill="var(--accent1)"
+                                    />
+                                </g>
+                            </template>
+                        </g>
                     </transition-group>
                 </g>
                 <transition-group name="link" appear>
@@ -79,6 +79,7 @@
                             @mouseDown="mouseDown"
                             @endDragging="endDragging"
                             @clickAction="(actionId: string) => clickAction(node, actionId)"
+                            @place-building="placeBuilding"
                         />
                     </g>
                 </transition-group>
@@ -150,8 +151,8 @@ watchEffect(() => {
     }
 
     const position = {
-        x: node.position.x + dragged.value.x,
-        y: node.position.y + dragged.value.y
+        x: node.position.x,// + dragged.value.x,
+        y: node.position.y// + dragged.value.y
     };
     let smallestDistance = Number.MAX_VALUE;
 
@@ -184,6 +185,17 @@ watchEffect(() => {
 function onInit(panzoomInstance: any) {
     panzoomInstance.setTransformOrigin(null);
     panzoomInstance.moveTo(stage.value.$el.clientWidth / 2, stage.value.$el.clientHeight / 2);
+    panzoomInstance.on('panstart', (instance: any) => {
+        if (justPlaced) {
+            justPlaced = false;
+            instance.pause();
+            instance.resume();
+        }
+    })
+}
+let justPlaced = false;
+function placeBuilding() {
+    justPlaced = true;
 }
 
 function mouseDown(e: MouseEvent | TouchEvent, node: BoardNode | null = null, draggable = false) {
@@ -209,10 +221,6 @@ function mouseDown(e: MouseEvent | TouchEvent, node: BoardNode | null = null, dr
         };
         dragged.value = { x: 0, y: 0 };
         hasDragged.value = false;
-
-        if (draggable) {
-            props.setDraggingNode.value(node);
-        }
     }
     if (node != null) {
         props.state.value.selectedNode = null;
