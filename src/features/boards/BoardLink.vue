@@ -1,7 +1,7 @@
 <template>
     <line
         class="link"
-        v-bind="link"
+        v-bind="linkProps"
         :class="{ pulsing: link.pulsing }"
         :x1="startPosition.x"
         :y1="startPosition.y"
@@ -11,7 +11,7 @@
     />
     <line
         class="link"
-        v-bind="link"
+        v-bind="linkProps"
         :class="{ pulsing: link.pulsing }"
         :x1="corner.x"
         :y1="corner.y"
@@ -23,6 +23,7 @@
 
 <script setup lang="ts">
 import type { BoardNode, BoardNodeLink } from "features/boards/board";
+import { kebabifyObject } from "util/vue";
 import { computed, toRefs, unref } from "vue";
 
 const _props = defineProps<{
@@ -61,14 +62,14 @@ const endPosition = computed(() => {
     return position;
 });
 
-// start = [0,0], end = [200, -50]
-// x: +200 => 200
+const linkProps = computed(() => kebabifyObject(_props.link as unknown as Record<string, unknown>));
+
 const xDiff = computed(() => endPosition.value.x - startPosition.value.x);
 const absXDiff = computed(() => Math.abs(xDiff.value));
-// y: -50 => 50
+
 const yDiff = computed(() => endPosition.value.y - startPosition.value.y);
 const absYDiff = computed(() => Math.abs(yDiff.value));
-// Shared: min(200, 50) => 50, Unshared: max(200, 50) - shared => 200 - 50 = 150
+
 const sharedDistance = computed(() => Math.min(absXDiff.value, absYDiff.value));
 const unsharedDistance = computed(() => Math.max(absXDiff.value, absYDiff.value) - sharedDistance.value);
 
@@ -93,6 +94,7 @@ const corner = computed(() => {
 <style scoped>
 .link {
     transition-duration: 0s;
+    pointer-events: none;
 }
 
 .link.pulsing {

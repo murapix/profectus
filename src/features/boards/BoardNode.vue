@@ -33,7 +33,7 @@
                 :fillColor="fillColor"
                 :outlineColor="outlineColor"
             />
-            <DiamondNode v-if="shape === Shape.Diamond"
+            <DiamondNode v-else-if="shape === Shape.Diamond"
                 :receivingNode="receivingNode"
                 :canAccept="canAccept"
                 :size="size"
@@ -44,8 +44,21 @@
                 :fillColor="fillColor"
                 :outlineColor="outlineColor"
             />
-            <Router v-if="shape === Shape.Router"
-                :node="(node as FactoryNode)"
+            <Scrap v-else-if="shape === Shape.Scrap"
+                :node="node"
+                :size="size"
+            />
+            <Core v-else-if="shape === Shape.Core"
+                :node="node"
+                :size="size"
+            />
+            <Router v-else-if="shape === Shape.Router"
+                :node="node"
+                :size="size"
+            />
+            <Extractor v-else-if="shape === Shape.Extractor"
+                :node="node"
+                :size="size"
             />
 
             <text :fill="titleColor" class="node-title">{{ title }}</text>
@@ -86,8 +99,10 @@ import { CSSProperties, computed, toRefs, unref, watch } from "vue";
 import BoardNodeAction from "./BoardNodeAction.vue";
 import CircleNode from "./CircleNode.vue";
 import DiamondNode from "./DiamondNode.vue";
+import Scrap from "data/nodes/Scrap.vue";
+import Core from "data/nodes/Core.vue";
 import Router from "data/nodes/Router.vue";
-import { FactoryNode } from "data/content/nodes";
+import Extractor from "data/nodes/Extractor.vue";
 
 const _props = defineProps<{
     node: BoardNode;
@@ -217,22 +232,10 @@ function mouseUp(e: MouseEvent | TouchEvent) {
     transition-duration: 0s;
 }
 
-.boardnode:hover :deep(.body) {
-    fill: var(--highlighted);
-}
-
-.boardnode.isSelected :deep(.body) {
-    fill: var(--accent1) !important;
-}
-
-.boardnode:not(.isDraggable) :deep(.body) {
-    fill: var(--locked);
-}
-
 .node-title {
     text-anchor: middle;
     font-family: monospace;
-    font-size: 200%;
+    font-size: 100%;
     pointer-events: none;
     filter: drop-shadow(3px 3px 2px var(--tooltip-background));
 }

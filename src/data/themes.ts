@@ -137,19 +137,16 @@ export default {
         ...defaultTheme,
         variables: {
             ...defaultTheme.variables,
-            "--foreground": "#F2F2F2", //
-            "--background": "#000000", //
-            "--feature-foreground": "#13A10E", //
-            "--raised-background": "#272727", // make darker?
-            "--points": "#F2F2F2", //
+            "--foreground": "#F2F2F2",
+            "--background": "#000000",
+            "--feature-foreground": "#13A10E",
+            "--raised-background": "#272727",
+            "--points": "#F2F2F2",
             "--locked": "#272727",
-            // "--highlighted": "#434c5e",
-            // "--bought": "#767676",
-            "--danger": "#C50F1F", //
-            "--link": "#3A96DD", //
-            "--outline": "#13A10E", //
+            "--danger": "#C50F1F",
+            "--link": "#3A96DD",
+            "--outline": "#13A10E",
             "--accent1": "#10570D",
-            // "--accent3": "#EBCB8B",
             "--border-radius": "4px",
             "--modal-border": "solid 2px #13A10E",
             "--feature-margin": "5px"

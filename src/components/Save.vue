@@ -120,7 +120,7 @@ function changeName() {
 <style scoped>
 .save {
     position: relative;
-    border: solid 4px var(--outline);
+    border: solid 4px var(--locked);
     padding: 4px;
     background: var(--raised-background);
     margin: var(--feature-margin);
@@ -130,7 +130,7 @@ function changeName() {
 }
 
 .save.active {
-    border-color: var(--bought);
+    border-color: var(--outline);
 }
 
 .open {

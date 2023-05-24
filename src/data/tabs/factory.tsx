@@ -1,11 +1,11 @@
-import { Shape, createBoard } from "features/boards/board";
+import { BoardNode, BoardNodeLink, createBoard } from "features/boards/board";
 import { jsx } from "features/feature";
 import { BaseLayer, createLayer } from "game/layers";
 import { render } from "util/vue";
 import { types } from "../content/types";
-import { FactoryNode, startNodes } from "../content/nodes";
-import ResourceTab from "./ResourceTab.vue";
-import BuildTab from "./BuildTab.vue";
+import { propagateDistance, placeNode, removeNode, startNodes } from "../content/nodes";
+import MapTabVue from "./MapTab.vue";
+import { persistent } from "game/persistence";
 
 const id = "factory";
 const layer = createLayer(id, function (this: BaseLayer) {
@@ -16,77 +16,62 @@ const layer = createLayer(id, function (this: BaseLayer) {
         startNodes,
         types,
         links() {
-            const nodes = board.nodes.value.slice().sort(
-                (left, right) => Math.abs(left.position.x) + Math.abs(left.position.y) - Math.abs(right.position.x) - Math.abs(right.position.y)
-            ) as FactoryNode[];
-            const nodeTypes = nodes.map(node => types[node.type]);
-            const nodeBuildings = nodeTypes.map(type => type.building);
-
-            const links = [];
-            for (let i = 0; i < nodes.length; i++) {
-                if (nodeBuildings[i] === undefined) continue;
-
-                for (let j = i+1; j < nodes.length; j++) {
-                    if (nodeBuildings[j] === undefined) continue;
-                    if (nodeBuildings[i]!.transfer === undefined && nodeBuildings[j]!.transfer === undefined) continue;
-                    const distance = Math.abs(nodes[i].position.x - nodes[j].position.x)
-                                   + Math.abs(nodes[i].position.y - nodes[j].position.y);
-                    if (nodeBuildings[i]!.transfer !== undefined && distance <= nodeBuildings[i]!.transfer!.range) {
+            const links = [] as BoardNodeLink[];
+            const idToNode = {} as Record<number, BoardNode>;
+            for (const node of board.nodes.value) {
+                idToNode[node.id] = node;
+            }
+            for (const node of board.nodes.value) {
+                for (const connectedNode of node.connectedNodes.map(id => idToNode[id])) {
+                    if (node.distance < connectedNode.distance ||
+                        (
+                            node.distance === connectedNode.distance &&
+                            node.id < connectedNode.id
+                        )
+                    ) {
                         links.push({
-                            startNode: nodes[i],
-                            endNode: nodes[j],
+                            startNode: node,
+                            endNode: connectedNode,
                             stroke: 'var(--accent1)',
-                            'stroke-width': 15
-                        });
-                    }
-                    else if (nodeBuildings[j]!.transfer !== undefined && distance <= nodeBuildings[j]!.transfer!.range) {
-                        links.push({
-                            startNode: nodes[j],
-                            endNode: nodes[i],
-                            stroke: 'var(--accent)',
-                            'stroke-width': 15
-                        });
+                            strokeWidth: 5
+                        })
                     }
                 }
             }
+
             return links;
         },
         style: {
             height: '100%',
             overflow: "hidden"
         }
-    }))
+    }));
+    const dirty = persistent<boolean>(true);
+
+    this.on('preUpdate', diff => {
+        // tick all recipes
+    });
+    this.on('update', diff => {
+        // transfer resouces to waiting recipes
+    });
+    this.on('postUpdate', diff => {
+        if (dirty.value) {
+            propagateDistance(board.nodes.value, board.nodes.value[0])
+        }
+    });
 
     return {
         name,
         color,
         board,
-        display: jsx(() => (
-            <div style={{
-                '--border-thickness': '4px',
-                '--text-padding': '2px',
-                display: 'grid',
-                gridTemplateColumns: '300px 1fr 300px',
-                height: '100%'
-            }}>
-                <div style={{
-                    height: '100%',
-                    width: 'calc(100% - var(--border-thickness))',
-                    borderRight: 'solid var(--border-thickness)',
-                    background: 'var(--locked)'
-                }}></div>
-                <div style={{
-                    display: 'grid',
-                    gridTemplateRows: '1fr 225px',
-                    height: '100%',
-                    width: '100%'
-                }}>
-                    {render(board)}
-                    <BuildTab />
-                </div>
-                <ResourceTab />
-            </div>
-        ))
+        dirty,
+        display: jsx(() =>
+            <MapTabVue>
+                {render(board)}
+            </MapTabVue>
+        ),
+        placeNode,
+        removeNode
     }
 })
 

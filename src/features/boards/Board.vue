@@ -14,42 +14,45 @@
         ref="stage"
         @init="onInit"
         @mousemove="drag"
-        @touchmove="drag"
+        @touchmove.passive="drag"
         @mousedown="(e: MouseEvent) => mouseDown(e)"
-        @touchstart="(e: TouchEvent) => mouseDown(e)"
+        @touchstart.passive="(e: TouchEvent) => mouseDown(e)"
         @mouseup="() => endDragging(unref(draggingNode))"
         @touchend.passive="() => endDragging(unref(draggingNode))"
         @mouseleave="() => endDragging(unref(draggingNode), true)"
     >
         <svg class="stage" width="100%" height="100%">
             <g class="g1">
-                <transition-group name="transfer" :duration="500" appear>
-                    <g style="opacity: 0.5">
-                        <g v-for="node in sortedNodes" :key="node.id" style="transition-duration: 0s">
-                            <template v-if="(types[node.type] as unknown as FactoryNodeTypeOptions).building !== undefined">
-                                <g v-if="(types[node.type] as unknown as FactoryNodeTypeOptions).building!.transfer !== undefined"
-                                    :transform="`translate(${node.position.x} ${node.position.y})`"
-                                >
-                                    <path
-                                        :d="`M ${(types[node.type] as unknown as FactoryNodeTypeOptions).building!.transfer!.range + 25} 0
-                                             L 0 ${(types[node.type] as unknown as FactoryNodeTypeOptions).building!.transfer!.range + 25}
-                                             L -${(types[node.type] as unknown as FactoryNodeTypeOptions).building!.transfer!.range + 25} 0
-                                             L 0 -${(types[node.type] as unknown as FactoryNodeTypeOptions).building!.transfer!.range + 25}
-                                             Z
-                                        `"
-                                        fill="var(--accent1)"
-                                    />
-                                </g>
-                            </template>
-                        </g>
-                    </g>
-                </transition-group>
+                <g style="opacity: 0.4">
+                    <transition-group name="transfer" :duration="500" appear>
+                            <g v-for="node in sortedNodes" :key="node.id" style="transition-duration: 0s">
+                                <template v-if="types[node.type].building !== undefined">
+                                    <g v-if="getNodeProperty(types[node.type].building, node).transferDistance !== undefined
+                                          && node.distance !== -1
+                                          && Object.values(node.buildMaterials).every(amount => amount === 0)"
+                                        :transform="`translate(${node.position.x} ${node.position.y})`"
+                                    >
+                                        <path
+                                            :d="`M ${getNodeProperty(types[node.type].building, node).transferDistance} 0
+                                                L 0 ${getNodeProperty(types[node.type].building, node).transferDistance}
+                                                L -${getNodeProperty(types[node.type].building, node).transferDistance} 0
+                                                L 0 -${getNodeProperty(types[node.type].building, node).transferDistance}
+                                                Z
+                                            `"
+                                            fill="var(--accent1)"
+                                        />
+                                    </g>
+                                </template>
+                            </g>
+                    </transition-group>
+                </g>
                 <transition-group name="link" appear>
                     <g
                         v-for="link in unref(links) || []"
                         :key="`${link.startNode.id}-${link.endNode.id}`"
                     >
                         <BoardLinkVue
+                            v-if="link.startNode.distance >= 0 && link.endNode.distance >= 0"
                             :link="link"
                             :dragging="unref(draggingNode)"
                             :dragged="
@@ -98,7 +101,6 @@ import type { StyleValue } from "features/feature";
 import { Visibility, isVisible } from "features/feature";
 import type { ProcessedComputable } from "util/computed";
 import { Ref, computed, ref, toRefs, unref, watchEffect } from "vue";
-import { FactoryNodeTypeOptions } from "data/content/types";
 import BoardLinkVue from "./BoardLink.vue";
 import BoardNodeVue from "./BoardNode.vue";
 
@@ -140,6 +142,8 @@ const sortedNodes = computed(() => {
     }
     return nodes;
 });
+
+const snapDistance = 10;
 
 watchEffect(() => {
     const node = props.draggingNode.value;
@@ -263,8 +267,8 @@ function drag(e: MouseEvent | TouchEvent) {
 function endDragging(node: BoardNode | null, mouseLeave = false) {
     if (props.draggingNode.value != null && props.draggingNode.value === node) {
         if (props.receivingNode.value == null) {
-            props.draggingNode.value.position.x += Math.round(dragged.value.x / 25) * 25;
-            props.draggingNode.value.position.y += Math.round(dragged.value.y / 25) * 25;
+            props.draggingNode.value.position.x += Math.round(dragged.value.x / snapDistance) * snapDistance;
+            props.draggingNode.value.position.y += Math.round(dragged.value.y / snapDistance) * snapDistance;
         }
 
         const nodes = props.nodes.value;

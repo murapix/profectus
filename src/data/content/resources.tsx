@@ -1,7 +1,6 @@
-import { CoercableComponent, Visibility, jsx } from "features/feature";
+import { CoercableComponent, Visibility } from "features/feature";
 import { computed } from "vue";
 import factory from "../tabs/factory";
-import { FactoryNode } from "./nodes";
 import { Alignment, types } from "./types";
 import { ProcessedComputable } from "util/computed";
 
@@ -9,6 +8,7 @@ export enum Resources {
     Empty = "empty",
     Nanites = "nanites",
     Scrap = "scrap",
+    Plates = "plates",
     CircleResearch = "circleResearch",
     SquareResearch = "squareResearch",
     DiamondResearch = "diamondResearch",
@@ -17,7 +17,7 @@ export enum Resources {
 }
 
 export const amounts = computed(() => {
-    const nodes = factory.board.nodes.value as FactoryNode[];
+    const nodes = factory.board.nodes.value;
 
     const amounts: Partial<Record<Resources, number>> = {};
     for (const node of nodes) {
@@ -50,16 +50,20 @@ export const resources: Record<Resources, ResourceDisplay> = {
         name: "Scrap",
         symbol: '<div style="transform: rotate(45deg)">📎&#xFE0E;</div>'
     },
+    [Resources.Plates]: {
+        name: "Metal Plates",
+        symbol: '<div style="transform: rotate(45deg)">🔶&#xFE0E;</div>'
+    },
     [Resources.CircleResearch]: {
         name: "Circular Logic",
         symbol: '🌀&#xFE0E;'
     },
     [Resources.SquareResearch]: {
         name: "Logistical Notes",
-        symbol: '<div style="transform: rotate(45deg)">🔶&#xFE0E;</div>'
+        symbol: '🔩&#xFE0E;'
     },
     [Resources.DiamondResearch]: {
-        name: "Counterintuitivity",
+        name: "Balistics Tests",
         symbol: '🔶&#xFE0E;'
     },
     [Resources.TriangleResearch]: {

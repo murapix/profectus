@@ -5,24 +5,26 @@
     >
         <circle
             class="body"
-            :r="25"
+            :r="size ?? 10"
             fill="var(--locked)"
             :stroke="stroke"
-            :stroke-width="4"
+            stroke-width=2
         />
     </g>
 </template>
 
 <script setup lang="ts">
-import { FactoryNode } from 'data/content/nodes';
+import { BoardNode } from 'features/boards/board';
 import { computed } from 'vue';
+
 const props = defineProps<{
-    node?: FactoryNode;
+    node?: BoardNode;
+    size?: number;
     placing?: boolean;
 }>();
 
 const stroke = computed(() => {
-    if (!props.node) {
+    if (props.node === undefined) {
         return 'var(--outline)';
     }
 
@@ -30,12 +32,15 @@ const stroke = computed(() => {
     if (Object.values(node.buildMaterials).some(amount => amount > 0)) {
         return 'var(--locked)' // TODO: set to --danger when no resources available
     }
+    if (node.distance === -1) {
+        return 'var(--danger)'
+    }
     return 'var(--outline)';
 });
 
 const emit = defineEmits<{
     (type: "select", event: MouseEvent | TouchEvent): void;
-    (type: "click", event: MouseEvent | TouchEvent, node: FactoryNode): void;
+    (type: "click", event: MouseEvent | TouchEvent, node: BoardNode): void;
 }>();
 
 function mouseUp(event: MouseEvent | TouchEvent) {

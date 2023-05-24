@@ -1,6 +1,6 @@
 import { CoercableComponent } from "features/feature";
 import { Resources } from "./resources";
-import { FactoryNodeType } from "./types";
+import { BoardNodeType } from "./types";
 import { createLazyProxy } from "util/proxies";
 
 export type Storage = {
@@ -16,10 +16,10 @@ export type Recipe = {
 }
 
 export type Building = {
-    buildableOn?: FactoryNodeType[];
+    buildableOn?: BoardNodeType[];
     cost: Partial<Record<Resources, number>>;
     storage?: Storage[],
-    transfer?: { rate: number, range: number },
+    transferDistance?: number,
     recipes?: Recipe[],
     display: false | CoercableComponent
 }
@@ -27,7 +27,7 @@ export type Building = {
 export const buildings: Record<string, Building> = {
     core: createLazyProxy(() => ({
         cost: {},
-        transfer: { rate: 5, range: 450 },
+        transferDistance: 200,
         storage: [
             { resources: [Resources.Nanites], limit: 100, default: 100 },
             { resources: [Resources.Scrap], limit: 10 }
@@ -40,14 +40,24 @@ export const buildings: Record<string, Building> = {
         display: false
     })),
     extractor: createLazyProxy(() => ({
-        buildableOn: [FactoryNodeType.Scrap],
-        cost: { [Resources.Nanites]: 100 },
+        buildableOn: [BoardNodeType.Scrap],
+        cost: { [Resources.Nanites]: 25 },
         storage: [{ resources: [Resources.Scrap], limit: "node" }],
         display: "Extract scrap from ruined nodes"
     })),
     router: createLazyProxy(() => ({
         cost: { [Resources.Nanites]: 15 },
-        transfer: { rate: 5, range: 450 },
+        transferDistance: 100,
         display: "Transfer resources to further-away nodes"
+    })),
+    foundry: createLazyProxy(() => ({
+        cost: { [Resources.Nanites]: 75 },
+        display: "Form clusters of nanites into structural materials",
+        storage: [{ resources: [Resources.Nanites], limit: 50}],
+        recipes: [{
+            input: { [Resources.Nanites]: 50 },
+            output: { [Resources.Plates]: 1 },
+            duration: 10
+        }]
     }))
 }

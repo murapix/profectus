@@ -24,6 +24,9 @@ import { createLazyProxy } from "util/proxies";
 import { computed, isRef, ref, Ref, unref } from "vue";
 import panZoom from "vue-panzoom";
 import type { Link } from "../links/links";
+import { Resources } from "data/content/resources";
+import { Alignment, BoardNodeType } from "data/content/types";
+import { Building } from "data/content/building";
 
 globalBus.on("setupVue", app => panZoom.install(app));
 
@@ -47,7 +50,10 @@ export enum ProgressDisplay {
 export const enum Shape {
     Circle = "Circle",
     Diamond = "Triangle",
-    Router = "Router"
+    Scrap = "Scrap",
+    Core = "Core",
+    Router = "Router",
+    Extractor = "Extractor"
 };
 
 /** An object representing a node on the board. */
@@ -57,9 +63,14 @@ export interface BoardNode {
         x: number;
         y: number;
     };
-    type: string;
     state?: State;
     pinned?: boolean;
+    type: BoardNodeType,
+    buildMaterials: Partial<Record<Resources, number>>;
+    storage: { resource: Resources, amount: number, limit?: number }[];
+    recipes: number[];
+    connectedNodes: number[];
+    distance: number;
 }
 
 /** An object representing a link between two nodes on the board. */
@@ -67,7 +78,7 @@ export interface BoardNodeLink extends Omit<Link, "startNode" | "endNode"> {
     startNode: BoardNode;
     endNode: BoardNode;
     stroke: string;
-    'stroke-width': number;
+    strokeWidth: number;
     pulsing?: boolean;
 }
 
@@ -127,6 +138,9 @@ export interface NodeTypeOptions {
     onDrop?: (node: BoardNode, otherNode: BoardNode) => void;
     /** A function that is called for each node of this type every tick. */
     update?: (node: BoardNode, diff: number) => void;
+
+    alignment: NodeComputable<Alignment>;
+    building?: NodeComputable<Building>;
 }
 
 /**
@@ -157,6 +171,9 @@ export type NodeType<T extends NodeTypeOptions> = Replace<
         titleColor: GetComputableType<T["titleColor"]>;
         actions?: GenericBoardNodeAction[];
         actionDistance: GetComputableTypeWithDefault<T["actionDistance"], number>;
+
+        alignment: GetComputableType<T["alignment"]>;
+        building: GetComputableType<T["building"]>;
     }
 >;
 
@@ -171,6 +188,9 @@ export type GenericNodeType = Replace<
         progressDisplay: NodeComputable<ProgressDisplay>;
         progressColor: NodeComputable<string>;
         actionDistance: NodeComputable<number>;
+
+        alignment: NodeComputable<Alignment>;
+        building: NodeComputable<Building>;
     }
 >;
 
