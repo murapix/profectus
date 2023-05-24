@@ -14,7 +14,7 @@
 </template>
 
 <script setup lang="ts">
-import factory from 'data/tabs/factory';
+import { root } from 'data/projEntry';
 import { BoardNode } from 'features/boards/board';
 import { computed } from 'vue';
 
@@ -25,7 +25,7 @@ const props = defineProps<{
 }>();
 
 const stroke = computed(() => {
-    if (props.node === undefined || factory.board.draggingNode.value === props.node) {
+    if (props.node === undefined || root.board.draggingNode.value === props.node) {
         return 'var(--outline)';
     }
 

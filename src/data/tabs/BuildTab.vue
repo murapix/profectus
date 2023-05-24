@@ -27,13 +27,13 @@ import Spacer from 'components/layout/Spacer.vue';
 import Router from 'data/nodes/Router.vue';
 import Extractor from 'data/nodes/Extractor.vue';
 import { computed } from 'vue';
-import factory from './factory';
+import { root } from 'data/projEntry';
 import { createNode } from 'data/content/nodes';
 
-const selected = computed(() => factory.board.draggingNode.value?.type);
+const selected = computed(() => root.board.draggingNode.value?.type);
 
 function select(nodeType: BoardNodeType) {
-    const selected = factory.board.draggingNode;
+    const selected = root.board.draggingNode;
     const selectedNode = selected.value
     if (selectedNode === null || selectedNode.type !== nodeType) {
         selected.value = createNode({

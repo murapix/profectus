@@ -105,7 +105,7 @@ import Scrap from "data/nodes/Scrap.vue";
 import Core from "data/nodes/Core.vue";
 import Router from "data/nodes/Router.vue";
 import Extractor from "data/nodes/Extractor.vue";
-import factory from "data/tabs/factory";
+import { root } from "data/projEntry";
 import { placeNode } from "data/content/nodes";
 import { types } from "data/content/types";
 
@@ -239,7 +239,7 @@ function placeBuilding(node: BoardNode) {
         }
     }
     placeNode(node);
-    factory.board.draggingNode.value = null;
+    root.board.draggingNode.value = null;
     emit("place-building");
 }
 </script>

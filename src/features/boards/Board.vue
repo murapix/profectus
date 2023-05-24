@@ -270,7 +270,7 @@ function drag(e: MouseEvent | TouchEvent) {
 
         props.draggingNode.value.position = {
             x: Math.round((props.mousePosition.value.x - 300 / scale) / snapDistance) * snapDistance,
-            y: Math.round((props.mousePosition.value.y - 100 / scale) / snapDistance) * snapDistance
+            y: Math.round((props.mousePosition.value.y - 50 / scale) / snapDistance) * snapDistance
         }
     }
 }

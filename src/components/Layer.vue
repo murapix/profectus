@@ -119,10 +119,6 @@ export default defineComponent({
     position: relative;
 }
 
-.inner-tab > .layer-container > .layer-tab:not(.minimized) {
-    padding-top: 50px;
-}
-
 .layer-tab.minimized {
     position: absolute;
     top: 0;
@@ -149,8 +145,8 @@ export default defineComponent({
 }
 
 .inner-tab > .layer-container > .layer-tab:not(.minimized) {
-    margin: -50px -10px;
-    padding: 50px 10px 0px 10px;
+    margin: 0;
+    padding: 0;
 }
 
 .modal-body .layer-tab {

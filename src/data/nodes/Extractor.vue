@@ -1,6 +1,6 @@
 <template>
     <Scrap
-        v-if="node !== undefined"
+        v-if="node !== undefined && root.board.draggingNode.value !== node"
         :size="getNodeProperty(types[BoardNodeType.Scrap].size, node)"
     />
     <g transform="rotate(45, 0, 0)"
@@ -27,7 +27,7 @@
 </template>
 
 <script setup lang="ts">
-import factory from 'data/tabs/factory';
+import { root } from 'data/projEntry';
 import { BoardNode, getNodeProperty } from 'features/boards/board';
 import { computed } from 'vue';
 import { types, BoardNodeType } from 'data/content/types';
@@ -44,7 +44,7 @@ const width = computed(() => props.size ?? 10);
 const offset = computed(() => -width.value*sqrtTwo/2)
 
 const stroke = computed(() => {
-    if (props.node === undefined || factory.board.draggingNode.value === props.node) {
+    if (props.node === undefined || root.board.draggingNode.value === props.node) {
         return 'var(--outline)';
     }
 

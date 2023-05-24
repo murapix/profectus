@@ -1,9 +1,9 @@
 import { BoardNode, getNodeProperty, getUniqueNodeID } from "features/boards/board"
 import { Alignment, BoardNodeType, types } from "./types"
-import factory from "../tabs/factory";
 import { computed } from "vue";
 import { Resources } from "./resources";
 import { buildings } from "./building";
+import { root } from "data/projEntry";
 
 export type BoardNodeOptions = {
     position: { x: number, y: number },
@@ -52,11 +52,11 @@ export function createNode(data: BoardNodeOptions): BoardNode {
     generateFactoryData(data);
     return {
         ...data,
-        id: getUniqueNodeID(factory.board)
+        id: getUniqueNodeID(root.board)
     } as BoardNode;
 }
 
-export const core = computed(() => factory.board.nodes.value[0]);
+export const core = computed(() => root.board.nodes.value[0]);
 
 export function startNodes() {
     const nodes = [
@@ -99,18 +99,18 @@ function initializeConnections(nodes: Partial<BoardNode>[]) {
     }
 }
 
-export function propagateDistance(nodes: BoardNode[], root: BoardNode, resetDistances: boolean = false) {
+export function propagateDistance(nodes: BoardNode[], rootNode: BoardNode, resetDistances: boolean = false) {
     if (resetDistances) {
         for (const node of nodes) {
             node.distance = -1;
         }
-        root.distance = 0;
+        rootNode.distance = 0;
     }
 
-    const toCheck = [root];
+    const toCheck = [rootNode];
     while (toCheck.length > 0) {
         const node = toCheck.shift()!;
-        for (const neighbor of node.connectedNodes.map(id => factory.idToNodeMap.value[id])) {
+        for (const neighbor of node.connectedNodes.map(id => root.idToNodeMap.value[id])) {
             if (neighbor.distance >= 0 && neighbor.distance <= node.distance+1) continue;
             neighbor.distance = node.distance+1;
             
@@ -122,29 +122,29 @@ export function propagateDistance(nodes: BoardNode[], root: BoardNode, resetDist
 }
 
 export function placeNode(newNode: BoardNode) {
-    const nodes = factory.board.nodes.value.filter(node => canConnect(node, newNode));
+    const nodes = root.board.nodes.value.filter(node => canConnect(node, newNode));
     for (const node of nodes) {
         node.connectedNodes.push(newNode.id);
         newNode.connectedNodes.push(node.id);
     }
 
-    factory.board.nodes.value.push(newNode);
+    root.board.nodes.value.push(newNode);
 }
 
 export function onFinishBuild(node: BoardNode) {
-    if (types[node.type].alignment !== Alignment.Neutral) factory.dirty.value = true;
+    if (types[node.type].alignment !== Alignment.Neutral) root.dirty.value = true;
 }
 
 export function removeNode(node: BoardNode) {
-    factory.board.state.value.nodes = factory.board.state.value.nodes.filter(other => other.id !== node.id);
+    root.board.state.value.nodes = root.board.state.value.nodes.filter(other => other.id !== node.id);
 
     const alignment = types[node.type].alignment;
-    const nodes = factory.board.nodes.value;
+    const nodes = root.board.nodes.value;
     const friendlies = nodes.filter(node => types[node.type].alignment === alignment);
     for (const friend of friendlies) {
         friend.connectedNodes = friend.connectedNodes.filter(id => id !== node.id);
     }
-    factory.dirty.value = true;
+    root.dirty.value = true;
 }
 
 export function transferRange(node: BoardNode) {
@@ -160,4 +160,3 @@ export function canConnect(node: BoardNode, otherNode: BoardNode) {
     const distance = Math.abs(node.position.x - otherNode.position.x) + Math.abs(node.position.y - otherNode.position.y);
     return distance <= transferRange(node) || distance <= transferRange(otherNode);
 }
-

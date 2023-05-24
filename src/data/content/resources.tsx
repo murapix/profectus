@@ -1,8 +1,9 @@
 import { CoercableComponent, Visibility } from "features/feature";
 import { computed } from "vue";
-import factory from "../tabs/factory";
+import { root } from "data/projEntry";
 import { Alignment, types } from "./types";
 import { ProcessedComputable } from "util/computed";
+import { getNodeProperty } from "features/boards/board";
 
 export enum Resources {
     Empty = "empty",
@@ -17,7 +18,7 @@ export enum Resources {
 }
 
 export const amounts = computed(() => {
-    const nodes = factory.board.nodes.value;
+    const nodes = root.board.nodes.value;
 
     const amounts: Partial<Record<Resources, number>> = {};
     for (const node of nodes) {
@@ -25,9 +26,11 @@ export const amounts = computed(() => {
         if (nodeType.alignment !== Alignment.Friendly) continue;
         if (!nodeType.building) continue;
         
-        const building = nodeType.building;
+        const building = getNodeProperty(nodeType.building, node);
         if (!building.storage) continue;
         
+        if (Object.values(node.buildMaterials).some(amount => amount > 0)) continue;
+
         for (const storage of node.storage) {
             if (amounts[storage.resource] === undefined) amounts[storage.resource] = 0;
             amounts[storage.resource]! += storage.amount;

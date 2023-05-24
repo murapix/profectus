@@ -2,7 +2,7 @@ import { BoardNode, NodeTypeOptions, Shape, getNodeProperty } from "features/boa
 import { buildings } from "./building";
 import { createLazyProxy } from "util/proxies";
 import { Resources, resources } from "./resources";
-import factory from "data/tabs/factory";
+import { root } from "data/projEntry";
 import { placeNode, removeNode } from "./nodes";
 
 export enum Alignment {
@@ -31,7 +31,7 @@ export const types: Record<BoardNodeType, NodeTypeOptions> = createLazyProxy(() 
             shape: () => Shape.Scrap,
             alignment: Alignment.Neutral,
             label: (node) => {
-                if (factory.board.selectedNode.value === node) {
+                if (root.board.selectedNode.value === node) {
                     const storage = node.storage[0];
                     return {
                         text: `${resources[storage.resource].name}: ${storage.amount}`
@@ -80,57 +80,28 @@ export function placeOn(node: BoardNode, otherNode: BoardNode) {
     placeNode(otherNode);
 }
 
-export function tickRecipe(node: BoardNode, diff: number) {
-    if (node.activeRecipe === undefined) return;
+export function findResource(node: BoardNode, resource: Resources, path: number[] = [], visited: Set<number> = new Set()): number[] | undefined {
+    if (!visited.has(node.id)) visited.add(node.id);
+
     const building = getNodeProperty(types[node.type].building, node);
     if (building === undefined) return;
-    if (building.storage === undefined) return;
-    if (building.recipes === undefined) return;
-
-    const storage = building.storage;
-    const recipe = building.recipes[node.activeRecipe];
-    if (node.recipeTime > 0) {
-        node.recipeTime -= diff;
-        if (node.recipeTime <= 0) {
-            node.recipeTime = 0;
-            const outputsToFill = [];
-            const outputs = node.storage.filter((_, index) => storage[index].type === "output");
-            for (const [resource, amount] of Object.entries(recipe.output) as [Resources, number][]) {
-                const output = outputs.find(store => store.resource === resource);
-                if (output === undefined) outputsToFill.push(resource);
-                else output.amount += amount;
-            }
-            for (const resource of outputsToFill) {
-                const output = outputs.find(store => store.resource === Resources.Empty);
-                if (output === undefined) {
-                    console.error(`Node ${node.id} storage too full for recipe!`, node);
-                    return;
-                }
-                output.resource = resource;
-                output.amount += recipe.output[resource]!;
-            }
+    if (building.storage !== undefined) {
+        for (let i = 0; i < node.storage.length; i++) {
+            if (building.storage[i].type !== "output") continue;
+            const storage = node.storage[i];
+            if (storage.resource !== resource) continue;
+            if (storage.amount <= 0) continue;
+            return [node.id, ...path];
         }
     }
-    else {
-        const inputs = node.storage.filter((_, index) => storage[index].type === "input");
-        const foundInputs = {} as Record<Resources, { amount: number }>;
-        for (const [resource, amount] of Object.entries(recipe.input) as [Resources, number][]) {
-            for (let i = 0; i < node.storage.length; i++) {
-                if (storage[i].type !== "input") continue;
-            }
-            const input = inputs.find(store => store.resource === resource);
-            if (input === undefined) return;
-            if (input.amount < amount) return;
-            foundInputs[resource] = input;
-        }
-        if (Object.keys(foundInputs).length !== Object.keys(recipe.input).length) return;
-        for (const [resource, store] of Object.entries(foundInputs) as [Resources, { resource: Resources, amount: number }][]) {
-            store.amount -= recipe.input[resource]!;
-            if (store.amount <= 0) {
-                store.amount = 0;
-                store.resource = Resources.Empty;
-            }
-        }
-        node.recipeTime = recipe.duration;
+    if (building.transferDistance === undefined) return;
+    
+    const neighbors = node.connectedNodes.filter(id => !visited.has(id));
+    for (const neighbor of neighbors) {
+        visited.add(neighbor);
+    }
+    for (const neighborNode of neighbors.map(id => root.idToNodeMap.value[id])) {
+        const route = findResource(neighborNode, resource, [node.id, ...path], visited);
+        if (route !== undefined) return route;
     }
 }
