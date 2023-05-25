@@ -107,6 +107,17 @@ export function tickRecipe(node: BoardNode, diff: number) {
         }
     }
     else {
+        const outputs = [] as [typeof node.storage[0], Storage][];
+        for (let i = 0; i < node.storage.length; i++) {
+            if (storage[i].type !== "output") continue;
+            outputs.push([node.storage[i], storage[i]]);
+        }
+        for (const resource of Object.keys(recipe.output) as Resources[]) {
+            const output = outputs.find(store => store[0].resource === resource);
+            if (output === undefined) continue;
+            if (output[0].amount + recipe.output[resource]! >= (output[1].limit === "node" ? output[0].limit! : output[1].limit)) return;
+        }
+
         const inputs = node.storage.filter((_, index) => storage[index].type === "input");
         const foundInputs = {} as Record<Resources, { amount: number }>;
         for (const [resource, amount] of Object.entries(recipe.input) as [Resources, number][]) {
