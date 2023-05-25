@@ -17,6 +17,20 @@
             :stroke="stroke"
             stroke-width=2
         />
+        <g v-if="build > 0">
+            <path
+                class="build"
+                :d="buildPath"
+                fill="var(--outline)"
+            />
+            <rect
+                class="build"
+                :width="width * sqrtTwo - 2"
+                :height="width * sqrtTwo - 2"
+                :transform="`translate(${offset+1} ${offset+1})`"
+                fill="var(--locked)"
+            />
+        </g>
         <path
             v-if="storage > 0"
             class="storage"
@@ -90,6 +104,66 @@ const storagePath = computed(() => {
     }
 });
 
+const build = computed(() => {
+    if (props.node === undefined) return 0;
+    if (Object.values(props.node.buildMaterials).every(amount => amount === 0)) return 0;
+    
+    const building = getNodeProperty(types[props.node.type].building, props.node);
+    if (building === undefined) return 0;
+    
+    const cost = Object.values(building.cost).reduce((a,b) => a+b, 0);
+    if (cost === 0) return 0;
+
+    const materialsLeft = Object.values(props.node.buildMaterials).reduce((a,b) => a+b, 0);
+    return Math.max(0, 1 - materialsLeft / cost);
+});
+const buildPath = computed(() => {
+    const radius = -offset.value + 2;
+    const start = { x: radius, y: radius };
+    if (build.value < 0.25) {
+        const b = build.value*4;
+        return [
+            'M', 0, 0,
+            'L', start.x, start.y,
+            'L', start.x, start.y - 2*radius*b,
+            'Z'
+        ].join(' ');
+    }
+    else if (build.value < 0.5) {
+        const b = (build.value - 0.25)*4;
+        return [
+            'M', 0, 0,
+            'L', start.x, start.y,
+            'L', start.x, -start.y,
+            'L', start.x - 2*radius*b, -start.y,
+            'Z'
+        ].join(' ');
+    }
+    else if (build.value < 0.75) {
+        const b = (build.value - 0.5)*4;
+        return [
+            'M', 0, 0,
+            'L', start.x, start.y,
+            'L', start.x, -start.y,
+            'L', -start.x, -start.y,
+            'L', -start.x, -start.y + 2*radius*b,
+            'Z'
+        ].join(' ');
+    }
+    else {
+        const b = build.value > 1 ? 1 : (build.value - 0.75)*4;
+        return [
+            'M', 0, 0,
+            'L', start.x, start.y,
+            'L', start.x, -start.y,
+            'L', -start.x, -start.y,
+            'L', -start.x, start.y,
+            'L', -start.x + 2*radius*b, start.y,
+            'Z'
+        ].join(' ');
+    }
+})
+
 const emit = defineEmits<{
     (type: "select-building"): void;
     (type: "place-building", node: BoardNode): void;
@@ -97,7 +171,9 @@ const emit = defineEmits<{
 
 function mouseUp() {
     if (props.node) {
-        emit("place-building", props.node);
+        if (root.board.draggingNode.value === props.node) {
+            emit("place-building", props.node);
+        }
     }
     else {
         emit("select-building");
@@ -108,6 +184,11 @@ function mouseUp() {
 <style scoped>
 .body {
    cursor: pointer;
+}
+
+.build {
+    pointer-events: none;
+    transition-duration: 0s;
 }
 
 .storage {
