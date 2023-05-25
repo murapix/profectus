@@ -7,7 +7,7 @@ import { Ref, computed } from "vue";
 import { createBoard, BoardNodeLink, BoardNode } from "features/boards/board";
 import { createHotkey } from "features/hotkey";
 import { persistent } from "game/persistence";
-import { tickRecipe } from "./content/building";
+import { tickBuild, tickRecipe, tickTransfer } from "./content/building";
 import { startNodes, propagateDistance } from "./content/nodes";
 import MapTabVue from "./tabs/MapTab.vue";
 import { types } from "./content/types";
@@ -62,9 +62,15 @@ export const root = createLayer("main", function (this: BaseLayer) {
         }
     });
     this.on('update', diff => {
-        // transfer resouces to waiting recipes
+        // transfer resouces to waiting builds and recipes
+        for (const node of board.nodes.value) {
+            tickBuild(node, diff);
+        }
+        for (const node of board.nodes.value) {
+            tickTransfer(node, diff);
+        }
     });
-    this.on('postUpdate', diff => {
+    this.on('postUpdate', () => {
         if (dirty.value) {
             propagateDistance(board.nodes.value, board.nodes.value[0])
             dirty.value = false;

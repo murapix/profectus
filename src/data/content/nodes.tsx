@@ -99,13 +99,11 @@ function initializeConnections(nodes: Partial<BoardNode>[]) {
     }
 }
 
-export function propagateDistance(nodes: BoardNode[], rootNode: BoardNode, resetDistances: boolean = false) {
-    if (resetDistances) {
-        for (const node of nodes) {
-            node.distance = -1;
-        }
-        rootNode.distance = 0;
+export function propagateDistance(nodes: BoardNode[], rootNode: BoardNode) {
+    for (const node of nodes) {
+        node.distance = -1;
     }
+    rootNode.distance = 0;
 
     const toCheck = [rootNode];
     while (toCheck.length > 0) {
@@ -129,10 +127,16 @@ export function placeNode(newNode: BoardNode) {
     }
 
     root.board.nodes.value.push(newNode);
+    root.dirty.value = true;
 }
 
-export function onFinishBuild(node: BoardNode) {
-    if (types[node.type].alignment !== Alignment.Neutral) root.dirty.value = true;
+export function onFinishBuild(newNode: BoardNode) {
+    const nodes = root.board.nodes.value.filter(node => canConnect(node, newNode));
+    for (const node of nodes) {
+        if (!node.connectedNodes.includes(newNode.id)) node.connectedNodes.push(newNode.id);
+        if (!newNode.connectedNodes.includes(node.id)) newNode.connectedNodes.push(node.id);
+    }
+    root.dirty.value = true;
 }
 
 export function removeNode(node: BoardNode) {

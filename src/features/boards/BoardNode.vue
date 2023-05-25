@@ -55,12 +55,12 @@
             <Router v-else-if="shape === Shape.Router"
                 :node="node"
                 :size="size"
-                @place-building.once="placeBuilding"
+                @place-building="placeBuilding"
             />
             <Extractor v-else-if="shape === Shape.Extractor"
                 :node="node"
                 :size="size"
-                @place-building.once="placeBuilding"
+                @place-building="placeBuilding"
             />
 
             <text :fill="titleColor" class="node-title">{{ title }}</text>

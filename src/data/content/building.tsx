@@ -4,6 +4,7 @@ import { BoardNodeType, findResource, types } from "./types";
 import { createLazyProxy } from "util/proxies";
 import { BoardNode, getNodeProperty } from "features/boards/board";
 import { root } from "data/projEntry";
+import { onFinishBuild } from "./nodes";
 
 export type Storage = {
     resources: Resources[];
@@ -39,13 +40,13 @@ export const buildings: Record<string, Building> = {
         recipes: [{
             input: { [Resources.Scrap]: 1 },
             output: { [Resources.Nanites]: 1 },
-            duration: 4
+            duration: 1
         }],
         display: false
     })),
     extractor: createLazyProxy(() => ({
         buildableOn: [BoardNodeType.Scrap],
-        cost: { [Resources.Nanites]: 25 },
+        cost: { [Resources.Nanites]: 10 },
         storage: [{ resources: [Resources.Scrap], limit: "node", type: "output" }],
         display: "Extract scrap from ruined nodes",
         onBuild(node, builtOn) {
@@ -55,19 +56,19 @@ export const buildings: Record<string, Building> = {
         }
     })),
     router: createLazyProxy(() => ({
-        cost: { [Resources.Nanites]: 15 },
+        cost: { [Resources.Nanites]: 5 },
         transferDistance: 100,
         display: "Transfer resources to further-away nodes"
     })),
     foundry: createLazyProxy(() => ({
-        cost: { [Resources.Nanites]: 75 },
+        cost: { [Resources.Nanites]: 25 },
         display: "Form clusters of nanites into structural materials",
         storage: [
             { resources: [Resources.Nanites], limit: 50, type: "input" },
             { resources: [Resources.Plates], limit: 5, type: "input" }
         ],
         recipes: [{
-            input: { [Resources.Nanites]: 50 },
+            input: { [Resources.Nanites]: 10 },
             output: { [Resources.Plates]: 1 },
             duration: 10
         }]
@@ -140,13 +141,42 @@ export function tickBuild(node: BoardNode, diff: number) {
         }
     }
     else {
-        for (const id of node.transferRoute) {
+        for (const id of node.transferRoute.path) {
             if (id in root.idToNodeMap.value && root.idToNodeMap.value[id].distance >= 0) continue;
             delete node.transferRoute;
             return;
         }
         
+        const source = root.idToNodeMap.value[node.transferRoute.path[0]];
+        const { resource, store } = node.transferRoute;
+        const transferred = Math.min(source.storage[store].amount, node.buildMaterials[resource]!, 1 * diff); // TODO: replace with <buildSpeed>
+        node.buildMaterials[resource]! -= transferred;
+        source.storage[store].amount -= transferred;
+        if (source.storage[store].amount <= 0) {
+            source.storage[store].amount = 0;
+            source.storage[store].resource = Resources.Empty;
+            delete node.transferRoute;
+        }
+        if (node.buildMaterials[resource]! <= 0) {
+            node.buildMaterials[resource]! = 0;
+            if (Object.values(node.buildMaterials).every(amount => amount === 0)) {
+                onFinishBuild(node);
+            }
+            delete node.transferRoute;
+        }
+    }
+}
 
-        // if so, move up to `transferRate` (default 1) resources per second across the route
+export function tickTransfer(node: BoardNode, diff: number) {
+    if (node.distance < 0) return;
+    if (Object.values(node.buildMaterials).some(amount => amount > 0)) return;
+    if (node.activeRecipe === undefined) return;
+    const building = getNodeProperty(types[node.type].building, node);
+    if (building === undefined) return;
+    if (building.recipes === undefined) return;
+    
+    if (node.transferRoute === undefined) {
+        const inputs = building.recipes[node.activeRecipe].input;
+        
     }
 }

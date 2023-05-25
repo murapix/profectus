@@ -80,9 +80,20 @@ export function placeOn(node: BoardNode, otherNode: BoardNode) {
     placeNode(otherNode);
 }
 
-export function findResource(node: BoardNode, resource: Resources, path: number[] = [], visited: Set<number> = new Set()): number[] | undefined {
-    if (!visited.has(node.id)) visited.add(node.id);
+export function findResource(node: BoardNode, resource: Resources, path: number[] = [], visited: Set<number> = new Set()): { resource: Resources, path: number[], store: number } | undefined {
+    visited.add(node.id);
 
+    const neighbors = node.connectedNodes.filter(id => !visited.has(id));
+    for (const neighbor of neighbors) {
+        visited.add(neighbor);
+    }
+    for (const neighborNode of neighbors.map(id => root.idToNodeMap.value[id])) {
+        const route = findResourceHelper(neighborNode, resource, [node.id, ...path], visited);
+        if (route !== undefined) return route;
+    }
+}
+
+function findResourceHelper(node: BoardNode, resource: Resources, path: number[], visited: Set<number>): { resource: Resources, path: number[], store: number } | undefined {
     const building = getNodeProperty(types[node.type].building, node);
     if (building === undefined) return;
     if (building.storage !== undefined) {
@@ -91,7 +102,11 @@ export function findResource(node: BoardNode, resource: Resources, path: number[
             const storage = node.storage[i];
             if (storage.resource !== resource) continue;
             if (storage.amount <= 0) continue;
-            return [node.id, ...path];
+            return {
+                resource,
+                path: [node.id, ...path],
+                store: i
+            };
         }
     }
     if (building.transferDistance === undefined) return;
@@ -101,7 +116,7 @@ export function findResource(node: BoardNode, resource: Resources, path: number[
         visited.add(neighbor);
     }
     for (const neighborNode of neighbors.map(id => root.idToNodeMap.value[id])) {
-        const route = findResource(neighborNode, resource, [node.id, ...path], visited);
+        const route = findResourceHelper(neighborNode, resource, [node.id, ...path], visited);
         if (route !== undefined) return route;
     }
 }
