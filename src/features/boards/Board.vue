@@ -189,7 +189,7 @@ function onInit(panzoomInstance: any) {
         if (justPlaced) {
             instance.pause();
             instance.resume();
-            setTimeout(() => justPlaced = false, 200);
+            setTimeout(() => justPlaced = false, 50);
         }
     });
     panzoomInstance.on('pan', (instance: any) => {
