@@ -173,10 +173,96 @@ export function tickTransfer(node: BoardNode, diff: number) {
     if (node.activeRecipe === undefined) return;
     const building = getNodeProperty(types[node.type].building, node);
     if (building === undefined) return;
+    if (building.storage === undefined) return;
     if (building.recipes === undefined) return;
     
+    const stores = [] as [typeof node.storage[0], typeof building.storage[0]][];
+    for (let i = 0; i < node.storage.length; i++) {
+        const buildingStore = building.storage[i];
+        if (buildingStore.type !== "input") continue;
+        stores.push([node.storage[i], building.storage[i]]);
+    }
+
     if (node.transferRoute === undefined) {
         const inputs = building.recipes[node.activeRecipe].input;
-        
+        const fullInputs = [] as Resources[];
+        const metInputs = [] as Resources[];
+        const unmetInputs = [] as Resources[];
+        for (let i = 0; i < stores.length; i++) {
+            for (const [resource, amount] of Object.entries(inputs) as [Resources, number][]) {
+                if (fullInputs.includes(resource)) continue;
+                if (metInputs.includes(resource)) continue;
+                if (unmetInputs.includes(resource)) continue;
+                if (stores[i][0].resource === resource) {
+                    if (stores[i][0].amount >= amount) {
+                        const nodeStore = node.storage[i];
+                        const buildingStore = building.storage[i];
+                        if (nodeStore.amount >= (buildingStore.limit === "node" ? nodeStore.limit! : buildingStore.limit))
+                            fullInputs.push(resource);
+                        else metInputs.push(resource);
+                    }
+                    else unmetInputs.push(resource);
+                    break;
+                }
+            }
+        }
+        unmetInputs.push(...(Object.keys(inputs) as Resources[]).filter(input => !fullInputs.includes(input))
+                                                                .filter(input => !metInputs.includes(input))
+                                                                .filter(input => !unmetInputs.includes(input)));
+        for (const input of unmetInputs) {
+            node.transferRoute = findResource(node, input);
+            if (node.transferRoute !== undefined) return;
+        }
+        for (const input of metInputs) {
+            node.transferRoute = findResource(node, input);
+            if (node.transferRoute !== undefined) return;
+        }
+    }
+    else {
+        for (const id of node.transferRoute.path) {
+            if (id in root.idToNodeMap.value && root.idToNodeMap.value[id].distance >= 0) continue;
+            delete node.transferRoute;
+            return;
+        }
+
+        const source = root.idToNodeMap.value[node.transferRoute.path[0]];
+        const { resource, store } = node.transferRoute;
+        let sinkStore = stores.find(([node, _]) => node.resource === resource);
+        if (sinkStore === undefined) sinkStore = stores.find(([node, building]) => node.resource === Resources.Empty && building.resources.includes(resource));
+        if (sinkStore === undefined) {
+            delete node.transferRoute;
+            return;
+        }
+
+        const limit = sinkStore[1].limit === "node" ? sinkStore[0].limit! : sinkStore[1].limit
+        const availableSpace = limit - sinkStore[0].amount;
+        const transferred = Math.min(source.storage[store].amount, availableSpace, 1 * diff); // TODO: replace with <transferSpeed>
+        sinkStore[0].resource = resource;
+        sinkStore[0].amount += transferred;
+        source.storage[store].amount -= transferred;
+        if (source.storage[store].amount <= 0) {
+            source.storage[store].amount = 0;
+            source.storage[store].resource = Resources.Empty;
+            types[source.type].onStoreEmpty?.(source, store);
+            delete node.transferRoute;
+        }
+        if (limit - sinkStore[0].amount <= 0) {
+            sinkStore[0].amount = limit;
+            delete node.transferRoute;
+        }
+    }
+}
+
+export function normalizeStorage() {
+    for (const node of root.board.nodes.value) {
+        for (const store of node.storage) {
+            if (store.resource === Resources.Empty) continue;
+            if (store.amount > 0.98) continue;
+            store.amount = Math.round(store.amount * 100) / 100;
+            if (store.amount <= 0) {
+                store.amount = 0;
+                store.resource = Resources.Empty;
+            }
+        }
     }
 }

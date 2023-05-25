@@ -7,7 +7,7 @@ import { Ref, computed } from "vue";
 import { createBoard, BoardNodeLink, BoardNode } from "features/boards/board";
 import { createHotkey } from "features/hotkey";
 import { persistent } from "game/persistence";
-import { tickBuild, tickRecipe, tickTransfer } from "./content/building";
+import { normalizeStorage, tickBuild, tickRecipe, tickTransfer } from "./content/building";
 import { startNodes, propagateDistance } from "./content/nodes";
 import MapTabVue from "./tabs/MapTab.vue";
 import { types } from "./content/types";
@@ -75,6 +75,7 @@ export const root = createLayer("main", function (this: BaseLayer) {
             propagateDistance(board.nodes.value, board.nodes.value[0])
             dirty.value = false;
         }
+        normalizeStorage();
     });
 
     const dropBuilding = createHotkey(() => ({

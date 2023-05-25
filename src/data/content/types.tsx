@@ -43,7 +43,10 @@ export const types: Record<BoardNodeType, NodeTypeOptions> = createLazyProxy(() 
             size: 10,
             shape: () => Shape.Extractor,
             alignment: Alignment.Friendly,
-            building: buildings.extractor
+            building: buildings.extractor,
+            onStoreEmpty(node) {
+                removeNode(node);
+            }
         },
         [BoardNodeType.Router]: {
             size: 10,
@@ -54,7 +57,6 @@ export const types: Record<BoardNodeType, NodeTypeOptions> = createLazyProxy(() 
     } as Record<BoardNodeType, NodeTypeOptions>;
 
     for (const type of Object.values(types)) {
-        // type.title = getTempTitle;
         type.canAccept = canPlaceOn;
         type.onDrop = placeOn;
     }
@@ -88,6 +90,7 @@ export function findResource(node: BoardNode, resource: Resources, path: number[
         visited.add(neighbor);
     }
     for (const neighborNode of neighbors.map(id => root.idToNodeMap.value[id])) {
+        if (Object.values(neighborNode.buildMaterials).some(amount => amount > 0)) continue;
         const route = findResourceHelper(neighborNode, resource, [node.id, ...path], visited);
         if (route !== undefined) return route;
     }

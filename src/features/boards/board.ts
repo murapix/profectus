@@ -143,6 +143,7 @@ export interface NodeTypeOptions {
 
     alignment: NodeComputable<Alignment>;
     building?: NodeComputable<Building>;
+    onStoreEmpty?: (node: BoardNode, index: number) => void;
 }
 
 /**

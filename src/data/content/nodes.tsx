@@ -74,10 +74,6 @@ export function startNodes() {
         resource: Resources.Nanites,
         amount: buildings.core.storage![0].limit as number
     };
-    nodes[0].storage![1] = {
-        resource: Resources.Scrap,
-        amount: 0
-    };
     nodes[1].storage = [{
         resource: Resources.Scrap,
         amount: 45
