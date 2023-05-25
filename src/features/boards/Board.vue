@@ -187,18 +187,24 @@ function onInit(panzoomInstance: any) {
     panzoomInstance.moveTo(stage.value.$el.clientWidth / 2, stage.value.$el.clientHeight / 2);
     panzoomInstance.on('panstart', (instance: any) => {
         if (justPlaced) {
-            justPlaced = false;
+            instance.pause();
+            instance.resume();
+            setTimeout(() => justPlaced = false, 200);
+        }
+    });
+    panzoomInstance.on('pan', (instance: any) => {
+        if (justPlaced) {
             instance.pause();
             instance.resume();
         }
-    })
+    });
 }
 let justPlaced = false;
 function placeBuilding() {
     justPlaced = true;
 }
 
-function mouseDown(e: MouseEvent | TouchEvent, node: BoardNode | null = null, draggable = false) {
+function mouseDown(e: MouseEvent | TouchEvent, node: BoardNode | null = null) {
     if (props.draggingNode.value == null) {
         e.preventDefault();
         e.stopPropagation();
