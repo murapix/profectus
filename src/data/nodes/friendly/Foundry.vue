@@ -28,16 +28,44 @@
             />
         </g>
         <path
+            v-if="storage[0] > 0"
+            class="storage"
+            :d="inputPath"
+            fill="var(--accent1)"
+        />
+        <path
+            v-if="storage[1] > 0"
+            class="storage"
+            :d="outputPath"
+            fill="var(--accent1)"
+        />
+        <path
             class="body"
             :d="columnPath"
             fill="var(--locked)"
+        />
+        <g transform="rotate(135, 0, 0)">
+            <rect
+                v-if="progress > 0"
+                class="progress"
+                :width="progressSize.width"
+                :height="progressSize.height*progress"
+                :transform="`translate(${-progressSize.width/2} ${-progressSize.height/2})`"
+                fill="var(--foreground)"
+            />
+        </g>
+        <path
+            class="body"
+            :d="columnPath"
             :stroke="stroke"
             stroke-width=2
+            fill="none"
         />
     </g>
 </template>
 
 <script setup lang="ts">
+import { buildings } from 'data/content/building';
 import { types } from 'data/content/types';
 import { root } from 'data/projEntry';
 import { BoardNode, getNodeProperty } from 'features/boards/board';
@@ -69,15 +97,32 @@ const stroke = computed(() => {
 });
 
 const columnPath = computed(() => {
-    const radius = width.value/8 * sqrtTwo;
+    const radius = width.value/12 * sqrtTwo;
+    const corner = { x: -offset.value-1, y: -offset.value-1 };
     return [
-        'M', radius, -offset.value,
-        'A', radius, radius, 0, 0, 0, -radius, -offset.value,
-        'L', -radius, offset.value,
-        'A', radius, radius, 0, 0, 0, radius, offset.value,
+        'M', corner.x, corner.y,
+        'M', corner.x+radius, corner.y-radius,
+        'A', radius, radius, 0, 0, 1, corner.x-radius, corner.y+radius,
+        'L', -corner.x-radius, -corner.y+radius,
+        'A', radius, radius, 0, 0, 1, -corner.x+radius, -corner.y-radius,
         'Z'
     ].join(' ');
 });
+const progress = computed(() => {
+    if (props.node === undefined) return 0;
+    if (props.node.activeRecipe === undefined) return 0;
+    if (props.node.recipeTime <= 0) return 0;
+
+    const building = getNodeProperty(types[props.node.type].building, props.node);
+    if (building === undefined) return 0;
+    if (building.recipes === undefined) return 0;
+
+    return Math.max(0, 1 - props.node.recipeTime / building.recipes[props.node.activeRecipe].duration);
+});
+const progressSize = computed(() => ({
+    width: width.value/6 * sqrtTwo,
+    height: 1.5*width.value*sqrtTwo
+}));
 
 const build = computed(() => {
     if (props.node === undefined) return 0;
@@ -90,10 +135,10 @@ const build = computed(() => {
     if (cost === 0) return 0;
 
     const materialsLeft = Object.values(props.node.buildMaterials).reduce((a,b) => a+b, 0);
-    return Math.max(0, 1 - materialsLeft, cost);
+    return Math.max(0, 1 - materialsLeft / cost);
 });
 const buildPath = computed(() => {
-    const radius = -offset.value + 2;
+    const radius = -offset.value + 1;
     const start = { x: radius, y: radius };
     if (build.value < 0.25) {
         const b = build.value*4;
@@ -138,6 +183,57 @@ const buildPath = computed(() => {
         ].join(' ');
     }
 });
+
+const storage = computed(() => {
+    const storage = buildings.foundry.storage!;
+    if (props.node === undefined) {
+        return Array.from<number>({length: storage.length}).fill(0);
+    }
+
+    const node = props.node;
+    const amounts = [] as number[];
+    for (let i = 0; i < storage.length; i++) {
+        const store = storage[i];
+        amounts[i] = node.storage[i].amount / (store.limit === "node" ? (node.storage[i].limit ?? 1) : store.limit);
+        if (amounts[i] < 0) amounts[i] = 0;
+        if (amounts[i] > 1) amounts[i] = 1;
+    }
+    return amounts;
+});
+const inputPath = computed(() => {
+    const amount = storage.value[0];
+    const innerWidth = 2*offset.value + 2;
+    const start = { x: -innerWidth/2, y: -innerWidth/2 };
+    return (amount < 0.5 ? [
+        'M', start.x, start.y,
+        'L', start.x + innerWidth*amount*2, start.y,
+        'L', start.x + innerWidth*amount, start.y + innerWidth*amount,
+        'Z'
+    ] : [
+        'M', start.x, start.y,
+        'L', start.x + innerWidth, start.y,
+        'L', start.x + innerWidth, start.y + innerWidth*(amount-0.5)*2,
+        'L', innerWidth*(amount-0.5), innerWidth*(amount-0.5),
+        'Z'
+    ]).join(' ');
+});
+const outputPath = computed(() => {
+    const amount = storage.value[1];
+    const innerWidth = 2*offset.value + 2;
+    const start = { x: -innerWidth/2, y: -innerWidth/2 };
+    return (amount < 0.5 ? [
+        'M', start.x, start.y,
+        'L', start.x, start.y + innerWidth*amount*2,
+        'L', start.x + innerWidth*amount, start.y + innerWidth*amount,
+        'Z'
+    ] : [
+        'M', start.x, start.y,
+        'L', start.x, start.y + innerWidth,
+        'L', start.x + innerWidth*(amount-0.5)*2, start.y + innerWidth,
+        'L', innerWidth*(amount-0.5), innerWidth*(amount-0.5),
+        'Z'
+    ]).join(' ');
+})
 
 const emit = defineEmits<{
     (type: "select-building"): void;

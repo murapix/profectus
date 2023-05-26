@@ -54,7 +54,51 @@ export const types: Record<BoardNodeType, NodeTypeOptions> = createLazyProxy(() 
             [BoardNodeType.Analyzer]: {
                 size: 15,
                 shape: () => Shape.Analyzer,
-                building: buildings.analyzer
+                building: buildings.analyzer,
+                update(node, diff) {
+                    const building = getNodeProperty(types[node.type].building, node);
+                    if (building === undefined) return;
+                    if (Object.values(node.buildMaterials).some(amount => amount > 0)) return;
+
+                    const state = node.state as {
+                        timeLeft: number,
+                        index: 0|1|2|3|4,
+                        0: { resource: Resources.ConsumptionResearch, amount: number },
+                        1: { resource: Resources.LogisticalResearch, amount: number },
+                        2: { resource: Resources.BalisticsResearch, amount: number },
+                        3: { resource: Resources.RampancyResearch, amount: number },
+                        4: { resource: Resources.CircularResearch, amount: number }
+                    };
+                    if (state.timeLeft > 0) {
+                        state.timeLeft -= diff;
+                        if (state.timeLeft <= 0) {
+                            state.timeLeft = 0;
+
+                            const limit = building.storage![state.index].limit === "node" ? node.storage[state.index].limit! : building.storage![state.index].limit as number;
+                            const spaceLeft = limit - node.storage[state.index].amount;
+                            node.storage[state.index].amount += Math.min(1, state[state.index].amount, spaceLeft);
+                            node.storage[state.index].resource = state[state.index].resource;
+                            state[state.index].amount -= Math.min(1, state[state.index].amount, spaceLeft);
+                        }
+                    }
+                    if (state.timeLeft === 0) {
+                        for (let i = state.index+1; i < state.index+6; i++) {
+                            const index = i % 5 as 0|1|2|3|4;
+                            const nodeStore = node.storage[index];
+                            const buildingStore = building.storage![index];
+                            const stateStore = state[index];
+
+                            if (stateStore.amount < 1) continue;
+                            const limit = buildingStore.limit === "node" ? nodeStore.limit! : buildingStore.limit;
+                            const spaceLeft = limit - nodeStore.amount;
+                            if (spaceLeft < 1) continue;
+                            
+                            state.timeLeft = 1;
+                            state.index = index;
+                            return;
+                        }
+                    }
+                }
             },
             [BoardNodeType.Researcher]: {
                 size: 15,

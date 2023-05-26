@@ -36,12 +36,23 @@ function generateFactoryData(
         
                 if (building.recipes) {
                     node.recipeTime = 0;
-                    if (building.recipes.length === 1) {
-                        node.activeRecipe = 0;
+                    if (building.recipes.filter(recipe => recipe.unlocked === undefined || getNodeProperty(recipe.unlocked, node as BoardNode)).length === 1) {
+                        node.activeRecipe = building.recipes.indexOf(building.recipes.find(recipe => recipe.unlocked === undefined || getNodeProperty(recipe.unlocked, node as BoardNode))!);
                     }
                 }
             }
         
+            if (node.type === BoardNodeType.Analyzer) {
+                node.state = {
+                    timeLeft: 0,
+                    index: 4,
+                    0: { resource: Resources.ConsumptionResearch, amount: 0 },
+                    1: { resource: Resources.LogisticalResearch, amount: 0 },
+                    2: { resource: Resources.BalisticsResearch, amount: 0 },
+                    3: { resource: Resources.RampancyResearch, amount: 0 },
+                    4: { resource: Resources.CircularResearch, amount: 0 }
+                }
+            }
             break;
         }
         case Alignment.Neutral: {
@@ -385,4 +396,27 @@ export function canConnect(node: BoardNode, otherNode: BoardNode) {
     if (types[node.type].alignment !== types[otherNode.type].alignment) return false;
     const distance = Math.abs(node.position.x - otherNode.position.x) + Math.abs(node.position.y - otherNode.position.y);
     return distance <= transferRange(node) || distance <= transferRange(otherNode);
+}
+
+const allTransferRoutes = computed(() => root.board.nodes.value.filter(node => node.transferRoute).map(node => node.transferRoute!));
+export const transferRouteUsage = computed(() => {
+    const links = {} as Record<number, Record<number, number>>;
+    for (const node of root.board.nodes.value) {
+        links[node.id] = {};
+    }
+    for (const route of allTransferRoutes.value) {
+        for (let i = 0; i < route.path.length-1; i++) {
+            const start = route.path[i];
+            const end = route.path[i+1];
+            links[start][end] ??= 0;
+            links[start][end] += 1;
+            links[end][start] ??= 0;
+            links[end][start] += 1;
+        }
+    }
+    return links;
+})
+
+export function getLinkUsage(node: BoardNode) {
+    
 }

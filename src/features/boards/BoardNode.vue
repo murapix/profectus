@@ -64,21 +64,21 @@
                 :size="size"
                 @place-building="placeBuilding"
             />
-            <!-- <Analyzer v-else-if="shape === Shape.Analyzer"
+            <Analyzer v-else-if="shape === Shape.Analyzer"
                 :node="node"
                 :size="size"
                 @place-building="placeBuilding"
-            /> -->
-            <!-- <Researcher v-else-if="shape === Shape.Researcher"
+            />
+            <Researcher v-else-if="shape === Shape.Researcher"
                 :node="node"
                 :size="size"
                 @place-building="placeBuilding"
-            /> -->
-            <!-- <Bore v-else-if="shape === Shape.Bore"
+            />
+            <Bore v-else-if="shape === Shape.Bore"
                 :node="node"
                 :size="size"
                 @place-building="placeBuilding"
-            /> -->
+            />
 
             <Scrap v-else-if="shape === Shape.Scrap"
                 :size="size"
@@ -133,6 +133,9 @@ import Core from "data/nodes/friendly/Core.vue";
 import Router from "data/nodes/friendly/Router.vue";
 import Extractor from "data/nodes/friendly/Extractor.vue";
 import Foundry from "data/nodes/friendly/Foundry.vue";
+import Analyzer from "data/nodes/friendly/Analyzer.vue";
+import Researcher from "data/nodes/friendly/Researcher.vue";
+import Bore from "data/nodes/friendly/Bore.vue";
 import Scrap from "data/nodes/neutral/Scrap.vue";
 import ContainmentRing from "data/nodes/hostile/ContainmentRing.vue";
 import { root } from "data/projEntry";

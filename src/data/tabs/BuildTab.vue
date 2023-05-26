@@ -22,6 +22,24 @@
                         <Foundry @select-building="select(BoardNodeType.Foundry)"/>
                     </svg>
                 </div>
+                <div class="build-column">
+                    <span>Analyzer</span>
+                    <svg width="150px" height="150px" viewBox="-40 -40 80 80" :class="{selected: selected === BoardNodeType.Analyzer}">
+                        <Analyzer @select-building="select(BoardNodeType.Analyzer)"/>
+                    </svg>
+                </div>
+                <div class="build-column">
+                    <span>Researcher</span>
+                    <svg width="150px" height="150px" viewBox="-40 -40 80 80" :class="{selected: selected === BoardNodeType.Researcher}">
+                        <Researcher @select-building="select(BoardNodeType.Researcher)"/>
+                    </svg>
+                </div>
+                <div class="build-column">
+                    <span>Nanite Bore</span>
+                    <svg width="150px" height="150px" viewBox="-40 -40 80 80" :class="{selected: selected === BoardNodeType.Bore}">
+                        <Bore @select-building="select(BoardNodeType.Bore)"/>
+                    </svg>
+                </div>
             </div>
         </div>
     </div>
@@ -32,11 +50,13 @@ import { BoardNodeType } from 'data/content/types';
 import Spacer from 'components/layout/Spacer.vue';
 import Router from 'data/nodes/friendly/Router.vue';
 import Extractor from 'data/nodes/friendly/Extractor.vue';
+import Foundry from 'data/nodes/friendly/Foundry.vue';
+import Analyzer from 'data/nodes/friendly/Analyzer.vue';
+import Researcher from 'data/nodes/friendly/Researcher.vue';
+import Bore from 'data/nodes/friendly/Bore.vue';
 import { computed } from 'vue';
 import { root } from 'data/projEntry';
 import { createNode } from 'data/content/nodes';
-import { types } from 'data/content/types';
-import Foundry from 'data/nodes/friendly/Foundry.vue';
 
 const selected = computed(() => root.board.draggingNode.value?.type);
 

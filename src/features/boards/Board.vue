@@ -48,7 +48,9 @@
                 <transition-group name="link" appear>
                     <g
                         v-for="link in unref(links) || []"
-                        :key="`${link.startNode.id}-${link.endNode.id}`"
+                        :key="link.stroke === 'var(--accent1)'
+                            ? `${link.startNode.id}-${link.endNode.id}`
+                            : `${link.startNode.id}-${link.endNode.id}-transfer`"
                     >
                         <BoardLinkVue
                             v-if="link.startNode.distance >= 0 && link.endNode.distance >= 0"

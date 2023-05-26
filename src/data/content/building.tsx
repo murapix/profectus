@@ -2,7 +2,7 @@ import { CoercableComponent } from "features/feature";
 import { Resources } from "./resources";
 import { BoardNodeType, findResource, types } from "./types";
 import { createLazyProxy } from "util/proxies";
-import { BoardNode, getNodeProperty } from "features/boards/board";
+import { BoardNode, NodeComputable, getNodeProperty } from "features/boards/board";
 import { root } from "data/projEntry";
 import { onFinishBuild } from "./nodes";
 
@@ -17,6 +17,7 @@ export type Recipe = {
     input: Partial<Record<Resources, number>>;
     output: Partial<Record<Resources, number>>;
     duration: number;
+    unlocked?: NodeComputable<boolean>;
 }
 
 export type Building = {
@@ -35,7 +36,7 @@ export const buildings: Record<string, Building> = {
         transferDistance: 200,
         storage: [
             { resources: [Resources.Nanites], limit: 100, default: 100, type: "output" },
-            { resources: [Resources.Scrap], limit: 10, type: "input" }
+            { resources: [Resources.Scrap], limit: 1, type: "input" }
         ],
         recipes: [{
             input: { [Resources.Scrap]: 1 },
@@ -64,7 +65,7 @@ export const buildings: Record<string, Building> = {
         cost: { [Resources.Nanites]: 25 },
         display: "Form clusters of nanites into structural materials",
         storage: [
-            { resources: [Resources.Nanites], limit: 50, type: "input" },
+            { resources: [Resources.Nanites], limit: 10, type: "input" },
             { resources: [Resources.Plates], limit: 5, type: "output" }
         ],
         recipes: [{
@@ -153,7 +154,7 @@ export function tickRecipe(node: BoardNode, diff: number) {
         for (const resource of Object.keys(recipe.output) as Resources[]) {
             const output = outputs.find(store => store[0].resource === resource);
             if (output === undefined) continue;
-            if (output[0].amount + recipe.output[resource]! >= (output[1].limit === "node" ? output[0].limit! : output[1].limit)) return;
+            if (output[0].amount + recipe.output[resource]! > (output[1].limit === "node" ? output[0].limit! : output[1].limit)) return;
         }
 
         const inputs = node.storage.filter((_, index) => storage[index].type === "input");

@@ -8,7 +8,7 @@ import { createBoard, BoardNodeLink, BoardNode } from "features/boards/board";
 import { createHotkey } from "features/hotkey";
 import { persistent } from "game/persistence";
 import { normalizeStorage, tickBuild, tickRecipe, tickTransfer } from "./content/building";
-import { startNodes, propagateDistance } from "./content/nodes";
+import { startNodes, propagateDistance, transferRouteUsage } from "./content/nodes";
 import MapTabVue from "./tabs/MapTab.vue";
 import { types } from "./content/types";
 
@@ -29,12 +29,22 @@ export const root = createLayer("main", function (this: BaseLayer) {
                             node.id < connectedNode.id
                         )
                     ) {
-                        links.push({
+                        links.unshift({
                             startNode: node,
                             endNode: connectedNode,
                             stroke: 'var(--accent1)',
                             strokeWidth: 5
-                        })
+                        });
+                        if (node.id in transferRouteUsage.value) {
+                            if (connectedNode.id in transferRouteUsage.value[node.id]) {
+                                links.push({
+                                    startNode: node,
+                                    endNode: connectedNode,
+                                    stroke: 'var(--foreground)',
+                                    strokeWidth: transferRouteUsage.value[node.id][connectedNode.id]
+                                });
+                            }
+                        }
                     }
                 }
             }
