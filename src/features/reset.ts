@@ -98,19 +98,19 @@ const listeners: Record<string, Unsubscribe | undefined> = {};
  * @param layer The layer the reset is attached to
  * @param reset The reset mechanic to track the time since
  */
-export function trackResetTime(layer: BaseLayer, reset: GenericReset): Persistent<Decimal> {
-    const resetTime = persistent<Decimal>(new Decimal(0));
+export function trackResetTime(layer: BaseLayer, reset: GenericReset): Persistent<number> {
+    const resetTime = persistent<number>(0);
     globalBus.on("addLayer", layerBeingAdded => {
         if (layer.id === layerBeingAdded.id) {
             listeners[layer.id]?.();
             listeners[layer.id] = layer.on("preUpdate", diff => {
-                resetTime.value = Decimal.add(resetTime.value, diff);
+                resetTime.value += diff;
             });
         }
     });
     globalBus.on("reset", currentReset => {
         if (currentReset === reset) {
-            resetTime.value = new Decimal(0);
+            resetTime.value = 0;
         }
     });
     return resetTime;

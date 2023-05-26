@@ -59,7 +59,7 @@ export interface ResetButtonOptions extends ClickableOptions {
      */
     minimumGain?: Computable<DecimalSource>;
     /** A persistent ref to track how much time has passed since the last time this tree node was reset. */
-    resetTime?: Persistent<DecimalSource>;
+    resetTime?: Persistent<number>;
 }
 
 /**

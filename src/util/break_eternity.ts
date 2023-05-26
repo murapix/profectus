@@ -121,9 +121,9 @@ export function formatWhole(num: DecimalSource): string {
     if (num.gte(e6)) {
         return format(num);
     }
-    if (num.lte(nearOne) && !num.eq(zero)) {
-        return format(num);
-    }
+    // if (num.lte(nearOne) && !num.eq(zero)) {
+    //     return format(num);
+    // }
     return format(num, 0);
 }
 
