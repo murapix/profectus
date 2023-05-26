@@ -65,7 +65,7 @@ export const buildings: Record<string, Building> = {
         display: "Form clusters of nanites into structural materials",
         storage: [
             { resources: [Resources.Nanites], limit: 50, type: "input" },
-            { resources: [Resources.Plates], limit: 5, type: "input" }
+            { resources: [Resources.Plates], limit: 5, type: "output" }
         ],
         recipes: [{
             input: { [Resources.Nanites]: 10 },
@@ -127,16 +127,16 @@ export function tickRecipe(node: BoardNode, diff: number) {
         if (node.recipeTime <= 0) {
             node.recipeTime = 0;
             const outputsToFill = [];
-            const outputs = node.storage.filter((_, index) => storage[index].type === "output");
+            const outputs = node.storage.map((store, index) => [store, index] as [typeof store, number]).filter((_, index) => storage[index].type === "output");
             for (const [resource, amount] of Object.entries(recipe.output) as [Resources, number][]) {
-                const output = outputs.find(store => store.resource === resource);
+                const output = outputs.find(([store, _]) => store.resource === resource)?.[0];
                 if (output === undefined) outputsToFill.push(resource);
                 else output.amount += amount;
             }
             for (const resource of outputsToFill) {
-                const output = outputs.find((store, index) => store.resource === Resources.Empty && storage[index].resources.includes(resource));
+                const output = outputs.find(([store, index]) => store.resource === Resources.Empty && storage[index].resources.includes(resource))?.[0];
                 if (output === undefined) {
-                    console.error(`Node ${node.id} storage too full for recipe!`, node);
+                    console.error(`Node ${node.id} storage too full for recipe!`, node, building);
                     return;
                 }
                 output.resource = resource;
