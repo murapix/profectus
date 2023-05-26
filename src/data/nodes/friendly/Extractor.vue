@@ -45,7 +45,7 @@ import { root } from 'data/projEntry';
 import { BoardNode, getNodeProperty } from 'features/boards/board';
 import { computed } from 'vue';
 import { types, BoardNodeType } from 'data/content/types';
-import Scrap from './Scrap.vue';
+import Scrap from '../neutral/Scrap.vue';
 
 const sqrtTwo = Math.sqrt(2);
 

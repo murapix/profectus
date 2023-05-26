@@ -72,6 +72,44 @@ export const buildings: Record<string, Building> = {
             output: { [Resources.Plates]: 1 },
             duration: 10
         }]
+    })),
+    analyzer: createLazyProxy(() => ({
+        cost: {
+            [Resources.Nanites]: 25,
+            [Resources.Plates]: 5
+        },
+        display: "Computational attachement module, produces data based on surrounding activity",
+        storage: [
+            { resources: [Resources.ConsumptionResearch], limit: 100, type: "output" },
+            { resources: [Resources.LogisticalResearch], limit: 100, type: "output" },
+            { resources: [Resources.BalisticsResearch], limit: 100, type: "output" },
+            { resources: [Resources.RampancyResearch], limit: 100, type: "output" },
+            { resources: [Resources.CircularResearch], limit: 100, type: "output" }
+        ]
+    })),
+    researcher: createLazyProxy(() => ({
+        cost: {
+            [Resources.Nanites]: 25,
+            [Resources.Plates]: 5
+        },
+        display: "Process data to improve and iterate upon nanite structures and design",
+        storage: [
+            { resources: [Resources.ConsumptionResearch], limit: 100, type: "input" },
+            { resources: [Resources.LogisticalResearch], limit: 100, type: "input" },
+            { resources: [Resources.BalisticsResearch], limit: 100, type: "input" },
+            { resources: [Resources.RampancyResearch], limit: 100, type: "input" },
+            { resources: [Resources.CircularResearch], limit: 100, type: "input" }
+        ]
+    })),
+    bore: createLazyProxy(() => ({
+        cost: {
+            [Resources.Nanites]: 25,
+            [Resources.Plates]: 5
+        },
+        display: "Send a stream of nanites to break down nearby hardened structures",
+        storage: [
+            { resources: [Resources.Nanites], limit: 15, type: "input" }
+        ]
     }))
 }
 
@@ -266,6 +304,7 @@ export function tickTransfer(node: BoardNode, diff: number) {
 
 export function normalizeStorage() {
     for (const node of root.board.nodes.value) {
+        if (node.storage === undefined) continue;
         for (const store of node.storage) {
             if (store.resource === Resources.Empty) continue;
             if (store.amount > 0.98) continue;

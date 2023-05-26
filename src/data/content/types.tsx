@@ -13,55 +13,118 @@ export enum Alignment {
 
 export enum BoardNodeType {
     Core = "core",
-    Scrap = "scrap",
     Extractor = "extractor",
     Router = "router",
+    Foundry = "foundry",
+    Analyzer = "analyzer",
+    Researcher = "researcher",
+    Bore = "bore",
+
+    Scrap = "scrap",
+
+    ContainmentRing = "containmentRing"
 }
 
 export const types: Record<BoardNodeType, NodeTypeOptions> = createLazyProxy(() => {
-    const types = {
-        [BoardNodeType.Core]: {
-            size: 20,
-            shape: () => Shape.Core,
-            alignment: Alignment.Friendly,
-            building: buildings.core
+    const internalTypes = {
+        [Alignment.Friendly]: {
+            [BoardNodeType.Core]: {
+                size: 20,
+                shape: () => Shape.Core,
+                building: buildings.core
+            },
+            [BoardNodeType.Extractor]: {
+                size: 10,
+                shape: () => Shape.Extractor,
+                building: buildings.extractor,
+                onStoreEmpty(node) {
+                    removeNode(node);
+                }
+            },
+            [BoardNodeType.Router]: {
+                size: 10,
+                shape: () => Shape.Router,
+                building: buildings.router
+            },
+            [BoardNodeType.Foundry]: {
+                size: 15,
+                shape: () => Shape.Foundry,
+                building: buildings.foundry
+            },
+            [BoardNodeType.Analyzer]: {
+                size: 15,
+                shape: () => Shape.Analyzer,
+                building: buildings.analyzer
+            },
+            [BoardNodeType.Researcher]: {
+                size: 15,
+                shape: () => Shape.Researcher,
+                building: buildings.researcher
+            },
+            [BoardNodeType.Bore]: {
+                size: 20,
+                shape: () => Shape.Bore,
+                building: buildings.bore
+            }
         },
-        [BoardNodeType.Scrap]: {
-            size: 15,
-            shape: () => Shape.Scrap,
-            alignment: Alignment.Neutral,
-            label: (node) => {
-                if (root.board.selectedNode.value === node) {
-                    const storage = node.storage[0];
-                    return {
-                        text: `${resources[storage.resource].name}: ${storage.amount}`
+        [Alignment.Neutral]: {
+            [BoardNodeType.Scrap]: {
+                size: 15,
+                shape: () => Shape.Scrap,
+                label: (node) => {
+                    let showLabel = false;
+                    if (root.board.selectedNode.value === node) showLabel = true;
+                    if (root.board.draggingNode.value != undefined && canPlaceOn(node, root.board.draggingNode.value)) showLabel = true;
+
+                    if (showLabel) {
+                        const storage = node.storage[0];
+                        return {
+                            text: `${resources[storage.resource].name}: ${storage.amount}`
+                        }
                     }
                 }
             }
         },
-        [BoardNodeType.Extractor]: {
-            size: 10,
-            shape: () => Shape.Extractor,
-            alignment: Alignment.Friendly,
-            building: buildings.extractor,
-            onStoreEmpty(node) {
-                removeNode(node);
-            }
-        },
-        [BoardNodeType.Router]: {
-            size: 10,
-            shape: () => Shape.Router,
-            alignment: Alignment.Friendly,
-            building: buildings.router
-        }
-    } as Record<BoardNodeType, NodeTypeOptions>;
+        [Alignment.Hostile]: {
+            [BoardNodeType.ContainmentRing]: {
+                size: 50,
+                shape: () => Shape.ContainmentRing,
+                durability: 1800, // 30 minutes of a single bore
+                update(node, diff) {
+                    const state = node.state as { durability: number, angle: number };
+                    if (state.durability <= 0) {
+                        removeNode(node);
+                        return;
+                    }
 
-    for (const type of Object.values(types)) {
+                    // 1 minute rotation cycle = 60 seconds => 2PI / 60
+                    state.angle += diff * Math.PI/30;
+                    state.angle %= 2*Math.PI;
+                }
+            }
+        }
+    } as Record<Alignment, Partial<Record<BoardNodeType, Partial<NodeTypeOptions>>>>;
+
+    for (const type of Object.values(internalTypes[Alignment.Friendly])) {
         type.canAccept = canPlaceOn;
         type.onDrop = placeOn;
+        type.alignment = Alignment.Friendly;
+    }
+    for (const type of Object.values(internalTypes[Alignment.Neutral])) {
+        type.canAccept = canPlaceOn;
+        type.onDrop = placeOn;
+        type.alignment = Alignment.Neutral;
+    }
+    for (const type of Object.values(internalTypes[Alignment.Hostile])) {
+        type.alignment = Alignment.Hostile;
+        type.onClick = (node) => {};
     }
 
-    return types;
+    return {
+        ...internalTypes[Alignment.Friendly],
+        ...internalTypes[Alignment.Neutral],
+        ...internalTypes[Alignment.Hostile]
+    } as Record<BoardNodeType, NodeTypeOptions>;
 });
 
 export function canPlaceOn(node: BoardNode, otherNode: BoardNode) {
@@ -119,6 +182,7 @@ function findResourceHelper(node: BoardNode, resource: Resources, path: number[]
         visited.add(neighbor);
     }
     for (const neighborNode of neighbors.map(id => root.idToNodeMap.value[id])) {
+        if (Object.values(neighborNode.buildMaterials).some(amount => amount > 0)) continue;
         const route = findResourceHelper(neighborNode, resource, [node.id, ...path], visited);
         if (route !== undefined) return route;
     }

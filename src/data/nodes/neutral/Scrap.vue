@@ -15,7 +15,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue';
-import Target from './Target.vue'
+import Target from '../utility/Target.vue'
 
 const props = defineProps<{
     size?: number;

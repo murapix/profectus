@@ -18,24 +18,25 @@
             :stroke-width="strokeWidth"
         />
         <path
-            v-if="storage[0] > 0"
-            class="storage"
-            :d="nanitePath"
-            fill="var(--accent1)"
-        />
-        <path
             v-if="storage[1] > 0"
             class="storage"
             :d="scrapPath"
             fill="var(--accent1)"
         />
-        <line
-            :x1="width * sqrtTwo / 2"
-            :y1="width * sqrtTwo / 2"
-            :x2="-width * sqrtTwo / 2"
-            :y2="-width * sqrtTwo / 2"
+        <rect
+            class="storage"
+            :width="-innerWidth/2 + strokeWidth"
+            :height="-innerWidth/2 + strokeWidth"
+            :transform="`translate(${innerWidth/4-strokeWidth/2} ${innerWidth/4-strokeWidth/2})`"
+            fill="var(--locked)"
             :stroke="stroke"
             :stroke-width="strokeWidth"
+        />
+        <path
+            v-if="storage[0] > 0"
+            class="storage"
+            :d="nanitePath"
+            fill="var(--outline)"
         />
     </g>
 </template>
@@ -92,17 +93,19 @@ const storage = computed(() => {
 });
 const nanitePath = computed(() => {
     const amount = storage.value[0];
-    const start = { x: -innerWidth.value/2, y: -innerWidth.value/2 };
+    const innermostWidth = innerWidth.value/2;
+    const start = { x: -innermostWidth/2, y: -innermostWidth/2 };
     return (amount < 0.5 ? [
         'M', start.x, start.y,
-        'L', start.x + innerWidth.value*amount*2, start.y,
-        'L', start.x + innerWidth.value*amount, start.y + innerWidth.value*amount,
+        'L', start.x + innermostWidth*amount*2, start.y,
+        'L', start.x, start.y + innermostWidth*amount*2,
         'Z'
     ] : [
         'M', start.x, start.y,
-        'L', start.x + innerWidth.value, start.y,
-        'L', start.x + innerWidth.value, start.y + innerWidth.value*(amount-0.5)*2,
-        'L', innerWidth.value*(amount-0.5), innerWidth.value*(amount-0.5),
+        'L', start.x + innermostWidth, start.y,
+        'L', start.x + innermostWidth, start.y + innermostWidth*(amount-0.5)*2,
+        'L', start.x + innermostWidth*(amount-0.5)*2, start.y + innermostWidth,
+        'L', start.x, start.y + innermostWidth,
         'Z'
     ]).join(' ');
 });
@@ -112,13 +115,14 @@ const scrapPath = computed(() => {
     return (amount < 0.5 ? [
         'M', start.x, start.y,
         'L', start.x, start.y + innerWidth.value*amount*2,
-        'L', start.x + innerWidth.value*amount, start.y + innerWidth.value*amount,
+        'L', start.x + innerWidth.value*amount*2, start.y,
         'Z'
     ] : [
         'M', start.x, start.y,
         'L', start.x, start.y + innerWidth.value,
         'L', start.x + innerWidth.value*(amount-0.5)*2, start.y + innerWidth.value,
-        'L', innerWidth.value*(amount-0.5), innerWidth.value*(amount-0.5),
+        'L', start.x + innerWidth.value, start.y + innerWidth.value*(amount-0.5)*2,
+        'L', start.x + innerWidth.value, start.y,
         'Z'
     ]).join(' ');
 });

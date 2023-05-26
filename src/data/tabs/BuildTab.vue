@@ -5,15 +5,21 @@
         <div class="scroll">
             <div class="build-row">
                 <div class="build-column">
-                    <span>{{ BoardNodeType.Extractor }}</span>
+                    <span>Extractor</span>
                     <svg width="150px" height="150px" viewBox="-40 -40 80 80" :class="{selected: selected === BoardNodeType.Extractor}">
                         <Extractor @select-building="select(BoardNodeType.Extractor)"/>
                     </svg>
                 </div>
                 <div class="build-column">
-                    <span>{{ BoardNodeType.Router }}</span>
+                    <span>Router</span>
                     <svg width="150px" height="150px" viewBox="-40 -40 80 80" :class="{selected: selected === BoardNodeType.Router}">
                         <Router @select-building="select(BoardNodeType.Router)"/>
+                    </svg>
+                </div>
+                <div class="build-column">
+                    <span>Foundry</span>
+                    <svg width="150px" height="150px" viewBox="-40 -40 80 80" :class="{selected: selected === BoardNodeType.Foundry}">
+                        <Foundry @select-building="select(BoardNodeType.Foundry)"/>
                     </svg>
                 </div>
             </div>
@@ -24,11 +30,13 @@
 <script setup lang="ts">
 import { BoardNodeType } from 'data/content/types';
 import Spacer from 'components/layout/Spacer.vue';
-import Router from 'data/nodes/Router.vue';
-import Extractor from 'data/nodes/Extractor.vue';
+import Router from 'data/nodes/friendly/Router.vue';
+import Extractor from 'data/nodes/friendly/Extractor.vue';
 import { computed } from 'vue';
 import { root } from 'data/projEntry';
 import { createNode } from 'data/content/nodes';
+import { types } from 'data/content/types';
+import Foundry from 'data/nodes/friendly/Foundry.vue';
 
 const selected = computed(() => root.board.draggingNode.value?.type);
 
@@ -104,5 +112,10 @@ span {
 
 .selected {
     transform: scale(1.2);
+}
+
+h3 {
+    position: relative;
+    top: 2;
 }
 </style>

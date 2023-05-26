@@ -44,10 +44,7 @@
                 :fillColor="fillColor"
                 :outlineColor="outlineColor"
             />
-            <Scrap v-else-if="shape === Shape.Scrap"
-                :size="size"
-                :canAccept="canAccept"
-            />
+            
             <Core v-else-if="shape === Shape.Core"
                 :node="node"
                 :size="size"
@@ -62,6 +59,37 @@
                 :size="size"
                 @place-building="placeBuilding"
             />
+            <Foundry v-else-if="shape === Shape.Foundry"
+                :node="node"
+                :size="size"
+                @place-building="placeBuilding"
+            />
+            <!-- <Analyzer v-else-if="shape === Shape.Analyzer"
+                :node="node"
+                :size="size"
+                @place-building="placeBuilding"
+            /> -->
+            <!-- <Researcher v-else-if="shape === Shape.Researcher"
+                :node="node"
+                :size="size"
+                @place-building="placeBuilding"
+            /> -->
+            <!-- <Bore v-else-if="shape === Shape.Bore"
+                :node="node"
+                :size="size"
+                @place-building="placeBuilding"
+            /> -->
+
+            <Scrap v-else-if="shape === Shape.Scrap"
+                :size="size"
+                :canAccept="canAccept"
+            />
+            
+            <ContainmentRing v-else-if="shape === Shape.ContainmentRing"
+                :node="node"
+                :size="size"
+            />
+
 
             <text :fill="titleColor" class="node-title">{{ title }}</text>
         </g>
@@ -101,12 +129,14 @@ import { CSSProperties, computed, toRefs, unref, watch } from "vue";
 import BoardNodeAction from "./BoardNodeAction.vue";
 import CircleNode from "./CircleNode.vue";
 import DiamondNode from "./DiamondNode.vue";
-import Scrap from "data/nodes/Scrap.vue";
-import Core from "data/nodes/Core.vue";
-import Router from "data/nodes/Router.vue";
-import Extractor from "data/nodes/Extractor.vue";
+import Core from "data/nodes/friendly/Core.vue";
+import Router from "data/nodes/friendly/Router.vue";
+import Extractor from "data/nodes/friendly/Extractor.vue";
+import Foundry from "data/nodes/friendly/Foundry.vue";
+import Scrap from "data/nodes/neutral/Scrap.vue";
+import ContainmentRing from "data/nodes/hostile/ContainmentRing.vue";
 import { root } from "data/projEntry";
-import { placeNode } from "data/content/nodes";
+import { canPlaceAtPosition, placeNode } from "data/content/nodes";
 import { types } from "data/content/types";
 
 const _props = defineProps<{
@@ -238,7 +268,9 @@ function placeBuilding(node: BoardNode) {
             return;   
         }
     }
+    if (!canPlaceAtPosition(node)) return;
     placeNode(node);
+    
     root.board.draggingNode.value = null;
     emit("place-building");
 }

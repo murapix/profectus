@@ -10,11 +10,12 @@ export enum Resources {
     Nanites = "nanites",
     Scrap = "scrap",
     Plates = "plates",
-    CircleResearch = "circleResearch",
-    SquareResearch = "squareResearch",
-    DiamondResearch = "diamondResearch",
-    TriangleResearch = "triangleResearch",
-    TriangleResearch2 = "triangleResearch2"
+
+    ConsumptionResearch = "consumption",
+    LogisticalResearch = "logistics",
+    BalisticsResearch = "balistics",
+    RampancyResearch = "rampancy",
+    CircularResearch = "circularLogic"
 }
 
 export const amounts = computed(() => {
@@ -57,25 +58,26 @@ export const resources: Record<Resources, ResourceDisplay> = {
         name: "Metal Plates",
         symbol: '<div style="transform: rotate(45deg)">🔶&#xFE0E;</div>'
     },
-    [Resources.CircleResearch]: {
-        name: "Circular Logic",
-        symbol: '🌀&#xFE0E;'
-    },
-    [Resources.SquareResearch]: {
-        name: "Logistical Notes",
-        symbol: '🔩&#xFE0E;'
-    },
-    [Resources.DiamondResearch]: {
-        name: "Balistics Tests",
-        symbol: '🔶&#xFE0E;'
-    },
-    [Resources.TriangleResearch]: {
+    
+    [Resources.ConsumptionResearch]: {
         name: "Consumption Reports",
         symbol: '🔌&#xFE0E;'
     },
-    [Resources.TriangleResearch2]: {
+    [Resources.LogisticalResearch]: {
+        name: "Logistical Notes",
+        symbol: '🔩&#xFE0E;'
+    },
+    [Resources.BalisticsResearch]: {
+        name: "Balistics Tests",
+        symbol: '🔶&#xFE0E;'
+    },
+    [Resources.RampancyResearch]: {
         name: "Rampant Studies",
         symbol: '<div style="transform: rotate(45deg)">💢&#xFE0E;</div>'
+    },
+    [Resources.CircularResearch]: {
+        name: "Circular Logic",
+        symbol: '🌀&#xFE0E;'
     }
 };
 

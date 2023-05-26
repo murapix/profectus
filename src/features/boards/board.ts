@@ -48,12 +48,24 @@ export enum ProgressDisplay {
 
 /** Node shapes. */
 export const enum Shape {
+    // Default
     Circle = "Circle",
     Diamond = "Triangle",
-    Scrap = "Scrap",
+
+    // Friendly
     Core = "Core",
     Router = "Router",
-    Extractor = "Extractor"
+    Extractor = "Extractor",
+    Foundry = "Foundry",
+    Analyzer = "Analyzer",
+    Researcher = "Researcher",
+    Bore = "Bore",
+
+    // Neutral
+    Scrap = "Scrap",
+
+    // Hostile
+    ContainmentRing = "ContainmentRing"
 };
 
 /** An object representing a node on the board. */
@@ -143,6 +155,7 @@ export interface NodeTypeOptions {
 
     alignment: NodeComputable<Alignment>;
     building?: NodeComputable<Building>;
+    durability?: NodeComputable<number>;
     onStoreEmpty?: (node: BoardNode, index: number) => void;
 }
 

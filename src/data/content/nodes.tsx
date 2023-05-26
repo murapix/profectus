@@ -13,35 +13,47 @@ export type BoardNodeOptions = {
 
 function generateFactoryData(
     node: Partial<BoardNode>,
-    starter = false
+    starter: boolean = false
 ) {
     const type = types[node.type!];
-    if (type.building) {
-        const building = getNodeProperty(type.building, node as BoardNode);
-
-        node.buildMaterials = Object.fromEntries(
-            Object.entries(building.cost).map(
-                ([resource, amount]) => [resource, starter ? 0 : amount]
-            )
-        );
-
-        if (building.storage) {
-            node.storage = building.storage.map(storage => ({
-                resource: Resources.Empty,
-                amount: storage.default ?? 0
-            }));
-        }
-
-        if (building.recipes) {
-            node.recipeTime = 0;
-            if (building.recipes.length === 1) {
-                node.activeRecipe = 0;
+    switch (type.alignment) {
+        case Alignment.Friendly: {
+            if (type.building) {
+                const building = getNodeProperty(type.building, node as BoardNode);
+        
+                node.buildMaterials = Object.fromEntries(
+                    Object.entries(building.cost).map(
+                        ([resource, amount]) => [resource, starter ? 0 : amount]
+                    )
+                );
+        
+                if (building.storage) {
+                    node.storage = building.storage.map(storage => ({
+                        resource: Resources.Empty,
+                        amount: storage.default ?? 0
+                    }));
+                }
+        
+                if (building.recipes) {
+                    node.recipeTime = 0;
+                    if (building.recipes.length === 1) {
+                        node.activeRecipe = 0;
+                    }
+                }
             }
+        
+            break;
+        }
+        case Alignment.Neutral: {
+            break;
+        }
+        case Alignment.Hostile: {
+            break;
         }
     }
-
     node.connectedNodes ??= [];
     node.distance ??= -1;
+    node.buildMaterials ??= {};
 }
 
 export function createStartNode(data: BoardNodeOptions): Partial<BoardNode> {
@@ -68,16 +80,202 @@ export function startNodes() {
         createStartNode({
             position: {x: -100, y: 0},
             type: BoardNodeType.Scrap
+        }),
+        createStartNode({
+            position: {x: -400, y: 60},
+            type: BoardNodeType.Scrap
+        }),
+        createStartNode({
+            position: {x: -190, y: 270},
+            type: BoardNodeType.Scrap
+        }),
+        createStartNode({
+            position: {x: 310, y: -170},
+            type: BoardNodeType.Scrap
+        }),
+        createStartNode({
+            position: {x: 220, y: 400},
+            type: BoardNodeType.Scrap
+        }),
+        createStartNode({
+            position: {x: -40, y: 490},
+            type: BoardNodeType.Scrap
+        }),
+        createStartNode({
+            position: {x: -20, y: -250},
+            type: BoardNodeType.Scrap
+        }),
+        createStartNode({
+            position: {x: -450, y: 290},
+            type: BoardNodeType.Scrap
+        }),
+        createStartNode({
+            position: {x: 500, y: 10},
+            type: BoardNodeType.Scrap
+        }),
+        createStartNode({
+            position: {x: 380, y: 230},
+            type: BoardNodeType.Scrap
+        }),
+        createStartNode({
+            position: {x: -180, y: -430},
+            type: BoardNodeType.Scrap
+        }),
+        createStartNode({
+            position: {x: -280, y: -270},
+            type: BoardNodeType.Scrap
+        }),
+        createStartNode({
+            position: {x: 250, y: -380},
+            type: BoardNodeType.Scrap
+        }),
+        createStartNode({
+            position: {x: 10, y: -520},
+            type: BoardNodeType.Scrap
+        }),
+        createStartNode({
+            position: {x: 160, y: 180},
+            type: BoardNodeType.Scrap
+        }),
+        createStartNode({
+            position: {x: -210, y: -60},
+            type: BoardNodeType.Scrap
+        }),
+        createStartNode({
+            position: {x: -490, y: -180},
+            type: BoardNodeType.Scrap
+        }),
+        createStartNode({
+            position: {x: 440, y: -310},
+            type: BoardNodeType.Scrap
+        }),
+        createStartNode({
+            position: {x: -270, y: 460},
+            type: BoardNodeType.Scrap
+        }),
+        createStartNode({
+            position: {x: 600, y: 0},
+            type: BoardNodeType.ContainmentRing
+        }),
+        createStartNode({
+            position: {x: 425, y: 425},
+            type: BoardNodeType.ContainmentRing
+        }),
+        createStartNode({
+            position: {x: 0, y: 600},
+            type: BoardNodeType.ContainmentRing
+        }),
+        createStartNode({
+            position: {x: -425, y: 425},
+            type: BoardNodeType.ContainmentRing
+        }),
+        createStartNode({
+            position: {x: -600, y: 0},
+            type: BoardNodeType.ContainmentRing
+        }),
+        createStartNode({
+            position: {x: -425, y: -425},
+            type: BoardNodeType.ContainmentRing
+        }),
+        createStartNode({
+            position: {x: 0, y: -600},
+            type: BoardNodeType.ContainmentRing
+        }),
+        createStartNode({
+            position: {x: 425, y: -425},
+            type: BoardNodeType.ContainmentRing
         })
     ];
-    nodes[0].storage![0] = {
-        resource: Resources.Nanites,
-        amount: buildings.core.storage![0].limit as number
-    };
-    nodes[1].storage = [{
-        resource: Resources.Scrap,
-        amount: 45
-    }];
+    {
+        nodes[0].storage![0] = {
+            resource: Resources.Nanites,
+            amount: buildings.core.storage![0].limit as number
+        };
+        nodes[1].storage = [{
+            resource: Resources.Scrap,
+            amount: 45
+        }];
+        nodes[2].storage = [{
+            resource: Resources.Scrap,
+            amount: 55
+        }];
+        nodes[3].storage = [{
+            resource: Resources.Scrap,
+            amount: 95
+        }];
+        nodes[4].storage = [{
+            resource: Resources.Scrap,
+            amount: 100
+        }];
+        nodes[5].storage = [{
+            resource: Resources.Scrap,
+            amount: 95
+        }];
+        nodes[6].storage = [{
+            resource: Resources.Scrap,
+            amount: 45
+        }];
+        nodes[7].storage = [{
+            resource: Resources.Scrap,
+            amount: 95
+        }];
+        nodes[8].storage = [{
+            resource: Resources.Scrap,
+            amount: 95
+        }];
+        nodes[9].storage = [{
+            resource: Resources.Scrap,
+            amount: 50
+        }];
+        nodes[10].storage = [{
+            resource: Resources.Scrap,
+            amount: 35
+        }];
+        nodes[11].storage = [{
+            resource: Resources.Scrap,
+            amount: 95
+        }];
+        nodes[12].storage = [{
+            resource: Resources.Scrap,
+            amount: 40
+        }];
+        nodes[13].storage = [{
+            resource: Resources.Scrap,
+            amount: 35
+        }];
+        nodes[14].storage = [{
+            resource: Resources.Scrap,
+            amount: 55
+        }];
+        nodes[15].storage = [{
+            resource: Resources.Scrap,
+            amount: 55
+        }];
+        nodes[16].storage = [{
+            resource: Resources.Scrap,
+            amount: 40
+        }];
+        nodes[17].storage = [{
+            resource: Resources.Scrap,
+            amount: 80
+        }];
+        nodes[18].storage = [{
+            resource: Resources.Scrap,
+            amount: 95
+        }];
+        nodes[19].storage = [{
+            resource: Resources.Scrap,
+            amount: 90
+        }];
+    }
+    nodes[20].state = { durability: 1800, angle: 0 };
+    nodes[21].state = { durability: 1800, angle: Math.PI/4 };
+    nodes[22].state = { durability: 1800, angle: 2*Math.PI/4 };
+    nodes[23].state = { durability: 1800, angle: 3*Math.PI/4 };
+    nodes[24].state = { durability: 1800, angle: 4*Math.PI/4 };
+    nodes[25].state = { durability: 1800, angle: 5*Math.PI/4 };
+    nodes[26].state = { durability: 1800, angle: 6*Math.PI/4 };
+    nodes[27].state = { durability: 1800, angle: 7*Math.PI/4 };
 
     initializeConnections(nodes);
 
@@ -113,6 +311,34 @@ export function propagateDistance(nodes: BoardNode[], rootNode: BoardNode) {
             toCheck.push(neighbor);
         }
     }
+}
+
+export const maxBuildableRadius = computed(() => {
+    let radius = Infinity;
+    for (const node of root.board.nodes.value) {
+        if (types[node.type].alignment !== Alignment.Hostile) continue;
+        if (node.type !== BoardNodeType.ContainmentRing) continue;
+        const distance = Math.trunc((node.position.x*node.position.x + node.position.y*node.position.y)/10000)*10000;
+        if (distance < radius) radius = distance;
+    }
+    return Math.sqrt(radius);
+});
+
+export function canPlaceAtPosition(node: BoardNode) {
+    const size = getNodeProperty(types[node.type].size, node);
+
+    // TODO: check for enemy emplacements
+    const distanceFromOrigin = Math.sqrt(node.position.x*node.position.x + node.position.y*node.position.y);
+    if (distanceFromOrigin + 2*size >= maxBuildableRadius.value) return false;
+
+    for (const otherNode of root.board.nodes.value) {
+        const otherSize = getNodeProperty(types[otherNode.type].size, otherNode);
+        const minDist = size + otherSize;
+        if (Math.abs(node.position.x - otherNode.position.x) >= minDist) continue;
+        if (Math.abs(node.position.y - otherNode.position.y) >= minDist) continue;
+        return false;
+    }
+    return true;
 }
 
 export function placeNode(newNode: BoardNode) {

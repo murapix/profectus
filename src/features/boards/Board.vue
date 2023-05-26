@@ -10,7 +10,7 @@
         ]"
         :class="classes"
         selector=".g1"
-        :options="{ initialZoom: 1, minZoom: 0.5, maxZoom: 5, zoomDoubleClickSpeed: 1 }"
+        :options="{ initialZoom: 1.5, minZoom: 0.1, maxZoom: 5, zoomDoubleClickSpeed: 1 }"
         ref="stage"
         @init="onInit"
         @mousemove="drag"
@@ -32,10 +32,10 @@
                                     :transform="`translate(${node.position.x} ${node.position.y})`"
                                 >
                                     <path
-                                        :d="`M ${getNodeProperty(types[node.type].building, node).transferDistance} 0
-                                            L 0 ${getNodeProperty(types[node.type].building, node).transferDistance}
-                                            L -${getNodeProperty(types[node.type].building, node).transferDistance} 0
-                                            L 0 -${getNodeProperty(types[node.type].building, node).transferDistance}
+                                        :d="`M ${getNodeProperty(types[node.type].building, node).transferDistance! + snapDistance/2} 0
+                                            L 0 ${getNodeProperty(types[node.type].building, node).transferDistance! + snapDistance/2}
+                                            L -${getNodeProperty(types[node.type].building, node).transferDistance! + snapDistance/2} 0
+                                            L 0 -${getNodeProperty(types[node.type].building, node).transferDistance! + snapDistance/2}
                                             Z
                                         `"
                                         fill="var(--accent1)"
@@ -103,6 +103,7 @@ import type { ProcessedComputable } from "util/computed";
 import { Ref, computed, ref, toRefs, unref, watchEffect } from "vue";
 import BoardLinkVue from "./BoardLink.vue";
 import BoardNodeVue from "./BoardNode.vue";
+import { maxBuildableRadius } from "data/content/nodes";
 
 const _props = defineProps<{
     nodes: Ref<BoardNode[]>;
