@@ -1,9 +1,7 @@
 <template>
-    <!-- Ugly casting to prevent TS compiler error about style because vue doesn't think it supports arrays when it does -->
     <g
         class="boardnode"
         :class="{ [node.type]: true, isSelected, isDraggable, ...classes }"
-        :style="[{ opacity: dragging?.id === node.id && hasDragged ? 0.5 : 1 }, style ?? []] as unknown as (string | CSSProperties)"
         :transform="`translate(${position.x},${position.y})${isSelected ? ' scale(1.2)' : ''}`"
     >
         <BoardNodeAction
@@ -48,35 +46,42 @@
             <Core v-else-if="shape === Shape.Core"
                 :node="node"
                 :size="size"
+                :placing="root.board.draggingNode.value === node"
             />
             <Router v-else-if="shape === Shape.Router"
                 :node="node"
                 :size="size"
+                :placing="root.board.draggingNode.value === node"
                 @place-building="placeBuilding"
             />
             <Extractor v-else-if="shape === Shape.Extractor"
                 :node="node"
                 :size="size"
+                :placing="root.board.draggingNode.value === node"
                 @place-building="placeBuilding"
             />
             <Foundry v-else-if="shape === Shape.Foundry"
                 :node="node"
                 :size="size"
+                :placing="root.board.draggingNode.value === node"
                 @place-building="placeBuilding"
             />
             <Analyzer v-else-if="shape === Shape.Analyzer"
                 :node="node"
                 :size="size"
+                :placing="root.board.draggingNode.value === node"
                 @place-building="placeBuilding"
             />
             <Researcher v-else-if="shape === Shape.Researcher"
                 :node="node"
                 :size="size"
+                :placing="root.board.draggingNode.value === node"
                 @place-building="placeBuilding"
             />
             <Bore v-else-if="shape === Shape.Bore"
                 :node="node"
                 :size="size"
+                :placing="root.board.draggingNode.value === node"
                 @place-building="placeBuilding"
             />
 

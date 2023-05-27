@@ -1,7 +1,7 @@
 <template>
     <g @mouseup="mouseUp"
        @touchend.passive="mouseUp"
-       :style="{opacity: placing ? 0.7 : 1}"
+       :style="{opacity: placing ? 0.5 : 1}"
     >
         <circle
             class="body"

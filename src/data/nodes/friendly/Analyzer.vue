@@ -1,7 +1,7 @@
 <template>
     <g @mouseup="mouseUp"
        @touchend.passive="mouseUp"
-       :style="{opacity: placing ? 0.7  :1}"
+       :style="{opacity: placing ? 0.5  :1}"
     >
         <g transform="rotate(45, 0, 0)">
             <rect
@@ -71,7 +71,7 @@
             />
         </g>
         <circle
-            v-if="placing || (node !== undefined && root.board.selectedNode.value === node)"
+            v-if="showRange"
             r="100"
             fill="none"
             stroke="var(--outline)"
@@ -95,6 +95,13 @@ const props = defineProps<{
 }>();
 const width = computed(() => props.size ?? 15);
 const progressSpread = 0.05;
+
+const showRange = computed(() => {
+    if (props.placing) return true;
+    if (props.node === undefined) return false;
+    if (root.board.selectedNode.value === props.node) return true;
+    return false;
+})
 
 const stroke = computed(() => {
     if (props.node === undefined || root.board.draggingNode.value === props.node) {

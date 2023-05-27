@@ -6,7 +6,7 @@
     <g transform="rotate(45, 0, 0)"
        @mouseup="mouseUp"
        @touchend.passive="mouseUp"
-       :style="{opacity: placing ? 0.7 : 1}"
+       :style="{opacity: placing ? 0.5 : 1}"
     >
         <rect
             class="body"
