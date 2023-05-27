@@ -143,6 +143,13 @@ export function tickRecipe(node: BoardNode, diff: number) {
                 output.resource = resource;
                 output.amount += recipe.output[resource]!;
             }
+            for (const analyzer of root.board.nodes.value.filter(node => node.type === BoardNodeType.Analyzer)) {
+                const squareDistance = (node.position.x - analyzer.position.x)**2 + (node.position.y - analyzer.position.y)**2;
+                if (squareDistance > 100**2) continue;
+                const state = analyzer.state as { 0: { amount: number } };
+                state[0].amount += recipe.duration;
+                if (state[0].amount > 100) state[0].amount = 100;
+            }
         }
     }
     else {

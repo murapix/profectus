@@ -7,7 +7,11 @@
                 ><span>v{{ versionNumber }}</span></Tooltip
             >
         </div>
-        <div style="flex-grow: 1; cursor: unset"></div>
+        <div style="flex-grow: 1; cursor: unset">
+            <div v-if="player.devSpeed === 0"
+                style="text-shadow: 5px 0 10px var(--link), -3px 0 12px var(--foreground)"
+            >Game Paused!</div>
+        </div>
         <div class="discord">
             <span @click="openDiscord" class="material-icons">discord</span>
             <ul class="discord-links">
@@ -108,6 +112,8 @@ import { ref } from "vue";
 import Info from "./Info.vue";
 import Options from "./Options.vue";
 import SavesManager from "./SavesManager.vue";
+import player from "game/player";
+import { root } from "data/projEntry";
 
 const info = ref<ComponentPublicInstance<typeof Info> | null>(null);
 const savesManager = ref<ComponentPublicInstance<typeof SavesManager> | null>(null);

@@ -69,6 +69,7 @@ export const types: Record<BoardNodeType, NodeTypeOptions> = createLazyProxy(() 
                         3: { resource: Resources.RampancyResearch, amount: number },
                         4: { resource: Resources.CircularResearch, amount: number }
                     };
+
                     if (state.timeLeft > 0) {
                         state.timeLeft -= diff;
                         if (state.timeLeft <= 0) {

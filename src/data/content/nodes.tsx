@@ -340,7 +340,7 @@ export function canPlaceAtPosition(node: BoardNode) {
 
     // TODO: check for enemy emplacements
     const distanceFromOrigin = Math.sqrt(node.position.x*node.position.x + node.position.y*node.position.y);
-    if (distanceFromOrigin + 2*size >= maxBuildableRadius.value) return false;
+    if (distanceFromOrigin + size >= maxBuildableRadius.value) return false;
 
     for (const otherNode of root.board.nodes.value) {
         const otherSize = getNodeProperty(types[otherNode.type].size, otherNode);
@@ -364,6 +364,18 @@ export function placeNode(newNode: BoardNode) {
 }
 
 export function onFinishBuild(newNode: BoardNode) {
+    const building = getNodeProperty(types[newNode.type].building, newNode);
+    if (building !== undefined) {
+        const cost = Object.values(building.cost).reduce((a,b) => a+b);
+        for (const analyzer of root.board.nodes.value.filter(node => node.type === BoardNodeType.Analyzer).filter(node => node !== newNode)) {
+            const squareDistance = (newNode.position.x - analyzer.position.x)**2 + (newNode.position.y - analyzer.position.y)**2;
+            if (squareDistance > 100**2) continue;
+            const state = analyzer.state as { 1: { amount: number } };
+            state[1].amount += cost;
+            if (state[1].amount > 100) state[1].amount = 100;
+        }
+    }
+
     const nodes = root.board.nodes.value.filter(node => canConnect(node, newNode));
     for (const node of nodes) {
         if (!node.connectedNodes.includes(newNode.id)) node.connectedNodes.push(newNode.id);

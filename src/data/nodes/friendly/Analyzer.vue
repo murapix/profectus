@@ -17,10 +17,38 @@
                 class="body"
                 :width="width * sqrtTwo / 2"
                 :height="width * sqrtTwo / 2"
-                :transform="`translate(${0} ${0})`"
                 fill="var(--locked)"
                 :stroke="stroke"
                 stroke-width=2
+            />
+            <path
+                v-if="progress > 0 && progress < 0.5 + progressSpread"
+                class="progress"
+                :d="progressPathOne"
+                stroke="var(--foreground)"
+                stroke-width=2
+            />
+            <path
+                v-if="progress > 0.5 - progressSpread"
+                class="progress"
+                transform="rotate(90, 0, 0) scale(-1, 1)"
+                :d="progressPathTwo"
+                stroke="var(--foreground)"
+                stroke-width=2
+            />
+            <rect
+                class="body"
+                :width="width * sqrtTwo / 2 - 2"
+                :height="width * sqrtTwo / 2 - 2"
+                :transform="`translate(${-width*sqrtTwo/2+1} ${-width*sqrtTwo/2+1})`"
+                fill="var(--locked)"
+            />
+            <rect
+                class="body"
+                :width="width * sqrtTwo / 2 - 2"
+                :height="width * sqrtTwo / 2 - 2"
+                :transform="`translate(1 1)`"
+                fill="var(--locked)"
             />
         </g>
         <circle
@@ -42,6 +70,13 @@
                 :stroke-dashoffset="1-build"
             />
         </g>
+        <circle
+            v-if="placing || (node !== undefined && root.board.selectedNode.value === node)"
+            r="100"
+            fill="none"
+            stroke="var(--outline)"
+            stroke-width=2
+        />
     </g>
 </template>
 
@@ -59,6 +94,7 @@ const props = defineProps<{
     placing?: boolean;
 }>();
 const width = computed(() => props.size ?? 15);
+const progressSpread = 0.05;
 
 const stroke = computed(() => {
     if (props.node === undefined || root.board.draggingNode.value === props.node) {
@@ -89,6 +125,108 @@ const build = computed(() => {
     return Math.max(0, 1 - materialsLeft / cost);
 });
 
+const progress = computed(() => {
+    if (props.node === undefined) return 0;
+    if (props.node.state === undefined) return 0;
+
+    const timeLeft = (props.node.state as { timeLeft: number }).timeLeft;
+    if (timeLeft <= 0) return 0;
+    if (timeLeft >= 1) return 0;
+    return 1 - timeLeft;
+});
+
+const progressPathOne = computed(() => {
+    const radius = (width.value * sqrtTwo) / 2;
+    let startAngle = (progress.value - progressSpread) * 2;
+    let endAngle = (progress.value + progressSpread) * 2;
+    let path = [] as (string|number)[];
+    if (startAngle < 0) startAngle = 0;
+    if (endAngle > 1) endAngle = 1;
+    if (startAngle < 0.25) {
+        path.push('M', 0, radius*startAngle*4);
+        if (endAngle > 0.25) {
+            path.push('L', 0, radius,
+                        'L', radius*(endAngle-0.25)*4, radius);
+        }
+        else {
+            path.push('L', 0, radius*endAngle*4);
+        }
+    }
+    else if (startAngle < 0.5) {
+        path.push('M', radius*(startAngle-0.25)*4, radius);
+        if (endAngle > 0.5) {
+            path.push('L', radius, radius,
+                        'L', radius, radius - radius*(endAngle-0.5)*4);
+        }
+        else {
+            path.push('L', radius*(endAngle-0.25)*4, radius);
+        }
+    }
+    else if (startAngle < 0.75) {
+        path.push('M', radius, radius - radius*(startAngle-0.5)*4);
+        if (endAngle > 0.75) {
+            path.push('L', radius, 0,
+                        'L', radius - radius*(endAngle-0.75)*4, 0);
+        }
+        else {
+            path.push('L', radius, radius - radius*(endAngle-0.5)*4);
+        }
+    }
+    else {
+        path.push('M', radius - radius*(startAngle-0.75)*4, 0,
+                    'L', radius - radius*(endAngle-0.75)*4, 0);
+    }
+    path.push('L', radius/2, radius/2,
+                'Z');
+    return path.join(' ');
+});
+
+const progressPathTwo = computed(() => {
+    const radius = (width.value * sqrtTwo) / 2;
+    let startAngle = (progress.value - 0.5 - progressSpread) * 2;
+    let endAngle = (progress.value - 0.5 + progressSpread) * 2;
+    let path = [] as (string|number)[];
+    if (startAngle < 0) startAngle = 0;
+    if (endAngle > 1) endAngle = 1;
+    if (startAngle < 0.25) {
+        path.push('M', 0, radius*startAngle*4);
+        if (endAngle > 0.25) {
+            path.push('L', 0, radius,
+                        'L', radius*(endAngle-0.25)*4, radius);
+        }
+        else {
+            path.push('L', 0, radius*endAngle*4);
+        }
+    }
+    else if (startAngle < 0.5) {
+        path.push('M', radius*(startAngle-0.25)*4, radius);
+        if (endAngle > 0.5) {
+            path.push('L', radius, radius,
+                        'L', radius, radius - radius*(endAngle-0.5)*4);
+        }
+        else {
+            path.push('L', radius*(endAngle-0.25)*4, radius);
+        }
+    }
+    else if (startAngle < 0.75) {
+        path.push('M', radius, radius - radius*(startAngle-0.5)*4);
+        if (endAngle > 0.75) {
+            path.push('L', radius, 0,
+                        'L', radius - radius*(endAngle-0.75)*4, 0);
+        }
+        else {
+            path.push('L', radius, radius - radius*(endAngle-0.5)*4);
+        }
+    }
+    else {
+        path.push('M', radius - radius*(startAngle-0.75)*4, 0,
+                    'L', radius - radius*(endAngle-0.75)*4, 0);
+    }
+    path.push('L', radius/2, radius/2,
+                'Z');
+    return path.join(' ');
+});
+
 const emit = defineEmits<{
     (type: "select-building"): void;
     (type: "place-building", node: BoardNode): void;
@@ -113,6 +251,10 @@ function mouseUp() {
 
 .build {
     pointer-events: none;
+    transition-duration: 0s;
+}
+
+.progress {
     transition-duration: 0s;
 }
 

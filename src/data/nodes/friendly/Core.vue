@@ -183,7 +183,7 @@ const progressPath = computed(() => {
             'Z'
         ].join(' ');
     }
-})
+});
 </script>
 
 <style scoped>
