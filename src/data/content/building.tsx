@@ -27,7 +27,10 @@ export type Building = {
     storage?: Storage[],
     transferDistance?: number,
     recipes?: Recipe[],
-    display: false | CoercableComponent
+    display?: {
+        name: CoercableComponent
+        description: CoercableComponent
+    }
 }
 
 export const buildings: Record<string, Building> = {
@@ -42,14 +45,16 @@ export const buildings: Record<string, Building> = {
             input: { [Resources.Scrap]: 1 },
             output: { [Resources.Nanites]: 1 },
             duration: 1
-        }],
-        display: false
+        }]
     })),
     extractor: createLazyProxy(() => ({
         buildableOn: [BoardNodeType.Scrap],
         cost: { [Resources.Nanites]: 10 },
         storage: [{ resources: [Resources.Scrap], limit: "node", type: "output" }],
-        display: "Extract scrap from ruined nodes",
+        display: {
+            name: "Extractor",
+            description: "Extract scrap from ruined nodes"
+        },
         onBuild(node, builtOn) {
             if (builtOn === undefined) return;
             node.storage[0] = builtOn.storage[0];
@@ -59,11 +64,17 @@ export const buildings: Record<string, Building> = {
     router: createLazyProxy(() => ({
         cost: { [Resources.Nanites]: 5 },
         transferDistance: 100,
-        display: "Transfer resources to further-away nodes"
+        display: {
+            name: "Router",
+            description: "Transfer resources to further-away nodes"
+        }
     })),
     foundry: createLazyProxy(() => ({
         cost: { [Resources.Nanites]: 25 },
-        display: "Form clusters of nanites into structural materials",
+        display: {
+            name: "Foundry",
+            description: "Form clusters of nanites into structural materials"
+        },
         storage: [
             { resources: [Resources.Nanites], limit: 10, type: "input" },
             { resources: [Resources.Plates], limit: 5, type: "output" }
@@ -79,7 +90,10 @@ export const buildings: Record<string, Building> = {
             [Resources.Nanites]: 25,
             [Resources.Plates]: 5
         },
-        display: "Computational attachement module, produces data based on surrounding activity",
+        display: {
+            name: "Analyzer",
+            description: "Computational attachement module, produces data based on surrounding activity"
+        },
         storage: [
             { resources: [Resources.ConsumptionResearch], limit: 100, type: "output" },
             { resources: [Resources.LogisticalResearch], limit: 100, type: "output" },
@@ -93,7 +107,10 @@ export const buildings: Record<string, Building> = {
             [Resources.Nanites]: 25,
             [Resources.Plates]: 5
         },
-        display: "Process data to improve and iterate upon nanite structures and design",
+        display: {
+            name: "Researcher",
+            description: "Process data to improve and iterate upon nanite structures and design"
+        },
         storage: [
             { resources: [Resources.ConsumptionResearch], limit: 100, type: "input" },
             { resources: [Resources.LogisticalResearch], limit: 100, type: "input" },
@@ -107,7 +124,10 @@ export const buildings: Record<string, Building> = {
             [Resources.Nanites]: 25,
             [Resources.Plates]: 5
         },
-        display: "Send a stream of nanites to break down nearby hardened structures",
+        display: {
+            name: "Nanite Bore",
+            description: "Send a stream of nanites to break down nearby hardened structures"
+        },
         storage: [
             { resources: [Resources.Nanites], limit: 15, type: "input" }
         ]

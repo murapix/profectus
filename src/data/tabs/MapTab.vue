@@ -1,9 +1,9 @@
 <template>
     <div class="map-tab">
-        <div class="research-tab"><h3>Research Tab</h3></div>
+        <BuildTab />
         <div class="map-column">
             <slot />
-            <BuildTab />
+            <div class="research-tab"><h3>Research Tab</h3></div>
         </div>
         <ResourceTab />
     </div>
@@ -32,9 +32,9 @@ import ResourceTab from './ResourceTab.vue';
 
 .research-tab {
     background: var(--locked);
-    border-right: solid var(--border-thickness);
-    width: calc(100% - var(--border-thickness));
-    height: 100%;
+    border-top: solid var(--border-thickness);
+    width: 100%;
+    height: calc(100% - var(--border-thickness));
 }
 
 h3 {

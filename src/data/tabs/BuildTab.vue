@@ -3,43 +3,49 @@
         <h3>Buildings</h3>
         <Spacer />
         <div class="scroll">
-            <div class="build-row">
-                <div class="build-column">
-                    <span>Extractor</span>
-                    <svg width="150px" height="150px" viewBox="-40 -40 80 80" :class="{selected: selected === BoardNodeType.Extractor}">
-                        <Extractor @select-building="select(BoardNodeType.Extractor)"/>
-                    </svg>
-                </div>
-                <div class="build-column">
-                    <span>Router</span>
-                    <svg width="150px" height="150px" viewBox="-40 -40 80 80" :class="{selected: selected === BoardNodeType.Router}">
-                        <Router @select-building="select(BoardNodeType.Router)"/>
-                    </svg>
-                </div>
-                <div class="build-column">
-                    <span>Foundry</span>
-                    <svg width="150px" height="150px" viewBox="-40 -40 80 80" :class="{selected: selected === BoardNodeType.Foundry}">
-                        <Foundry @select-building="select(BoardNodeType.Foundry)"/>
-                    </svg>
-                </div>
-                <div class="build-column">
-                    <span>Analyzer</span>
-                    <svg width="150px" height="150px" viewBox="-40 -40 80 80" :class="{selected: selected === BoardNodeType.Analyzer}">
-                        <Analyzer @select-building="select(BoardNodeType.Analyzer)"/>
-                    </svg>
-                </div>
-                <div class="build-column">
-                    <span>Researcher</span>
-                    <svg width="150px" height="150px" viewBox="-40 -40 80 80" :class="{selected: selected === BoardNodeType.Researcher}">
-                        <Researcher @select-building="select(BoardNodeType.Researcher)"/>
-                    </svg>
-                </div>
-                <div class="build-column">
-                    <span>Nanite Bore</span>
-                    <svg width="150px" height="150px" viewBox="-40 -40 80 80" :class="{selected: selected === BoardNodeType.Bore}">
-                        <Bore @select-building="select(BoardNodeType.Bore)"/>
-                    </svg>
-                </div>
+            <div class="build-column">
+                <BuildTabElement
+                    :type="BoardNodeType.Extractor"
+                    :building="buildings.extractor"
+                    :component="Extractor"
+                    :selected="selected"
+                    @select-building="select"
+                />
+                <BuildTabElement
+                    :type="BoardNodeType.Router"
+                    :building="buildings.router"
+                    :component="Router"
+                    :selected="selected"
+                    @select-building="select"
+                />
+                <BuildTabElement
+                    :type="BoardNodeType.Foundry"
+                    :building="buildings.foundry"
+                    :component="Foundry"
+                    :selected="selected"
+                    @select-building="select"
+                />
+                <BuildTabElement
+                    :type="BoardNodeType.Analyzer"
+                    :building="buildings.analyzer"
+                    :component="Analyzer"
+                    :selected="selected"
+                    @select-building="select"
+                />
+                <BuildTabElement
+                    :type="BoardNodeType.Researcher"
+                    :building="buildings.researcher"
+                    :component="Researcher"
+                    :selected="selected"
+                    @select-building="select"
+                />
+                <BuildTabElement
+                    :type="BoardNodeType.Bore"
+                    :building="buildings.bore"
+                    :component="Bore"
+                    :selected="selected"
+                    @select-building="select"
+                />
             </div>
         </div>
     </div>
@@ -57,6 +63,8 @@ import Bore from 'data/nodes/friendly/Bore.vue';
 import { computed } from 'vue';
 import { root } from 'data/projEntry';
 import { createNode } from 'data/content/nodes';
+import { buildings } from 'data/content/building';
+import BuildTabElement from './BuildTabElement.vue';
 
 const selected = computed(() => root.board.draggingNode.value?.type);
 
@@ -77,15 +85,15 @@ function select(nodeType: BoardNodeType) {
 
 <style scoped>
 .build-tab {
-    height: calc(100% - var(--border-thickness));
-    width: 100%;
-    border-top: solid var(--border-thickness);
+    height: calc(100vh - 50px);
+    width: calc(100% - var(--border-thickness));
+    border-right: solid var(--border-thickness);
     background: var(--locked);
 }
 
 .scroll {
     overflow-y: auto;
-    height: calc(100% - 38px);
+    max-height: calc(100% - 75px);
     margin-left: var(--border-thickness);
     margin-right: var(--border-thickness);
 }
@@ -106,32 +114,12 @@ function select(nodeType: BoardNodeType) {
     background: var(--feature-foreground);
 }
 
-.build-row {
+.build-column {
     display: flex;
-    flex-flow: row wrap;
+    flex-flow: column nowrap;
     justify-content: center;
     align-items: stretch;
-    max-width: 100%;
-}
-
-.build-column {
-    position: relative;
-    margin-left: 15px;
-    margin-right: 15px;
-}
-
-.build-column > span {
-    position: absolute;
-    left: 0;
-    right: 0;
-}
-
-span {
-    color: var(--feature-foreground);
-}
-
-.selected {
-    transform: scale(1.2);
+    max-height: calc(100% - 38px);
 }
 
 h3 {

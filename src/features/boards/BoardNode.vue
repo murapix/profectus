@@ -130,7 +130,7 @@ import type { BoardNode, GenericBoardNodeAction, GenericNodeType } from "feature
 import { getNodeProperty, Shape } from "features/boards/board";
 import { isVisible } from "features/feature";
 import settings from "game/settings";
-import { CSSProperties, computed, toRefs, unref, watch } from "vue";
+import { computed, toRefs, unref, watch } from "vue";
 import BoardNodeAction from "./BoardNodeAction.vue";
 import CircleNode from "./CircleNode.vue";
 import DiamondNode from "./DiamondNode.vue";

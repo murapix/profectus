@@ -162,7 +162,7 @@ const buildPath = computed(() => {
             'Z'
         ].join(' ');
     }
-})
+});
 
 const emit = defineEmits<{
     (type: "select-building"): void;
