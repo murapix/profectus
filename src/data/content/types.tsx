@@ -138,7 +138,7 @@ export const types: Record<BoardNodeType, NodeTypeOptions> = createLazyProxy(() 
                      // start at 30 minutes of a single bore
                     const state = node.state as { size: number };
                     if (state === undefined) return 1800;
-                    return 1800*10**(state.size/600);
+                    return 180*10**(state.size/600);
                 },
                 update(node, diff) {
                     const state = node.state as { durability: number, angle: number, size: number };
@@ -151,7 +151,7 @@ export const types: Record<BoardNodeType, NodeTypeOptions> = createLazyProxy(() 
                             type: BoardNodeType.ContainmentRing
                         });
                         nextRing.state = {
-                            durability: 1800*10**count,
+                            durability: 180*10**count,
                             angle: 0,
                             size: 600*count
                         };
