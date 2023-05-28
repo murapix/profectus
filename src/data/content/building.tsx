@@ -4,7 +4,9 @@ import { BoardNodeType, findResource, types } from "./types";
 import { createLazyProxy } from "util/proxies";
 import { BoardNode, NodeComputable, getNodeProperty } from "features/boards/board";
 import { root } from "data/projEntry";
-import { onFinishBuild } from "./nodes";
+import { buildSpeed, onFinishBuild, transferSpeed } from "./nodes";
+import { GenericResearch } from "./research";
+import { Ref, ref } from "vue";
 
 export type Storage = {
     resources: Resources[];
@@ -33,6 +35,8 @@ export type Building = {
     }
 }
 
+export let scrapyardSource: Ref<BoardNode | undefined> = ref(undefined);
+
 export const buildings: Record<string, Building> = {
     core: createLazyProxy(() => ({
         cost: {},
@@ -59,6 +63,10 @@ export const buildings: Record<string, Building> = {
             if (builtOn === undefined) return;
             node.storage[0] = builtOn.storage[0];
             node.storage[0].limit = builtOn.storage[0].amount;
+
+            const scrapSource = root.board.nodes.value.filter(other => other.type === BoardNodeType.Bore).find(bore => bore.state === builtOn.id);
+            if (scrapSource === undefined) return;
+            scrapSource.state = node.id;
         }
     })),
     router: createLazyProxy(() => ({
@@ -226,7 +234,7 @@ export function tickBuild(node: BoardNode, diff: number) {
         
         const source = root.idToNodeMap.value[node.transferRoute.path[0]];
         const { resource, store } = node.transferRoute;
-        const transferred = Math.min(source.storage[store].amount, node.buildMaterials[resource]!, 1 * diff); // TODO: replace with <buildSpeed>
+        const transferred = Math.min(source.storage[store].amount, node.buildMaterials[resource]!, buildSpeed.value * diff);
         node.buildMaterials[resource]! -= transferred;
         source.storage[store].amount -= transferred;
         if (source.storage[store].amount <= 0) {
@@ -244,6 +252,48 @@ export function tickBuild(node: BoardNode, diff: number) {
     }
 }
 
+export function tickWeapons(node: BoardNode, diff: number) {
+    if (node.distance < 0) return;
+    if (node.type !== BoardNodeType.Bore) return;
+    if (Object.values(node.buildMaterials).some(amount => amount > 0)) return;
+    const building = getNodeProperty(types[node.type].building, node);
+    if (building === undefined) return;
+    if (building.storage === undefined) return;
+
+    if (node.transferRoute === undefined) {
+        if (node.storage[0].amount >= (building.storage[0].limit as number)) return;
+        node.transferRoute = findResource(node, building.storage[0].resources[0]);
+        if (node.transferRoute !== undefined) return;
+    }
+    else {
+        for (const id of node.transferRoute.path) {
+            if (id in root.idToNodeMap.value && root.idToNodeMap.value[id].distance >= 0) continue;
+            delete node.transferRoute;
+            return;
+        }
+
+        const source = root.idToNodeMap.value[node.transferRoute.path[0]];
+        const { resource, store } = node.transferRoute;
+
+        const limit = building.storage[0].limit === "node" ? node.storage[0].limit! : building.storage[0].limit
+        const availableSpace = limit - node.storage[0].amount;
+        const transferred = Math.min(source.storage[store].amount, availableSpace, transferSpeed.value * diff);
+        node.storage[0].resource = resource;
+        node.storage[0].amount += transferred;
+        source.storage[store].amount -= transferred;
+        if (source.storage[store].amount <= 0) {
+            source.storage[store].amount = 0;
+            source.storage[store].resource = Resources.Empty;
+            types[source.type].onStoreEmpty?.(source, store);
+            delete node.transferRoute;
+        }
+        if (limit - node.storage[0].amount <= 0) {
+            node.storage[0].amount = limit;
+            delete node.transferRoute;
+        }
+    }
+}
+
 export function tickTransfer(node: BoardNode, diff: number) {
     if (node.distance < 0) return;
     if (Object.values(node.buildMaterials).some(amount => amount > 0)) return;
@@ -253,7 +303,7 @@ export function tickTransfer(node: BoardNode, diff: number) {
     if (building.storage === undefined) return;
     if (building.recipes === undefined) return;
     
-    const stores = [] as [typeof node.storage[0], typeof building.storage[0]][];
+    const stores = [] as [typeof node.storage[0], Storage][];
     for (let i = 0; i < node.storage.length; i++) {
         const buildingStore = building.storage[i];
         if (buildingStore.type !== "input") continue;
@@ -313,7 +363,7 @@ export function tickTransfer(node: BoardNode, diff: number) {
 
         const limit = sinkStore[1].limit === "node" ? sinkStore[0].limit! : sinkStore[1].limit
         const availableSpace = limit - sinkStore[0].amount;
-        const transferred = Math.min(source.storage[store].amount, availableSpace, 1 * diff); // TODO: replace with <transferSpeed>
+        const transferred = Math.min(source.storage[store].amount, availableSpace, transferSpeed.value * diff);
         sinkStore[0].resource = resource;
         sinkStore[0].amount += transferred;
         source.storage[store].amount -= transferred;
@@ -326,6 +376,87 @@ export function tickTransfer(node: BoardNode, diff: number) {
         if (limit - sinkStore[0].amount <= 0) {
             sinkStore[0].amount = limit;
             delete node.transferRoute;
+        }
+    }
+}
+
+export function tickResearcher(node: BoardNode, diff: number) {
+    if (node.distance < 0) return;
+    if (node.type !== BoardNodeType.Researcher) return;
+    if (Object.values(node.buildMaterials).some(amount => amount > 0)) return;
+
+    const building = getNodeProperty(types[node.type].building, node);
+    if (building === undefined) return;
+    if (building.storage === undefined) return;
+
+    const stores = [] as [typeof node.storage[0], Storage][];
+    for (let i = 0; i < node.storage.length; i++) {
+        const buildingStore = building.storage[i];
+        if (buildingStore.type !== "input") continue;
+        stores.push([node.storage[i], building.storage[i]]);
+    }
+
+    if (node.transferRoute === undefined) {
+        for (const [nodeStore, buildingStore] of stores) {
+            const limit = buildingStore.limit === "node" ? nodeStore.limit! : buildingStore.limit;
+            const space = limit - nodeStore.amount;
+            if (space >= 1) {
+                node.transferRoute = findResource(node, buildingStore.resources[0]);
+                if (node.transferRoute !== undefined) return;
+            }
+        }
+    }
+    else {
+        for (const id of node.transferRoute.path) {
+            if (id in root.idToNodeMap.value && root.idToNodeMap.value[id].distance >= 0) continue;
+            delete node.transferRoute;
+            return;
+        }
+
+        const source = root.idToNodeMap.value[node.transferRoute.path[0]];
+        const { resource, store } = node.transferRoute;
+        let sinkStore = stores.find(([node, _]) => node.resource === resource);
+        if (sinkStore === undefined) sinkStore = stores.find(([node, building]) => node.resource === Resources.Empty && building.resources.includes(resource));
+        if (sinkStore === undefined) {
+            delete node.transferRoute;
+            return;
+        }
+
+        const limit = sinkStore[1].limit === "node" ? sinkStore[0].limit! : sinkStore[1].limit
+        const availableSpace = limit - sinkStore[0].amount;
+        const transferred = Math.min(source.storage[store].amount, availableSpace, transferSpeed.value * diff);
+        sinkStore[0].resource = resource;
+        sinkStore[0].amount += transferred;
+        source.storage[store].amount -= transferred;
+        if (source.storage[store].amount <= 0) {
+            source.storage[store].amount = 0;
+            source.storage[store].resource = Resources.Empty;
+            types[source.type].onStoreEmpty?.(source, store);
+            delete node.transferRoute;
+        }
+        if (limit - sinkStore[0].amount <= 0) {
+            sinkStore[0].amount = limit;
+            delete node.transferRoute;
+        }
+    }
+}
+
+export function tickResearch(research: GenericResearch, node: BoardNode, diff: number) {
+    if (node.distance < 0) return;
+    if (node.type !== BoardNodeType.Researcher) return;
+    if (Object.values(node.buildMaterials).some(amount => amount > 0)) return;
+
+    for (const store of node.storage) {
+        if (store.amount <= 0) continue;
+        if (research.progress.value[store.resource] === undefined) continue;
+        if (research.progress.value[store.resource]! <= 0) continue;
+        const progress = Math.min(store.amount, research.progress.value[store.resource]!, 1*diff); // TODO: research speed? (probably from t2/3/+ researcher nodes)
+        research.progress.value[store.resource]! -= progress;
+        if (research.progress.value[store.resource]! < 0) research.progress.value[store.resource] = 0;
+        store.amount -= progress;
+        if (store.amount < 0) {
+            store.amount = 0;
+            store.resource = Resources.Empty;
         }
     }
 }

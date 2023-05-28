@@ -8,23 +8,23 @@
                 :class="{ selected: selectedAction?.id === action.id }"
                 :transform="`translate(
                         ${
-                            (-size - 30) *
+                            (-size - 10) *
                             Math.sin(((actions.length - 1) / 2 - index) * actionDistance)
                         },
                         ${
-                            (size + 30) *
+                            (size + 10) *
                             Math.cos(((actions.length - 1) / 2 - index) * actionDistance)
                         }
                     )`"
                 @mousedown="e => performAction(e, action)"
-                @touchstart="e => performAction(e, action)"
+                @touchstart.passive="e => performAction(e, action)"
                 @mouseup="e => actionMouseUp(e, action)"
                 @touchend.stop="e => actionMouseUp(e, action)"
             >
                 <circle
                     :fill="getNodeProperty(action.fillColor, node)"
-                    r="20"
-                    :stroke-width="selectedAction?.id === action.id ? 4 : 0"
+                    r="5"
+                    :stroke-width="selectedAction?.id === action.id ? 1 : 0"
                     :stroke="outlineColor"
                 />
                 <text :fill="titleColor" class="material-icons">{{
@@ -87,12 +87,15 @@ function actionMouseUp(e: MouseEvent | TouchEvent, action: GenericBoardNodeActio
 <style scoped>
 .action:not(.boardnode):hover circle,
 .action:not(.boardnode).selected circle {
-    r: 25;
+    r: 6;
 }
 
+.action:not(.boardnode):not(:hover) text {
+    font-size: 37.5%;
+}
 .action:not(.boardnode):hover text,
 .action:not(.boardnode).selected text {
-    font-size: 187.5%; /* 150% * 1.25 */
+    font-size: 46.875%; /* 150% * 1.25 */
 }
 
 .action:not(.boardnode) text {

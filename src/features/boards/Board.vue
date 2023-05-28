@@ -64,6 +64,18 @@
                             "
                         />
                     </g>
+                    <g
+                        v-for="node in sortedNodes.filter(node => node.type === BoardNodeType.Bore)" :key="node.id"
+                    >
+                        <line v-if="node.storage[0].amount > 0 && node.position.x**2 + node.position.y**2 >= (maxBuildableRadius-100)**2 && node.state !== undefined"
+                            :x1="node.position.x"
+                            :y1="node.position.y"
+                            :x2="node.position.x * Math.sqrt(maxBuildableRadius**2/(node.position.x**2 + node.position.y**2))"
+                            :y2="node.position.y * Math.sqrt(maxBuildableRadius**2/(node.position.x**2 + node.position.y**2))"
+                            stroke="var(--foreground)"
+                            stroke-width=""
+                        />
+                    </g>
                 </transition-group>
                 <transition-group name="grow" :duration="500" appear>
                     <g v-for="node in sortedNodes" :key="node.id" style="transition-duration: 0s">
@@ -105,6 +117,7 @@ import type { ProcessedComputable } from "util/computed";
 import { Ref, computed, ref, toRefs, unref, watchEffect } from "vue";
 import BoardLinkVue from "./BoardLink.vue";
 import BoardNodeVue from "./BoardNode.vue";
+import { BoardNodeType } from "data/content/types";
 import { maxBuildableRadius } from "data/content/nodes";
 
 const _props = defineProps<{

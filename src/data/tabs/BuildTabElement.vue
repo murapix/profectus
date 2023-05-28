@@ -9,10 +9,10 @@
             <div class="build-element-cost">
                 <template v-for="[resource, symbol, amount] of costs">
                     <div class="cost-element" :style="{
-                        color: amounts[resource]! > amount ? 'var(--feature-foreground)' : undefined
+                        color: amounts[resource]! >= amount ? 'var(--feature-foreground)' : undefined
                     }">
                         <component :is="symbol" />
-                        <span>: {{ formatWhole(amount) }}</span>
+                        <span>{{ formatWhole(amount) }}</span>
                     </div>
                 </template>
             </div>
@@ -35,7 +35,7 @@ const props = defineProps<{
     building: Building,
     selected?: BoardNodeType
 }>();
-amounts.value;
+
 const name = computed(() => coerceComponent(props.building.display?.name ?? "", "h3"));
 const description = computed(() => coerceComponent(props.building.display?.description ?? "", "div"));
 const costs = computed(() => {

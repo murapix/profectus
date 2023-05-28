@@ -6,6 +6,7 @@
     >
         <circle
             class="body"
+            :class="classes"
             :r="width/sqrtTwo/2"
             :transform="`translate(${offset} 0)`"
             fill="var(--locked)"
@@ -14,6 +15,8 @@
         />
         <circle
             class="body"
+            :class="classes"
+            :style="styles[0]"
             :r="width/sqrtTwo/2"
             :transform="`translate(0 ${offset})`"
             fill="var(--locked)"
@@ -22,6 +25,8 @@
         />
         <circle
             class="body"
+            :class="classes"
+            :style="styles[1]"
             :r="width/sqrtTwo/2"
             :transform="`translate(${-offset} 0)`"
             fill="var(--locked)"
@@ -30,6 +35,8 @@
         />
         <circle
             class="body"
+            :class="classes"
+            :style="styles[2]"
             :r="width/sqrtTwo/2"
             :transform="`translate(0 ${-offset})`"
             fill="var(--locked)"
@@ -107,7 +114,7 @@ const build = computed(() => {
     return Math.max(0, 1 - materialsLeft / cost);
 });
 const buildPath = computed(() => {
-    const radius = -offset.value + 2;
+    const radius = -offset.value + 1;
     const start = { x: radius, y: radius };
     if (build.value < 0.25) {
         const b = build.value*4;
@@ -153,6 +160,32 @@ const buildPath = computed(() => {
     }
 });
 
+const researchTypeCount = computed(() => {
+    if (props.node === undefined) return 0;
+    if (root.activeResearch.value === "none") return 0;
+    return props.node.storage.filter(store => store.amount > 0).length;
+});
+const classes = computed(() => {
+    switch (researchTypeCount.value) {
+        default: return [];
+        case 1: return ['pulsing', 'pulse-one'];
+        case 2: return ['pulsing', 'pulse-two'];
+        case 3: return ['pulsing', 'pulse-three'];
+        case 4: return ['pulsing', 'pulse-four'];
+        case 5: return ['pulsing', 'pulse-five'];
+    }
+});
+const styles = computed(() => {
+    switch (researchTypeCount.value) {
+        default: return [];
+        case 1: return [{animationDelay: "-0.625s"}, {animationDelay: "-1.25s"}, {animationDelay: "-1.875s"}]
+        case 2: return [{animationDelay: "-0.5s"}, {animationDelay: "-1s"}, {animationDelay: "-1.5s"}]
+        case 3: return [{animationDelay: "-0.375s"}, {animationDelay: "-0.75s"}, {animationDelay: "-1.125s"}]
+        case 4: return [{animationDelay: "-0.25s"}, {animationDelay: "-0.5s"}, {animationDelay: "-0.75s"}]
+        case 5: return [{animationDelay: "-0.125s"}, {animationDelay: "-0.25s"}, {animationDelay: "-0.375s"}]
+    }
+});
+
 const emit = defineEmits<{
     (type: "select-building"): void;
     (type: "place-building", node: BoardNode): void;
@@ -178,5 +211,38 @@ function mouseUp() {
 .build {
     pointer-events: none;
     transition-duration: 0s;
+}
+
+.pulsing {
+    animation: pulsing ease-in infinite alternate;
+}
+
+.pulse-one {
+    animation-duration: 2.5s;
+}
+
+.pulse-two {
+    animation-duration: 2s;
+}
+
+.pulse-three {
+    animation-duration: 1.5s;
+}
+
+.pulse-four {
+    animation-duration: 1s;
+}
+
+.pulse-five {
+    animation-duration: 0.5s;
+}
+
+@keyframes pulsing {
+    0% {
+        fill: var(--locked);
+    }
+    50% {
+        fill: var(--foreground);
+    }
 }
 </style>

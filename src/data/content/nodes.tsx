@@ -2,7 +2,7 @@ import { BoardNode, getNodeProperty, getUniqueNodeID } from "features/boards/boa
 import { Alignment, BoardNodeType, types } from "./types"
 import { computed } from "vue";
 import { Resources } from "./resources";
-import { buildings } from "./building";
+import { buildings, scrapyardSource } from "./building";
 import { root } from "data/projEntry";
 
 export type BoardNodeOptions = {
@@ -307,6 +307,16 @@ export function canPlaceAtPosition(node: BoardNode) {
     const distanceFromOrigin = Math.sqrt(node.position.x*node.position.x + node.position.y*node.position.y);
     if (distanceFromOrigin + size >= maxBuildableRadius.value) return false;
 
+    if (node.type === BoardNodeType.Bore) {
+        if (distanceFromOrigin < maxBuildableRadius.value - 100) return false;
+    }
+    if (node.type === BoardNodeType.Scrap) {
+        if (scrapyardSource.value === undefined) return false;
+        const selected = scrapyardSource.value;
+        const distanceFromSelected = (node.position.x-selected.position.x)**2+(node.position.y-selected.position.y)**2;
+        if (distanceFromSelected > 100**2) return false;
+    }
+
     for (const otherNode of root.board.nodes.value) {
         const otherSize = getNodeProperty(types[otherNode.type].size, otherNode);
         const minDist = size + otherSize;
@@ -392,8 +402,32 @@ export const transferRouteUsage = computed(() => {
         }
     }
     return links;
-})
+});
 
-export function getLinkUsage(node: BoardNode) {
-    
-}
+export const buildSpeed = computed(() => {
+    if (root.research.buildSpeed10.researched.value) return 144;
+    if (root.research.buildSpeed9.researched.value) return 89;
+    if (root.research.buildSpeed8.researched.value) return 55;
+    if (root.research.buildSpeed7.researched.value) return 34;
+    if (root.research.buildSpeed6.researched.value) return 21;
+    if (root.research.buildSpeed5.researched.value) return 13;
+    if (root.research.buildSpeed4.researched.value) return 8;
+    if (root.research.buildSpeed3.researched.value) return 5;
+    if (root.research.buildSpeed2.researched.value) return 3;
+    if (root.research.buildSpeed.researched.value) return 2;
+    return 1;
+});
+
+export const transferSpeed = computed(() => {
+    if (root.research.transferSpeed10.researched.value) return 144;
+    if (root.research.transferSpeed9.researched.value) return 89;
+    if (root.research.transferSpeed8.researched.value) return 55;
+    if (root.research.transferSpeed7.researched.value) return 34;
+    if (root.research.transferSpeed6.researched.value) return 21;
+    if (root.research.transferSpeed5.researched.value) return 13;
+    if (root.research.transferSpeed4.researched.value) return 8;
+    if (root.research.transferSpeed3.researched.value) return 5;
+    if (root.research.transferSpeed2.researched.value) return 3;
+    if (root.research.transferSpeed.researched.value) return 2;
+    return 1;
+})

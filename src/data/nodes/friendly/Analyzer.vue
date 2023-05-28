@@ -1,7 +1,7 @@
 <template>
     <g @mouseup="mouseUp"
        @touchend.passive="mouseUp"
-       :style="{opacity: placing ? 0.5  :1}"
+       :style="{opacity: placing ? 0.5 : 1}"
     >
         <g transform="rotate(45, 0, 0)">
             <rect
@@ -70,9 +70,10 @@
                 :stroke-dashoffset="1-build"
             />
         </g>
+        <!-- Selecting a node increases its scale by 1.2x, so the ring needs to be shrunk by that much to keep it accurate -->
         <circle
             v-if="showRange"
-            r="100"
+            :r="(props.node !== undefined && root.board.selectedNode.value === props.node) ? 100/1.2 : 100"
             fill="none"
             stroke="var(--outline)"
             stroke-width=2

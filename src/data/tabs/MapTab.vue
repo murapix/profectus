@@ -3,7 +3,7 @@
         <BuildTab />
         <div class="map-column">
             <slot />
-            <div class="research-tab"><h3>Research Tab</h3></div>
+            <ResearchTab />
         </div>
         <ResourceTab />
     </div>
@@ -12,6 +12,7 @@
 <script setup lang="ts">
 import BuildTab from './BuildTab.vue';
 import ResourceTab from './ResourceTab.vue';
+import ResearchTab from './ResearchTab.vue';
 </script>
 
 <style scoped>

@@ -40,6 +40,7 @@
                     @select-building="select"
                 />
                 <BuildTabElement
+                    v-if="root.research.bore.researched.value"
                     :type="BoardNodeType.Bore"
                     :building="buildings.bore"
                     :component="Bore"

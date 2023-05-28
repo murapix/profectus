@@ -1,9 +1,9 @@
-import { BoardNode, NodeTypeOptions, Shape, getNodeProperty } from "features/boards/board";
-import { buildings } from "./building";
+import { BoardNode, BoardNodeActionOptions, NodeTypeOptions, Shape, getNodeProperty } from "features/boards/board";
+import { buildings, scrapyardSource, tickResearcher } from "./building";
 import { createLazyProxy } from "util/proxies";
 import { Resources, resources } from "./resources";
 import { root } from "data/projEntry";
-import { createNode, placeNode, removeNode } from "./nodes";
+import { createNode, maxBuildableRadius, placeNode, removeNode } from "./nodes";
 
 export enum Alignment {
     Friendly = "friendly",
@@ -26,6 +26,47 @@ export enum BoardNodeType {
 }
 
 export const types: Record<BoardNodeType, NodeTypeOptions> = createLazyProxy(() => {
+    const deleteNode = {
+        id: "delete-node",
+        visibility: true,
+        icon: '🗑️',
+        tooltip() {
+            return {
+                text: "Remove this node",
+                color: 'var(--foreground)'
+            }
+        },
+        onClick(node: BoardNode) {
+            removeNode(node);
+        }
+    }
+    const placeScrap = {
+        id: "place-scrap",
+        visibility(node: BoardNode) {
+            return !((node.state as number) in root.idToNodeMap.value);
+        },
+        icon: '🔗',
+        tooltip() {
+            return {
+                text: "Pick the output scrap pile location",
+                color: 'var(--foreground)'
+            }
+        },
+        onClick(node: BoardNode) {
+            scrapyardSource.value = node;
+            const scrapPile = createNode({
+                position: {x: 0, y: 0},
+                type: BoardNodeType.Scrap
+            });
+            scrapPile.storage = [{
+                resource: Resources.Scrap,
+                amount: 0
+            }];
+            node.state = scrapPile.id;
+            root.board.draggingNode.value = scrapPile;
+        }
+    } as BoardNodeActionOptions
+
     const internalTypes = {
         [Alignment.Friendly]: {
             [BoardNodeType.Core]: {
@@ -39,17 +80,20 @@ export const types: Record<BoardNodeType, NodeTypeOptions> = createLazyProxy(() 
                 building: buildings.extractor,
                 onStoreEmpty(node) {
                     removeNode(node);
-                }
+                },
+                actions: [deleteNode]
             },
             [BoardNodeType.Router]: {
                 size: 10,
                 shape: () => Shape.Router,
-                building: buildings.router
+                building: buildings.router,
+                actions: [deleteNode]
             },
             [BoardNodeType.Foundry]: {
                 size: 15,
                 shape: () => Shape.Foundry,
-                building: buildings.foundry
+                building: buildings.foundry,
+                actions: [deleteNode]
             },
             [BoardNodeType.Analyzer]: {
                 size: 15,
@@ -99,17 +143,49 @@ export const types: Record<BoardNodeType, NodeTypeOptions> = createLazyProxy(() 
                             return;
                         }
                     }
-                }
+                },
+                actions: [deleteNode]
             },
             [BoardNodeType.Researcher]: {
                 size: 15,
                 shape: () => Shape.Researcher,
-                building: buildings.researcher
+                building: buildings.researcher,
+                update(node, diff) {
+                    tickResearcher(node, diff);
+                },
+                actions: [deleteNode]
             },
             [BoardNodeType.Bore]: {
                 size: 20,
                 shape: () => Shape.Bore,
-                building: buildings.bore
+                building: buildings.bore,
+                update(node, diff) {
+                    if (node.storage[0].amount < diff) return;
+                    if (node.state === undefined) return;
+                    if (!((node.state as number) in root.idToNodeMap.value)) {
+                        node.state = undefined;
+                        return;
+                    }
+                    
+                    if (node.position.x**2 + node.position.y**2 < (maxBuildableRadius.value-100)**2) return;
+                    node.storage[0].amount -= diff;
+                    const output = root.idToNodeMap.value[node.state as number].storage[0];
+                    output.resource = Resources.Scrap;
+                    output.amount += diff * 1.5;
+                    if (output.amount > output.limit!) output.limit = output.amount;
+                    const ring = root.board.nodes.value.find(node => node.type === BoardNodeType.ContainmentRing)!;
+                    const state = ring.state as { durability: number };
+                    state.durability -= diff;
+
+                    for (const analyzer of root.board.nodes.value.filter(node => node.type === BoardNodeType.Analyzer)) {
+                        const squareDistance = (node.position.x - analyzer.position.x)**2 + (node.position.y - analyzer.position.y)**2;
+                        if (squareDistance > 100**2) continue;
+                        const state = analyzer.state as { 2: { amount: number } };
+                        state[2].amount += diff;
+                        if (state[2].amount > 100) state[2].amount = 100;
+                    }
+                },
+                actions: [placeScrap, deleteNode]
             }
         },
         [Alignment.Neutral]: {

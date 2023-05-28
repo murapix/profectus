@@ -78,7 +78,7 @@ const storage = computed(() => {
     }
 
     const node = props.node;
-    return node.storage[0].amount / (node.storage[0].limit ?? 100)
+    return node.storage[0].amount / node.storage[0].limit!
 });
 const storagePath = computed(() => {
     const innerWidth = 2*offset.value + 2;

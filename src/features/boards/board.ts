@@ -493,7 +493,7 @@ export function createBoard<T extends BoardOptions>(
                     processComputable(action, "fillColor");
                     processComputable(action, "tooltip");
                     processComputable(action, "confirmationLabel");
-                    setDefault(action, "confirmationLabel", { text: "Tap again to confirm" });
+                    setDefault(action, "confirmationLabel", { text: "Click again to confirm" });
                     processComputable(action, "links");
                 }
             }

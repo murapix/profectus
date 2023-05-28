@@ -1,7 +1,7 @@
 <template>
     <g
         class="boardnode"
-        :class="{ [node.type]: true, isSelected, isDraggable, ...classes }"
+        :class="{ [node.type]: true, isSelected, isDraggable, invalidPlacement, ...classes }"
         :transform="`translate(${position.x},${position.y})${isSelected ? ' scale(1.2)' : ''}`"
     >
         <BoardNodeAction
@@ -86,15 +86,17 @@
             />
 
             <Scrap v-else-if="shape === Shape.Scrap"
+                :node="node"
                 :size="size"
                 :canAccept="canAccept"
+                :placing="root.board.draggingNode.value === node"
+                @place-building="placeBuilding"
             />
             
             <ContainmentRing v-else-if="shape === Shape.ContainmentRing"
                 :node="node"
                 :size="size"
             />
-
 
             <text :fill="titleColor" class="node-title">{{ title }}</text>
         </g>
@@ -105,7 +107,7 @@
                     :fill="label.color ?? titleColor"
                     class="node-title"
                     :class="{ pulsing: label.pulsing }"
-                    :y="-size - 20"
+                    :y="-size - 10"
                     >{{ label.text }}
                 </text>
             </g>
@@ -117,7 +119,7 @@
                 :fill="confirmationLabel.color ?? titleColor"
                 class="node-title"
                 :class="{ pulsing: confirmationLabel.pulsing }"
-                :y="size + 75"
+                :y="size + 30"
                 >{{ confirmationLabel.text }}</text
             >
         </transition>
@@ -217,7 +219,7 @@ const label = computed(
 const confirmationLabel = computed(() =>
     getNodeProperty(
         unref(props.selectedAction)?.confirmationLabel ?? {
-            text: "Tap again to confirm"
+            text: "Click again to confirm"
         },
         unref(props.node)
     )
@@ -254,7 +256,6 @@ const canAccept = computed(
         unref(props.hasDragged) &&
         getNodeProperty(props.nodeType.value.canAccept, unref(props.node), props.dragging.value)
 );
-const style = computed(() => getNodeProperty(props.nodeType.value.style, unref(props.node)));
 const classes = computed(() => getNodeProperty(props.nodeType.value.classes, unref(props.node)));
 
 function mouseDown(e: MouseEvent | TouchEvent) {
@@ -268,6 +269,11 @@ function mouseUp(e: MouseEvent | TouchEvent) {
         e.stopPropagation();
     }
 }
+
+const invalidPlacement = computed(() => {
+    if (root.board.draggingNode.value !== props.node.value) return false;
+    return !canPlaceAtPosition(props.node.value);
+});
 
 function placeBuilding(node: BoardNode) {
     const building = getNodeProperty(types[node.type].building, node);
@@ -296,6 +302,11 @@ function placeBuilding(node: BoardNode) {
     font-size: 100%;
     pointer-events: none;
     filter: drop-shadow(3px 3px 2px var(--tooltip-background));
+}
+
+.invalidPlacement {
+    --outline: var(--danger);
+    --highlighted: var(--danger);
 }
 
 .pulsing {
