@@ -3,7 +3,7 @@ import { buildings } from "./building";
 import { createLazyProxy } from "util/proxies";
 import { Resources, resources } from "./resources";
 import { root } from "data/projEntry";
-import { placeNode, removeNode } from "./nodes";
+import { createNode, placeNode, removeNode } from "./nodes";
 
 export enum Alignment {
     Friendly = "friendly",
@@ -132,13 +132,31 @@ export const types: Record<BoardNodeType, NodeTypeOptions> = createLazyProxy(() 
         },
         [Alignment.Hostile]: {
             [BoardNodeType.ContainmentRing]: {
-                size: 50,
+                size: 0,
                 shape: () => Shape.ContainmentRing,
-                durability: 1800, // 30 minutes of a single bore
+                durability(node) {
+                     // start at 30 minutes of a single bore
+                    const state = node.state as { size: number };
+                    if (state === undefined) return 1800;
+                    return 1800*10**(state.size/600);
+                },
                 update(node, diff) {
-                    const state = node.state as { durability: number, angle: number };
+                    const state = node.state as { durability: number, angle: number, size: number };
                     if (state.durability <= 0) {
                         removeNode(node);
+
+                        const count = 1 + (node.state as { size: number}).size / 600;
+                        const nextRing = createNode({
+                            position: {x: 0, y: 0},
+                            type: BoardNodeType.ContainmentRing
+                        });
+                        nextRing.state = {
+                            durability: 1800*10**count,
+                            angle: 0,
+                            size: 600*count
+                        };
+                        placeNode(nextRing);
+
                         return;
                     }
 

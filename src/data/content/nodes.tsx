@@ -165,35 +165,7 @@ export function startNodes() {
             type: BoardNodeType.Scrap
         }),
         createStartNode({
-            position: {x: 600, y: 0},
-            type: BoardNodeType.ContainmentRing
-        }),
-        createStartNode({
-            position: {x: 425, y: 425},
-            type: BoardNodeType.ContainmentRing
-        }),
-        createStartNode({
-            position: {x: 0, y: 600},
-            type: BoardNodeType.ContainmentRing
-        }),
-        createStartNode({
-            position: {x: -425, y: 425},
-            type: BoardNodeType.ContainmentRing
-        }),
-        createStartNode({
-            position: {x: -600, y: 0},
-            type: BoardNodeType.ContainmentRing
-        }),
-        createStartNode({
-            position: {x: -425, y: -425},
-            type: BoardNodeType.ContainmentRing
-        }),
-        createStartNode({
-            position: {x: 0, y: -600},
-            type: BoardNodeType.ContainmentRing
-        }),
-        createStartNode({
-            position: {x: 425, y: -425},
+            position: {x: 0, y: 0},
             type: BoardNodeType.ContainmentRing
         })
     ];
@@ -279,14 +251,7 @@ export function startNodes() {
             amount: 90
         }];
     }
-    nodes[20].state = { durability: 1800, angle: 0 };
-    nodes[21].state = { durability: 1800, angle: Math.PI/4 };
-    nodes[22].state = { durability: 1800, angle: 2*Math.PI/4 };
-    nodes[23].state = { durability: 1800, angle: 3*Math.PI/4 };
-    nodes[24].state = { durability: 1800, angle: 4*Math.PI/4 };
-    nodes[25].state = { durability: 1800, angle: 5*Math.PI/4 };
-    nodes[26].state = { durability: 1800, angle: 6*Math.PI/4 };
-    nodes[27].state = { durability: 1800, angle: 7*Math.PI/4 };
+    nodes[20].state = { durability: 1800, angle: 0, size: 600 };
 
     initializeConnections(nodes);
 
@@ -329,10 +294,10 @@ export const maxBuildableRadius = computed(() => {
     for (const node of root.board.nodes.value) {
         if (types[node.type].alignment !== Alignment.Hostile) continue;
         if (node.type !== BoardNodeType.ContainmentRing) continue;
-        const distance = Math.trunc((node.position.x*node.position.x + node.position.y*node.position.y)/10000)*10000;
+        const distance = (node.state as { size: number }).size;
         if (distance < radius) radius = distance;
     }
-    return Math.sqrt(radius);
+    return radius;
 });
 
 export function canPlaceAtPosition(node: BoardNode) {

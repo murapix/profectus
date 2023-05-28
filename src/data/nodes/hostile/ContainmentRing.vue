@@ -1,18 +1,20 @@
 <template>
-    <g :transform="`translate(${origin.x-node.position.x}, ${origin.y-node.position.y}) rotate(${degrees - 45})`">
-        <path
-            class="body"
-            :d="arcPath"
-            fill="var(--locked)"
-            stroke="var(--link)"
-            stroke-width=2
-        />
-        <path
-            class="health"
-            :d="healthPath"
-            fill="#2A6DA1"
-        />
-    </g>
+    <template v-for="angle in 8">
+        <g :transform="`translate(${origin.x}, ${origin.y}) rotate(${degrees + angle*45})`">
+            <path
+                class="body"
+                :d="arcPath"
+                fill="var(--locked)"
+                stroke="var(--link)"
+                stroke-width=2
+            />
+            <path
+                class="health"
+                :d="healthPath"
+                fill="#2A6DA1"
+            />
+        </g>
+    </template>
 </template>
 
 <script setup lang="ts">
@@ -26,15 +28,13 @@ const props = defineProps<{
 }>();
 
 const origin = computed(() => (props.node.state as { origin: { x: number, y: number } }).origin ?? { x: 0, y: 0 });
+const size = computed(() => (props.node.state as { size: number }).size ?? 600);
 
 const minRadius = computed(() => {
-    const xDiff = props.node.position.x - origin.value.x;
-    const yDiff = props.node.position.y - origin.value.y;
-    const distance = Math.sqrt(xDiff*xDiff + yDiff*yDiff);
-    return Math.trunc(distance/100)*100;
+    return size.value
 });
 const maxRadius = computed(() => {
-    return minRadius.value + props.size;
+    return minRadius.value + 50;
 });
 
 const state = computed(() => props.node.state as { durability: number, angle: number });
