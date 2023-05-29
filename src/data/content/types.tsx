@@ -40,7 +40,7 @@ export const types: Record<BoardNodeType, NodeTypeOptions> = createLazyProxy(() 
         onClick(node: BoardNode) {
             removeNode(node);
             if (types[node.type].onDelete !== undefined) {
-                types[node.type].onDelete(node);
+                types[node.type].onDelete!(node);
             }
         }
     }
