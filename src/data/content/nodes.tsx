@@ -318,15 +318,12 @@ export function canPlaceAtPosition(node: BoardNode) {
     }
 
     const building = getNodeProperty(types[node.type].building, node);
-    let canBuildOn = (type: BoardNodeType) => false;
-    if (building !== undefined) {
-        if (building.buildableOn !== undefined) {
-            canBuildOn = building.buildableOn.includes;
-        }
-    }
-
     for (const otherNode of root.board.nodes.value) {
-        if (canBuildOn(otherNode.type)) continue;
+        if (building !== undefined) {
+            if (building.buildableOn !== undefined) {
+                if (building.buildableOn.includes(otherNode.type)) continue;
+            }
+        }
         const otherSize = getNodeProperty(types[otherNode.type].size, otherNode);
         const minDist = size + otherSize;
         if (Math.abs(node.position.x - otherNode.position.x) >= minDist) continue;
