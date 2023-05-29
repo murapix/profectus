@@ -179,7 +179,7 @@ export const types: Record<BoardNodeType, NodeTypeOptions> = createLazyProxy(() 
                 building: buildings.core,
                 label: (node) => {
                     if (root.board.selectedNode.value !== node) return;
-                    const buiding = getNodeProperty(types[node.type].building, node);
+                    const building = getNodeProperty(types[node.type].building, node);
                     if (building === undefined) return;
                     if (building.recipes === undefined) return;
                     if (building.activeRecipe === undefined) return;

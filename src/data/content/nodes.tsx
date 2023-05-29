@@ -318,7 +318,7 @@ export function canPlaceAtPosition(node: BoardNode) {
     }
 
     const building = getNodeProperty(types[node.type].building, node);
-    let canBuildOn = (type) => false;
+    let canBuildOn = (type: BoardNodeType) => false;
     if (building !== undefined) {
         if (building.buildableOn !== undefined) {
             canBuildOn = building.buildableOn.includes;
