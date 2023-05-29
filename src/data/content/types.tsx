@@ -305,7 +305,7 @@ export const types: Record<BoardNodeType, NodeTypeOptions> = createLazyProxy(() 
                     if (showLabel) {
                         const storage = node.storage[0];
                         return {
-                            text: `${resources[storage.resource].name}: ${storage.amount}`
+                            text: `${resources[storage.resource].name}: ${formatWhole(storage.amount)}`
                         }
                     }
                 }
