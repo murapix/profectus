@@ -176,7 +176,26 @@ export const types: Record<BoardNodeType, NodeTypeOptions> = createLazyProxy(() 
             [BoardNodeType.Core]: {
                 size: 20,
                 shape: () => Shape.Core,
-                building: buildings.core
+                building: buildings.core,
+                label: (node) => {
+                    if (root.board.selectedNode.value !== node) return;
+                    const buiding = getNodeProperty(types[node.type].building, node);
+                    if (building === undefined) return;
+                    if (building.recipes === undefined) return;
+                    if (building.activeRecipe === undefined) return;
+
+                    const text = "Active Recipe:"
+                    const input = Object.entries(building.recipes[node.activeRecipe].input).map(([resource, amount]) =>
+                        `${formatWhole(amount)} ${resources[resource as Resources].name}`
+                    ).join(', ');
+                    const output = Object.entries(building.recipes[node.activeRecipe].output).map(([resource, amount]) =>
+                        `${formatWhole(amount)} ${resources[resource as Resources].name}`
+                    ).join(', ');
+                    return {
+                        text: `${text} ${input} -> ${output}`,
+                        color: 'var(--foreground)'
+                    }
+                }
             },
             [BoardNodeType.Extractor]: {
                 size: 10,
@@ -186,15 +205,12 @@ export const types: Record<BoardNodeType, NodeTypeOptions> = createLazyProxy(() 
                     removeNode(node);
                 },
                 label: (node) => {
-                    let showLabel = false;
-                    if (root.board.selectedNode.value === node) showLabel = true;
+                    if (root.board.selectedNode.value !== node) return;
                     const storage = node.storage[0];
-                    if (storage.limit === undefined) showLabel = false;
+                    if (storage.limit === undefined) return;
 
-                    if (showLabel) {
-                        return {
-                            text: `${resources[storage.resource].name}: ${formatWhole(storage.amount)}/${formatWhole(storage.limit!)}`
-                        }
+                    return {
+                        text: `${resources[storage.resource].name}: ${formatWhole(storage.amount)}/${formatWhole(storage.limit!)}`
                     }
                 },
                 actions: [deleteNode]
@@ -209,6 +225,25 @@ export const types: Record<BoardNodeType, NodeTypeOptions> = createLazyProxy(() 
                 size: 15,
                 shape: () => Shape.Foundry,
                 building: buildings.foundry,
+                label: (node) => {
+                    if (root.board.selectedNode.value !== node) return;
+                    const buiding = getNodeProperty(types[node.type].building, node);
+                    if (building === undefined) return;
+                    if (building.recipes === undefined) return;
+                    if (building.activeRecipe === undefined) return;
+
+                    const text = "Active Recipe:"
+                    const input = Object.entries(building.recipes[node.activeRecipe].input).map(([resource, amount]) =>
+                        `${formatWhole(amount)} ${resources[resource as Resources].name}`
+                    ).join(', ');
+                    const output = Object.entries(building.recipes[node.activeRecipe].output).map(([resource, amount]) =>
+                        `${formatWhole(amount)} ${resources[resource as Resources].name}`
+                    ).join(', ');
+                    return {
+                        text: `${text} ${input} -> ${output}`,
+                        color: 'var(--foreground)'
+                    }
+                },
                 actions: [previousRecipe, selectRecipe, nextRecipe, deleteNode]
             },
             [BoardNodeType.Analyzer]: {
