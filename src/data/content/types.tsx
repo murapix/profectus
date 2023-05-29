@@ -4,6 +4,7 @@ import { createLazyProxy } from "util/proxies";
 import { Resources, resources } from "./resources";
 import { root } from "data/projEntry";
 import { createNode, maxBuildableRadius, placeNode, removeNode } from "./nodes";
+import { formatWhole } from "util/break_eternity";
 
 export enum Alignment {
     Friendly = "friendly",
