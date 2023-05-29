@@ -266,7 +266,7 @@ export const types: Record<BoardNodeType, NodeTypeOptions> = createLazyProxy(() 
                 update(node, diff) {
                     if (node.storage[0].amount < diff) return;
                     if (node.state === undefined) return;
-                    if (!((node.state as number) in root.idToNodeMap.value) && node.state !== root.board.draggingNode.id) {
+                    if (!((node.state as number) in root.idToNodeMap.value) && node.state !== root.board.draggingNode.value.id) {
                         node.state = undefined;
                         return;
                     }
