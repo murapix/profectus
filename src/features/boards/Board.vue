@@ -73,7 +73,8 @@
                             :x2="node.position.x * Math.sqrt(maxBuildableRadius**2/(node.position.x**2 + node.position.y**2))"
                             :y2="node.position.y * Math.sqrt(maxBuildableRadius**2/(node.position.x**2 + node.position.y**2))"
                             stroke="var(--foreground)"
-                            stroke-width=""
+                            stroke-width="1"
+                            style="transition-duration: 0s"
                         />
                     </g>
                 </transition-group>

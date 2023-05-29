@@ -395,6 +395,8 @@ export const transferRouteUsage = computed(() => {
         for (let i = 0; i < route.path.length-1; i++) {
             const start = route.path[i];
             const end = route.path[i+1];
+            if (links[start] === undefined) continue;
+            if (links[end] === undefined) continue;
             links[start][end] ??= 0;
             links[start][end] += 1;
             links[end][start] ??= 0;

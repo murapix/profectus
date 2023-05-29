@@ -10,6 +10,7 @@ export enum Resources {
     Nanites = "nanites",
     Scrap = "scrap",
     Plates = "plates",
+    Circuits = "circuits",
 
     ConsumptionResearch = "consumption",
     LogisticalResearch = "logistics",
@@ -58,6 +59,10 @@ export const resources: Record<Resources, ResourceDisplay> = {
         name: "Metal Plates",
         symbol: '<div style="transform: rotate(45deg)">🔶&#xFE0E;</div>'
     },
+    [Resources.Circuits]: {
+        name: "Basic Circuit",
+        symbol: '⏚'
+    },    
     
     [Resources.ConsumptionResearch]: {
         name: "Consumption Reports",
@@ -82,7 +87,7 @@ export const resources: Record<Resources, ResourceDisplay> = {
 };
 
 export type ResourceDisplay = {
-    name: CoercableComponent,
+    name: string,
     symbol: CoercableComponent,
     color?: string,
     visibility?: ProcessedComputable<Visibility | boolean>;

@@ -265,4 +265,8 @@ function mouseUp() {
 .storage {
     transition-duration: 0s;
 }
+
+.progress {
+    transition-duration: 0s;
+}
 </style>

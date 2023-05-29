@@ -84,13 +84,23 @@ export const buildings: Record<string, Building> = {
             description: "Form clusters of nanites into structural materials"
         },
         storage: [
-            { resources: [Resources.Nanites], limit: 10, type: "input" },
-            { resources: [Resources.Plates], limit: 5, type: "output" }
+            { resources: [Resources.Scrap, Resources.Nanites, Resources.Plates], limit: 10, type: "input" },
+            { resources: [Resources.Nanites, Resources.Plates, Resources.Circuits], limit: 5, type: "output" }
         ],
         recipes: [{
             input: { [Resources.Nanites]: 10 },
             output: { [Resources.Plates]: 1 },
             duration: 10
+        }, {
+            input: { [Resources.Scrap]: 1 },
+            output: { [Resources.Nanites]: 1 },
+            duration: 1,
+            unlocked: root.research.naniteSmelting.researched
+        }, {
+            input: { [Resources.Plates]: 2 },
+            output: { [Resources.Circuits]: 1 },
+            duration: 30,
+            unlocked: root.research.circuits.researched
         }]
     })),
     analyzer: createLazyProxy(() => ({

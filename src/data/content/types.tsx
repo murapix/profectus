@@ -65,7 +65,110 @@ export const types: Record<BoardNodeType, NodeTypeOptions> = createLazyProxy(() 
             node.state = scrapPile.id;
             root.board.draggingNode.value = scrapPile;
         }
-    } as BoardNodeActionOptions
+    }
+
+    const previousRecipe = {
+        id: "previous-recipe",
+        visibility(node: BoardNode) {
+            if (node.activeRecipe !== undefined) return false;
+            const building = getNodeProperty(types[node.type].building, node);
+            if (building === undefined) return false;
+            if (building.recipes === undefined) return false;
+            const unlockedRecipes = building.recipes.filter(recipe => recipe.unlocked === undefined || getNodeProperty(recipe.unlocked, node));
+            return unlockedRecipes.length > 1;
+        },
+        icon: '<',
+        tooltip(node: BoardNode) {
+            const building = getNodeProperty(types[node.type].building, node)!;
+            const unlockedRecipes = building.recipes!.filter(recipe => recipe.unlocked === undefined || getNodeProperty(recipe.unlocked, node));
+            const selected = node.selectedRecipe ?? 0;
+            const text = "Current Recipe:"
+            const input = Object.entries(unlockedRecipes[selected].input).map(([resource, amount]) =>
+                `${formatWhole(amount)} ${resources[resource as Resources].name}`
+            ).join(', ');
+            const output = Object.entries(unlockedRecipes[selected].output).map(([resource, amount]) =>
+                `${formatWhole(amount)} ${resources[resource as Resources].name}`
+            ).join(', ');
+            return {
+                text: `${text} ${input} -> ${output}`,
+                color: 'var(--foreground)'
+            }
+        },
+        onClick(node: BoardNode) {
+            const building = getNodeProperty(types[node.type].building, node)!;
+            const unlockedRecipes = building.recipes!.filter(recipe => recipe.unlocked === undefined || getNodeProperty(recipe.unlocked, node));
+            const selected = (node.selectedRecipe ?? 0) - 1;
+            node.selectedRecipe = selected < 0 ? unlockedRecipes.length-1 : selected;
+        }
+    }
+    const nextRecipe = {
+        id: "next-recipe",
+        visibility(node: BoardNode) {
+            if (node.activeRecipe !== undefined) return false;
+            const building = getNodeProperty(types[node.type].building, node);
+            if (building === undefined) return false;
+            if (building.recipes === undefined) return false;
+            const unlockedRecipes = building.recipes.filter(recipe => recipe.unlocked === undefined || getNodeProperty(recipe.unlocked, node));
+            return unlockedRecipes.length > 1;
+        },
+        icon: '>',
+        tooltip(node: BoardNode) {
+            const building = getNodeProperty(types[node.type].building, node)!;
+            const unlockedRecipes = building.recipes!.filter(recipe => recipe.unlocked === undefined || getNodeProperty(recipe.unlocked, node));
+            const selected = node.selectedRecipe ?? 0;
+            const text = "Current Recipe:"
+            const input = Object.entries(unlockedRecipes[selected].input).map(([resource, amount]) =>
+                `${formatWhole(amount)} ${resources[resource as Resources].name}`
+            ).join(', ');
+            const output = Object.entries(unlockedRecipes[selected].output).map(([resource, amount]) =>
+                `${formatWhole(amount)} ${resources[resource as Resources].name}`
+            ).join(', ');
+            return {
+                text: `${text} ${input} -> ${output}`,
+                color: 'var(--foreground)'
+            }
+        },
+        onClick(node: BoardNode) {
+            const building = getNodeProperty(types[node.type].building, node)!;
+            const unlockedRecipes = building.recipes!.filter(recipe => recipe.unlocked === undefined || getNodeProperty(recipe.unlocked, node));
+            const selected = (node.selectedRecipe ?? 0) + 1;
+            node.selectedRecipe = selected >= unlockedRecipes.length ? 0 : selected;
+        }
+    }
+    const selectRecipe = {
+        id: "select-recipe",
+        visibility(node: BoardNode) {
+            if (node.activeRecipe !== undefined) return false;
+            const building = getNodeProperty(types[node.type].building, node);
+            if (building === undefined) return false;
+            if (building.recipes === undefined) return false;
+            const unlockedRecipes = building.recipes.filter(recipe => recipe.unlocked === undefined || getNodeProperty(recipe.unlocked, node));
+            return unlockedRecipes.length > 1;
+        },
+        icon: '⏻',
+        tooltip(node: BoardNode) {
+            const building = getNodeProperty(types[node.type].building, node)!;
+            const unlockedRecipes = building.recipes!.filter(recipe => recipe.unlocked === undefined || getNodeProperty(recipe.unlocked, node));
+            const selected = node.selectedRecipe ?? 0;
+            const text = "Select Recipe:"
+            const input = Object.entries(unlockedRecipes[selected].input).map(([resource, amount]) =>
+                `${formatWhole(amount)} ${resources[resource as Resources].name}`
+            ).join(', ');
+            const output = Object.entries(unlockedRecipes[selected].output).map(([resource, amount]) =>
+                `${formatWhole(amount)} ${resources[resource as Resources].name}`
+            ).join(', ');
+            return {
+                text: `${text} ${input} -> ${output}`,
+                color: 'var(--foreground)'
+            }
+        },
+        onClick(node: BoardNode) {
+            const building = getNodeProperty(types[node.type].building, node)!;
+            const unlockedRecipes = building.recipes!.filter(recipe => recipe.unlocked === undefined || getNodeProperty(recipe.unlocked, node));
+            node.activeRecipe = building.recipes!.indexOf(unlockedRecipes[node.selectedRecipe ?? 0]);
+            if (node.activeRecipe < 0) delete node.activeRecipe;
+        }
+    }
 
     const internalTypes = {
         [Alignment.Friendly]: {
@@ -93,7 +196,7 @@ export const types: Record<BoardNodeType, NodeTypeOptions> = createLazyProxy(() 
                 size: 15,
                 shape: () => Shape.Foundry,
                 building: buildings.foundry,
-                actions: [deleteNode]
+                actions: [previousRecipe, selectRecipe, nextRecipe, deleteNode]
             },
             [BoardNodeType.Analyzer]: {
                 size: 15,
