@@ -144,7 +144,7 @@ export const buildings: Record<string, Building> = {
         },
         display: {
             name: "Nanite Bore",
-            description: "Send a stream of nanites to break down nearby hardened structures"
+            description: "Send a stream of nanites to break down nearby hardened structures. Must be placed near foreign machinery"
         },
         storage: [
             { resources: [Resources.Nanites], limit: 15, type: "input" }
