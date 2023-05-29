@@ -34,7 +34,7 @@ export const amounts = computed(() => {
         if (Object.values(node.buildMaterials).some(amount => amount > 0)) continue;
 
         for (let i = 0; i < node.storage.length; i++) {
-            const storage = getNodeProperty.storage[i];
+            const storage = node.storage[i];
             if (!(resources[storage.resource].includeInput ?? false)) {
                 if (building.storage[i].type === "input") {
                     continue;
@@ -102,5 +102,5 @@ export type ResourceDisplay = {
     symbol: CoercableComponent,
     color?: string,
     visibility?: ProcessedComputable<Visibility | boolean>;
-    includeOutput?: boolean
+    includeInput?: boolean
 }
