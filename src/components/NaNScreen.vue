@@ -83,21 +83,21 @@ const previous = computed<DecimalSource | null>(() => {
 
 function setZero() {
     if (state.NaNPersistent != null) {
-        state.NaNPersistent.value = new Decimal(0);
+        state.NaNPersistent.value = 0;
         state.hasNaN = false;
     }
 }
 
 function setOne() {
     if (state.NaNPersistent) {
-        state.NaNPersistent.value = new Decimal(1);
+        state.NaNPersistent.value = 1;
         state.hasNaN = false;
     }
 }
 
 function ignore() {
     if (state.NaNPersistent) {
-        state.NaNPersistent.value = new Decimal(NaN);
+        state.NaNPersistent.value = NaN;
         state.hasNaN = false;
     }
 }

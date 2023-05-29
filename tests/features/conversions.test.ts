@@ -33,18 +33,18 @@ describe("Creating conversion", () => {
                     baseResource,
                     gainResource,
                     formula
-                }));
+                })) as GenericConversion;
             });
             test("Exactly enough", () => {
-                baseResource.value = Decimal.pow(100, 2).times(10);
+                baseResource.value = Decimal.pow(100, 2).times(10).toNumber();
                 expect(unref(conversion.currentGain)).compare_tolerance(100);
             });
             test("Just under", () => {
-                baseResource.value = Decimal.pow(100, 2).times(10).sub(1);
+                baseResource.value = Decimal.pow(100, 2).times(10).sub(1).toNumber();
                 expect(unref(conversion.currentGain)).compare_tolerance(99);
             });
             test("Just over", () => {
-                baseResource.value = Decimal.pow(100, 2).times(10).add(1);
+                baseResource.value = Decimal.pow(100, 2).times(10).add(1).toNumber();
                 expect(unref(conversion.currentGain)).compare_tolerance(100);
             });
         });
@@ -55,18 +55,18 @@ describe("Creating conversion", () => {
                     baseResource,
                     gainResource,
                     formula
-                }));
+                })) as GenericConversion;
             });
             test("Exactly enough", () => {
-                baseResource.value = Decimal.pow(100, 2).times(10);
+                baseResource.value = Decimal.pow(100, 2).times(10).toNumber();
                 expect(unref(conversion.actualGain)).compare_tolerance(100);
             });
             test("Just under", () => {
-                baseResource.value = Decimal.pow(100, 2).times(10).sub(1);
+                baseResource.value = Decimal.pow(100, 2).times(10).sub(1).toNumber();
                 expect(unref(conversion.actualGain)).compare_tolerance(99);
             });
             test("Just over", () => {
-                baseResource.value = Decimal.pow(100, 2).times(10).add(1);
+                baseResource.value = Decimal.pow(100, 2).times(10).add(1).toNumber();
                 expect(unref(conversion.actualGain)).compare_tolerance(100);
             });
         });
@@ -77,20 +77,20 @@ describe("Creating conversion", () => {
                     baseResource,
                     gainResource,
                     formula
-                }));
+                })) as GenericConversion;
             });
             test("Exactly enough", () => {
-                baseResource.value = Decimal.pow(100, 2).times(10);
+                baseResource.value = Decimal.pow(100, 2).times(10).toNumber();
                 expect(unref(conversion.currentAt)).compare_tolerance(
                     Decimal.pow(100, 2).times(10)
                 );
             });
             test("Just under", () => {
-                baseResource.value = Decimal.pow(100, 2).times(10).sub(1);
+                baseResource.value = Decimal.pow(100, 2).times(10).sub(1).toNumber();
                 expect(unref(conversion.currentAt)).compare_tolerance(Decimal.pow(99, 2).times(10));
             });
             test("Just over", () => {
-                baseResource.value = Decimal.pow(100, 2).times(10).add(1);
+                baseResource.value = Decimal.pow(100, 2).times(10).add(1).toNumber();
                 expect(unref(conversion.currentAt)).compare_tolerance(
                     Decimal.pow(100, 2).times(10)
                 );
@@ -103,18 +103,18 @@ describe("Creating conversion", () => {
                     baseResource,
                     gainResource,
                     formula
-                }));
+                })) as GenericConversion;
             });
             test("Exactly enough", () => {
-                baseResource.value = Decimal.pow(100, 2).times(10);
+                baseResource.value = Decimal.pow(100, 2).times(10).toNumber();
                 expect(unref(conversion.nextAt)).compare_tolerance(Decimal.pow(101, 2).times(10));
             });
             test("Just under", () => {
-                baseResource.value = Decimal.pow(100, 2).times(10).sub(1);
+                baseResource.value = Decimal.pow(100, 2).times(10).sub(1).toNumber();
                 expect(unref(conversion.nextAt)).compare_tolerance(Decimal.pow(100, 2).times(10));
             });
             test("Just over", () => {
-                baseResource.value = Decimal.pow(100, 2).times(10).add(1);
+                baseResource.value = Decimal.pow(100, 2).times(10).add(1).toNumber();
                 expect(unref(conversion.nextAt)).compare_tolerance(Decimal.pow(101, 2).times(10));
             });
         });
@@ -179,18 +179,18 @@ describe("Creating conversion", () => {
                     gainResource,
                     formula,
                     buyMax: true
-                }));
+                })) as GenericConversion;
             });
             test("Exactly enough", () => {
-                baseResource.value = Decimal.pow(100, 2).times(10);
+                baseResource.value = Decimal.pow(100, 2).times(10).toNumber();
                 expect(unref(conversion.currentGain)).compare_tolerance(100);
             });
             test("Just under", () => {
-                baseResource.value = Decimal.pow(100, 2).times(10).sub(1);
+                baseResource.value = Decimal.pow(100, 2).times(10).sub(1).toNumber();
                 expect(unref(conversion.currentGain)).compare_tolerance(99);
             });
             test("Just over", () => {
-                baseResource.value = Decimal.pow(100, 2).times(10).add(1);
+                baseResource.value = Decimal.pow(100, 2).times(10).add(1).toNumber();
                 expect(unref(conversion.currentGain)).compare_tolerance(100);
             });
         });
@@ -202,18 +202,18 @@ describe("Creating conversion", () => {
                     gainResource,
                     formula,
                     buyMax: true
-                }));
+                })) as GenericConversion;
             });
             test("Exactly enough", () => {
-                baseResource.value = Decimal.pow(100, 2).times(10);
+                baseResource.value = Decimal.pow(100, 2).times(10).toNumber();
                 expect(unref(conversion.actualGain)).compare_tolerance(99);
             });
             test("Just under", () => {
-                baseResource.value = Decimal.pow(100, 2).times(10).sub(1);
+                baseResource.value = Decimal.pow(100, 2).times(10).sub(1).toNumber();
                 expect(unref(conversion.actualGain)).compare_tolerance(98);
             });
             test("Just over", () => {
-                baseResource.value = Decimal.pow(100, 2).times(10).add(1);
+                baseResource.value = Decimal.pow(100, 2).times(10).add(1).toNumber();
                 expect(unref(conversion.actualGain)).compare_tolerance(99);
             });
         });
@@ -225,20 +225,20 @@ describe("Creating conversion", () => {
                     gainResource,
                     formula,
                     buyMax: true
-                }));
+                })) as GenericConversion;
             });
             test("Exactly enough", () => {
-                baseResource.value = Decimal.pow(100, 2).times(10);
+                baseResource.value = Decimal.pow(100, 2).times(10).toNumber();
                 expect(unref(conversion.currentAt)).compare_tolerance(
                     Decimal.pow(100, 2).times(10)
                 );
             });
             test("Just under", () => {
-                baseResource.value = Decimal.pow(100, 2).times(10).sub(1);
+                baseResource.value = Decimal.pow(100, 2).times(10).sub(1).toNumber();
                 expect(unref(conversion.currentAt)).compare_tolerance(Decimal.pow(99, 2).times(10));
             });
             test("Just over", () => {
-                baseResource.value = Decimal.pow(100, 2).times(10).add(1);
+                baseResource.value = Decimal.pow(100, 2).times(10).add(1).toNumber();
                 expect(unref(conversion.currentAt)).compare_tolerance(
                     Decimal.pow(100, 2).times(10)
                 );
@@ -252,18 +252,18 @@ describe("Creating conversion", () => {
                     gainResource,
                     formula,
                     buyMax: true
-                }));
+                })) as GenericConversion;
             });
             test("Exactly enough", () => {
-                baseResource.value = Decimal.pow(100, 2).times(10);
+                baseResource.value = Decimal.pow(100, 2).times(10).toNumber();
                 expect(unref(conversion.nextAt)).compare_tolerance(Decimal.pow(101, 2).times(10));
             });
             test("Just under", () => {
-                baseResource.value = Decimal.pow(100, 2).times(10).sub(1);
+                baseResource.value = Decimal.pow(100, 2).times(10).sub(1).toNumber();
                 expect(unref(conversion.nextAt)).compare_tolerance(Decimal.pow(100, 2).times(10));
             });
             test("Just over", () => {
-                baseResource.value = Decimal.pow(100, 2).times(10).add(1);
+                baseResource.value = Decimal.pow(100, 2).times(10).add(1).toNumber();
                 expect(unref(conversion.nextAt)).compare_tolerance(Decimal.pow(101, 2).times(10));
             });
         });
@@ -374,7 +374,7 @@ describe("Creating conversion", () => {
                     formula,
                     spend,
                     onConvert
-                }));
+                })) as GenericConversion;
                 conversion.convert();
                 expect(spend).toHaveBeenCalled();
                 expect(spend).toHaveBeenCalledWith(expect.compare_tolerance(2));
@@ -435,7 +435,7 @@ describe("Creating conversion", () => {
                     formula,
                     spend,
                     onConvert
-                }));
+                })) as GenericConversion;
                 conversion.convert();
                 expect(spend).toHaveBeenCalled();
                 expect(spend).toHaveBeenCalledWith(expect.compare_tolerance(1));
@@ -460,7 +460,7 @@ describe("Passive generation", () => {
             baseResource,
             gainResource,
             formula
-        }));
+        })) as GenericConversion;
         layer = createLayer("dummy", () => ({ display: "" }));
     });
     test("Rate is 0", () => {

@@ -91,9 +91,9 @@ export interface BaseChallenge {
     /** An auto-generated ID for identifying features that appear in the DOM. Will not persist between refreshes or updates. */
     id: string;
     /** The current amount of times this challenge can be completed. */
-    canComplete: Ref<DecimalSource>;
+    canComplete: Ref<number>;
     /** The current number of times this challenge has been completed. */
-    completions: Persistent<DecimalSource>;
+    completions: Persistent<number>;
     /** Whether or not this challenge has been completed. */
     completed: Ref<boolean>;
     /** Whether or not this challenge's completion count is at its limit. */
@@ -136,7 +136,7 @@ export type GenericChallenge = Replace<
     {
         visibility: ProcessedComputable<Visibility | boolean>;
         canStart: ProcessedComputable<boolean>;
-        completionLimit: ProcessedComputable<DecimalSource>;
+        completionLimit: ProcessedComputable<number>;
         mark: ProcessedComputable<boolean>;
     }
 >;
@@ -187,8 +187,8 @@ export function createChallenge<T extends ChallengeOptions>(
                     !genericChallenge.maxed.value
                 ) {
                     const completions = unref(genericChallenge.canComplete);
-                    genericChallenge.completions.value = Decimal.min(
-                        Decimal.add(genericChallenge.completions.value, completions),
+                    genericChallenge.completions.value = Math.min(
+                        genericChallenge.completions.value + completions,
                         unref(genericChallenge.completionLimit)
                     );
                     genericChallenge.onComplete?.();
@@ -207,7 +207,7 @@ export function createChallenge<T extends ChallengeOptions>(
             }
         };
         challenge.canComplete = computed(() =>
-            maxRequirementsMet((challenge as GenericChallenge).requirements)
+            new Decimal(maxRequirementsMet((challenge as GenericChallenge).requirements)).toNumber()
         );
         challenge.complete = function (remainInChallenge?: boolean) {
             const genericChallenge = challenge as GenericChallenge;
@@ -217,8 +217,8 @@ export function createChallenge<T extends ChallengeOptions>(
                 Decimal.gt(completions, 0) &&
                 !genericChallenge.maxed.value
             ) {
-                genericChallenge.completions.value = Decimal.min(
-                    Decimal.add(genericChallenge.completions.value, completions),
+                genericChallenge.completions.value = Math.min(
+                    genericChallenge.completions.value + completions,
                     unref(genericChallenge.completionLimit)
                 );
                 genericChallenge.onComplete?.();

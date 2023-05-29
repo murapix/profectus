@@ -58,7 +58,7 @@ export interface RepeatableOptions {
     /** The maximum amount obtainable for this repeatable. */
     limit?: Computable<DecimalSource>;
     /** The initial amount this repeatable has on a new save / after reset. */
-    initialAmount?: DecimalSource;
+    initialAmount?: number;
     /** Dictionary of CSS classes to apply to this feature. */
     classes?: Computable<Record<string, boolean>>;
     /** CSS to apply to this feature. */
@@ -78,7 +78,7 @@ export interface BaseRepeatable {
     /** An auto-generated ID for identifying features that appear in the DOM. Will not persist between refreshes or updates. */
     id: string;
     /** The current amount this repeatable has. */
-    amount: Persistent<DecimalSource>;
+    amount: Persistent<number>;
     /** Whether or not this repeatable's amount is at it's limit. */
     maxed: Ref<boolean>;
     /** Whether or not this repeatable can be clicked. */
@@ -86,7 +86,7 @@ export interface BaseRepeatable {
     /**
      * How much amount can be increased by, or 1 if unclickable.
      **/
-    amountToIncrease: Ref<DecimalSource>;
+    amountToIncrease: Ref<number>;
     /** A function that gets called when this repeatable is clicked. */
     onClick: (event?: MouseEvent | TouchEvent) => void;
     /** A symbol that helps identify features of the same type. */
@@ -129,7 +129,7 @@ export function createRepeatable<T extends RepeatableOptions>(
     optionsFunc: OptionsFunc<T, BaseRepeatable, GenericRepeatable>,
     ...decorators: GenericDecorator[]
 ): Repeatable<T> {
-    const amount = persistent<DecimalSource>(0);
+    const amount = persistent<number>(0);
     const decoratedData = decorators.reduce(
         (current, next) => Object.assign(current, next.getPersistentData?.()),
         {}
@@ -191,7 +191,7 @@ export function createRepeatable<T extends RepeatableOptions>(
             return currClasses;
         });
         repeatable.amountToIncrease = computed(() =>
-            Decimal.clampMin(maxRequirementsMet(repeatable.requirements), 1)
+            Decimal.clampMin(maxRequirementsMet(repeatable.requirements), 1).toNumber()
         );
         repeatable.canClick = computed(() => requirementsMet(repeatable.requirements));
         const onClick = repeatable.onClick;
@@ -202,10 +202,7 @@ export function createRepeatable<T extends RepeatableOptions>(
             }
             const amountToIncrease = unref(repeatable.amountToIncrease) ?? 1;
             payRequirements(repeatable.requirements, amountToIncrease);
-            genericRepeatable.amount.value = Decimal.add(
-                genericRepeatable.amount.value,
-                amountToIncrease
-            );
+            genericRepeatable.amount.value = genericRepeatable.amount.value + amountToIncrease;
             onClick?.(event);
         };
         processComputable(repeatable as T, "display");

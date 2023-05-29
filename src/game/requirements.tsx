@@ -183,7 +183,7 @@ export function createCostRequirement<T extends CostRequirementOptions>(
                           unref(req.directSum) as number
                       )
                     : unref(req.cost as ProcessedComputable<DecimalSource>);
-            req.resource.value = Decimal.sub(req.resource.value, cost).max(0);
+            req.resource.value = Decimal.sub(req.resource.value, cost).max(0).toNumber();
         });
 
         req.canMaximize = computed(() => {
@@ -357,14 +357,14 @@ export function payByDivision(this: CostRequirement, amount?: DecimalSource) {
                   unref(this.cumulativeCost as ProcessedComputable<boolean> | undefined) ?? true
               )
             : unref(this.cost as ProcessedComputable<DecimalSource>);
-    this.resource.value = Decimal.div(this.resource.value, cost);
+    this.resource.value = Decimal.div(this.resource.value, cost).toNumber();
 }
 
-export function payByReset(overrideDefaultValue?: DecimalSource) {
+export function payByReset(overrideDefaultValue?: number) {
     return function (this: CostRequirement) {
         this.resource.value =
             overrideDefaultValue ??
-            (this.resource as Resource & Persistent<DecimalSource>)[DefaultValue] ??
+            (this.resource as Resource & Persistent<number>)[DefaultValue] ??
             0;
     };
 }

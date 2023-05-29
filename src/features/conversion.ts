@@ -102,7 +102,7 @@ export type Conversion<T extends ConversionOptions> = Replace<
 export type GenericConversion = Replace<
     Conversion<ConversionOptions>,
     {
-        currentGain: ProcessedComputable<DecimalSource>;
+        currentGain: ProcessedComputable<number>;
         actualGain: ProcessedComputable<DecimalSource>;
         currentAt: ProcessedComputable<DecimalSource>;
         nextAt: ProcessedComputable<DecimalSource>;
@@ -166,10 +166,7 @@ export function createConversion<T extends ConversionOptions>(
         if (conversion.convert == null) {
             conversion.convert = function () {
                 const amountGained = unref((conversion as GenericConversion).currentGain);
-                conversion.gainResource.value = Decimal.add(
-                    conversion.gainResource.value,
-                    amountGained
-                );
+                conversion.gainResource.value = conversion.gainResource.value + amountGained;
                 (conversion as GenericConversion).spend(amountGained);
                 conversion.onConvert?.(amountGained);
             };
@@ -289,7 +286,7 @@ export function setupPassiveGeneration(
                 Decimal.times(currRate, diff).times(Decimal.ceil(unref(conversion.actualGain)))
             )
                 .min(unref(processedCap))
-                .max(conversion.gainResource.value);
+                .max(conversion.gainResource.value).toNumber();
         }
     });
 }

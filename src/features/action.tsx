@@ -41,11 +41,11 @@ export const ActionType = Symbol("Action");
  */
 export interface ActionOptions extends Omit<ClickableOptions, "onClick" | "onHold"> {
     /** The cooldown during which the action cannot be performed again, in seconds. */
-    duration: Computable<DecimalSource>;
+    duration: Computable<number>;
     /** Whether or not the action should perform automatically when the cooldown is finished. */
     autoStart?: Computable<boolean>;
     /** A function that is called when the action is clicked. */
-    onClick: (amount: DecimalSource) => void;
+    onClick: (amount: number) => void;
     /** A pass-through to the {@link Bar} used to display the cooldown progress for the action. */
     barOptions?: Partial<BarOptions>;
 }
@@ -106,7 +106,7 @@ export function createAction<T extends ActionOptions>(
     optionsFunc?: OptionsFunc<T, BaseAction, GenericAction>,
     ...decorators: GenericDecorator[]
 ): Action<T> {
-    const progress = persistent<DecimalSource>(0);
+    const progress = persistent<number>(0);
     const decoratedData = decorators.reduce(
         (current, next) => Object.assign(current, next.getPersistentData?.()),
         {}
@@ -222,7 +222,7 @@ export function createAction<T extends ActionOptions>(
             if (unref(action.canClick) === false) {
                 return;
             }
-            const amount = Decimal.div(progress.value, unref(genericAction.duration));
+            const amount = progress.value / unref(genericAction.duration);
             onClick?.(amount);
             progress.value = 0;
         };
@@ -232,7 +232,7 @@ export function createAction<T extends ActionOptions>(
             if (Decimal.gte(progress.value, duration)) {
                 progress.value = duration;
             } else {
-                progress.value = Decimal.add(progress.value, diff);
+                progress.value = progress.value + diff;
                 if (genericAction.isHolding.value || unref(genericAction.autoStart)) {
                     genericAction.onClick();
                 }

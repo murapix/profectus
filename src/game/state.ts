@@ -11,7 +11,7 @@ export interface Transient {
     /** The location within the player save data object of the NaN value. */
     NaNPath?: string[];
     /** The ref that was being set to NaN. */
-    NaNPersistent?: Persistent<DecimalSource>;
+    NaNPersistent?: Persistent<number>;
     /** List of errors that have occurred, to show the user. */
     errors: Error[];
 }

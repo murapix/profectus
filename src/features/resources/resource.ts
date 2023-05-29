@@ -9,7 +9,7 @@ import type { ComputedRef, Ref } from "vue";
 import { computed, isRef, ref, unref, watch } from "vue";
 
 /** An object that represents a named and quantifiable resource in the game. */
-export interface Resource<T = DecimalSource> extends Ref<T> {
+export interface Resource<T = number> extends Ref<T> {
     /** The name of this resource. */
     displayName: string;
     /** When displaying the value of this resource, how many significant digits to display. */
@@ -75,14 +75,14 @@ export function trackBest(resource: Resource): Ref<DecimalSource> {
 }
 
 /** Returns a reference to the total amount of the resource gained, updated automatically. "Refunds" count as gain. */
-export function trackTotal(resource: Resource): Ref<DecimalSource> {
+export function trackTotal(resource: Resource): Ref<number> {
     const total = persistent(resource.value);
     watch(resource, (amount, prevAmount) => {
         if (loadingSave.value) {
             return;
         }
         if (Decimal.gt(amount, prevAmount)) {
-            total.value = Decimal.add(total.value, Decimal.sub(amount, prevAmount));
+            total.value = total.value + amount - prevAmount;
         }
     });
     return total;
@@ -106,7 +106,7 @@ export function trackOOMPS(
             return;
         }
 
-        let curr = resource.value;
+        let curr: DecimalSource = resource.value;
         let prev = lastPoints.value;
         lastPoints.value = curr;
         if (Decimal.gt(curr, prev)) {

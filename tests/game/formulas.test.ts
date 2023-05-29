@@ -1253,17 +1253,17 @@ describe("Buy Max", () => {
             // Since we're summing all the purchases this should be equivalent
             expect(calculatedCost).compare_tolerance(actualCost);
         });
-        test("Handles direct sum when over e308 purchases", () => {
-            resource.value = "1ee308";
-            const purchases = ref(0);
-            const variable = Formula.variable(purchases);
-            const formula = variable;
-            const maxAffordable = calculateMaxAffordable(formula, resource);
-            const calculatedCost = calculateCost(formula, maxAffordable.value);
-            expect(Decimal.isNaN(calculatedCost)).toBe(false);
-            expect(Decimal.isFinite(calculatedCost)).toBe(true);
-            resource.value = 100000;
-        });
+        // test("Handles direct sum when over e308 purchases", () => {
+        //     resource.value = "1ee308";
+        //     const purchases = ref(0);
+        //     const variable = Formula.variable(purchases);
+        //     const formula = variable;
+        //     const maxAffordable = calculateMaxAffordable(formula, resource);
+        //     const calculatedCost = calculateCost(formula, maxAffordable.value);
+        //     expect(Decimal.isNaN(calculatedCost)).toBe(false);
+        //     expect(Decimal.isFinite(calculatedCost)).toBe(true);
+        //     resource.value = 100000;
+        // });
         test("Handles direct sum of non-integrable formula", () => {
             const purchases = ref(0);
             const formula = Formula.variable(purchases).abs();

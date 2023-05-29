@@ -113,7 +113,7 @@ function checkNaNAndWrite<T extends State>(persistent: Persistent<T>, value: T) 
             player.autosave = false;
             state.hasNaN = true;
             state.NaNPath = persistent[SaveDataPath];
-            state.NaNPersistent = persistent as Persistent<string | number>;
+            state.NaNPersistent = persistent as Persistent<number>;
         }
         console.error(`Attempted to save NaN value to ${persistent[SaveDataPath]?.join(".")}`);
     }
