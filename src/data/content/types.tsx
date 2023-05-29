@@ -185,6 +185,18 @@ export const types: Record<BoardNodeType, NodeTypeOptions> = createLazyProxy(() 
                 onStoreEmpty(node) {
                     removeNode(node);
                 },
+                label: (node) => {
+                    let showLabel = false;
+                    if (root.board.selectedNode.value === node) showLabel = true;
+                    const storage = node.storage[0];
+                    if (storage.limit === undefined) showLabel = false;
+
+                    if (showLabel) {
+                        return {
+                            text: `${resources[storage.resource].name}: ${formatWhole(storage.amount)}/${formatWhole(storage.limit!)}`
+                        }
+                    }
+                },
                 actions: [deleteNode]
             },
             [BoardNodeType.Router]: {
