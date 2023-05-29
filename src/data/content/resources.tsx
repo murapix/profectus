@@ -33,7 +33,13 @@ export const amounts = computed(() => {
         
         if (Object.values(node.buildMaterials).some(amount => amount > 0)) continue;
 
-        for (const storage of node.storage) {
+        for (let i = 0; i < node.storage.length; i++) {
+            const storage = getNodeProperty.storage[i];
+            if (!(resources[storage.resource].includeInput ?? false)) {
+                if (building.storage[i].type === "input") {
+                    continue;
+                }
+            }
             if (amounts[storage.resource] === undefined) amounts[storage.resource] = 0;
             amounts[storage.resource]! += storage.amount;
         }
@@ -66,23 +72,28 @@ export const resources: Record<Resources, ResourceDisplay> = {
     
     [Resources.ConsumptionResearch]: {
         name: "Consumption Reports",
-        symbol: '🔌&#xFE0E;'
+        symbol: '🔌&#xFE0E;',
+        includeInput: true
     },
     [Resources.LogisticalResearch]: {
         name: "Logistical Notes",
-        symbol: '🔩&#xFE0E;'
+        symbol: '🔩&#xFE0E;',
+        includeInput: true
     },
     [Resources.BalisticsResearch]: {
         name: "Balistics Tests",
-        symbol: '🔶&#xFE0E;'
+        symbol: '🔶&#xFE0E;',
+        includeInput: true
     },
     [Resources.RampancyResearch]: {
         name: "Rampant Studies",
-        symbol: '<div style="transform: rotate(45deg)">💢&#xFE0E;</div>'
+        symbol: '<div style="transform: rotate(45deg)">💢&#xFE0E;</div>',
+        includeInput: true
     },
     [Resources.CircularResearch]: {
         name: "Circular Logic",
-        symbol: '🌀&#xFE0E;'
+        symbol: '🌀&#xFE0E;',
+        includeInput: true
     }
 };
 
@@ -91,4 +102,5 @@ export type ResourceDisplay = {
     symbol: CoercableComponent,
     color?: string,
     visibility?: ProcessedComputable<Visibility | boolean>;
+    includeOutput?: boolean
 }
