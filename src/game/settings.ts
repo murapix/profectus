@@ -60,7 +60,7 @@ export const hardResetSettings = (window.hardResetSettings = () => {
         active: "",
         saves: [],
         showTPS: true,
-        theme: Themes.Nordic,
+        theme: Themes.Console,
         alignUnits: false
     };
     globalBus.emit("loadSettings", settings);
