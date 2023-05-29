@@ -39,6 +39,7 @@ export const types: Record<BoardNodeType, NodeTypeOptions> = createLazyProxy(() 
         },
         onClick(node: BoardNode) {
             removeNode(node);
+            if (node.type.onDelete) node.type.onDelete(node);
         }
     }
     const placeScrap = {
@@ -203,6 +204,15 @@ export const types: Record<BoardNodeType, NodeTypeOptions> = createLazyProxy(() 
                 building: buildings.extractor,
                 onStoreEmpty(node) {
                     removeNode(node);
+                },
+                onDelete(node) {
+                    const scrapNode = createNode({
+                        position: node.position,
+                        type: BoardNodeType.Scrap
+                    });
+                    scrapNode.storage[0] = node.storage[0];
+                    delete scrapNode.storage[0].limit;
+                    placeNode(scrapNode);
                 },
                 label: (node) => {
                     if (root.board.selectedNode.value !== node) return;
