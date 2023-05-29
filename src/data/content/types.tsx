@@ -39,7 +39,9 @@ export const types: Record<BoardNodeType, NodeTypeOptions> = createLazyProxy(() 
         },
         onClick(node: BoardNode) {
             removeNode(node);
-            if (node.type.onDelete) node.type.onDelete(node);
+            if (types[node.type].onDelete !== undefined) {
+                types[node.type].onDelete(node);
+            }
         }
     }
     const placeScrap = {
