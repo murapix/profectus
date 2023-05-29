@@ -317,7 +317,16 @@ export function canPlaceAtPosition(node: BoardNode) {
         if (distanceFromSelected > 100**2) return false;
     }
 
+    const building = getNodeProperty(types[node.type].building, node);
+    let canBuildOn = (type) => false;
+    if (building !== undefined) {
+        if (building.buildableOn !== undefined) {
+            canBuildOn = building.buildableOn.includes;
+        }
+    }
+
     for (const otherNode of root.board.nodes.value) {
+        if (canBuildOn(otherNode.type)) continue;
         const otherSize = getNodeProperty(types[otherNode.type].size, otherNode);
         const minDist = size + otherSize;
         if (Math.abs(node.position.x - otherNode.position.x) >= minDist) continue;
