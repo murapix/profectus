@@ -179,10 +179,10 @@ export const types: Record<BoardNodeType, NodeTypeOptions> = createLazyProxy(() 
                 building: buildings.core,
                 label: (node) => {
                     if (root.board.selectedNode.value !== node) return;
+                    if (node.activeRecipe === undefined) return;
                     const building = getNodeProperty(types[node.type].building, node);
                     if (building === undefined) return;
                     if (building.recipes === undefined) return;
-                    if (building.activeRecipe === undefined) return;
 
                     const text = "Active Recipe:"
                     const input = Object.entries(building.recipes[node.activeRecipe].input).map(([resource, amount]) =>
@@ -227,10 +227,10 @@ export const types: Record<BoardNodeType, NodeTypeOptions> = createLazyProxy(() 
                 building: buildings.foundry,
                 label: (node) => {
                     if (root.board.selectedNode.value !== node) return;
-                    const buiding = getNodeProperty(types[node.type].building, node);
+                    if (node.activeRecipe === undefined) return;
+                    const building = getNodeProperty(types[node.type].building, node);
                     if (building === undefined) return;
                     if (building.recipes === undefined) return;
-                    if (building.activeRecipe === undefined) return;
 
                     const text = "Active Recipe:"
                     const input = Object.entries(building.recipes[node.activeRecipe].input).map(([resource, amount]) =>
