@@ -83,6 +83,7 @@ export interface BoardNode {
     transferRoute?: { resource: Resources, path: number[], store: number };
     recipeTime: number;
     activeRecipe?: number;
+    selectedRecipe?: number;
     connectedNodes: number[];
     distance: number;
 }

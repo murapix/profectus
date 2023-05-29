@@ -143,5 +143,16 @@ function mouseUp() {
 </script>
 
 <style scoped>
+.body {
+    cursor: pointer;
+}
 
+.build {
+    pointer-events: none;
+    transition-duration: 0s;
+}
+
+.storage {
+    transition-duration: 0s;
+}
 </style>
