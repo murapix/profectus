@@ -212,7 +212,7 @@ export const types: Record<BoardNodeType, NodeTypeOptions> = createLazyProxy(() 
                         position: node.position,
                         type: BoardNodeType.Scrap
                     });
-                    scrapNode.storage[0] = node.storage[0];
+                    scrapNode.storage = [node.storage[0]];
                     delete scrapNode.storage[0].limit;
                     placeNode(scrapNode);
                 },
