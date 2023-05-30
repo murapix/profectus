@@ -39,6 +39,9 @@ export const types: Record<BoardNodeType, NodeTypeOptions> = createLazyProxy(() 
         },
         onClick(node: BoardNode) {
             removeNode(node);
+            if (types[node.type].onDelete !== undefined) {
+                types[node.type].onDelete!(node);
+            }
         }
     }
     const placeScrap = {
@@ -68,7 +71,6 @@ export const types: Record<BoardNodeType, NodeTypeOptions> = createLazyProxy(() 
         }
     }
 
-    
     const previousRecipe = {
         id: "previous-recipe",
         visibility(node: BoardNode) {
@@ -81,30 +83,25 @@ export const types: Record<BoardNodeType, NodeTypeOptions> = createLazyProxy(() 
         },
         icon: '<',
         tooltip(node: BoardNode) {
-            const building = getNodeProperty(types[node.type].building, node);
-            if (building === undefined) return { text: "<Error>"};
-            if (building.recipes === undefined) return { text: "<Error>"};
-            const unlockedRecipes = building.recipes.filter(recipe => recipe.unlocked === undefined || getNodeProperty(recipe.unlocked, node));
+            const building = getNodeProperty(types[node.type].building, node)!;
+            const unlockedRecipes = building.recipes!.filter(recipe => recipe.unlocked === undefined || getNodeProperty(recipe.unlocked, node));
             const selected = node.selectedRecipe ?? 0;
-            let text = "Current Recipe:\n"
-            let input = Object.entries(unlockedRecipes[selected].input).map(([resource, amount]) =>
+            const text = "Current Recipe:"
+            const input = Object.entries(unlockedRecipes[selected].input).map(([resource, amount]) =>
                 `${formatWhole(amount)} ${resources[resource as Resources].name}`
             ).join(', ');
-            let output = Object.entries(unlockedRecipes[selected].output).map(([resource, amount]) =>
+            const output = Object.entries(unlockedRecipes[selected].output).map(([resource, amount]) =>
                 `${formatWhole(amount)} ${resources[resource as Resources].name}`
             ).join(', ');
             return {
-                text: `${text}\n${input} -> ${output}`,
+                text: `${text} ${input} -> ${output}`,
                 color: 'var(--foreground)'
             }
         },
         onClick(node: BoardNode) {
-            const building = getNodeProperty(types[node.type].building, node);
-            if (building === undefined) return;
-            if (building.recipes === undefined) return;
-            const unlockedRecipes = building.recipes.filter(recipe => recipe.unlocked === undefined || getNodeProperty(recipe.unlocked, node));
-            if (unlockedRecipes.length <= 1) return;
-            let selected = (node.selectedRecipe ?? 0) - 1;
+            const building = getNodeProperty(types[node.type].building, node)!;
+            const unlockedRecipes = building.recipes!.filter(recipe => recipe.unlocked === undefined || getNodeProperty(recipe.unlocked, node));
+            const selected = (node.selectedRecipe ?? 0) - 1;
             node.selectedRecipe = selected < 0 ? unlockedRecipes.length-1 : selected;
         }
     }
@@ -120,30 +117,25 @@ export const types: Record<BoardNodeType, NodeTypeOptions> = createLazyProxy(() 
         },
         icon: '>',
         tooltip(node: BoardNode) {
-            const building = getNodeProperty(types[node.type].building, node);
-            if (building === undefined) return { text: "<Error>"};
-            if (building.recipes === undefined) return { text: "<Error>"};
-            const unlockedRecipes = building.recipes.filter(recipe => recipe.unlocked === undefined || getNodeProperty(recipe.unlocked, node));
+            const building = getNodeProperty(types[node.type].building, node)!;
+            const unlockedRecipes = building.recipes!.filter(recipe => recipe.unlocked === undefined || getNodeProperty(recipe.unlocked, node));
             const selected = node.selectedRecipe ?? 0;
-            let text = "Current Recipe:\n"
-            let input = Object.entries(unlockedRecipes[selected].input).map(([resource, amount]) =>
+            const text = "Current Recipe:"
+            const input = Object.entries(unlockedRecipes[selected].input).map(([resource, amount]) =>
                 `${formatWhole(amount)} ${resources[resource as Resources].name}`
             ).join(', ');
-            let output = Object.entries(unlockedRecipes[selected].output).map(([resource, amount]) =>
+            const output = Object.entries(unlockedRecipes[selected].output).map(([resource, amount]) =>
                 `${formatWhole(amount)} ${resources[resource as Resources].name}`
             ).join(', ');
             return {
-                text: `${text}\n${input} -> ${output}`,
+                text: `${text} ${input} -> ${output}`,
                 color: 'var(--foreground)'
             }
         },
         onClick(node: BoardNode) {
-            const building = getNodeProperty(types[node.type].building, node);
-            if (building === undefined) return;
-            if (building.recipes === undefined) return;
-            const unlockedRecipes = building.recipes.filter(recipe => recipe.unlocked === undefined || getNodeProperty(recipe.unlocked, node));
-            if (unlockedRecipes.length <= 1) return;
-            let selected = (node.selectedRecipe ?? 0) + 1;
+            const building = getNodeProperty(types[node.type].building, node)!;
+            const unlockedRecipes = building.recipes!.filter(recipe => recipe.unlocked === undefined || getNodeProperty(recipe.unlocked, node));
+            const selected = (node.selectedRecipe ?? 0) + 1;
             node.selectedRecipe = selected >= unlockedRecipes.length ? 0 : selected;
         }
     }
@@ -157,31 +149,27 @@ export const types: Record<BoardNodeType, NodeTypeOptions> = createLazyProxy(() 
             const unlockedRecipes = building.recipes.filter(recipe => recipe.unlocked === undefined || getNodeProperty(recipe.unlocked, node));
             return unlockedRecipes.length > 1;
         },
-        icon: 'O',
+        icon: '⏻',
         tooltip(node: BoardNode) {
-            const building = getNodeProperty(types[node.type].building, node);
-            if (building === undefined) return { text: "<Error>"};
-            if (building.recipes === undefined) return { text: "<Error>"};
-            const unlockedRecipes = building.recipes.filter(recipe => recipe.unlocked === undefined || getNodeProperty(recipe.unlocked, node));
+            const building = getNodeProperty(types[node.type].building, node)!;
+            const unlockedRecipes = building.recipes!.filter(recipe => recipe.unlocked === undefined || getNodeProperty(recipe.unlocked, node));
             const selected = node.selectedRecipe ?? 0;
-            let text = "Select Recipe:\n"
-            let input = Object.entries(unlockedRecipes[selected].input).map(([resource, amount]) =>
+            const text = "Select Recipe:"
+            const input = Object.entries(unlockedRecipes[selected].input).map(([resource, amount]) =>
                 `${formatWhole(amount)} ${resources[resource as Resources].name}`
             ).join(', ');
-            let output = Object.entries(unlockedRecipes[selected].output).map(([resource, amount]) =>
+            const output = Object.entries(unlockedRecipes[selected].output).map(([resource, amount]) =>
                 `${formatWhole(amount)} ${resources[resource as Resources].name}`
             ).join(', ');
             return {
-                text: `${text}\n${input} -> ${output}`,
+                text: `${text} ${input} -> ${output}`,
                 color: 'var(--foreground)'
             }
         },
         onClick(node: BoardNode) {
-            const building = getNodeProperty(types[node.type].building, node);
-            if (building === undefined) return;
-            if (building.recipes === undefined) return;
-            const unlockedRecipes = building.recipes.filter(recipe => recipe.unlocked === undefined || getNodeProperty(recipe.unlocked, node));
-            node.activeRecipe = building.recipes.indexOf(unlockedRecipes[node.selectedRecipe ?? 0]);
+            const building = getNodeProperty(types[node.type].building, node)!;
+            const unlockedRecipes = building.recipes!.filter(recipe => recipe.unlocked === undefined || getNodeProperty(recipe.unlocked, node));
+            node.activeRecipe = building.recipes!.indexOf(unlockedRecipes[node.selectedRecipe ?? 0]);
             if (node.activeRecipe < 0) delete node.activeRecipe;
         }
     }
@@ -191,7 +179,26 @@ export const types: Record<BoardNodeType, NodeTypeOptions> = createLazyProxy(() 
             [BoardNodeType.Core]: {
                 size: 20,
                 shape: () => Shape.Core,
-                building: buildings.core
+                building: buildings.core,
+                label: (node) => {
+                    if (root.board.selectedNode.value !== node) return;
+                    if (node.activeRecipe === undefined) return;
+                    const building = getNodeProperty(types[node.type].building, node);
+                    if (building === undefined) return;
+                    if (building.recipes === undefined) return;
+
+                    const text = "Active Recipe:"
+                    const input = Object.entries(building.recipes[node.activeRecipe].input).map(([resource, amount]) =>
+                        `${formatWhole(amount)} ${resources[resource as Resources].name}`
+                    ).join(', ');
+                    const output = Object.entries(building.recipes[node.activeRecipe].output).map(([resource, amount]) =>
+                        `${formatWhole(amount)} ${resources[resource as Resources].name}`
+                    ).join(', ');
+                    return {
+                        text: `${text} ${input} -> ${output}`,
+                        color: 'var(--foreground)'
+                    }
+                }
             },
             [BoardNodeType.Extractor]: {
                 size: 10,
@@ -199,6 +206,24 @@ export const types: Record<BoardNodeType, NodeTypeOptions> = createLazyProxy(() 
                 building: buildings.extractor,
                 onStoreEmpty(node) {
                     removeNode(node);
+                },
+                onDelete(node) {
+                    const scrapNode = createNode({
+                        position: node.position,
+                        type: BoardNodeType.Scrap
+                    });
+                    scrapNode.storage = [node.storage[0]];
+                    delete scrapNode.storage[0].limit;
+                    placeNode(scrapNode);
+                },
+                label: (node) => {
+                    if (root.board.selectedNode.value !== node) return;
+                    const storage = node.storage[0];
+                    if (storage.limit === undefined) return;
+
+                    return {
+                        text: `${resources[storage.resource].name}: ${formatWhole(storage.amount)}/${formatWhole(storage.limit!)}`
+                    }
                 },
                 actions: [deleteNode]
             },
@@ -212,6 +237,25 @@ export const types: Record<BoardNodeType, NodeTypeOptions> = createLazyProxy(() 
                 size: 15,
                 shape: () => Shape.Foundry,
                 building: buildings.foundry,
+                label: (node) => {
+                    if (root.board.selectedNode.value !== node) return;
+                    if (node.activeRecipe === undefined) return;
+                    const building = getNodeProperty(types[node.type].building, node);
+                    if (building === undefined) return;
+                    if (building.recipes === undefined) return;
+
+                    const text = "Active Recipe:"
+                    const input = Object.entries(building.recipes[node.activeRecipe].input).map(([resource, amount]) =>
+                        `${formatWhole(amount)} ${resources[resource as Resources].name}`
+                    ).join(', ');
+                    const output = Object.entries(building.recipes[node.activeRecipe].output).map(([resource, amount]) =>
+                        `${formatWhole(amount)} ${resources[resource as Resources].name}`
+                    ).join(', ');
+                    return {
+                        text: `${text} ${input} -> ${output}`,
+                        color: 'var(--foreground)'
+                    }
+                },
                 actions: [previousRecipe, selectRecipe, nextRecipe, deleteNode]
             },
             [BoardNodeType.Analyzer]: {
@@ -281,6 +325,7 @@ export const types: Record<BoardNodeType, NodeTypeOptions> = createLazyProxy(() 
                 update(node, diff) {
                     if (node.storage[0].amount < diff) return;
                     if (node.state === undefined) return;
+                    if (node.state === root.board.draggingNode.value?.id) return;
                     if (!((node.state as number) in root.idToNodeMap.value)) {
                         node.state = undefined;
                         return;
@@ -319,7 +364,7 @@ export const types: Record<BoardNodeType, NodeTypeOptions> = createLazyProxy(() 
                     if (showLabel) {
                         const storage = node.storage[0];
                         return {
-                            text: `${resources[storage.resource].name}: ${storage.amount}`
+                            text: `${resources[storage.resource].name}: ${formatWhole(storage.amount)}`
                         }
                     }
                 }

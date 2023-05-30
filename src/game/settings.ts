@@ -26,7 +26,7 @@ const state = reactive<Partial<Settings>>({
     active: "",
     saves: [],
     showTPS: true,
-    theme: Themes.Nordic,
+    theme: Themes.Console,
     unthrottled: false,
     alignUnits: false
 });

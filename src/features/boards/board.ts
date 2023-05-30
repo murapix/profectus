@@ -158,6 +158,7 @@ export interface NodeTypeOptions {
     building?: NodeComputable<Building>;
     durability?: NodeComputable<number>;
     onStoreEmpty?: (node: BoardNode, index: number) => void;
+    onDelete?: (node: BoardNode) => void;
 }
 
 /**
