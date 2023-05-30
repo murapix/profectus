@@ -25,7 +25,7 @@ export const root = createLayer("main", function (this: BaseLayer) {
         links() {
             const links = [] as BoardNodeLink[];
             for (const node of board.nodes.value) {
-                for (const connectedNode of node.connectedNodes.map(id => idToNodeMap.value[id])) {
+                for (const connectedNode of node.connectedNodes.map(id => idToNodeMap.value[id]).filter(node => node !== undefined)) {
                     if (node.distance < connectedNode.distance ||
                         (
                             node.distance === connectedNode.distance &&
