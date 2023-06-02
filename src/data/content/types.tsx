@@ -330,6 +330,10 @@ export const types: Record<BoardNodeType, NodeTypeOptions> = createLazyProxy(() 
                         node.state = undefined;
                         return;
                     }
+                    if (root.idToNodeMap.value[node.state as number].storage === undefined) {
+                        node.state = undefined;
+                        return;
+                    }
                     
                     if (node.position.x**2 + node.position.y**2 < (maxBuildableRadius.value-100)**2) return;
                     node.storage[0].amount -= diff;
