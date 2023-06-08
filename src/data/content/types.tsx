@@ -460,6 +460,7 @@ export function findResource(node: BoardNode, resource: Resources, path: number[
         visited.add(neighbor);
     }
     for (const neighborNode of neighbors.map(id => root.idToNodeMap.value[id])) {
+        if (neighborNode === undefined) continue;
         if (Object.values(neighborNode.buildMaterials).some(amount => amount > 0)) continue;
         const route = findResourceHelper(neighborNode, resource, [node.id, ...path], visited);
         if (route !== undefined) return route;
