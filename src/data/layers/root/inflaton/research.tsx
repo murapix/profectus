@@ -4,13 +4,13 @@ import { Requirements, requirementsMet } from "game/requirements";
 import { DecimalSource } from "lib/break_eternity";
 import { Computable, GetComputableType, GetComputableTypeWithDefault, ProcessedComputable, processComputable } from "util/computed";
 import { Ref, computed, unref, watch } from "vue";
-import { GenericDecorator } from "features/decorators/common";
+import { GenericDecorator, GenericEffectFeature } from "features/decorators/common";
 import { createLazyProxy } from "util/proxies";
 import ResearchComponent from "../inflaton/Research.vue";
 
 export const ResearchType = Symbol("Research");
 
-export interface ResearchOptions<T = unknown> {
+export interface ResearchOptions {
     visibility?: Computable<Visibility | boolean>;
     prerequisites?: GenericResearch[];
     requirements: Requirements;
@@ -18,10 +18,9 @@ export interface ResearchOptions<T = unknown> {
         | {
             title: CoercableComponent;
             description: CoercableComponent;
-            effect: CoercableComponent;
+            effect?: CoercableComponent;
         }
     >;
-    effect: Computable<T>;
     canResearch?: Computable<boolean>;
     onResearch?: VoidFunction;
     research: (force: boolean) => void;
@@ -45,22 +44,20 @@ export type Research<T extends ResearchOptions> = Replace<
     {
         visibility: GetComputableTypeWithDefault<T["visibility"], Visibility.Visible>;
         display: GetComputableType<T["display"]>;
-        effect: GetComputableType<T["effect"]>;
         isResearching: GetComputableType<T["isResearching"]>;
     }
 >;
 
-export type GenericResearch<T = unknown> = Replace<
-    Research<ResearchOptions<T>>,
+export type GenericResearch = Replace<
+    Research<ResearchOptions>,
     {
         visibility: ProcessedComputable<Visibility | boolean>;
-        effect: ProcessedComputable<T>;
         isResearching: ProcessedComputable<boolean>;
     }
 >;
 
-export function createResearch<T extends ResearchOptions<U>, U = unknown>(
-    optionsFunc: OptionsFunc<T, BaseResearch, GenericResearch<U>>,
+export function createResearch<T extends ResearchOptions>(
+    optionsFunc: OptionsFunc<T, BaseResearch, GenericResearch>,
     ...decorators: GenericDecorator[]
 ): Research<T> {
     const progress = persistent<DecimalSource>(0);
@@ -107,7 +104,6 @@ export function createResearch<T extends ResearchOptions<U>, U = unknown>(
             return Visibility.None;
         });
 
-        processComputable(research as T, "effect");
         processComputable(research as T, "display");
         processComputable(research as T, "isResearching");
 
@@ -154,6 +150,8 @@ export function createResearch<T extends ResearchOptions<U>, U = unknown>(
     })
 }
 
-export function getResearchEffect<T = unknown>(research: GenericResearch<T>, defaultValue: T): T {
+export type EffectResearch<T = unknown> = GenericResearch & GenericEffectFeature<T>;
+
+export function getResearchEffect<T = unknown>(research: EffectResearch<T>, defaultValue: T): T {
     return unref(research.researched) ? unref(research.effect) : defaultValue;
 }

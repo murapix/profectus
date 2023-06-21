@@ -8,12 +8,11 @@ import Decimal, { DecimalSource } from "lib/break_eternity";
 import { Computable, ProcessedComputable } from "util/computed";
 import { createLazyProxy } from "util/proxies";
 import { computed, unref } from "vue";
-import { getResearchEffect } from "../inflaton-old/research";
+import { getResearchEffect } from "../inflaton/research";
 import { FormulaSource, GenericFormula } from "game/formulas/types";
 import Formula from "game/formulas/formulas";
-import { repeatables, research } from "./tempConstants";
-import inflaton from "./inflaton";
 import buildings from "./buildings";
+import core from "./coreResearch";
 
 export interface BuildingData {
     effect: (amount: DecimalSource) => DecimalSource;
@@ -39,7 +38,7 @@ export function createBuilding(
 ): GenericBuilding {
     return createLazyProxy(feature => {
         let { effect, cost, display} = optionsFunc.call(feature, feature);
-        cost.free ??= research.autobuild.researched;
+        cost.free ??= core.research.autobuild.researched;
         return createRepeatable<BuildingOptions>(repeatable => ({
             bonusAmount() { return Decimal.times(unref(this.amount), 0); }, // 3rd abyssal spinor buyable
             visibility: display.visibility,
@@ -67,24 +66,24 @@ export function createBuilding(
 const buildingStyle = computed(() => ({
     width: '250px',
     minHeight: '150px',
-    borderBottomLeftRadius: unref(research.respecs.researched) ? 0 : undefined,
-    borderBottomRightRadius: unref(research.respecs.researched) ? 0 : undefined,
+    borderBottomLeftRadius: unref(core.research.respecs.researched) ? 0 : undefined,
+    borderBottomRightRadius: unref(core.research.respecs.researched) ? 0 : undefined,
 }))
 
 export const buildingSize = computed(() => {
-    return Decimal.times(getResearchEffect(research.biggerBuildings, {size: 1}).size, getResearchEffect(repeatables.buildingSize, {size: 1}).size)
+    return Decimal.times(1/*getResearchEffect(core.research.biggerBuildings, {size: 1}).size*/, getResearchEffect(core.repeatables.buildingSize, {size: 1}).size)
 });
 const canBuild = computed(() => Decimal.minus(unref(buildings.maxSize), unref(buildings.usedSize)).gte(unref(buildingSize)));
 
 function effectiveAmount(building: GenericBuilding): Decimal {
     return Decimal.times(unref(building.totalAmount),
-                         getResearchEffect(research.biggerBuildings, { effect: 1 }).effect)
-                  .times(unref(repeatables.buildingSize.effect).effect)
+                         1)//getResearchEffect(core.research.biggerBuildings, { effect: 1 }).effect)
+                  .times(unref(core.repeatables.buildingSize.effect).effect)
 }
 
 function getBuildingCost(amount: GenericFormula, multiplier: FormulaSource, base: FormulaSource) {
-    return amount.div(unref(repeatables.buildingCost.effect))
+    return amount.div(unref(core.repeatables.buildingCost.effect))
                  .div(1)
-                 .if(research.autobuild.researched,
+                 .if(core.research.autobuild.researched,
                     )
 }

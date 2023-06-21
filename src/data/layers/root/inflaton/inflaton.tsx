@@ -10,7 +10,6 @@ import { createCostRequirement, displayRequirements, requirementsMet } from "gam
 import { persistent } from "game/persistence";
 import { createMultiplicativeModifier, createSequentialModifier } from "game/modifiers";
 import { format, formatWhole } from "util/break_eternity";
-import { research, repeatables } from "./tempConstants";
 import buildings from "./buildings";
 import MainDisplayVue from "features/resources/MainDisplay.vue";
 import { render, renderRow } from "util/vue";
@@ -18,6 +17,7 @@ import SpacerVue from "components/layout/Spacer.vue";
 import { createTabFamily } from "features/tabs/tabFamily";
 import { createTab } from "features/tabs/tab";
 import { createUpgrade } from "features/upgrades/upgrade";
+import core from "./coreResearch";
 
 export const id = "inflaton";
 const layer = createLayer(id, function (this: BaseLayer) {
@@ -66,7 +66,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
     }));
     function startInflation() {
         inflating.value = true;
-        inflatons.value = unref(research.instantInflation.researched)
+        inflatons.value = unref(core.research.instantInflation.researched)
             ? Decimal.reciprocate(unref(buildings.buildings.condenser.effect)).dividedBy(10).pow10()
             : Decimal.add(unref(inflatons), 1);
     }
@@ -78,7 +78,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
 
     const inflatonNerf = computed(() => {
         let log = Decimal.clampMin(unref(inflatons), 1).log10();
-        if (unref(inflating) || !unref(research.isolatedStorage.researched))
+        if (unref(inflating) || !unref(core.research.isolatedStorage.researched))
             log = log.times(1); // m-field condenser effect
         return log.pow_base(2);
     });
@@ -91,24 +91,24 @@ const layer = createLayer(id, function (this: BaseLayer) {
     });
     const fomeModifiers = createSequentialModifier(() => [
         createMultiplicativeModifier(() => ({
-            multiplier: research.fomeGain.effect,
-            enabled: research.fomeGain.researched,
+            multiplier: 1,//research.fomeGain.effect,
+            enabled: core.research.fomeGain.researched,
             description: jsx(() => <>[{name}] research.fomeGain</>)
         })),
         createMultiplicativeModifier(() => ({
-            multiplier: research.moreFomeGain.effect,
-            enabled: research.moreFomeGain.researched,
+            multiplier: 1,//research.moreFomeGain.effect,
+            enabled: core.research.moreFomeGain.researched,
             description: jsx(() => <>[{name}] research.moreFomeGain</>)
         })),
         createMultiplicativeModifier(() => ({
-            multiplier: research.evenMoreFomeGain.effect,
-            enabled: research.evenMoreFomeGain.researched,
+            multiplier: 1,//research.evenMoreFomeGain.effect,
+            enabled: core.research.evenMoreFomeGain.researched,
             description: jsx(() => <>[{name}] research.evenMoreFomeGain</>)
         })),
         createMultiplicativeModifier(() => ({
-            multiplier: repeatables.fome.effect,
-            enabled: () => Decimal.gt(unref(repeatables.fome.amount), 0),
-            description: jsx(() => <>[{name}] repeatables.fome ({format(unref(repeatables.fome.amount))})</>)
+            multiplier: core.repeatables.fome.effect,
+            enabled: () => Decimal.gt(unref(core.repeatables.fome.amount), 0),
+            description: jsx(() => <>[{name}] repeatables.fome ({format(unref(core.repeatables.fome.amount))})</>)
         }))
     ]);
     const fomeBonus = computed(() => {
@@ -174,7 +174,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         <div style={{marginTop: '-20px', fontSize: '12px'}}>
             {unref(inflating)
                 ? <>Runaway inflation is dividing all other resources by <span style={{color, textShadow: `${color} 0px 0px 10px`}}>{formatWhole(unref(inflatonNerf))}</span></>
-                : <>{unref(research.fomeGain.researched)
+                : <>{unref(core.research.fomeGain.researched)
                     ? <>Inflaton resonance is increasing Foam generation by <span style={{color, textShadow: `${color} 0px 0px 10px`}}>{formatWhole(unref(fomeBonus))}</span></>
                     : undefined
                 }</>
@@ -217,6 +217,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         inflatons,
         inflating,
         fomeBonus,
+        upgrades,
         display: jsx(() => (
             <>
                 {unref(upgrades.research.bought)

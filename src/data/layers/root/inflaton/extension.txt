@@ -2,3 +2,4 @@ Main feature: the factory
 - main design issues:
   - factory resources need to use resources from other layers (and other expansions)
   - factory resources need to be based on significance and discovery, rather than actual physics
+- tabular display/management, not board-based - boards are too complicated to be anything other than a core game feature

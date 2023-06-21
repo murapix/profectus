@@ -3,24 +3,25 @@ import { Persistent, persistent } from "game/persistence";
 import Decimal, { DecimalSource } from "lib/break_eternity";
 import { Computable, GetComputableTypeWithDefault, ProcessedComputable, processComputable } from "util/computed";
 import { Ref, computed, isRef, unref } from "vue";
-import { Decorator } from "features/decorators/common";
+import { Decorator, EffectFeatureOptions } from "features/decorators/common";
 import RepeatableResearchComponent from "../inflaton/RepeatableResearch.vue";
 import { coerceComponent, isCoercableComponent } from "util/vue";
 import { BaseResearch, ResearchOptions } from "./research";
 import { isFunction } from "util/common";
 import { format } from "util/break_eternity";
 
-export interface RepeatableResearchOptions<T = unknown> extends ResearchOptions<T> {
+export interface RepeatableResearchOptions<T = unknown> extends ResearchOptions, EffectFeatureOptions<T> {
     limit?: Computable<DecimalSource>;
 }
 
-export interface BaseRepeatableResearch extends BaseResearch {
+export interface BaseRepeatableResearch<T = unknown> extends BaseResearch {
+    effect: Ref<T>;
     amount: Persistent<DecimalSource>;
     maxed: Ref<boolean>;
 }
 
-export type RepeatableResearch<T extends RepeatableResearchOptions> = Replace<
-    T,
+export type RepeatableResearch<T extends RepeatableResearchOptions<U>, U> = Replace<
+    T & BaseRepeatableResearch<U>,
     { limit: GetComputableTypeWithDefault<T["limit"], 3998> }
 >;
 
