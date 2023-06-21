@@ -7,13 +7,15 @@
 <script setup lang="ts">
 import type { Resource } from "features/resources/resource";
 import { displayResource } from "features/resources/resource";
+import { DecimalSource } from "lib/break_eternity";
 import { computed } from "vue";
 
 const props = defineProps<{
-    resource: Resource;
+    resource: Resource<DecimalSource>;
     color: string;
     tag?: string;
+    override?: DecimalSource
 }>();
 
-const amount = computed(() => displayResource(props.resource));
+const amount = computed(() => displayResource(props.resource, props.override));
 </script>

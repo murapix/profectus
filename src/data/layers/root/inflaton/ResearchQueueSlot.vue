@@ -13,41 +13,24 @@
     </button>
 </template>
 
-<script lang="ts">
+<script setup lang="ts">
 import { CoercableComponent } from 'features/feature';
 import Decimal from 'lib/break_eternity';
 import { format } from 'util/break_eternity';
-import { coerceComponent, processedPropType, unwrapRef } from 'util/vue';
-import { defineComponent, unref, toRefs, computed } from 'vue';
+import { coerceComponent } from 'util/vue';
+import { unref, computed } from 'vue';
 import { removeResearchFromQueue } from './coreResearch';
 import { GenericResearch } from './research';
 
-export default defineComponent({
-    props: {
-        node: processedPropType<GenericResearch>(Object),
-        name: processedPropType<CoercableComponent>(String, Object, Function),
-        index: {
-            type: processedPropType<number>(Number),
-            required: true
-        }
-    },
-    setup(props) {
-        const { node } = toRefs(props);
+const props = defineProps<{
+    node?: GenericResearch;
+    name?: CoercableComponent;
+    index: number;
+}>();
 
-        const isResearch = computed(() => unwrapRef(node) !== undefined);
-        const fillPercent = computed(() => Decimal.times(unref(unwrapRef(node)?.progressPercentage) ?? 0, 1.1).minus(0.05).times(100));
-
-        return {
-            unref,
-            format,
-            coerceComponent,
-            removeFromQueue: () => unref(isResearch) ? removeResearchFromQueue(unwrapRef(node)!) : {},
-
-            isResearch,
-            fillPercent
-        }
-    }
-})
+const isResearch = computed(() => props.node !== undefined);
+const fillPercent = computed(() => Decimal.times(unref(props.node?.progressPercentage) ?? 0, 1.1).minus(0.05).times(100));
+const removeFromQueue = () => unref(isResearch) ? removeResearchFromQueue(props.node!) : {};
 </script>
 
 <style scoped>

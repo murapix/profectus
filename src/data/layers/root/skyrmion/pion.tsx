@@ -21,6 +21,7 @@ import SpacerVue from "components/layout/Spacer.vue";
 import PionVue from "./Pion.vue";
 import abyss from "./abyss";
 import { getFomeBoost } from "../fome/boost";
+import { displayResource } from "features/resources/resource";
 
 const id = "pion";
 const layer = createLayer(id, function (this: BaseLayer) {
@@ -234,7 +235,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         upgrades,
         display: jsx(() => (
             <ColumnVue>
-                <div>You have <ResourceVue resource={pions} color={skyrmion.color} tag="h3" /> {pions.displayName}</div>
+                <div>You have <ResourceVue resource={pions} color={skyrmion.color} tag="h3" /> {pions.displayName} (+{displayResource(pions, production.value)}/s)</div>
                 <div style="font-size: 12px">Your Spinor upgrades are increasing Pion upgrade costs by {formatSmall(unref(costNerf).minus(1).times(100))}%</div>
                 <SpacerVue />
                 <PionVue />

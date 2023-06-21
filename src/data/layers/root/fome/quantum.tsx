@@ -114,7 +114,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                     requiresPay: () => !unref(fome.achievements.reform.earned)
                 })),
                 createReformRequirement(() => ({
-                    fomeType: FomeTypes.quantum,
+                    fomeType: FomeTypes.subplanck,
                     cost: Formula.variable(feature.amount).plus(2)
                 }))
             ],

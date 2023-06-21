@@ -3,7 +3,7 @@
         <template v-for="fomeType in Object.values(FomeTypes).slice().reverse()" :key="fomeType">
             <div v-if="Decimal.gt(unref(fome[fomeType].upgrades.reform.amount), 0)">
                 <div v-html="getFomeDisplay(fomeType)" style="white-space: nowrap" />
-                <div>{{ format(unref(fome[fomeType].production)) }}</div>
+                <div>+{{ format(unref(fome[fomeType].production)) }}/s</div>
             </div>
             <template v-for="upgradeType in Object.keys(fome[fomeType].upgrades)">
                 <component :is="render(fome[fomeType].upgrades[upgradeType as FomeDims | 'condense' | 'reform'])" />

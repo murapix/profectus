@@ -32,19 +32,20 @@ const props = defineProps<{
     research: GenericResearch[][];
 }>();
 
-const links: ComputedRef<Link[]> = computed(() => props.research.flatMap(row => row)
-                                                                .flatMap(node => node.prerequisites
-                                                                    ?.map(prerequisite => ({
-                                                                        startNode: { id: node.id },
-                                                                        endNode: { id: prerequisite.id },
-                                                                        stroke: !isVisible(node.visibility)
-                                                                                    ? 'var(--locked)'
-                                                                                    : unref(prerequisite.researched)
-                                                                                        ? 'var(--layer-color)'
-                                                                                        : 'white',
-                                                                        'stroke-width': '5px'
-                                                                    }))
-                                                                    ?? [])
+const links: ComputedRef<Link[]> = computed(() => 
+        props.research.flatMap(row => row)
+                      .flatMap(node => node.prerequisites
+                        ?.map(prerequisite => ({
+                            startNode: { id: node.id },
+                            endNode: { id: prerequisite.id },
+                            stroke: !isVisible(node.visibility)
+                                    ? 'var(--locked)'
+                                    : unref(prerequisite.researched)
+                                        ? 'var(--layer-color)'
+                                        : 'white',
+                                    'stroke-width': '5px'
+                            }))
+                      ?? [])
 );
 </script>
 
