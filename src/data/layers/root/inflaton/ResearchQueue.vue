@@ -1,69 +1,47 @@
 <template>
     <Column>
-        <template v-for="slot, index in unref(queue)" :key="slot ? `${slot[0]}-${slot[1]}` : index">
+        <template v-for="node, index in nodes" :key="slot ? `${slot[0]}-${slot[1]}` : `empty-${index}`">
             <h3 v-if="index === unref(parallel)">Next Up:</h3>
-            <ResearchQueueSlot v-if="!slot"
+            <ResearchQueueSlot v-if="!node"
                 :index="index" 
             />
             <ResearchQueueSlot v-else
-                :location="slot[0]"
-                :id="slot[1]"
+                :node="node"
                 :name="name(index)"
-                :progress="unref(locations)[slot[0]][slot[1]].progressPercentage"
                 :index="index"
             />
         </template>
     </Column>
 </template>
 
-<script lang="ts">
-import { processedPropType, unwrapRef, isCoercableComponent } from 'util/vue';
-import { defineComponent, unref, toRefs, isRef } from 'vue';
-import { isFunction } from 'util/common';
-import { GenericResearch } from './research';
-import Row from 'components/layout/Row.vue';
+<script setup lang="ts">
+import { computed, isRef, unref } from 'vue';
 import ResearchQueueSlot from './ResearchQueueSlot.vue';
-import { CoercableComponent } from 'features/feature';
 import Column from 'components/layout/Column.vue';
+import core from './coreResearch';
+import { ProcessedComputable } from 'util/computed';
+import { isCoercableComponent } from 'util/vue';
+import { isFunction } from 'util/common';
 
-export default defineComponent({
-    props: {
-        queue: {
-            type: processedPropType<( [string,string] | undefined | null )[]>(Array),
-            required: true
-        },
-        parallel: {
-            type: processedPropType<number>(Number),
-            default: 1
-        },
-        locations: {
-            type: processedPropType<{ [key in string]: { [key in string]: GenericResearch; }; }>(Object),
-            required: true
-        }
-    },
-    setup(props) {
-        const { queue, locations } = toRefs(props);
+const props = withDefaults(defineProps<{
+    queue: ProcessedComputable<string[]>;
+    parallel?: ProcessedComputable<number>;
+}>(),
+{
+    parallel: 1
+});
 
-        function name(index: number): CoercableComponent | undefined {
-            const slot = unwrapRef(queue)[index];
-            if (slot) {
-                const research = unwrapRef(locations)[slot[0]][slot[1]];
-                if (isCoercableComponent(research.display)) return slot[1];
-                if (isRef(research.display)) return slot[1];
-                if (isFunction(research.display)) return slot[1];
+const allResearch = [core.research, core.repeatables].flatMap(location => Object.values(location));
+const nodes = computed(() => unref(props.queue).map(id => allResearch.find(node => node.id === id)));
 
-                return research.display.title;
-            }
-        };
-
-        return {
-            unref,
-
-            name
-        };
-    },
-    components: { Row, ResearchQueueSlot, Column }
-})
+function name(index: number) {
+    const node = unref(nodes)[index];
+    if (node === undefined) return;
+    if (isCoercableComponent(node.display)) return node.id;
+    if (isRef(node.display)) return node.id;
+    if (isFunction(node.display)) return node.id;
+    return node.display.title;
+}
 </script>
 
 <style scoped>

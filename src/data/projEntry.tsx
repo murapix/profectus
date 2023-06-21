@@ -15,7 +15,7 @@ import fome from "./layers/root/fome/fome";
 import acceleron from "./layers/root/acceleron-old/acceleron";
 import entropy from "./layers/root/acceleron-old/entropy";
 import timecube from "./layers/root/timecube-old/timecube";
-import inflaton from "./layers/root/inflaton-old/inflaton";
+import inflaton from "./layers/root/inflaton/inflaton";
 import entangled from "./layers/root/entangled-old/entangled";
 
 /**

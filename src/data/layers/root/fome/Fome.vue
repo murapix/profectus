@@ -12,34 +12,19 @@
     </div>
 </template>
 
-<script lang="ts">
+<script setup lang="ts">
 import Decimal, { format, formatWhole } from "util/break_eternity";
-import { defineComponent, unref } from "vue";
+import { unref } from "vue";
 import fome, { FomeDims, FomeTypes } from "./fome";
 import { render } from "util/vue";
 
-export default defineComponent({
-    setup() {
-        function getFomeDisplay(fomeType: FomeTypes) {
-            return `You have ${format(unref(fome[fomeType].amount))} ${
-                fome[fomeType].amount.displayName
-            }${
-                Decimal.gt(unref(fome[fomeType].upgrades.reform.amount), 1) ? `<sup>${formatWhole(unref(fome[fomeType].upgrades.reform.amount))}</sup>` : ""
-            }`;
-        }
-        return {
-            FomeTypes,
-
-            fome,
-
-            getFomeDisplay,
-            unref,
-            format,
-            render,
-            Decimal
-        };
-    }
-});
+function getFomeDisplay(fomeType: FomeTypes) {
+    return `You have ${format(unref(fome[fomeType].amount))} ${
+        fome[fomeType].amount.displayName
+    }${
+        Decimal.gt(unref(fome[fomeType].upgrades.reform.amount), 1) ? `<sup>${formatWhole(unref(fome[fomeType].upgrades.reform.amount))}</sup>` : ""
+    }`;
+}
 </script>
 
 <style scoped>

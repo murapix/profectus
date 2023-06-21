@@ -19,15 +19,14 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ComputedRef, defineComponent, toRefs, unref } from 'vue';
+import { computed, ComputedRef, unref } from 'vue';
 import Row from 'components/layout/Row.vue';
-import { processedPropType, render, unwrapRef } from 'util/vue';
+import { render } from 'util/vue';
 import { GenericResearch } from './research';
 import Links from 'features/links/Links.vue';
 import { Link } from 'features/links/links';
 import Spacer from 'components/layout/Spacer.vue';
-import Column from 'components/layout/Column.vue';
-import { isVisible, Visibility } from 'features/feature';
+import { isVisible } from 'features/feature';
 
 const props = defineProps<{
     research: GenericResearch[][];

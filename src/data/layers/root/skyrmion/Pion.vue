@@ -15,41 +15,30 @@
     </div>
 </template>
 
-<script lang="ts">
+<script setup lang="ts">
 import { render } from "util/vue";
-import { defineComponent, unref } from "vue";
+import { unref } from "vue";
 import { StyleValue, Visibility } from "features/feature";
 import pion from "./pion";
 
-export default defineComponent({
-    setup() {
-        const upgrades = pion.upgrades;
-        const positions: Record<keyof typeof upgrades, { row: number; col: number }> = {
-            alpha: { row: 1, col: 7 },
-            beta: { row: 2, col: 5 },
-            gamma: { row: 3, col: 7 },
-            delta: { row: 4, col: 5 },
-            epsilon: { row: 5, col: 7 },
-            zeta: { row: 3, col: 3 },
-            eta: { row: 5, col: 3 },
-            theta: { row: 6, col: 5 },
-            iota: { row: 7, col: 7 },
-            kappa: { row: 4, col: 1 },
-            lambda: { row: 6, col: 1 },
-            mu: { row: 7, col: 3 }
-        };
-        function getPos(index: keyof typeof upgrades) {
-            return { "--row": positions[index].row, "--col": positions[index].col } as StyleValue;
-        }
-        return {
-            render,
-            getPos,
-            unref,
-            Visibility,
-            upgrades
-        };
-    }
-});
+const upgrades = pion.upgrades;
+const positions: Record<keyof typeof upgrades, { row: number; col: number }> = {
+    alpha: { row: 1, col: 7 },
+    beta: { row: 2, col: 5 },
+    gamma: { row: 3, col: 7 },
+    delta: { row: 4, col: 5 },
+    epsilon: { row: 5, col: 7 },
+    zeta: { row: 3, col: 3 },
+    eta: { row: 5, col: 3 },
+    theta: { row: 6, col: 5 },
+    iota: { row: 7, col: 7 },
+    kappa: { row: 4, col: 1 },
+    lambda: { row: 6, col: 1 },
+    mu: { row: 7, col: 3 }
+};
+function getPos(index: keyof typeof upgrades) {
+    return { "--row": positions[index].row, "--col": positions[index].col } as StyleValue;
+}
 </script>
 
 <style scoped>

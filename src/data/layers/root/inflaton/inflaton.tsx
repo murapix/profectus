@@ -18,6 +18,7 @@ import { createTabFamily } from "features/tabs/tabFamily";
 import { createTab } from "features/tabs/tab";
 import { createUpgrade } from "features/upgrades/upgrade";
 import core from "./coreResearch";
+import coreResearch from "./coreResearch";
 
 export const id = "inflaton";
 const layer = createLayer(id, function (this: BaseLayer) {
@@ -79,7 +80,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
     const inflatonNerf = computed(() => {
         let log = Decimal.clampMin(unref(inflatons), 1).log10();
         if (unref(inflating) || !unref(core.research.isolatedStorage.researched))
-            log = log.times(1); // m-field condenser effect
+            log = log.times(unref(buildings.buildings.condenser.effect));
         return log.pow_base(2);
     });
     const inflatonGain = computed(() => {
@@ -91,17 +92,17 @@ const layer = createLayer(id, function (this: BaseLayer) {
     });
     const fomeModifiers = createSequentialModifier(() => [
         createMultiplicativeModifier(() => ({
-            multiplier: 1,//research.fomeGain.effect,
+            multiplier: core.research.fomeGain.effect,
             enabled: core.research.fomeGain.researched,
             description: jsx(() => <>[{name}] research.fomeGain</>)
         })),
         createMultiplicativeModifier(() => ({
-            multiplier: 1,//research.moreFomeGain.effect,
+            multiplier: core.research.moreFomeGain.effect,
             enabled: core.research.moreFomeGain.researched,
             description: jsx(() => <>[{name}] research.moreFomeGain</>)
         })),
         createMultiplicativeModifier(() => ({
-            multiplier: 1,//research.evenMoreFomeGain.effect,
+            multiplier: core.research.evenMoreFomeGain.effect,
             enabled: core.research.evenMoreFomeGain.researched,
             description: jsx(() => <>[{name}] research.evenMoreFomeGain</>)
         })),
@@ -203,7 +204,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 display: jsx(() => (
                     <>
                         {render(header)}
-                        {/* {render(coreResearch.display)} */}
+                        {render(core.display)}
                     </>
                 ))
             }))
@@ -218,6 +219,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
         inflating,
         fomeBonus,
         upgrades,
+        tabs,
+        style: {
+            '--bought': '#b14e24'
+        },
         display: jsx(() => (
             <>
                 {unref(upgrades.research.bought)
@@ -227,7 +232,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
             </>
         )),
 
-        buildings
+        buildings,
+        coreResearch
     }
 })
 

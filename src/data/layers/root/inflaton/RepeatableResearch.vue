@@ -7,7 +7,7 @@
                 '--fill-percent': `${format(unref(fillPercent))}%`
             }
         ]"
-        @click="research()"
+        @click="research(false)"
         :class="{
             research: true,
             repeatable: true,
@@ -23,100 +23,57 @@
     </button>
 </template>
 
-<script lang="tsx">
+<script setup lang="tsx" generic="T">
 import { isHidden, isVisible, jsx, Visibility } from 'features/feature';
-import Decimal, { DecimalSource } from 'lib/break_eternity';
-import { format, formatWhole } from 'util/break_eternity';
-import { coerceComponent, isCoercableComponent, processedPropType, unwrapRef } from 'util/vue';
-import { PropType, Component, UnwrapRef, computed } from 'vue';
-import { defineComponent, unref, toRefs, shallowRef, watchEffect } from 'vue';
-import { GenericResearch } from './research'
+import Decimal from 'lib/break_eternity';
+import { format } from 'util/break_eternity';
+import { coerceComponent, isCoercableComponent, unwrapRef } from 'util/vue';
+import { computed, DefineComponent } from 'vue';
+import { unref, toRefs, shallowRef, watchEffect } from 'vue';
 import Node from 'components/Node.vue';
-import { formatRoman } from './repeatableDecorator';
+import { GenericRepeatableResearch } from './repeatableDecorator';
+import { displayRequirements } from 'game/requirements';
 
-export default defineComponent({
-    props: {
-        visibility: {
-            type: processedPropType<Visibility | boolean>(Number, Boolean),
-            required: true
-        },
-        display: {
-            type: processedPropType<UnwrapRef<GenericResearch["display"]>>(String, Object, Function),
-            required: true
-        },
-        id: {
-            type: String,
-            required: true
-        },
-        cost: processedPropType<DecimalSource>(String, Object, Number),
-        canResearch: {
-            type: processedPropType<boolean>(Boolean),
-            required: true
-        },
-        isResearching: {
-            type: processedPropType<boolean>(Boolean),
-            required: true
-        },
-        progress: {
-            type: processedPropType<DecimalSource>(String, Object, Number),
-            required: true
-        },
-        progressPercentage: {
-            type: processedPropType<DecimalSource>(String, Object, Number),
-            required: true
-        },
-        researched: {
-            type: processedPropType<boolean>(Boolean),
-            required: true
-        },
-        amount: processedPropType<DecimalSource>(String, Object, Number),
-        research: {
-            type: Function as PropType<VoidFunction>,
-            required: true
-        }
-    },
-    setup(props) {
-        const { display, cost, progressPercentage } = toRefs(props);
-        const component = shallowRef<Component | string>("");
-        watchEffect(() => {
-            const currentDisplay = unwrapRef(display);
-            if (currentDisplay == null) {
-                component.value = "";
-                return;
-            }
-            if (isCoercableComponent(currentDisplay)) {
-                component.value = coerceComponent(currentDisplay);
-                return;
-            }
-            const Cost = unwrapRef(cost);
-            const Title = coerceComponent(currentDisplay.title ?? "", "h3");
-            const Description = coerceComponent(currentDisplay.description);
-            const EffectDisplay = coerceComponent(currentDisplay.effect ?? "");
-            component.value = coerceComponent(jsx(() => (<>
-                        {currentDisplay.title ? <Title /> : null}
-                        <span><Description /></span>
-                        {currentDisplay.effect ? <span>Currently: <EffectDisplay /></span> : null}
-                        <span>{formatWhole(Cost ?? 0)} Research Points</span>
-                </>)));
-        });
+const props = defineProps<{
+    visibility: GenericRepeatableResearch["visibility"];
+    display: GenericRepeatableResearch["display"];
+    id: GenericRepeatableResearch["id"];
+    requirements: GenericRepeatableResearch["requirements"];
+    canResearch: GenericRepeatableResearch["canResearch"];
+    isResearching: GenericRepeatableResearch["isResearching"];
+    progress: GenericRepeatableResearch["progress"];
+    progressPercentage: GenericRepeatableResearch["progressPercentage"];
+    researched: GenericRepeatableResearch["researched"];
+    amount: GenericRepeatableResearch["amount"];
+    limit?: GenericRepeatableResearch["limit"];
+    research: GenericRepeatableResearch["research"];
+}>();
 
-        const fillPercent = computed(() => Decimal.times(unwrapRef(progressPercentage), 1.1).minus(0.05).times(100));
+const { display, requirements, progressPercentage } = toRefs(props);
+const component = shallowRef<DefineComponent | string>("");
+watchEffect(() => {
+    const currentDisplay = unwrapRef(display);
+    if (currentDisplay == null) {
+        component.value = "";
+        return;
+    }
+    if (isCoercableComponent(currentDisplay)) {
+        component.value = coerceComponent(currentDisplay);
+        return;
+    }
+    const Requirements = unwrapRef(requirements);
+    const Title = coerceComponent(currentDisplay.title ?? "", "h3");
+    const Description = coerceComponent(currentDisplay.description);
+    const EffectDisplay = coerceComponent(currentDisplay.effect ?? "");
+    component.value = coerceComponent(jsx(() => (<>
+                {currentDisplay.title ? <Title /> : null}
+                <span><Description /></span>
+                {currentDisplay.effect ? <span>Currently: <EffectDisplay /></span> : null}
+                {displayRequirements(Requirements)}
+        </>)));
+});
 
-        return {
-            component,
-            unref,
-            format,
-            formatRoman,
-            Visibility,
-            Decimal,
-            isVisible,
-            isHidden,
-
-            fillPercent
-        };
-    },
-    components: { Node }
-})
+const fillPercent = computed(() => Decimal.times(unwrapRef(progressPercentage), 1.1).minus(0.05).times(100));
 </script>
 
 <style scoped>

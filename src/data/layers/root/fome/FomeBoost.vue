@@ -26,35 +26,20 @@
     </div>
 </template>
 
-<script lang="ts">
+<script setup lang="ts">
 import Spacer from "components/layout/Spacer.vue";
-import { defineComponent, unref } from "vue";
+import { unref } from "vue";
 import fome, { FomeTypes } from "./fome";
 import { CoercableComponent } from "features/feature";
 import Decimal, { format, formatWhole } from "util/break_eternity";
 
-export default defineComponent({
-    setup() {
-        const boosts = Object.fromEntries(Object.values(FomeTypes).map(fomeType => 
-            [fomeType, Object.fromEntries(
-                Object.values([1,2,3,4,5]).map(id => 
-                    [id, unref(fome[fomeType].boosts[id as 1|2|3|4|5].display)]
-                )
-            )]
-        )) as Record<FomeTypes, Record<1|2|3|4|5, CoercableComponent>>;
-
-        return {
-            fome,
-            boosts,
-
-            unref,
-            format,
-            formatWhole,
-            Decimal
-        };
-    },
-    components: { Spacer }
-});
+const boosts = Object.fromEntries(Object.values(FomeTypes).map(fomeType => 
+    [fomeType, Object.fromEntries(
+        Object.values([1,2,3,4,5]).map(id => 
+            [id, unref(fome[fomeType].boosts[id as 1|2|3|4|5].display)]
+        )
+    )]
+)) as Record<FomeTypes, Record<1|2|3|4|5, CoercableComponent>>;
 </script>
 
 <style scoped>

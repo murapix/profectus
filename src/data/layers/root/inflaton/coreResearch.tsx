@@ -2,7 +2,7 @@ import { CoercableComponent, OptionsFunc, Visibility, jsx } from "features/featu
 import { createLayer, BaseLayer } from "game/layers";
 import { BaseResearch, EffectResearch, GenericResearch, createResearch as actualCreateResearch, getResearchEffect } from "./research";
 import { BaseRepeatableResearch, GenericRepeatableResearch, RepeatableResearch, RepeatableResearchOptions, repeatableDecorator } from "./repeatableDecorator"
-import { createCostRequirement } from "game/requirements";
+import { CostRequirement, createCostRequirement } from "game/requirements";
 import { createLazyProxy } from "util/proxies";
 import { createResource } from "features/resources/resource";
 import { Computable, ProcessedComputable } from "util/computed";
@@ -13,8 +13,14 @@ import { ComputedRef, computed, unref } from "vue";
 import { format, formatWhole } from "util/break_eternity";
 import acceleron from "../acceleron/acceleron";
 import entangled from "../entangled-old/entangled";
-import { id as inflatonId } from "./inflaton";
+import inflaton, { id as inflatonId } from "./inflaton";
 import ResearchTreeVue from "./ResearchTree.vue";
+import { noPersist, persistent } from "game/persistence";
+import ToggleVue from "components/fields/Toggle.vue";
+import SpacerVue from "components/layout/Spacer.vue";
+import ResearchQueueVue from "./ResearchQueue.vue";
+import { render } from "util/vue";
+import ColumnVue from "components/layout/Column.vue";
 
 const id = "coreResearch";
 const layer = createLayer(id, function (this: BaseLayer) {
@@ -318,14 +324,67 @@ const layer = createLayer(id, function (this: BaseLayer) {
     })();
 
     const queueLength = computed<number>(() => 1 + getResearchEffect(research.queueTwo, 0) + getResearchEffect(research.queueFour, 0));
+    const parallelResearchCount = computed<number>(() => 1);
+    const researchQueue = persistent<string[]>([]);
+
+    const baseResearchGain = computed(() => Decimal.times(unref(buildings.buildings.lab.effect), getResearchEffect(research.researchBoost, 1)).times(1) /* 1st abyssal pion buyable */);
+    const finalResearchGain = computed(() => unref(baseResearchGain));
     
+    const autoResearching = persistent<boolean>(false);
+    this.on("preUpdate", diff => {
+        if (unref(researchQueue).length <= 0) return;
+        const gain = Decimal.times(unref(finalResearchGain), diff);
+        for (const id of unref(researchQueue).slice(0, unref(parallelResearchCount))) {
+            const node = [research, repeatables].flatMap(location => Object.values(location) as GenericResearch[]).find(node => node.id === id);
+            if (node !== undefined) node.progress.value = gain.plus(node.progress.value);
+        }
+    });
+    this.on("update", () => { // if automating research and below parallel count, add the cheapest repeatables to the queue
+        if (!unref(autoResearching)) return;
+        if (unref(researchQueue).length >= unref(parallelResearchCount)) return;
+        Object.values(repeatables).filter(repeatable => Decimal.gte(unref(repeatable.amount), 1))
+                                  .filter(repeatable => !unref(repeatable.isResearching))
+                                  .filter(repeatable => unref(repeatable.canResearch))
+                                  .sort((a,b) => Decimal.compare(
+                                    unref((a.requirements as CostRequirement).cost as ProcessedComputable<DecimalSource>),
+                                    unref((b.requirements as CostRequirement).cost as ProcessedComputable<DecimalSource>)
+                                  ))
+                                  .slice(0, unref(parallelResearchCount) - unref(researchQueue).length)
+                                  .forEach(repeatable => repeatable.research(true));
+    });
+    this.on("postUpdate", () => { // completed and invalid researches must be culled from the queue
+        researchQueue.value = unref(researchQueue).filter(id => {
+            const node = [research, repeatables].flatMap(location => Object.values(location) as GenericResearch[]).find(node => node.id === id);
+            if (node === undefined) return false;
+            if (Decimal.gte(unref(node.progressPercentage), 1)) {
+                node.onResearch?.();
+                return false;
+            }
+            return true;
+        });
+    });
+
     return {
         research,
         repeatables,
 
         queueLength,
+        parallelResearchCount,
+        researchQueue,
+
+        researchGain: finalResearchGain,
+        autoResearching,
         display: jsx(() => (
-            <>
+            <div class='row' style={{flexFlow: 'row-reverse nowrap', alignItems: 'flex-start', justifyContent: 'space-evenly'}}>
+                <ResearchQueueVue parallel={parallelResearchCount} queue={computed(() => Array.from({...unref(researchQueue), length: Math.max(unref(researchQueue).length, unref(queueLength))}))} />
+                {
+                    unref(research.repeatableUnlock.researched)
+                        ? <>
+                            <ToggleVue modelValue={autoResearching.value}/>
+                            <SpacerVue />
+                        </>
+                        : undefined
+                }
                 <ResearchTreeVue research={[
                     [research.quintupleCondenser],
                     [research.doubleSize, research.cheaperLabs],
@@ -337,12 +396,30 @@ const layer = createLayer(id, function (this: BaseLayer) {
                     [research.moreRepeatables, research.queueFour, research.autobuild],
                     [research.mastery]
                 ]}/>
-            </>
+                <ColumnVue>
+                    {...Object.values(repeatables).map(render).map(element => <div style={{margin: 'var(--feature-margin) 0px'}}>{element}</div>)}
+                </ColumnVue>
+            </div>
         ))
     }
 });
 
 export default layer;
+
+export function removeResearchFromQueue(research: GenericResearch) {
+    layer.researchQueue.value = unref(layer.researchQueue).filter(id => id !== research.id);
+}
+
+const allResearch = computed(() => [layer.research, layer.repeatables].flatMap(location => Object.values(location)));
+function startResearch(this: GenericResearch, force: boolean = false) {
+    if (force || unref(layer.researchQueue).length < unref(layer.queueLength)) {
+        const research = unref(allResearch).find(research => research.id === this.id);
+        if (research) unref(layer.researchQueue).push(research.id);
+    }
+}
+function isResearching(this: GenericResearch) {
+    return unref(layer.researchQueue).some(id => id === this.id);
+}
 
 interface ResearchOptions {
     visibility?: Computable<Visibility | boolean>;
@@ -361,21 +438,21 @@ interface ResearchOptions {
 
 function createResearch<T extends ResearchOptions>(
     optionsFunc: OptionsFunc<T, BaseResearch, GenericResearch>
-) {
+): GenericResearch {
     return createLazyProxy<GenericResearch, GenericResearch>(feature => {
         const { visibility, prerequisites, cost, display, canResearch, onResearch } = optionsFunc.call(feature, feature);
         return actualCreateResearch(research => ({
             visibility,
             prerequisites,
             requirements: createCostRequirement(() => ({
-                resource: createResource(research.progress, ""),
+                resource: createResource(noPersist(research.progress), "Research Points"),
                 cost
             })),
             display,
             canResearch,
             onResearch,
-            research() { },
-            isResearching() { return false }
+            research: startResearch,
+            isResearching
         }));
     });
 }
@@ -389,14 +466,14 @@ function createEffectResearch<T extends ResearchOptions & EffectFeatureOptions<U
             visibility,
             prerequisites,
             requirements: createCostRequirement(() => ({
-                resource: createResource(research.progress, ""),
+                resource: createResource(noPersist(research.progress), "Research Points"),
                 cost
             })),
             display,
             canResearch,
             onResearch,
-            research() { },
-            isResearching() { return false },
+            research: startResearch,
+            isResearching,
             effect
         }), effectDecorator) as GenericResearch & GenericEffectFeature<U>;
     });
@@ -411,14 +488,14 @@ function createRepeatableResearch<T extends ResearchOptions & Partial<Repeatable
             visibility,
             prerequisites,
             requirements: createCostRequirement(() => ({
-                resource: createResource(research.progress, ""),
+                resource: createResource(noPersist(research.progress), "Research Points"),
                 cost
             })),
             display,
             canResearch,
             onResearch,
-            research() { },
-            isResearching() { return false },
+            research: startResearch,
+            isResearching,
             effect,
             limit
         }), effectDecorator, repeatableDecorator) as unknown as GenericResearch & GenericRepeatableResearch<U>;

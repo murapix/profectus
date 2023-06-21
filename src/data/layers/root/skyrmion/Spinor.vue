@@ -15,41 +15,30 @@
     </div>
 </template>
 
-<script lang="ts">
+<script setup lang="ts">
 import { render } from "util/vue";
 import { defineComponent, unref } from "vue";
 import { StyleValue, Visibility } from "features/feature";
 import spinor from "./spinor"
 
-export default defineComponent({
-    setup() {
-        const upgrades = spinor.upgrades;
-        const positions: Record<keyof typeof upgrades, { row: number; col: number }> = {
-            alpha: { row: 1, col: 1 },
-            beta: { row: 2, col: 3 },
-            gamma: { row: 3, col: 1 },
-            delta: { row: 4, col: 3 },
-            epsilon: { row: 5, col: 1 },
-            zeta: { row: 3, col: 5 },
-            eta: { row: 5, col: 5 },
-            theta: { row: 6, col: 3 },
-            iota: { row: 7, col: 1 },
-            kappa: { row: 4, col: 7 },
-            lambda: { row: 6, col: 7 },
-            mu: { row: 7, col: 5 }
-        };
-        function getPos(index: keyof typeof upgrades) {
-            return { "--row": positions[index].row, "--col": positions[index].col } as StyleValue;
-        }
-        return {
-            render,
-            getPos,
-            unref,
-            Visibility,
-            upgrades
-        };
-    }
-});
+const upgrades = spinor.upgrades;
+const positions: Record<keyof typeof upgrades, { row: number; col: number }> = {
+    alpha: { row: 1, col: 1 },
+    beta: { row: 2, col: 3 },
+    gamma: { row: 3, col: 1 },
+    delta: { row: 4, col: 3 },
+    epsilon: { row: 5, col: 1 },
+    zeta: { row: 3, col: 5 },
+    eta: { row: 5, col: 5 },
+    theta: { row: 6, col: 3 },
+    iota: { row: 7, col: 1 },
+    kappa: { row: 4, col: 7 },
+    lambda: { row: 6, col: 7 },
+    mu: { row: 7, col: 5 }
+};
+function getPos(index: keyof typeof upgrades) {
+    return { "--row": positions[index].row, "--col": positions[index].col } as StyleValue;
+}
 </script>
 
 <style scoped>

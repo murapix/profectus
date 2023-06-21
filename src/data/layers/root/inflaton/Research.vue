@@ -9,7 +9,7 @@
         @click="research()"
         :class="{
             research: true,
-            hidden: unref(visibility) === Visibility.None,
+            hidden: isHidden(visibility),
             locked: !unref(canResearch), // unavailable to click
             can: unref(canResearch) && !unref(isResearching) && !unref(researched), // available to click, not in the queue or done
             queued: unref(isResearching), // in queue

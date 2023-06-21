@@ -1,7 +1,7 @@
-import { Component, GenericComponent, Replace, jsx, setDefault } from "features/feature";
+import { Component, GenericComponent, Replace, Visibility, jsx, setDefault } from "features/feature";
 import { Persistent, persistent } from "game/persistence";
 import Decimal, { DecimalSource } from "lib/break_eternity";
-import { Computable, GetComputableTypeWithDefault, ProcessedComputable, processComputable } from "util/computed";
+import { Computable, GetComputableType, GetComputableTypeWithDefault, ProcessedComputable, processComputable } from "util/computed";
 import { Ref, computed, isRef, unref } from "vue";
 import { Decorator, EffectFeatureOptions } from "features/decorators/common";
 import RepeatableResearchComponent from "../inflaton/RepeatableResearch.vue";
@@ -22,14 +22,21 @@ export interface BaseRepeatableResearch<T = unknown> extends BaseResearch {
 
 export type RepeatableResearch<T extends RepeatableResearchOptions<U>, U> = Replace<
     T & BaseRepeatableResearch<U>,
-    { limit: GetComputableTypeWithDefault<T["limit"], 3998> }
+    {
+        visibility: GetComputableTypeWithDefault<T["visibility"], Visibility.Visible>;
+        display: GetComputableType<T["display"]>;
+        isResearching: GetComputableType<T["isResearching"]>;
+        limit: GetComputableTypeWithDefault<T["limit"], 3998>;
+    }
 >;
 
 export type GenericRepeatableResearch<T = unknown> = Replace<
     RepeatableResearch<RepeatableResearchOptions<T>, T>,
     {
-        limit: ProcessedComputable<DecimalSource>,
-        effect: ProcessedComputable<T>
+        visibility: ProcessedComputable<Visibility | boolean>;
+        isResearching: ProcessedComputable<boolean>;
+        limit: ProcessedComputable<DecimalSource>;
+        effect: ProcessedComputable<T>;
     }
 >;
 

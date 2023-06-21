@@ -15,37 +15,33 @@
 
 <script lang="ts">
 import { CoercableComponent } from 'features/feature';
-import Decimal, { DecimalSource } from 'lib/break_eternity';
+import Decimal from 'lib/break_eternity';
 import { format } from 'util/break_eternity';
 import { coerceComponent, processedPropType, unwrapRef } from 'util/vue';
 import { defineComponent, unref, toRefs, computed } from 'vue';
-import inflaton from './inflaton'
+import { removeResearchFromQueue } from './coreResearch';
+import { GenericResearch } from './research';
 
 export default defineComponent({
     props: {
-        id: processedPropType<string>(String),
-        location: processedPropType<string>(String),
+        node: processedPropType<GenericResearch>(Object),
         name: processedPropType<CoercableComponent>(String, Object, Function),
-        progress: processedPropType<DecimalSource>(Number, String, Object),
         index: {
             type: processedPropType<number>(Number),
             required: true
         }
     },
     setup(props) {
-        const { id, location, progress } = toRefs(props);
+        const { node } = toRefs(props);
 
-        const isResearch = computed(() => unwrapRef(id) && unwrapRef(location));
-        const fillPercent = computed(() => Decimal.times(unwrapRef(progress) ?? 0, 1.1).minus(0.05).times(100));
+        const isResearch = computed(() => unwrapRef(node) !== undefined);
+        const fillPercent = computed(() => Decimal.times(unref(unwrapRef(node)?.progressPercentage) ?? 0, 1.1).minus(0.05).times(100));
 
         return {
             unref,
             format,
             coerceComponent,
-            removeFromQueue: () => inflaton.removeFromQueue(
-                unwrapRef(location) ?? '',
-                unwrapRef(id) ?? ''
-            ),
+            removeFromQueue: () => unref(isResearch) ? removeResearchFromQueue(unwrapRef(node)!) : {},
 
             isResearch,
             fillPercent

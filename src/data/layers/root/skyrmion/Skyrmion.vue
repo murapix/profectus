@@ -18,47 +18,36 @@
     </div>
 </template>
 
-<script lang="ts">
+<script setup lang="ts">
 import { render } from "util/vue";
-import { defineComponent, unref } from "vue";
+import { unref } from "vue";
 import { StyleValue, Visibility } from "features/feature";
 import skyrmion from "./skyrmion";
 
-export default defineComponent({
-    setup() {
-        const upgrades = skyrmion.upgrades;
-        const positions: Record<keyof typeof upgrades, { row: number; col: number }> = {
-            fome: { row: 2, col: 7 },
-            autoGain: { row: 2, col: 11 },
-            alpha: { row: 3, col: 5 },
-            beta: { row: 3, col: 9 },
-            gamma: { row: 3, col: 13 },
-            delta: { row: 4, col: 3 },
-            epsilon: { row: 4, col: 7 },
-            zeta: { row: 4, col: 11 },
-            eta: { row: 4, col: 15 },
-            theta: { row: 5, col: 1 },
-            iota: { row: 5, col: 5 },
-            kappa: { row: 5, col: 9 },
-            lambda: { row: 5, col: 13 },
-            mu: { row: 5, col: 17 },
-            nu: { row: 6, col: 3 },
-            xi: { row: 6, col: 7 },
-            pi: { row: 6, col: 11 },
-            rho: { row: 6, col: 15 }
-        };
-        function getPos(index: keyof typeof upgrades) {
-            return { "--row": positions[index].row, "--col": positions[index].col } as StyleValue;
-        }
-        return {
-            render,
-            getPos,
-            unref,
-            Visibility,
-            upgrades
-        };
-    }
-});
+const upgrades = skyrmion.upgrades;
+const positions: Record<keyof typeof upgrades, { row: number; col: number }> = {
+    fome: { row: 2, col: 7 },
+    autoGain: { row: 2, col: 11 },
+    alpha: { row: 3, col: 5 },
+    beta: { row: 3, col: 9 },
+    gamma: { row: 3, col: 13 },
+    delta: { row: 4, col: 3 },
+    epsilon: { row: 4, col: 7 },
+    zeta: { row: 4, col: 11 },
+    eta: { row: 4, col: 15 },
+    theta: { row: 5, col: 1 },
+    iota: { row: 5, col: 5 },
+    kappa: { row: 5, col: 9 },
+    lambda: { row: 5, col: 13 },
+    mu: { row: 5, col: 17 },
+    nu: { row: 6, col: 3 },
+    xi: { row: 6, col: 7 },
+    pi: { row: 6, col: 11 },
+    rho: { row: 6, col: 15 }
+};
+function getPos(index: keyof typeof upgrades) {
+    return { "--row": positions[index].row, "--col": positions[index].col } as StyleValue;
+}
 </script>
 
 <style scoped>
