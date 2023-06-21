@@ -4,9 +4,9 @@
             <Spacer width="30px" />
                 <div class="col">
                     <Spacer height="30px" />
-                    <Row v-for="row in nodes">
-                        <template v-for="research in row">
-                            <component v-if="research" :is="render(research)" />
+                    <Row v-for="row in research">
+                        <template v-for="node in row">
+                            <component v-if="isVisible(node.visibility)" :is="render(node)" />
                         </template>
                     </Row>
                     <Spacer height="30px" />
@@ -18,7 +18,7 @@
     </div>
 </template>
 
-<script lang="ts">
+<script setup lang="ts">
 import { computed, ComputedRef, defineComponent, toRefs, unref } from 'vue';
 import Row from 'components/layout/Row.vue';
 import { processedPropType, render, unwrapRef } from 'util/vue';
@@ -27,48 +27,26 @@ import Links from 'features/links/Links.vue';
 import { Link } from 'features/links/links';
 import Spacer from 'components/layout/Spacer.vue';
 import Column from 'components/layout/Column.vue';
-import { Visibility } from 'features/feature';
+import { isVisible, Visibility } from 'features/feature';
 
-export default defineComponent({
-    props: {
-        research: {
-            type: processedPropType<Record<string, GenericResearch>>(Object),
-            required: true
-        }
-    },
-    setup(props) {
-        const { research } = toRefs(props);
+const props = defineProps<{
+    research: GenericResearch[][];
+}>();
 
-        const nodes: GenericResearch[][] = [];
-        Object.values(unwrapRef(research)).forEach(research => {
-            let [row, col] = research.position ?? [-1,-1];
-            (nodes[row] ??= [])[col] = research;
-        });
-
-        const links: ComputedRef<Link[]> = computed(() => Object.values(unwrapRef(research))
-            .flatMap(research => research.prerequisites
-                ?.map(prerequisite => ({
-                    startNode: { id: research.id },
-                    endNode: { id: prerequisite.id },
-                    stroke: unref(research.visibility) === Visibility.None
-                                ? 'var(--locked)'
-                                : unref(prerequisite.researched)
-                                    ? 'var(--layer-color)'
-                                    : 'white',
-                    'stroke-width': '5px'
-                }))
-                ?? []))
-
-        return {
-            nodes,
-            links,
-
-            render,
-            unref
-        }
-    },
-    components: { Row, Links, Spacer, Column }
-})
+const links: ComputedRef<Link[]> = computed(() => props.research.flatMap(row => row)
+                                                                .flatMap(node => node.prerequisites
+                                                                    ?.map(prerequisite => ({
+                                                                        startNode: { id: node.id },
+                                                                        endNode: { id: prerequisite.id },
+                                                                        stroke: !isVisible(node.visibility)
+                                                                                    ? 'var(--locked)'
+                                                                                    : unref(prerequisite.researched)
+                                                                                        ? 'var(--layer-color)'
+                                                                                        : 'white',
+                                                                        'stroke-width': '5px'
+                                                                    }))
+                                                                    ?? [])
+);
 </script>
 
 <style scoped>

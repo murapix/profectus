@@ -15,7 +15,7 @@ export interface RepeatableResearchOptions<T = unknown> extends ResearchOptions,
 }
 
 export interface BaseRepeatableResearch<T = unknown> extends BaseResearch {
-    effect: Ref<T>;
+    effect: Computable<T>;
     amount: Persistent<DecimalSource>;
     maxed: Ref<boolean>;
 }
@@ -26,8 +26,11 @@ export type RepeatableResearch<T extends RepeatableResearchOptions<U>, U> = Repl
 >;
 
 export type GenericRepeatableResearch<T = unknown> = Replace<
-    RepeatableResearch<RepeatableResearchOptions<T>>,
-    { limit: ProcessedComputable<DecimalSource> }
+    RepeatableResearch<RepeatableResearchOptions<T>, T>,
+    {
+        limit: ProcessedComputable<DecimalSource>,
+        effect: ProcessedComputable<T>
+    }
 >;
 
 export const repeatableDecorator: Decorator<RepeatableResearchOptions, BaseRepeatableResearch, GenericRepeatableResearch> = {

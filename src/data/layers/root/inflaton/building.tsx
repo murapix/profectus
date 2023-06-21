@@ -71,7 +71,7 @@ const buildingStyle = computed(() => ({
 }))
 
 export const buildingSize = computed(() => {
-    return Decimal.times(1/*getResearchEffect(core.research.biggerBuildings, {size: 1}).size*/, getResearchEffect(core.repeatables.buildingSize, {size: 1}).size)
+    return Decimal.times(getResearchEffect(core.research.biggerBuildings, {size: 1, effect: 1}).size, getResearchEffect(core.repeatables.buildingSize, {size: 1, effect: 1}).size)
 });
 const canBuild = computed(() => Decimal.minus(unref(buildings.maxSize), unref(buildings.usedSize)).gte(unref(buildingSize)));
 
@@ -85,5 +85,5 @@ function getBuildingCost(amount: GenericFormula, multiplier: FormulaSource, base
     return amount.div(unref(core.repeatables.buildingCost.effect))
                  .div(1)
                  .if(core.research.autobuild.researched,
-                    )
+                    value => value)
 }

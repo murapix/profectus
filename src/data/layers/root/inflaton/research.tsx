@@ -7,6 +7,7 @@ import { Ref, computed, unref, watch } from "vue";
 import { GenericDecorator, GenericEffectFeature } from "features/decorators/common";
 import { createLazyProxy } from "util/proxies";
 import ResearchComponent from "../inflaton/Research.vue";
+import { GenericRepeatableResearch, RepeatableResearch } from "./repeatableDecorator";
 
 export const ResearchType = Symbol("Research");
 
@@ -152,6 +153,6 @@ export function createResearch<T extends ResearchOptions>(
 
 export type EffectResearch<T = unknown> = GenericResearch & GenericEffectFeature<T>;
 
-export function getResearchEffect<T = unknown>(research: EffectResearch<T>, defaultValue: T): T {
+export function getResearchEffect<T = unknown>(research: EffectResearch<T> | GenericRepeatableResearch<T>, defaultValue: T): T {
     return unref(research.researched) ? unref(research.effect) : defaultValue;
 }
