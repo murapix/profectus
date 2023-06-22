@@ -17,19 +17,19 @@
         }"
         :disabled="!unref(canResearch)"
     >
-        <div v-if="unref(visibility) === Visibility.None">???</div>
+        <div v-if="!isVisible(visibility)">???</div>
         <component v-else-if="unref(component)" :is="unref(component)" />
         <Node :id="id" />
     </button>
 </template>
 
 <script setup lang="tsx" generic="T">
-import { isHidden, isVisible, jsx, Visibility } from 'features/feature';
+import { isHidden, isVisible, jsx } from 'features/feature';
 import Decimal from 'lib/break_eternity';
 import { format } from 'util/break_eternity';
-import { coerceComponent, isCoercableComponent, unwrapRef } from 'util/vue';
+import { coerceComponent, isCoercableComponent } from 'util/vue';
 import { computed, DefineComponent } from 'vue';
-import { unref, toRefs, shallowRef, watchEffect } from 'vue';
+import { unref, shallowRef, watchEffect } from 'vue';
 import Node from 'components/Node.vue';
 import { GenericRepeatableResearch } from './repeatableDecorator';
 import { displayRequirements } from 'game/requirements';
@@ -49,10 +49,9 @@ const props = defineProps<{
     research: GenericRepeatableResearch["research"];
 }>();
 
-const { display, requirements, progressPercentage } = toRefs(props);
 const component = shallowRef<DefineComponent | string>("");
 watchEffect(() => {
-    const currentDisplay = unwrapRef(display);
+    const currentDisplay = unref(props.display);
     if (currentDisplay == null) {
         component.value = "";
         return;
@@ -61,7 +60,7 @@ watchEffect(() => {
         component.value = coerceComponent(currentDisplay);
         return;
     }
-    const Requirements = unwrapRef(requirements);
+    const Requirements = props.requirements;
     const Title = coerceComponent(currentDisplay.title ?? "", "h3");
     const Description = coerceComponent(currentDisplay.description);
     const EffectDisplay = coerceComponent(currentDisplay.effect ?? "");
@@ -73,7 +72,7 @@ watchEffect(() => {
         </>)));
 });
 
-const fillPercent = computed(() => Decimal.times(unwrapRef(progressPercentage), 1.1).minus(0.05).times(100));
+const fillPercent = computed(() => Decimal.times(unref(props.progressPercentage), 1.1).minus(0.05).times(100));
 </script>
 
 <style scoped>

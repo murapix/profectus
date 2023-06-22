@@ -1,11 +1,15 @@
 <template>
-    <div class="sticky" :style="{ top }" ref="element" data-v-sticky>
+    <div class="sticky" :style="[style ?? {}, { top }]" ref="element" data-v-sticky>
         <slot />
     </div>
 </template>
 
 <script setup lang="ts">
-import { nextTick, onMounted, ref, shallowRef } from "vue";
+import { StyleValue, nextTick, onMounted, ref, shallowRef } from "vue";
+
+defineProps<{
+    style?: StyleValue;
+}>();
 
 const top = ref("0");
 const observer = new ResizeObserver(updateTop);

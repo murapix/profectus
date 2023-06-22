@@ -266,7 +266,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
 
     const repeatables = (() => {
         const universeSize = createRepeatableResearch<ResearchOptions & Partial<RepeatableResearchOptions<Decimal>>, Decimal>(feature => ({
-            visibility: research.repeatableUnlock.researched,
+            visibility: computed(() => unref(research.repeatableUnlock.researched) ? Visibility.Visible : Visibility.Hidden),
             display: {
                 title: 'Eternal Inflation',
                 description: 'Double the size of your universe',
@@ -331,7 +331,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
     const finalResearchGain = computed(() => unref(baseResearchGain));
     
     const autoResearching = persistent<boolean>(false);
-    this.on("preUpdate", diff => {
+    inflaton.on("preUpdate", diff => {
         if (unref(researchQueue).length <= 0) return;
         const gain = Decimal.times(unref(finalResearchGain), diff);
         for (const id of unref(researchQueue).slice(0, unref(parallelResearchCount))) {
@@ -339,7 +339,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             if (node !== undefined) node.progress.value = gain.plus(node.progress.value);
         }
     });
-    this.on("update", () => { // if automating research and below parallel count, add the cheapest repeatables to the queue
+    inflaton.on("update", () => { // if automating research and below parallel count, add the cheapest repeatables to the queue
         if (!unref(autoResearching)) return;
         if (unref(researchQueue).length >= unref(parallelResearchCount)) return;
         Object.values(repeatables).filter(repeatable => Decimal.gte(unref(repeatable.amount), 1))
@@ -352,7 +352,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                                   .slice(0, unref(parallelResearchCount) - unref(researchQueue).length)
                                   .forEach(repeatable => repeatable.research(true));
     });
-    this.on("postUpdate", () => { // completed and invalid researches must be culled from the queue
+    inflaton.on("postUpdate", () => { // completed and invalid researches must be culled from the queue
         researchQueue.value = unref(researchQueue).filter(id => {
             const node = [research, repeatables].flatMap(location => Object.values(location) as GenericResearch[]).find(node => node.id === id);
             if (node === undefined) return false;
@@ -376,15 +376,17 @@ const layer = createLayer(id, function (this: BaseLayer) {
         autoResearching,
         display: jsx(() => (
             <div class='row' style={{flexFlow: 'row-reverse nowrap', alignItems: 'flex-start', justifyContent: 'space-evenly'}}>
-                <ResearchQueueVue parallel={parallelResearchCount} queue={computed(() => Array.from({...unref(researchQueue), length: Math.max(unref(researchQueue).length, unref(queueLength))}))} />
-                {
-                    unref(research.repeatableUnlock.researched)
-                        ? <>
-                            <ToggleVue modelValue={autoResearching.value}/>
-                            <SpacerVue />
-                        </>
-                        : undefined
-                }
+                <div class='column'>
+                    <ResearchQueueVue parallel={parallelResearchCount} queue={computed(() => Array.from({...unref(researchQueue), length: Math.max(unref(researchQueue).length, unref(queueLength))}))} />
+                    {
+                        unref(research.repeatableUnlock.researched)
+                            ? <>
+                                <ToggleVue modelValue={autoResearching.value}/>
+                                <SpacerVue />
+                            </>
+                            : undefined
+                    }
+                </div>
                 <ResearchTreeVue research={[
                     [research.quintupleCondenser],
                     [research.doubleSize, research.cheaperLabs],
@@ -439,9 +441,9 @@ interface ResearchOptions {
 function createResearch<T extends ResearchOptions>(
     optionsFunc: OptionsFunc<T, BaseResearch, GenericResearch>
 ): GenericResearch {
-    return createLazyProxy<GenericResearch, GenericResearch>(feature => {
-        const { visibility, prerequisites, cost, display, canResearch, onResearch } = optionsFunc.call(feature, feature);
-        return actualCreateResearch(research => ({
+    return actualCreateResearch(research => {
+        const { visibility, prerequisites, cost, display, canResearch, onResearch } = optionsFunc.call(research, research);
+        return {
             visibility,
             prerequisites,
             requirements: createCostRequirement(() => ({
@@ -453,16 +455,16 @@ function createResearch<T extends ResearchOptions>(
             onResearch,
             research: startResearch,
             isResearching
-        }));
+        }
     });
 }
 
 function createEffectResearch<T extends ResearchOptions & EffectFeatureOptions<U>, U = unknown>(
     optionsFunc: OptionsFunc<T, BaseResearch, GenericResearch>
 ) {
-    return createLazyProxy<GenericResearch & GenericEffectFeature<U>, GenericResearch & GenericEffectFeature<U>>(feature => {
-        const { visibility, prerequisites, cost, display, canResearch, onResearch, effect } = optionsFunc.call(feature, feature);
-        return actualCreateResearch(research => ({
+    return actualCreateResearch(research => {
+        const { visibility, prerequisites, cost, display, canResearch, onResearch, effect } = optionsFunc.call(research, research);
+        return {
             visibility,
             prerequisites,
             requirements: createCostRequirement(() => ({
@@ -475,16 +477,16 @@ function createEffectResearch<T extends ResearchOptions & EffectFeatureOptions<U
             research: startResearch,
             isResearching,
             effect
-        }), effectDecorator) as GenericResearch & GenericEffectFeature<U>;
-    });
+        }
+    }, effectDecorator) as GenericResearch & GenericEffectFeature<U>;
 }
 
 function createRepeatableResearch<T extends ResearchOptions & Partial<RepeatableResearchOptions<U>>, U>(
     optionsFunc: OptionsFunc<T, BaseRepeatableResearch<U>, GenericRepeatableResearch<U>>
 ) {
-    return createLazyProxy<GenericRepeatableResearch<U>, GenericRepeatableResearch<U>>(feature => {
-        const { visibility, prerequisites, cost, display, canResearch, onResearch, effect, limit } = optionsFunc.call(feature, feature);
-        return actualCreateResearch(research => ({
+    return actualCreateResearch(research => {
+        const { visibility, prerequisites, cost, display, canResearch, onResearch, effect, limit } = optionsFunc.call(research, research as BaseRepeatableResearch<U>);
+        return {
             visibility,
             prerequisites,
             requirements: createCostRequirement(() => ({
@@ -498,6 +500,6 @@ function createRepeatableResearch<T extends ResearchOptions & Partial<Repeatable
             isResearching,
             effect,
             limit
-        }), effectDecorator, repeatableDecorator) as unknown as GenericResearch & GenericRepeatableResearch<U>;
-    });
+        }
+    }, effectDecorator, repeatableDecorator) as unknown as GenericResearch & GenericRepeatableResearch<U>;
 }

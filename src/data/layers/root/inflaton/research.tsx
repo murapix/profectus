@@ -1,13 +1,16 @@
 import { CoercableComponent, Component, GatherProps, GenericComponent, OptionsFunc, Replace, Visibility, getUniqueID } from "features/feature";
 import { Persistent, persistent } from "game/persistence";
 import { Requirements, requirementsMet } from "game/requirements";
-import { DecimalSource } from "lib/break_eternity";
+import Decimal, { DecimalSource } from "lib/break_eternity";
 import { Computable, GetComputableType, GetComputableTypeWithDefault, ProcessedComputable, processComputable } from "util/computed";
 import { Ref, computed, unref, watch } from "vue";
 import { GenericDecorator, GenericEffectFeature } from "features/decorators/common";
 import { createLazyProxy } from "util/proxies";
 import ResearchComponent from "../inflaton/Research.vue";
 import { GenericRepeatableResearch, RepeatableResearch } from "./repeatableDecorator";
+import Formula, { calculateCost } from "game/formulas/formulas";
+import { FormulaSource, GenericFormula } from "game/formulas/types";
+import { Resource } from "features/resources/resource";
 
 export const ResearchType = Symbol("Research");
 
@@ -70,13 +73,6 @@ export function createResearch<T extends ResearchOptions>(
         research.type = ResearchType;
         research[Component] = ResearchComponent as GenericComponent;
 
-        if (research.visibility == undefined && research.prerequisites == undefined) {
-            console.warn(
-                "Error: can't create research without a visibility or prerequisites property",
-                research
-            );
-        }
-
         for (const decorator of decorators) {
             decorator.preConstruct?.(research);
         }
@@ -93,7 +89,7 @@ export function createResearch<T extends ResearchOptions>(
                 }
             }
             return research.prerequisites?.every(research => unref(research.researched)) ?? true;
-        })
+        });
 
         processComputable(research as T, "visibility");
         const visibility = research.visibility as ProcessedComputable<Visibility>;
@@ -108,12 +104,29 @@ export function createResearch<T extends ResearchOptions>(
         processComputable(research as T, "display");
         processComputable(research as T, "isResearching");
 
-        watch(research.progress, () => {
-            if (research.researched) return;
-            if (requirementsMet(research.requirements)) {
-                research.researched!.value = true;
+        research.progressPercentage = computed(() => {
+            if (Array.isArray(research.requirements)) {
+                let cost = Decimal.dZero;
+                let current = Decimal.dZero;
+                for (const requirement of research.requirements) {
+                    if (!('cost' in requirement && 'resource' in requirement)) continue;
+                    const reqCost = requirement.cost as Formula<[FormulaSource] | FormulaSource[]> | ProcessedComputable<DecimalSource>
+                    const reqResource = requirement.resource as Resource<DecimalSource>;
+                    cost = cost.plus(reqCost instanceof Formula
+                        ? calculateCost(reqCost, 1, false, 0)
+                        : unref(reqCost)
+                    );
+                    current = current.plus(unref(reqResource));
+                }
+                return cost.gte(0) ? cost.div(current) : 0;
             }
-        });
+            else {
+                if (!('cost' in research.requirements && 'resource' in research.requirements)) return 0;
+                const cost = research.requirements.cost as Formula<[FormulaSource] | FormulaSource[]> | ProcessedComputable<DecimalSource>;
+                const resource = research.requirements.resource as Resource<DecimalSource>;
+                return Decimal.div(unref(resource), (cost instanceof Formula ? calculateCost(cost, 1, false, 0) : unref(cost)));
+            }
+        })
         research.researched = computed(() => requirementsMet(research.requirements));
 
         for (const decorator of decorators) {
@@ -131,6 +144,7 @@ export function createResearch<T extends ResearchOptions>(
                 research,
                 isResearching,
                 progress,
+                progressPercentage,
                 researched
             } = this;
             return {
@@ -142,6 +156,7 @@ export function createResearch<T extends ResearchOptions>(
                 research,
                 isResearching,
                 progress,
+                progressPercentage,
                 researched,
                 ...decoratedProps
             }

@@ -1,6 +1,6 @@
 <template>
     <Column>
-        <template v-for="node, index in nodes" :key="slot ? `${slot[0]}-${slot[1]}` : `empty-${index}`">
+        <template v-for="node, index in nodes" :key="node ? node.id : `empty-${index}`">
             <h3 v-if="index === unref(parallel)">Next Up:</h3>
             <ResearchQueueSlot v-if="!node"
                 :index="index" 

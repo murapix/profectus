@@ -1,5 +1,5 @@
 <template>
-    <Sticky>
+    <Sticky :style="stickyStyle">
         <div
             class="main-display-container"
             :class="classes ?? {}"
@@ -32,6 +32,7 @@ const _props = defineProps<{
     color?: string;
     classes?: Record<string, boolean>;
     style?: StyleValue;
+    stickyStyle?: StyleValue;
     effectDisplay?: CoercableComponent;
 }>();
 const props = toRefs(_props);

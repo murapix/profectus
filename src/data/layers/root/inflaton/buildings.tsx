@@ -20,32 +20,16 @@ import core from "./coreResearch";
 
 const id = "buildings";
 const layer = createLayer(id, function (this: BaseLayer) {
-    const currentSize = createResource(computed(() => {
-        if (Decimal.lt(unref(inflaton.inflatons), 1)) return Decimal.dZero;
-
-        let size = Decimal.clampMin(unref(inflaton.inflatons), 2)
-                      .log2().log2()
-                    //   .times(getResearchEffect(core.research.doubleSize, 1))
-                    //   .times(getResearchEffect(core.research.quadrupleSize, 1))
-                    //   .times(getResearchEffect(core.repeatables.universeSize, 1));
-        if (size.gt(6.187e10)) size = size.pow(0.1);
-        return size.times(1) // top time square effect
-                   .div(1) // active top timeline nerf
-                   .times(1) // passive top timeline bonus
-    }));
-    const maxSize = trackBest(currentSize);
-    const usedSize = persistent<DecimalSource>(0);
-
     const buildings = (() => {
         const condenser = createBuilding(building => ({
             effect(amount) {
-                return Decimal.times(amount, 1)//getResearchEffect(research.quintupleCondenser, 1))
+                return Decimal.times(amount, getResearchEffect(core.research.quintupleCondenser, 1))
                               .pow_base(0.975);
             },
             cost: {
                 resource: fome[FomeTypes.subspatial].amount,
                 base: 1.1,
-                multiplier: computed(() => entangled.isFirstBranch(inflatonId) ? 1e30 : 1e82)
+                multiplier: computed(() => entangled.isFirstBranch(inflatonId) ? 1e11 : 1e82)
             },
             display: {
                 visibility: inflaton.upgrades.subspaceBuildings.bought,
@@ -57,7 +41,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         const lab = createBuilding(building => ({
             effect(amount) {
                 return (unref(core.research.researchBoost.researched)
-                        ? Decimal.times(1/*getResearchEffect(core.research.researchBoost, 1)*/, 0.9)
+                        ? Decimal.times(getResearchEffect(core.research.researchBoost, 1), 0.9)
                         : Decimal.dOne)
                         .times(amount)
                         .times(1) // 1st abyssal pion buyable
@@ -65,7 +49,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             cost: {
                 resource: fome[FomeTypes.subspatial].amount,
                 base: computed(() => unref(core.research.cheaperLabs.researched) ? 1.5 : 15),
-                multiplier: computed(() => entangled.isFirstBranch(inflatonId) ? 1e30 : 1e82)
+                multiplier: computed(() => entangled.isFirstBranch(inflatonId) ? 1e11 : 1e82)
             },
             display: {
                 visibility: inflaton.upgrades.research.bought,
@@ -76,13 +60,13 @@ const layer = createLayer(id, function (this: BaseLayer) {
         }));
         const storage = createBuilding(building => ({
             effect(amount) {
-                return Decimal.times(amount, 1)//getResearchEffect(core.research.improvedStorage, 1/3))
+                return Decimal.times(amount, getResearchEffect(core.research.improvedStorage, 1/3))
                               .pow_base(500);
             },
             cost: {
                 resource: fome[FomeTypes.quantum].amount,
                 base: 1.2,
-                multiplier: computed(() => entangled.isFirstBranch(inflatonId) ? 1e15 : 1e48)
+                multiplier: computed(() => entangled.isFirstBranch(inflatonId) ? 1e8 : 1e48)
             },
             display: {
                 visibility: core.research.storage.researched,
@@ -95,14 +79,30 @@ const layer = createLayer(id, function (this: BaseLayer) {
         return { condenser, lab, storage };
     })();
 
+    const currentSize = createResource(computed(() => {
+        if (Decimal.lt(unref(inflaton.inflatons), 1)) return Decimal.dZero;
+
+        let size = Decimal.clampMin(unref(inflaton.inflatons), 2)
+                      .log2().log2()
+                      .times(getResearchEffect(core.research.doubleSize, 1))
+                      .times(getResearchEffect(core.research.quadrupleSize, 1))
+                      .times(getResearchEffect(core.repeatables.universeSize, 1));
+        if (size.gt(6.187e10)) size = size.pow(0.1);
+        return size.times(1) // top time square effect
+                   .div(1) // active top timeline nerf
+                   .times(1) // passive top timeline bonus
+    }));
+    const maxSize = trackBest(currentSize);
+    const usedSize = computed(() => Object.values(buildings).reduce((current, next) => current.plus(unref(next.amount)), Decimal.dZero));
+
     const respecStyle = {
         width: '125px',
         minHeight: '25px',
         borderRadius: 0
     };
     const respecButtons = Object.fromEntries(Object.entries(buildings).map(([id, building]) => [
-       id,
-       {
+      id,
+      {
         one: createClickable(() => ({
             visibility: core.research.respecs.researched,
             canClick() { return Decimal.gt(unref(building.amount), 0); },
@@ -117,7 +117,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             onClick() { building.amount.value = Decimal.dZero; },
             style: {...respecStyle, borderBottomRightRadius: 'var(--border-radius)'}
         }))
-       }
+      }
     ])) as Record<keyof typeof buildings, Record<'one' | 'all', GenericClickable>>;
 
     const respecAll = createClickable(() => ({
@@ -134,10 +134,12 @@ const layer = createLayer(id, function (this: BaseLayer) {
     const buildingRenders = Object.fromEntries(Object.entries(buildings).map(([id, building]) => [id, jsx(() => (
         <div class="col mergeAdjacent">
             {render(building)}
-            <div class="row mergeAdjacent">
-                {render(respecButtons[id as keyof typeof buildings].one)}
-                {render(respecButtons[id as keyof typeof buildings].all)}
-            </div>
+            {unref(core.research.respecs.researched)
+                ? <div class="row mergeAdjacent">
+                    {render(respecButtons[id as keyof typeof buildings].one)}
+                    {render(respecButtons[id as keyof typeof buildings].all)}
+                </div>
+                : undefined}
         </div>
     ))]));
 

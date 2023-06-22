@@ -267,7 +267,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 }
             </>
         )),
-        style: { "--bought": "#929aa9" },
+        tabStyle: { "--bought": "#929aa9" },
         tabs,
 
         [FomeTypes.protoversal]: protoversal,

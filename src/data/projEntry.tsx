@@ -22,7 +22,7 @@ import entangled from "./layers/root/entangled-old/entangled";
  * @hidden
  */
 const id = "root";
-type layer = GenericLayer & { unlocked?: Ref<boolean>, boughtColor?: string }
+type layer = GenericLayer & { unlocked?: Ref<boolean>, tabStyle?: Record<string, unknown> }
 const rootLayers: Record<number, layer> = Object.fromEntries([skyrmion, fome, acceleron, timecube, inflaton, entangled].map((layer, index) => [index, layer]));
 const rootSubLayers: Record<number, layer> = Object.fromEntries([entropy].map((layer, index) => [index, layer]));
     
@@ -31,10 +31,10 @@ export const root = createLayer(id, () => {
         [layer.name, () => ({
             display: layer.name,
             tab: createTab(() => ({
-                // style: computed(() => ({
-                //     "--layer-color": unref(layer.color),
-                //     ...(unref(layer.style) as Record<string, unknown>)
-                // })),
+                style: computed(() => ({
+                    "--layer-color": unref(layer.color),
+                    ...(unref(layer.tabStyle))
+                })),
                 display: jsx(() => (
                     <>
                         <div>

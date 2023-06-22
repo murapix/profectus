@@ -47,7 +47,7 @@ export const repeatableDecorator: Decorator<RepeatableResearchOptions, BaseRepea
         }
     },
     preConstruct(research) {
-        research[Component] = RepeatableResearchComponent as GenericComponent;
+        research[Component] = RepeatableResearchComponent as unknown as GenericComponent;
 
         if (isCoercableComponent(research.display)) return;
         if (isRef(research.display)) return;

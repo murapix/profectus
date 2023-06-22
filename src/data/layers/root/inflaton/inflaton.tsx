@@ -2,9 +2,9 @@ import { createClickable } from "features/clickables/clickable";
 import { jsx } from "features/feature";
 import { BaseLayer, createLayer } from "game/layers";
 import fome, { FomeTypes } from "../fome/fome";
-import { createResource } from "features/resources/resource";
+import { Resource, createResource } from "features/resources/resource";
 import Decimal, { DecimalSource } from "lib/break_eternity";
-import { computed, unref } from "vue";
+import { ComputedRef, computed, unref } from "vue";
 import entangled from "../entangled-old/entangled";
 import { createCostRequirement, displayRequirements, requirementsMet } from "game/requirements";
 import { persistent } from "game/persistence";
@@ -16,9 +16,13 @@ import { render, renderRow } from "util/vue";
 import SpacerVue from "components/layout/Spacer.vue";
 import { createTabFamily } from "features/tabs/tabFamily";
 import { createTab } from "features/tabs/tab";
-import { createUpgrade } from "features/upgrades/upgrade";
+import { createUpgrade, getUpgradeEffect } from "features/upgrades/upgrade";
 import core from "./coreResearch";
 import coreResearch from "./coreResearch";
+import timecube from "../timecube-old/timecube";
+import { getResearchEffect } from "./research";
+import skyrmion from "../skyrmion/skyrmion";
+import acceleron from "../acceleron-old/acceleron";
 
 export const id = "inflaton";
 const layer = createLayer(id, function (this: BaseLayer) {
@@ -30,7 +34,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         resource: fome[FomeTypes.quantum].amount,
         cost: () => entangled.isFirstBranch(id) ? 1e6 : 1e50,
         requiresPay: false
-    }))
+    }));
     const conversion = createClickable(() => ({
         canClick: () => requirementsMet(requirement),
         display: jsx(() => (
@@ -81,8 +85,26 @@ const layer = createLayer(id, function (this: BaseLayer) {
         let log = Decimal.clampMin(unref(inflatons), 1).log10();
         if (unref(inflating) || !unref(core.research.isolatedStorage.researched))
             log = log.times(unref(buildings.buildings.condenser.effect));
-        return log.pow_base(2);
+        return log.pow_base(2).max(1);
     });
+    const allFomeNerf = computed(() => unref(inflatonNerf).dividedBy(getResearchEffect(core.research.fomeGain, 1))
+                                                          .dividedBy(getResearchEffect(core.research.moreFomeGain, 1))
+                                                          .dividedBy(getResearchEffect(core.research.evenMoreFomeGain, 1))
+                                                          .dividedBy(getResearchEffect(core.repeatables.fome, 1))
+                                                          .max(1)
+    );
+    const individualNerfs = {
+        pion: computed(() => Decimal.div(unref(inflatonNerf), 1)),//getUpgradeEffect(timecube.upgrades.tower))),
+        spinor: computed(() => Decimal.div(unref(inflatonNerf), 1)),//etUpgradeEffect(timecube.upgrades.tower))),
+        [FomeTypes.protoversal]: allFomeNerf,
+        [FomeTypes.infinitesimal]: allFomeNerf,
+        [FomeTypes.subspatial]: allFomeNerf,
+        [FomeTypes.subplanck]: allFomeNerf,
+        [FomeTypes.quantum]: computed(() => Decimal.times(unref(allFomeNerf), getResearchEffect(core.research.halfQuantum, 1))
+                                                   .times(getResearchEffect(core.research.quarterQuantum, 1))),
+        acceleron: inflatonNerf,
+        timecube: inflatonNerf
+    };
     const inflatonGain = computed(() => {
         let exponent = Decimal.clampMin(unref(inflatons), 1).log10().plus(1).dividedBy(10);
         let gain = exponent.pow_base(2).times(unref(inflatons));
@@ -128,7 +150,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 description: '<br />Allow the creation of Subspatial Structures<br />'
             },
             requirements: createCostRequirement(() => ({
-                cost: () => entangled.isFirstBranch(id) ? 5e13 : 5e46,
+                cost: () => entangled.isFirstBranch(id) ? 5e5 : 5e46,
                 resource: fome[FomeTypes.quantum].amount
             })),
             visibility() {
@@ -143,7 +165,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 description: `<br />Stabilization isn't enough. Maybe the constant bubbling of the quantum field may hold the secret to sustaining inflation<br />`
             },
             requirements: createCostRequirement(() => ({
-                cost: () => entangled.isFirstBranch(id) ? 1e14 : 1e47,
+                cost: () => entangled.isFirstBranch(id) ? 1e6 : 1e47,
                 resource: fome[FomeTypes.quantum].amount
             })),
             visibility() {
@@ -161,6 +183,31 @@ const layer = createLayer(id, function (this: BaseLayer) {
         }
     })();
 
+    
+    this.on("preUpdate", diff => {
+        if (!unref(inflating)) return;
+
+        for (const [resource, nerf] of [
+            [skyrmion.pion.pions, individualNerfs.pion],
+            [skyrmion.spinor.spinors, individualNerfs.spinor],
+            [fome[FomeTypes.protoversal].amount, individualNerfs[FomeTypes.protoversal]],
+            [fome[FomeTypes.infinitesimal].amount, individualNerfs[FomeTypes.infinitesimal]],
+            [fome[FomeTypes.subspatial].amount, individualNerfs[FomeTypes.subspatial]],
+            [fome[FomeTypes.subplanck].amount, individualNerfs[FomeTypes.subplanck]],
+            [fome[FomeTypes.quantum].amount, individualNerfs[FomeTypes.quantum]],
+            [acceleron.accelerons, individualNerfs.acceleron],
+            [timecube.timecubes, individualNerfs.timecube]
+        ] as [Resource<DecimalSource>, ComputedRef<DecimalSource>][]) {
+            resource.value = Decimal.divide(resource.value, nerf.value);
+        }
+        if ([
+            skyrmion.pion.pions,
+            skyrmion.spinor.spinors,
+            ...Object.values(FomeTypes).map(type => fome[type].amount)
+        ].some(resource => Decimal.lt(unref(resource), 1))) {
+            endInflation();
+        }
+    });
     this.on("postUpdate", diff => {
         if (unref(inflating)) {
             inflatons.value = unref(inflatonGain).times(diff).plus(unref(inflatons));
@@ -171,7 +218,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
     });
 
     const header = jsx(() => (<>
-        <MainDisplayVue resource={inflatons} color={color} />
+        <MainDisplayVue resource={inflatons} color={color} stickyStyle={{background: 'unset'}} />
         <div style={{marginTop: '-20px', fontSize: '12px'}}>
             {unref(inflating)
                 ? <>Runaway inflation is dividing all other resources by <span style={{color, textShadow: `${color} 0px 0px 10px`}}>{formatWhole(unref(inflatonNerf))}</span></>
@@ -182,6 +229,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
             }
         </div>
         {render(Decimal.gte(unref(inflatons), 1) ? inflate : conversion)}
+        {Decimal.gt(unref(buildings.maxSize), 0)
+            ? <div>You have managed to stabilize the universe at a diameter of {format(unref(buildings.maxSize))}</div>
+            : undefined
+        }
         <SpacerVue />
     </>));
     const tabs = createTabFamily(({
@@ -191,7 +242,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 display: jsx(() => (
                     <>
                         {render(header)}
-                        {render(buildings.display)}
+                        {unref(upgrades.subspaceBuildings.bought) ? render(buildings.display) : undefined}
                         <SpacerVue />
                         {renderRow(...Object.values(upgrades))}
                     </>
@@ -220,7 +271,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         fomeBonus,
         upgrades,
         tabs,
-        style: {
+        tabStyle: {
             '--bought': '#b14e24'
         },
         display: jsx(() => (

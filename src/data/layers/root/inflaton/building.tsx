@@ -2,7 +2,7 @@ import { BonusAmountFeatureOptions, GenericBonusAmountFeature, bonusAmountDecora
 import { EffectFeatureOptions, GenericEffectFeature, effectDecorator } from "features/decorators/common";
 import { CoercableComponent, OptionsFunc, Visibility } from "features/feature";
 import { BaseRepeatable, GenericRepeatable, RepeatableOptions, createRepeatable } from "features/repeatable";
-import { Resource } from "features/resources/resource";
+import { Resource, createResource } from "features/resources/resource";
 import { createBooleanRequirement, createCostRequirement } from "game/requirements";
 import Decimal, { DecimalSource } from "lib/break_eternity";
 import { Computable, ProcessedComputable } from "util/computed";
@@ -33,17 +33,22 @@ export interface BuildingData {
 export interface BuildingOptions extends RepeatableOptions, EffectFeatureOptions, BonusAmountFeatureOptions {}
 export type GenericBuilding = GenericRepeatable & GenericEffectFeature<DecimalSource> & GenericBonusAmountFeature;
 
+const availableSize = createResource(computed(() => Decimal.minus(unref(buildings.maxSize), unref(buildings.usedSize))));
 export function createBuilding(
     optionsFunc: OptionsFunc<BuildingData, BaseRepeatable, GenericBuilding>
 ): GenericBuilding {
-    return createLazyProxy(feature => {
-        let { effect, cost, display} = optionsFunc.call(feature, feature);
+    return createRepeatable<BuildingOptions>(repeatable => {
+        let { effect, cost, display} = optionsFunc.call(repeatable, repeatable);
         cost.free ??= core.research.autobuild.researched;
-        return createRepeatable<BuildingOptions>(repeatable => ({
+        return {
             bonusAmount() { return Decimal.times(unref(this.amount), 0); }, // 3rd abyssal spinor buyable
             visibility: display.visibility,
             requirements: [
-                createBooleanRequirement(canBuild),
+                createCostRequirement(() => ({
+                    cost: buildingSize,
+                    resource: availableSize,
+                    visibility: Visibility.None
+                })),
                 createCostRequirement(() => ({
                     cost: getBuildingCost(Formula.variable(repeatable.amount), cost.multiplier, cost.base),
                     resource: cost.resource,
@@ -59,16 +64,16 @@ export function createBuilding(
                 effectDisplay: display.effect
             },
             style: buildingStyle
-        }), effectDecorator, bonusAmountDecorator) as GenericBuilding
-    });
+        }
+    }, effectDecorator, bonusAmountDecorator) as GenericBuilding;
 }
 
 const buildingStyle = computed(() => ({
     width: '250px',
     minHeight: '150px',
-    borderBottomLeftRadius: unref(core.research.respecs.researched) ? 0 : undefined,
-    borderBottomRightRadius: unref(core.research.respecs.researched) ? 0 : undefined,
-}))
+    borderBottomLeftRadius: unref(core.research.respecs.researched) ? 0 : 'var(--border-radius)',
+    borderBottomRightRadius: unref(core.research.respecs.researched) ? 0 : 'var(--border-radius)',
+}));
 
 export const buildingSize = computed(() => {
     return Decimal.times(getResearchEffect(core.research.biggerBuildings, {size: 1, effect: 1}).size, getResearchEffect(core.repeatables.buildingSize, {size: 1, effect: 1}).size)
@@ -77,13 +82,16 @@ const canBuild = computed(() => Decimal.minus(unref(buildings.maxSize), unref(bu
 
 function effectiveAmount(building: GenericBuilding): Decimal {
     return Decimal.times(unref(building.totalAmount),
-                         1)//getResearchEffect(core.research.biggerBuildings, { effect: 1 }).effect)
+                         getResearchEffect(core.research.biggerBuildings, { size: 1, effect: 1 }).effect)
                   .times(unref(core.repeatables.buildingSize.effect).effect)
 }
 
 function getBuildingCost(amount: GenericFormula, multiplier: FormulaSource, base: FormulaSource) {
-    return amount.div(unref(core.repeatables.buildingCost.effect))
-                 .div(1)
+    return amount.div(getResearchEffect(core.repeatables.buildingCost, 1))
+                 .div(1) // Pion Omicron effect
+                 .pow_base(base).times(multiplier)
                  .if(core.research.autobuild.researched,
-                    value => value)
+                    amount => amount,
+                    amount => amount.times(Formula.pow(base, buildingSize).minus(1)).dividedBy(Formula.minus(base, 1))
+                 )
 }

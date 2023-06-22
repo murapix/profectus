@@ -887,15 +887,17 @@ export abstract class InternalFormula<T extends [FormulaSource] | FormulaSource[
 
     public if(
         condition: Computable<boolean>,
-        formulaModifier: (value: InvertibleIntegralFormula) => GenericFormula
+        formulaModifier: (value: InvertibleIntegralFormula) => GenericFormula,
+        elseFormulaModifier?: (value: InvertibleIntegralFormula) => GenericFormula
     ) {
-        return Formula.if(this, condition, formulaModifier);
+        return Formula.if(this, condition, formulaModifier, elseFormulaModifier);
     }
     public conditional(
         condition: Computable<boolean>,
-        formulaModifier: (value: InvertibleIntegralFormula) => GenericFormula
+        formulaModifier: (value: InvertibleIntegralFormula) => GenericFormula,
+        elseFormulaModifier?: (value: InvertibleIntegralFormula) => GenericFormula
     ) {
-        return Formula.if(this, condition, formulaModifier);
+        return Formula.if(this, condition, formulaModifier, elseFormulaModifier);
     }
 
     public abs() {
