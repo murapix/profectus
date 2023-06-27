@@ -18,6 +18,7 @@
             </div>
             <div v-if="isTab('appearance')">
                 <Select :title="themeTitle" :options="themes" v-model="theme" />
+                <Select :title="notationTitle" :options="notations" v-model="numberFormat" />
                 <component :is="settingFieldsComponent" />
                 <Toggle :title="showTPSTitle" v-model="showTPS" />
                 <Toggle :title="alignModifierUnitsTitle" v-model="alignUnits" />
@@ -41,6 +42,7 @@ import { computed, ref, toRefs } from "vue";
 import Select from "./fields/Select.vue";
 import Toggle from "./fields/Toggle.vue";
 import FeedbackButton from "./fields/FeedbackButton.vue";
+import { Notations } from "util/format";
 
 const isOpen = ref(false);
 const currentTab = ref("behaviour");
@@ -67,11 +69,18 @@ const themes = Object.keys(rawThemes).map(theme => ({
     value: theme
 }));
 
+const notations = [
+    { label: "Standard", value: Notations.standard },
+    { label: "Thousands", value: Notations.thousands },
+    { label: "Engineering", value: Notations.engineering },
+    { label: "Scientific", value: Notations.scientific }
+];
+
 const settingFieldsComponent = computed(() => {
     return coerceComponent(jsx(() => (<>{settingFields.map(render)}</>)));
 });
 
-const { showTPS, theme, unthrottled, alignUnits } = toRefs(settings);
+const { showTPS, theme, unthrottled, alignUnits, numberFormat } = toRefs(settings);
 const { autosave } = toRefs(player);
 const isPaused = computed({
     get() {
@@ -116,6 +125,12 @@ const alignModifierUnitsTitle = jsx(() => (
     <span class="option-title">
         Align modifier units
         <desc>Align numbers to the beginning of the unit in modifier view.</desc>
+    </span>
+));
+const notationTitle = jsx(() => (
+    <span class="option-title">
+        Number Notation
+        <desc>Change how numbers are formatted for display.</desc>
     </span>
 ));
 </script>

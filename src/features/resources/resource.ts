@@ -3,7 +3,9 @@ import type { Persistent, State } from "game/persistence";
 import { NonPersistent, persistent } from "game/persistence";
 import type { DecimalSource } from "util/bignum";
 import Decimal, { format, formatWhole } from "util/bignum";
+import { format as betterFormat } from "util/format";
 import type { ProcessedComputable } from "util/computed";
+import { Notations } from "util/format";
 import { loadingSave } from "util/save";
 import type { ComputedRef, Ref } from "vue";
 import { computed, isRef, ref, unref, watch } from "vue";
@@ -155,9 +157,9 @@ export function trackOOMPS(
 export function displayResource(resource: Resource, overrideAmount?: DecimalSource): string {
     const amount = overrideAmount ?? resource.value;
     if (Decimal.eq(resource.precision, 0)) {
-        return formatWhole(resource.small ? amount : Decimal.floor(amount));
+        return betterFormat(resource.small ? amount : Decimal.floor(amount));
     }
-    return format(amount, resource.precision, resource.small);
+    return betterFormat(amount, resource.precision, resource.small);
 }
 
 /** Utility for unwrapping a resource that may or may not be inside a ref. */

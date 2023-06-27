@@ -3,6 +3,7 @@ import { Themes } from "data/themes";
 import type { CoercableComponent } from "features/feature";
 import { globalBus } from "game/events";
 import LZString from "lz-string";
+import { Notations } from "util/format";
 import { hardReset } from "util/save";
 import { reactive, watch } from "vue";
 
@@ -20,6 +21,8 @@ export interface Settings {
     unthrottled: boolean;
     /** Whether to align modifiers to the unit. */
     alignUnits: boolean;
+    /** What format most numbers should be displayed with */
+    numberFormat: Notations;
 }
 
 const state = reactive<Partial<Settings>>({
@@ -28,7 +31,8 @@ const state = reactive<Partial<Settings>>({
     showTPS: true,
     theme: Themes.Classic,
     unthrottled: false,
-    alignUnits: false
+    alignUnits: false,
+    numberFormat: Notations.scientific
 });
 
 watch(
@@ -61,7 +65,8 @@ export const hardResetSettings = (window.hardResetSettings = () => {
         saves: [],
         showTPS: true,
         theme: Themes.Classic,
-        alignUnits: false
+        alignUnits: false,
+        numberFormat: Notations.scientific
     };
     globalBus.emit("loadSettings", settings);
     Object.assign(state, settings);
