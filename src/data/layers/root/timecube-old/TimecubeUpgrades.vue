@@ -6,67 +6,53 @@
     </div>
 </template>
 
-<script lang="ts">
+<script setup lang="ts">
 import { Visibility } from 'features/feature';
 import { GenericUpgrade } from 'features/upgrades/upgrade';
-import { processedPropType, render, unwrapRef } from 'util/vue';
-import { computed, defineComponent, toRefs, unref } from 'vue';
+import { render } from 'util/vue';
+import { computed, unref } from 'vue';
 
-export default defineComponent({
-    props: {
-        upgrades: {
-            type: processedPropType<GenericUpgrade[]>(Array),
-            required: true
-        }
-    },
-    setup(props) {
-        const { upgrades } = toRefs(props);
+const props = defineProps<{
+    upgrades: GenericUpgrade[]
+}>();
 
-        const rows: GenericUpgrade[][] = [];
-        unwrapRef(upgrades).forEach((upgrade, index) => {
-            const rowIndex = ~~(index/5);
-            const row = rows[rowIndex] ?? [];
-            row.push(upgrade);
-            rows[rowIndex] = row;
-        })
+const rows: GenericUpgrade[][] = [];
+unref(props.upgrades).forEach((upgrade, index) => {
+    const rowIndex = ~~(index/5);
+    const row = rows[rowIndex] ?? [];
+    row.push(upgrade);
+    rows[rowIndex] = row;
+});
 
-        const left = rows.map(row => row.map((_, index) => {
-            if (index === 0) return false;
-            return computed(() => unref(row[index-1].visibility) === Visibility.Visible);
-        }))
-        const right = rows.map(row => row.map((_, index) => {
-            if (index >= row.length-1) return false;
-            return computed(() => unref(row[index+1].visibility) === Visibility.Visible);
-        }));
+const left = rows.map(row => row.map((_, index) => {
+    if (index === 0) return false;
+    return computed(() => unref(row[index-1].visibility) === Visibility.Visible);
+}));
+const right = rows.map(row => row.map((_, index) => {
+    if (index >= row.length-1) return false;
+    return computed(() => unref(row[index+1].visibility) === Visibility.Visible);
+}));
 
-        const visibleCounts = rows.map(row => computed(() => row.filter(upgrade => unref(upgrade.visibility) === Visibility.Visible).length));
-        const top = rows.map((row, index) => {
-            const result = index === 0 ? false : unref(visibleCounts[index]) <= unref(visibleCounts[index-1]);
-            return row.map(() => result);
-        });
-        const bottom = rows.map((row, index) => {
-            const result = index >= rows.length-1 ? false : unref(visibleCounts[index]) <= unref(visibleCounts[index+1]);
-            return row.map(() => result);
-        });
+const visibleCounts = rows.map(row => computed(() => row.filter(upgrade => unref(upgrade.visibility) === Visibility.Visible).length));
+const top = rows.map((row, index) => {
+    const result = index === 0 ? false : unref(visibleCounts[index]) <= unref(visibleCounts[index-1]);
+    return row.map(() => result);
+});
+const bottom = rows.map((row, index) => {
+    const result = index >= rows.length-1 ? false : unref(visibleCounts[index]) <= unref(visibleCounts[index+1]);
+    return row.map(() => result);
+});
 
-        const joined = rows.map((row, rowIndex) => row.map((upgrade, upgradeIndex) => computed(() => ({
-            upgrade,
-            classes: {
-                left: unref(left[rowIndex][upgradeIndex]),
-                right: unref(right[rowIndex][upgradeIndex]),
-                top: unref(top[rowIndex][upgradeIndex]),
-                bottom: unref(bottom[rowIndex][upgradeIndex])
-            }
-        }))));
-
-        return {
-            joined,
-
-            render,
-            unref
-        }
+const joined = rows.map((row, rowIndex) => row.map((upgrade, upgradeIndex) => computed(() => ({
+    upgrade,
+    classes: {
+        left: unref(left[rowIndex][upgradeIndex]),
+        right: unref(right[rowIndex][upgradeIndex]),
+        top: unref(top[rowIndex][upgradeIndex]),
+        bottom: unref(bottom[rowIndex][upgradeIndex])
     }
-})
+}))));
+
 </script>
 
 <style scoped>

@@ -85,23 +85,24 @@ const layer = createLayer(id, function (this: BaseLayer) {
         let log = Decimal.clampMin(unref(inflatons), 1).log10();
         if (unref(inflating) || !unref(core.research.isolatedStorage.researched))
             log = log.times(unref(buildings.buildings.condenser.effect));
-        return log.pow_base(2).max(1);
+        return log.pow_base(2).clampMin(1);
     });
     const allFomeNerf = computed(() => unref(inflatonNerf).dividedBy(getResearchEffect(core.research.fomeGain, 1))
                                                           .dividedBy(getResearchEffect(core.research.moreFomeGain, 1))
                                                           .dividedBy(getResearchEffect(core.research.evenMoreFomeGain, 1))
                                                           .dividedBy(getResearchEffect(core.repeatables.fome, 1))
-                                                          .max(1)
+                                                          .clampMin(1)
     );
     const individualNerfs = {
-        pion: computed(() => Decimal.div(unref(inflatonNerf), 1)),//getUpgradeEffect(timecube.upgrades.tower))),
-        spinor: computed(() => Decimal.div(unref(inflatonNerf), 1)),//etUpgradeEffect(timecube.upgrades.tower))),
+        pion: computed(() => Decimal.div(unref(inflatonNerf), 1).clampMin(1)),//getUpgradeEffect(timecube.upgrades.tower))),
+        spinor: computed(() => Decimal.div(unref(inflatonNerf), 1).clampMin(1)),//etUpgradeEffect(timecube.upgrades.tower))),
         [FomeTypes.protoversal]: allFomeNerf,
         [FomeTypes.infinitesimal]: allFomeNerf,
         [FomeTypes.subspatial]: allFomeNerf,
         [FomeTypes.subplanck]: allFomeNerf,
         [FomeTypes.quantum]: computed(() => Decimal.times(unref(allFomeNerf), getResearchEffect(core.research.halfQuantum, 1))
-                                                   .times(getResearchEffect(core.research.quarterQuantum, 1))),
+                                                   .times(getResearchEffect(core.research.quarterQuantum, 1))
+                                                   .clampMin(1)),
         acceleron: inflatonNerf,
         timecube: inflatonNerf
     };
@@ -137,7 +138,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
     const fomeBonus = computed(() => {
         return unref(inflating)
             ? Decimal.dOne
-            : Decimal.clampMin(
+            : Decimal.clampMax(
                 fomeModifiers.apply(Decimal.dOne),
                 unref(inflatonNerf)
             )

@@ -140,7 +140,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         index: persistent<1|2|3|4|5>(1),
         1: createBoost(feature => ({
             display: () => `Multiply the generation of all Foam types by ${format(getFomeBoost(FomeTypes.quantum, 1))}`,
-            effect: () => new Decimal(unref(feature.total)),
+            effect: () => Decimal.times(unref(feature.total), unref(skyrmion.pion.upgrades.kappa.effect)).sqr().plus(1),
             bonus: boostBonus
         })),
         2: createBoost(feature => ({
@@ -150,7 +150,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         })),
         3: createBoost(feature => ({
             display: () => `Multiply the generation of all Foam types again by ${format(getFomeBoost(FomeTypes.quantum, 3))}x`,
-            effect: () => Decimal.times(Decimal.gt(unref(feature.total), 16) ? Decimal.sqrt(unref(feature.total)).times(4) : unref(feature.total), getFomeBoost(FomeTypes.quantum, 1)).dividedBy(10).plus(1),
+            effect: () => Decimal.times(Decimal.gt(unref(feature.total), 16) ? Decimal.sqrt(unref(feature.total)).times(4) : unref(feature.total), Decimal.sqrt(getFomeBoost(FomeTypes.quantum, 1))).dividedBy(10).plus(1),
             bonus: boostBonus
         })),
         4: createBoost(feature => ({

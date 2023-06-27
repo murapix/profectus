@@ -14,8 +14,8 @@ import Formula from "game/formulas/formulas";
 import buildings from "./buildings";
 import core from "./coreResearch";
 
-export interface BuildingData {
-    effect: (amount: DecimalSource) => DecimalSource;
+export interface BuildingData<T = DecimalSource> {
+    effect: (amount: DecimalSource) => T;
     cost: {
         free?: Computable<boolean>;
         resource: Resource<DecimalSource>;
@@ -30,14 +30,14 @@ export interface BuildingData {
     }
 }
 
-export interface BuildingOptions extends RepeatableOptions, EffectFeatureOptions, BonusAmountFeatureOptions {}
-export type GenericBuilding = GenericRepeatable & GenericEffectFeature<DecimalSource> & GenericBonusAmountFeature;
+export interface BuildingOptions<T = DecimalSource> extends RepeatableOptions, EffectFeatureOptions<T>, BonusAmountFeatureOptions {}
+export type GenericBuilding<T = DecimalSource> = GenericRepeatable & GenericEffectFeature<T> & GenericBonusAmountFeature;
 
 const availableSize = createResource(computed(() => Decimal.minus(unref(buildings.maxSize), unref(buildings.usedSize))));
-export function createBuilding(
-    optionsFunc: OptionsFunc<BuildingData, BaseRepeatable, GenericBuilding>
-): GenericBuilding {
-    return createRepeatable<BuildingOptions>(repeatable => {
+export function createBuilding<T = DecimalSource>(
+    optionsFunc: OptionsFunc<BuildingData<T>, BaseRepeatable, GenericBuilding<T>>
+): GenericBuilding<T> {
+    return createRepeatable<BuildingOptions<T>>(repeatable => {
         let { effect, cost, display} = optionsFunc.call(repeatable, repeatable);
         cost.free ??= core.research.autobuild.researched;
         return {
@@ -65,7 +65,7 @@ export function createBuilding(
             },
             style: buildingStyle
         }
-    }, effectDecorator, bonusAmountDecorator) as GenericBuilding;
+    }, effectDecorator, bonusAmountDecorator) as GenericBuilding<T>;
 }
 
 const buildingStyle = computed(() => ({

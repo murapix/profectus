@@ -4,15 +4,19 @@ import { createLayer } from "game/layers";
 import Decimal, { DecimalSource } from "lib/break_eternity";
 import MainDisplay from "features/resources/MainDisplay.vue";
 import Spacer from "components/layout/Spacer.vue";
-import { render, renderCol } from "util/vue";
+import { render, renderCol, renderRow } from "util/vue";
 import { format } from "util/break_eternity";
-import { computed, unref } from "vue";
-import { persistent } from "game/persistence";
+import { ComputedRef, computed, unref } from "vue";
+import { persistent, noPersist, Persistent } from "game/persistence";
 import acceleron, { id as acceleronId } from "../acceleron-old/acceleron";
 import inflaton, { id as inflatonId } from "../inflaton/inflaton";
 import timecube from "../timecube-old/timecube";
 import { createAchievement, GenericAchievement } from "features/achievements/achievement";
 import { createClickable, GenericClickable } from "features/clickables/clickable";
+import { createUpgrade, GenericUpgrade } from "features/upgrades/upgrade";
+import { createCostRequirement } from "game/requirements";
+import skyrmion from "../skyrmion/skyrmion";
+import { Computable } from "util/computed";
 
 const layer = createLayer("entangled", () => {
     const name = "Entangled Strings";
@@ -47,6 +51,71 @@ const layer = createLayer("entangled", () => {
         },
         display: 'Reset for 1 Entangled String'
     }));
+
+    const expansions = (() => {
+        const cost: ComputedRef<number> = computed(() => [skyrmion, fome, acceleron, timecube, inflaton].filter(layer => unref(layer.bought)).length);
+        const skyrmion = createUpgrade(() => ({
+            requirements: createCostRequirement(() => ({
+                resource: noPersist(strings),
+                cost,
+                requiresPay: false
+            })),
+            visibility: milestones[2].earned,
+            display: {
+                title: 'Grasp the Void',
+                description: 'You have long since extracted all you can from your Skyrmions, but new insights show there may be yet more to gain'
+            }
+        }));
+        const fome = createUpgrade(() => ({
+            requirements: createCostRequirement(() => ({
+                resource: noPersist(strings),
+                cost,
+                requiresPay: false
+            })),
+            visibility: milestones[2].earned,
+            display: {
+                title: 'Architectural Renaissance (TBD)',
+                description: 'Look to the past, and see what glories the future may hold'
+            }
+        }));
+        const acceleron = createUpgrade(() => ({
+            requirements: createCostRequirement(() => ({
+                resource: noPersist(strings),
+                cost,
+                requiresPay: false
+            })),
+            visibility: milestones[2].earned,
+            display: {
+                title: 'Tetradimensional Engineering (TBD)',
+                description: 'Application of structural ideas gained from Entropic Loops may give rise to a powerful new sector of exploration and progress'
+            }
+        }));
+        const timecube = createUpgrade(() => ({
+            requirements: createCostRequirement(() => ({
+                resource: noPersist(strings),
+                cost,
+                requiresPay: false
+            })),
+            visibility: milestones[2].earned,
+            display: {
+                title: 'Enigmatic Engineering',
+                description: 'Time Cubes seem helpful, but limited in power. Maybe your newfound mastery over space and time can reveal more of their secrets'
+            }
+        }));
+        const inflaton = createUpgrade(() => ({
+            requirements: createCostRequirement(() => ({
+                resource: noPersist(strings),
+                cost,
+                requiresPay: false
+            })),
+            visibility: milestones[2].earned,
+            display: {
+                title: 'Technological Ascendency (TBD)',
+                description: 'You have shown mastery over space and time, at least individually. Together, though, there are more secrets to unlock'
+            }
+        }));
+        return { skyrmion, fome, acceleron, timecube, inflaton };
+    })();
 
     const milestones: Record<1|2|3|7, GenericAchievement> = {
         1: createAchievement(() => ({
@@ -90,6 +159,7 @@ const layer = createLayer("entangled", () => {
         name,
         color,
         strings,
+        expansions,
         milestones,
         display: jsx(() => (
             <>
@@ -109,6 +179,7 @@ const layer = createLayer("entangled", () => {
                     Total Timeline Score: {format(unref(requirements.timecube.resource))} / {format(unref(requirements.timecube.amount))}
                 </div>
                 <Spacer />
+                {renderRow(...Object.values(expansions))}
                 {renderCol(...Object.values(milestones))}
             </>
         )),

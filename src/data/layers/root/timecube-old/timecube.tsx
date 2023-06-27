@@ -20,52 +20,47 @@ const layer = createLayer(id, function (this: BaseLayer) {
     const timecubes = createResource<DecimalSource>(0, "Time Cubes");
     const bestTimecubes = trackBest(timecubes);
 
-    type Upgrades = 'tile' | 'time' | 'tier' | 'tilt' | 'tiny' |
-                    'twice' | 'twist' | 'ten' | 'twirl' | 'tetrate' |
-                    'tesselate' | 'triple' | 'turn' | 'tall' | 'tour' |
-                    'tactics' | 'tower' | 'title' | 'tempo' | 'toil' |
-                    'a' | 'b' | 'c' | 'd' | 'e'
-    const upgrades: Record<Upgrades, GenericUpgrade | EffectUpgrade> = {
-        tile: createUpgrade<EffectUpgradeOptions>(() => ({
+    const upgrades = (() => {
+        const tile = createUpgrade<EffectUpgradeOptions>(upgrade => ({
             display: {
                 title: 'Tile',
                 description: 'log10(Accelerons) increases Time Cube gain',
-                effectDisplay: jsx(() => <>{format(unref((upgrades.tile as EffectUpgrade<DecimalSource>).effect))}x</>)
+                effectDisplay: jsx(() => <>{format(unref((upgrade as EffectUpgrade<DecimalSource>).effect))}x</>)
             },
             requirements: createCostRequirement(() => ({
                 resource: noPersist(timecubes),
                 cost: Decimal.dOne
             })),
             effect() { return Decimal.max(unref(acceleron.accelerons), 0).plus(1).log10() }
-        }), effectDecorator),
-        time: createUpgrade<EffectUpgradeOptions>(() => ({
-            visibility() { return unref(this.bought) || unref(upgrades.tile.bought) },
+        }), effectDecorator);
+        const time = createUpgrade<EffectUpgradeOptions>(upgrade => ({
+            visibility() { return unref(this.bought) || unref(tile.bought) },
             display: {
                 title: 'Time',
                 description: 'log10(Best Time Cubes) increases Acceleron effect',
-                effectDisplay: jsx(() => <>{format(unref((upgrades.time as EffectUpgrade<DecimalSource>).effect))}x</>)
+                effectDisplay: jsx(() => <>{format(unref((upgrade as EffectUpgrade<DecimalSource>).effect))}x</>)
             },
             requirements: createCostRequirement(() => ({
                 resource: noPersist(timecubes),
                 cost: Decimal.dTwo
             })),
             effect() { return Decimal.max(unref(bestTimecubes), 0).plus(1).log10().plus(1) }
-        }), effectDecorator),
-        tier: createUpgrade<EffectUpgradeOptions>(() => ({
-            visibility() { return unref(this.bought) || unref(upgrades.time.bought) },
+        }), effectDecorator);
+        const tier = createUpgrade<EffectUpgradeOptions>(upgrade => ({
+            visibility() { return unref(this.bought) || unref(time.bought) },
             display: {
                 title: 'Tier',
                 description: 'Each upgrade in this row gives a free level of every Foam Boost',
-                effectDisplay: jsx(() => <>+{formatWhole(unref((upgrades.tier as EffectUpgrade<DecimalSource>).effect))} free levels</>)
+                effectDisplay: jsx(() => <>+{formatWhole(unref((upgrade as EffectUpgrade<DecimalSource>).effect))} free levels</>)
             },
             requirements: createCostRequirement(() => ({
                 resource: noPersist(timecubes),
                 cost: new Decimal(3)
             })),
-            effect() { return [upgrades.tile, upgrades.time, upgrades.tier, upgrades.tilt, upgrades.tiny].filter(upgrade => unref(upgrade.bought)).length }
-        }), effectDecorator),
-        tilt: createUpgrade<EffectUpgradeOptions>(() => ({
-            visibility() { return unref(this.bought) || unref(upgrades.tier.bought) },
+            effect() { return [tile, time, tier, tilt, tiny].filter(upgrade => unref(upgrade.bought)).length }
+        }), effectDecorator);
+        const tilt = createUpgrade<EffectUpgradeOptions>(() => ({
+            visibility() { return unref(this.bought) || unref(tier.bought) },
             display: {
                 title: 'Tilt',
                 description: 'Entropic Expansion is 50% stronger',
@@ -75,9 +70,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 cost: Decimal.dTen
             })),
             effect: 1.5
-        }), effectDecorator),
-        tiny: createUpgrade(() => ({
-            visibility() { return unref(this.bought) || unref(upgrades.tilt.bought) },
+        }), effectDecorator);
+        const tiny = createUpgrade(() => ({
+            visibility() { return unref(this.bought) || unref(tilt.bought) },
             display: {
                 title: 'Tiny',
                 description: 'Unlock another Entropic Loop'
@@ -86,21 +81,21 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 resource: noPersist(timecubes),
                 cost: new Decimal(25)
             }))
-        })),
-        twice: createUpgrade<EffectUpgradeOptions>(() => ({
-            visibility() { return unref(this.bought) || unref(upgrades.tiny.bought) },
+        }));
+        const twice = createUpgrade<EffectUpgradeOptions>(() => ({
+            visibility() { return unref(this.bought) || unref(tiny.bought) },
             display: () => ({
                 title: 'Twice',
-                description: `${unref(upgrades.triple.bought) ? 'Triple' : 'Double'} maximum entropy`
+                description: `${unref(triple.bought) ? 'Triple' : 'Double'} maximum entropy`
             }),
             requirements: createCostRequirement(() => ({
                 resource: noPersist(timecubes),
                 cost: new Decimal(2500)
             })),
-            effect() { return unref(upgrades.triple.bought) ? 3 : 2 }
-        }), effectDecorator),
-        twist: createUpgrade(() => ({
-            visibility() { return unref(this.bought) || unref(upgrades.twice.bought) },
+            effect() { return unref(triple.bought) ? 3 : 2 }
+        }), effectDecorator);
+        const twist = createUpgrade(() => ({
+            visibility() { return unref(this.bought) || unref(twice.bought) },
             display: {
                 title: 'Twist',
                 description: 'You may select an additional first row Entropic Enhancement'
@@ -109,9 +104,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 resource: noPersist(timecubes),
                 cost: new Decimal(4e8)
             }))
-        })),
-        ten: createUpgrade<EffectUpgradeOptions>(() => ({
-            visibility() { return unref(this.bought) || unref(upgrades.twist.bought) },
+        }));
+        const ten = createUpgrade<EffectUpgradeOptions>(() => ({
+            visibility() { return unref(this.bought) || unref(twist.bought) },
             display: {
                 title: 'Ten',
                 description: 'Increase Entropic Loop build speed by 10,000x',
@@ -121,9 +116,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 cost: new Decimal(5e8)
             })),
             effect: new Decimal(10000)
-        }), effectDecorator),
-        twirl: createUpgrade(() => ({
-            visibility() { return unref(this.bought) || unref(upgrades.ten.bought) },
+        }), effectDecorator);
+        const twirl = createUpgrade(() => ({
+            visibility() { return unref(this.bought) || unref(ten.bought) },
             display: {
                 title: 'Twirl',
                 description: 'You may select an additional fourth row Entropic Enhancement'
@@ -132,9 +127,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 resource: noPersist(timecubes),
                 cost: new Decimal(1.25e9)
             }))
-        })),
-        tetrate: createUpgrade(() => ({
-            visibility() { return unref(this.bought) || unref(upgrades.twirl.bought) },
+        }));
+        const tetrate = createUpgrade(() => ({
+            visibility() { return unref(this.bought) || unref(twirl.bought) },
             display: {
                 title: 'Tetrate',
                 description: 'Unlock the fourth column of Entropic Enhancements'
@@ -143,9 +138,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 resource: noPersist(timecubes),
                 cost: new Decimal(5e9)
             }))
-        })),
-        tesselate: createUpgrade(() => ({ visibility() { return false }, display: { description: "X" }, requirements: createCostRequirement(() => ({ resource: noPersist(timecubes), cost: Decimal.dInf })) })),
-        triple: createUpgrade(() => ({
+        }));
+        const tesselate = createUpgrade(upgrade => ({ visibility() { return false }, display: { description: "X" }, requirements: createCostRequirement(() => ({ resource: noPersist(timecubes), cost: Decimal.dInf })) }));
+        const triple = createUpgrade(() => ({
             visibility() { return unref(this.bought) || false },
             display: {
                 title: 'Triple',
@@ -155,21 +150,29 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 resource: noPersist(timecubes),
                 cost: new Decimal(1e11)
             }))
-        })),
-        turn: createUpgrade(() => ({ visibility() { return false }, display: { description: "X" }, requirements: createCostRequirement(() => ({ resource: noPersist(timecubes), cost: Decimal.dInf })) })),
-        tall: createUpgrade(() => ({ visibility() { return false }, display: { description: "X" }, requirements: createCostRequirement(() => ({ resource: noPersist(timecubes), cost: Decimal.dInf })) })),
-        tour: createUpgrade(() => ({ visibility() { return false }, display: { description: "X" }, requirements: createCostRequirement(() => ({ resource: noPersist(timecubes), cost: Decimal.dInf })) })),
-        tactics: createUpgrade(() => ({ visibility() { return false }, display: { description: "X" }, requirements: createCostRequirement(() => ({ resource: noPersist(timecubes), cost: Decimal.dInf })) })),
-        tower: createUpgrade(() => ({ visibility() { return false }, display: { description: "X" }, requirements: createCostRequirement(() => ({ resource: noPersist(timecubes), cost: Decimal.dInf })) })),
-        title: createUpgrade(() => ({ visibility() { return false }, display: { description: "X" }, requirements: createCostRequirement(() => ({ resource: noPersist(timecubes), cost: Decimal.dInf })) })),
-        tempo: createUpgrade(() => ({ visibility() { return false }, display: { description: "X" }, requirements: createCostRequirement(() => ({ resource: noPersist(timecubes), cost: Decimal.dInf })) })),
-        toil: createUpgrade(() => ({ visibility() { return false }, display: { description: "X" }, requirements: createCostRequirement(() => ({ resource: noPersist(timecubes), cost: Decimal.dInf })) })),
-        'a': createUpgrade(() => ({ visibility() { return false }, display: { description: "X" }, requirements: createCostRequirement(() => ({ resource: noPersist(timecubes), cost: Decimal.dInf })) })),
-        'b': createUpgrade(() => ({ visibility() { return false }, display: { description: "X" }, requirements: createCostRequirement(() => ({ resource: noPersist(timecubes), cost: Decimal.dInf })) })),
-        'c': createUpgrade(() => ({ visibility() { return false }, display: { description: "X" }, requirements: createCostRequirement(() => ({ resource: noPersist(timecubes), cost: Decimal.dInf })) })),
-        'd': createUpgrade(() => ({ visibility() { return false }, display: { description: "X" }, requirements: createCostRequirement(() => ({ resource: noPersist(timecubes), cost: Decimal.dInf })) })),
-        'e': createUpgrade(() => ({ visibility() { return false }, display: { description: "X" }, requirements: createCostRequirement(() => ({ resource: noPersist(timecubes), cost: Decimal.dInf })) })),
-    }
+        }));
+        const turn = createUpgrade(upgrade => ({ visibility() { return false }, display: { description: "X" }, requirements: createCostRequirement(() => ({ resource: noPersist(timecubes), cost: Decimal.dInf })) }));
+        const tall = createUpgrade(upgrade => ({ visibility() { return false }, display: { description: "X" }, requirements: createCostRequirement(() => ({ resource: noPersist(timecubes), cost: Decimal.dInf })) }));
+        const tour = createUpgrade(upgrade => ({ visibility() { return false }, display: { description: "X" }, requirements: createCostRequirement(() => ({ resource: noPersist(timecubes), cost: Decimal.dInf })) }));
+        const tactics = createUpgrade(upgrade => ({ visibility() { return false }, display: { description: "X" }, requirements: createCostRequirement(() => ({ resource: noPersist(timecubes), cost: Decimal.dInf })) }));
+        const tower = createUpgrade(upgrade => ({ visibility() { return false }, display: { description: "X" }, requirements: createCostRequirement(() => ({ resource: noPersist(timecubes), cost: Decimal.dInf })) }));
+        const title = createUpgrade(upgrade => ({ visibility() { return false }, display: { description: "X" }, requirements: createCostRequirement(() => ({ resource: noPersist(timecubes), cost: Decimal.dInf })) }));
+        const tempo = createUpgrade(upgrade => ({ visibility() { return false }, display: { description: "X" }, requirements: createCostRequirement(() => ({ resource: noPersist(timecubes), cost: Decimal.dInf })) }));
+        const toil = createUpgrade(upgrade => ({ visibility() { return false }, display: { description: "X" }, requirements: createCostRequirement(() => ({ resource: noPersist(timecubes), cost: Decimal.dInf })) }));
+        const a = createUpgrade(upgrade => ({ visibility() { return false }, display: { description: "X" }, requirements: createCostRequirement(() => ({ resource: noPersist(timecubes), cost: Decimal.dInf })) }));
+        const b = createUpgrade(upgrade => ({ visibility() { return false }, display: { description: "X" }, requirements: createCostRequirement(() => ({ resource: noPersist(timecubes), cost: Decimal.dInf })) }));
+        const c = createUpgrade(upgrade => ({ visibility() { return false }, display: { description: "X" }, requirements: createCostRequirement(() => ({ resource: noPersist(timecubes), cost: Decimal.dInf })) }));
+        const d = createUpgrade(upgrade => ({ visibility() { return false }, display: { description: "X" }, requirements: createCostRequirement(() => ({ resource: noPersist(timecubes), cost: Decimal.dInf })) }));
+        const e = createUpgrade(upgrade => ({ visibility() { return false }, display: { description: "X" }, requirements: createCostRequirement(() => ({ resource: noPersist(timecubes), cost: Decimal.dInf })) }));
+
+        return {
+            tile, time, tier, tilt, tiny,
+            twice, twist, ten, twirl, tetrate,
+            tesselate, triple, turn, tall, tour,
+            tactics, tower, title, tempo, toil,
+            a, b, c, d, e
+        }
+    })();
 
     return {
         name,

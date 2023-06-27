@@ -1,14 +1,14 @@
 import { createLayer, BaseLayer } from "game/layers";
-import { jsx } from "features/feature";
+import { isVisible, jsx } from "features/feature";
 import inflaton from "./inflaton";
 import { createResource, trackBest } from "features/resources/resource";
 import { computed, unref } from "vue";
 import Decimal, { DecimalSource } from "lib/break_eternity";
 import { getResearchEffect } from "../inflaton/research";
 import { persistent } from "game/persistence";
-import { createBuilding } from "./building";
+import { GenericBuilding, createBuilding } from "./building";
 import fome, { FomeTypes } from "../fome/fome";
-import { formatSmall, formatWhole } from "util/break_eternity";
+import { format, formatSmall, formatWhole } from "util/break_eternity";
 import entangled from "../entangled-old/entangled";
 import { id as inflatonId } from "./inflaton";
 import { GenericEffectFeature } from "features/decorators/common";
@@ -17,6 +17,7 @@ import { GenericClickable, createClickable } from "features/clickables/clickable
 import { render, renderRow } from "util/vue";
 import SpacerVue from "components/layout/Spacer.vue";
 import core from "./coreResearch";
+import coreResearch from "./coreResearch";
 
 const id = "buildings";
 const layer = createLayer(id, function (this: BaseLayer) {
@@ -37,11 +38,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 description: 'Slightly reduce the loss of resources to Inflation',
                 effect: jsx(() => <>{formatSmall(unref((building as BaseRepeatable & GenericEffectFeature<DecimalSource>).effect))}</>)
             }
-        }));
+        })) as GenericBuilding;
         const lab = createBuilding(building => ({
             effect(amount) {
                 return (unref(core.research.researchBoost.researched)
-                        ? Decimal.times(getResearchEffect(core.research.researchBoost, 1), 0.9)
+                        ? Decimal.times(unref(core.research.researchBoost.effect), 0.9)
                         : Decimal.dOne)
                         .times(amount)
                         .times(1) // 1st abyssal pion buyable
@@ -57,7 +58,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 description: 'Study fluctuations in the quantum field',
                 effect: jsx(() => <>+{formatWhole(unref((building as BaseRepeatable & GenericEffectFeature<DecimalSource>).effect))} research points/s</>)
             }
-        }));
+        })) as GenericBuilding;
         const storage = createBuilding(building => ({
             effect(amount) {
                 return Decimal.times(amount, getResearchEffect(core.research.improvedStorage, 1/3))
@@ -74,9 +75,31 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 description: 'Specialized storage facilities designed to keep Inflatons separated and inert',
                 effect: jsx(() => <>Safely store up to {formatWhole(unref((building as BaseRepeatable & GenericEffectFeature<DecimalSource>).effect))} Inflatons</>)
             }
-        }));
+        })) as GenericBuilding;
+        const tuner = createBuilding<{gain: DecimalSource, cost: DecimalSource}>(building => ({
+            effect(amount) {
+                let gain = Decimal.times(amount, 0.01).plus(1);
+                let cost = new Decimal(amount);
+                let capacity = unref(coreResearch.researchGain);
+                if (cost.gt(capacity)) {
+                    return { gain: gain.times(capacity).dividedBy(cost), cost: capacity }
+                }
+                return { gain, cost }
+            },
+            cost: {
+                resource: fome[FomeTypes.subspatial].amount,
+                base: 1.5,
+                multiplier: computed(() => entangled.isFirstBranch(inflatonId) ? 1e40 : 1e92)
+            },
+            display: {
+                visibility: core.research.inflationResearch.researched,
+                title: 'Active Redistribution Center',
+                description: 'Tune your M-field Condensers with continuous analysis of inflation patterns',
+                effect: jsx(() => <>{format(unref((building as BaseRepeatable & GenericEffectFeature<{gain: DecimalSource}>).effect).gain)}x<br/><b>Consumes:</b> {format(unref((building as BaseRepeatable & GenericEffectFeature<{cost: DecimalSource}>).effect).cost)} Research/s</>)
+            }
+        })) as GenericBuilding<{gain: DecimalSource, cost: DecimalSource}>;
 
-        return { condenser, lab, storage };
+        return { condenser, lab, storage, tuner };
     })();
 
     const currentSize = createResource(computed(() => {
@@ -104,14 +127,14 @@ const layer = createLayer(id, function (this: BaseLayer) {
       id,
       {
         one: createClickable(() => ({
-            visibility: core.research.respecs.researched,
+            visibility: building.visibility,
             canClick() { return Decimal.gt(unref(building.amount), 0); },
             display: { description: 'Sell One' },
             onClick() { building.amount.value = Decimal.minus(building.amount.value, 1).clampMin(0); },
             style: {...respecStyle, borderBottomLeftRadius: 'var(--border-radius)'}
         })),
         all: createClickable(() => ({
-            visibility: core.research.respecs.researched,
+            visibility: building.visibility,
             canClick() { return Decimal.gt(unref(building.amount), 0); },
             display: { description: 'Sell All' },
             onClick() { building.amount.value = Decimal.dZero; },
@@ -131,17 +154,20 @@ const layer = createLayer(id, function (this: BaseLayer) {
         style: {...respecStyle, borderRadius: 'var(--border-radius)'}
     }));
 
-    const buildingRenders = Object.fromEntries(Object.entries(buildings).map(([id, building]) => [id, jsx(() => (
-        <div class="col mergeAdjacent">
-            {render(building)}
-            {unref(core.research.respecs.researched)
-                ? <div class="row mergeAdjacent">
-                    {render(respecButtons[id as keyof typeof buildings].one)}
-                    {render(respecButtons[id as keyof typeof buildings].all)}
-                </div>
-                : undefined}
-        </div>
-    ))]));
+    const buildingRenders = Object.fromEntries(Object.entries(buildings).map(([id, building]) => [id, jsx(() => {
+        if (isVisible(building.visibility)) {
+            return <div class="col mergeAdjacent">
+                {render(building)}
+                {unref(core.research.respecs.researched)
+                    ? <div class="row mergeAdjacent">
+                        {render(respecButtons[id as keyof typeof buildings].one)}
+                        {render(respecButtons[id as keyof typeof buildings].all)}
+                    </div>
+                    : undefined}
+            </div>
+        }
+        return <span />;
+    })]));
 
     return {
         buildings,

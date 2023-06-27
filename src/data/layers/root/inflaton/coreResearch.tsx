@@ -1,15 +1,14 @@
 import { CoercableComponent, OptionsFunc, Visibility, jsx } from "features/feature";
 import { createLayer, BaseLayer } from "game/layers";
 import { BaseResearch, EffectResearch, GenericResearch, createResearch as actualCreateResearch, getResearchEffect } from "./research";
-import { BaseRepeatableResearch, GenericRepeatableResearch, RepeatableResearch, RepeatableResearchOptions, repeatableDecorator } from "./repeatableDecorator"
+import { BaseRepeatableResearch, GenericRepeatableResearch, RepeatableResearchOptions, repeatableDecorator } from "./repeatableDecorator"
 import { CostRequirement, createCostRequirement } from "game/requirements";
-import { createLazyProxy } from "util/proxies";
 import { createResource } from "features/resources/resource";
 import { Computable, ProcessedComputable } from "util/computed";
 import Decimal, { DecimalSource } from "lib/break_eternity";
 import { EffectFeatureOptions, GenericEffectFeature, effectDecorator } from "features/decorators/common";
 import buildings from "./buildings";
-import { ComputedRef, computed, unref } from "vue";
+import { computed, unref } from "vue";
 import { format, formatWhole } from "util/break_eternity";
 import acceleron from "../acceleron/acceleron";
 import entangled from "../entangled-old/entangled";
@@ -24,6 +23,7 @@ import ColumnVue from "components/layout/Column.vue";
 
 const id = "coreResearch";
 const layer = createLayer(id, function (this: BaseLayer) {
+
     const research = (() => {
         const quintupleCondenser = createEffectResearch(() => ({
             cost: 75,
@@ -127,18 +127,18 @@ const layer = createLayer(id, function (this: BaseLayer) {
             },
             prerequisites: [quintupleCondenser]
         }));
+        const researchBoostLimit = computed(() => Decimal.times(unref(repeatables.analysis.effect), 1.8));
         const researchBoost = createEffectResearch(research => ({
             cost: 1500,
             display: {
                 title: 'Distributed Analysis Framework',
-                description: jsx(() => <span>Transform 10% of your Quantum Flux Analyzers into networking nodes, increasing Research Point gain by up to {format(unref((research as GenericResearch & {limit: ComputedRef<Decimal>}).limit))}</span>),
+                description: jsx(() => <span>Transform 10% of your Quantum Flux Analyzers into networking nodes, increasing Research Point gain by up to {format(unref(researchBoostLimit))}x</span>),
                 effect: jsx(() => <>{format(unref((research as GenericResearch & GenericEffectFeature<DecimalSource>).effect))}</>)
             },
             effect() {
                 return Decimal.pow(1.1, unref(buildings.buildings.lab.amount))
-                              .clampMax(unref((research as BaseResearch & {limit: ProcessedComputable<Decimal>}).limit))
+                              .clampMax(unref(researchBoostLimit));
             },
-            limit: computed(() => Decimal.times(unref(1), 1.8)),
             prerequisites: [doubleSize, cheaperLabs]
         })) as EffectResearch<DecimalSource>;
 
@@ -376,17 +376,18 @@ const layer = createLayer(id, function (this: BaseLayer) {
         autoResearching,
         display: jsx(() => (
             <div class='row' style={{flexFlow: 'row-reverse nowrap', alignItems: 'flex-start', justifyContent: 'space-evenly'}}>
-                <div class='column'>
+                <ColumnVue>
                     <ResearchQueueVue parallel={parallelResearchCount} queue={computed(() => Array.from({...unref(researchQueue), length: Math.max(unref(researchQueue).length, unref(queueLength))}))} />
                     {
                         unref(research.repeatableUnlock.researched)
                             ? <>
-                                <ToggleVue modelValue={autoResearching.value}/>
+                                <span style={{fontSize: "12px"}}>Enable Auto-Repeatable Research:</span>
+                                <ToggleVue modelValue={autoResearching.value} style={{marginTop: 0}}/>
                                 <SpacerVue />
                             </>
                             : undefined
                     }
-                </div>
+                </ColumnVue>
                 <ResearchTreeVue research={[
                     [research.quintupleCondenser],
                     [research.doubleSize, research.cheaperLabs],
