@@ -27,9 +27,8 @@ export function format(value: DecimalSource, precision: number = projInfo.defaul
 
     if (value.gte(slogLimit)) { return slogFormat(value); }
     if (value.gte(safeLimit)) { return scientificNotation(value); }
+    if (value.eq(Decimal.dZero)) { return (0).toFixed(precision); }
     if (value.lt(smallBoundary) && displaySmall) {
-        if (value.eq(Decimal.dZero)) { return (0).toFixed(precision); }
-
         value = invertOOM(value);
         if (value.gte(e1k)) { return `${format(value, precision)}⁻¹`; }
         return exponentialFormat(value, precision).replace(/([^(?:e|F)]*)$/, "-$1");
