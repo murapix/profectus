@@ -3,7 +3,7 @@ import { Themes } from "data/themes";
 import type { CoercableComponent } from "features/feature";
 import { globalBus } from "game/events";
 import LZString from "lz-string";
-import { Notations } from "util/format";
+import { Notations } from "util/notation";
 import { hardReset } from "util/save";
 import { reactive, watch } from "vue";
 
@@ -23,6 +23,8 @@ export interface Settings {
     alignUnits: boolean;
     /** What format most numbers should be displayed with */
     numberFormat: Notations;
+    /** The format to use for numbers beyond the Standard notation limit */
+    backupNumberFormat: Exclude<Notations, Notations.standard>;
 }
 
 const state = reactive<Partial<Settings>>({
@@ -32,7 +34,8 @@ const state = reactive<Partial<Settings>>({
     theme: Themes.Classic,
     unthrottled: false,
     alignUnits: false,
-    numberFormat: Notations.scientific
+    numberFormat: Notations.scientific,
+    backupNumberFormat: Notations.scientific
 });
 
 watch(
@@ -66,7 +69,8 @@ export const hardResetSettings = (window.hardResetSettings = () => {
         showTPS: true,
         theme: Themes.Classic,
         alignUnits: false,
-        numberFormat: Notations.scientific
+        numberFormat: Notations.scientific,
+        backupNumberFormat: Notations.scientific as Exclude<Notations, Notations.standard>
     };
     globalBus.emit("loadSettings", settings);
     Object.assign(state, settings);

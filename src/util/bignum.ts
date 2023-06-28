@@ -33,7 +33,7 @@ declare global {
     }
 }
 window.Decimal = Decimal;
-window.exponentialFormat = exponentialFormat;
+window.exponentialFormat = (num, precision, mantissa) => exponentialFormat(num, precision, numberUtils.PrecisionType.decimal, !mantissa);
 window.commaFormat = commaFormat;
 window.regularFormat = regularFormat;
 window.format = format;

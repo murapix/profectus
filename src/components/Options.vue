@@ -19,6 +19,7 @@
             <div v-if="isTab('appearance')">
                 <Select :title="themeTitle" :options="themes" v-model="theme" />
                 <Select :title="notationTitle" :options="notations" v-model="numberFormat" />
+                <Select v-if="numberFormat === Notations.standard" :title="backupNotationTitle" :options="backupNotations" v-model="backupNumberFormat" />
                 <component :is="settingFieldsComponent" />
                 <Toggle :title="showTPSTitle" v-model="showTPS" />
                 <Toggle :title="alignModifierUnitsTitle" v-model="alignUnits" />
@@ -42,7 +43,7 @@ import { computed, ref, toRefs } from "vue";
 import Select from "./fields/Select.vue";
 import Toggle from "./fields/Toggle.vue";
 import FeedbackButton from "./fields/FeedbackButton.vue";
-import { Notations } from "util/format";
+import { Notations } from "util/notation";
 
 const isOpen = ref(false);
 const currentTab = ref("behaviour");
@@ -75,12 +76,13 @@ const notations = [
     { label: "Engineering", value: Notations.engineering },
     { label: "Scientific", value: Notations.scientific }
 ];
+const backupNotations = notations.filter(notation => notation.value !== Notations.standard);
 
 const settingFieldsComponent = computed(() => {
     return coerceComponent(jsx(() => (<>{settingFields.map(render)}</>)));
 });
 
-const { showTPS, theme, unthrottled, alignUnits, numberFormat } = toRefs(settings);
+const { showTPS, theme, unthrottled, alignUnits, numberFormat, backupNumberFormat } = toRefs(settings);
 const { autosave } = toRefs(player);
 const isPaused = computed({
     get() {
@@ -133,6 +135,12 @@ const notationTitle = jsx(() => (
         <desc>Change how numbers are formatted for display.</desc>
     </span>
 ));
+const backupNotationTitle = jsx(() => (
+    <span class="option-title">
+        Backup Number Notation
+        <desc>Change how numbers are formatted beyond the limit of Standard Notation</desc>
+    </span>
+))
 </script>
 
 <style>
