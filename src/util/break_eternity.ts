@@ -56,9 +56,8 @@ export function formatWhole(value: DecimalSource, displaySmall: boolean = projIn
                 return format(value, undefined, displaySmall, notation);
             }
             return format(value, 0, displaySmall, Notations.scientific);
-        default: break;
+        default: return format(value, 0, displaySmall, notation);
     }
-    return format(value, 0, displaySmall, notation);
 }
 
 export function slogFormat(value: DecimalSource) {
@@ -198,7 +197,6 @@ function getScientificNotation(value: DecimalSource, precision: number = projInf
 }
 
 export function commaFormat(value: DecimalSource, precision: number = projInfo.defaultDecimalsShown) {
-    if (value == undefined) { return "NaN"; }
     value = new Decimal(value);
     if (value.lt(smallBoundary)) return (0).toFixed(precision);
 
@@ -209,7 +207,6 @@ export function commaFormat(value: DecimalSource, precision: number = projInfo.d
 }
 
 export function regularFormat(value: DecimalSource, precision: number = projInfo.defaultDecimalsShown) {
-    if (value == undefined) { return "NaN"; }
     value = new Decimal(value);
     if (value.lt(smallBoundary)) return (0).toFixed(precision);
 
