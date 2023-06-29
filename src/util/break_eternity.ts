@@ -34,9 +34,9 @@ export function format(value: DecimalSource, precision: number = projInfo.defaul
 
     if (value.gte(1e9)) {
         switch(notation) {
-            case Notations.standard: return standardNotation(value, settings.backupNumberFormat, precision, PrecisionType.total, value.gte(mantissaLimit));
-            case Notations.thousands: return thousandsNotation(value, precision, PrecisionType.total, value.gte(mantissaLimit));
-            case Notations.engineering: return engineeringNotation(value, precision, PrecisionType.total, value.gte(mantissaLimit));
+            case Notations.standard: return standardNotation(value, settings.backupNumberFormat, precision+1, PrecisionType.total, value.gte(mantissaLimit));
+            case Notations.thousands: return thousandsNotation(value, precision+1, PrecisionType.total, value.gte(mantissaLimit));
+            case Notations.engineering: return engineeringNotation(value, precision+1, PrecisionType.total, value.gte(mantissaLimit));
             case Notations.scientific: return scientificNotation(value, precision, PrecisionType.decimal, value.gte(mantissaLimit));
         }
     }
@@ -82,7 +82,7 @@ export function slogFormat(value: DecimalSource) {
 export function standardNotation(
     value: DecimalSource,
     backupNotation: Exclude<Notations, Notations.standard> = settings.backupNumberFormat,
-    precision: number = projInfo.defaultDigitsShown,
+    precision: number = projInfo.defaultDigitsShown + 1,
     type: PrecisionType = PrecisionType.total,
     skipMantissa: boolean = false
 ) {
@@ -106,10 +106,10 @@ export function standardNotation(
         case Notations.scientific: return scientificNotation(value, precision, undefined, skipMantissa);
     }
 }
-function getStandardNotation(value: DecimalSource): [Decimal, string|Decimal] {
+function getStandardNotation(value: DecimalSource, precision: number = projInfo.defaultDigitsShown + 1): [Decimal, string|Decimal] {
     const maxExponent = 1000;
 
-    let [mantissa, exponent] = getThousandsNotation(value, 4);
+    let [mantissa, exponent] = getThousandsNotation(value, precision);
     
     if (exponent.gt(maxExponent)) return [mantissa, exponent];
     if (exponent.eq(0)) return [mantissa, exponent];
@@ -151,7 +151,7 @@ function getHundreds(digit: number) {
     return `${getOnes(digit)}C`;
 }
 
-export function thousandsNotation(value: DecimalSource, precision: number = projInfo.defaultDigitsShown, type: PrecisionType = PrecisionType.total, skipMantissa: boolean = false) {
+export function thousandsNotation(value: DecimalSource, precision: number = projInfo.defaultDigitsShown + 1, type: PrecisionType = PrecisionType.total, skipMantissa: boolean = false) {
     const [mantissa, exponent] = getThousandsNotation(value, precision, type);
     if (exponent.eq(0)) {
         switch(type) {
@@ -166,12 +166,12 @@ export function thousandsNotation(value: DecimalSource, precision: number = proj
         case PrecisionType.total: return `${mantissa.toPrecision(precision)}t${exponent.toStringWithDecimalPlaces(0)}`;
     }
 }
-function getThousandsNotation(value: DecimalSource, precision: number = projInfo.defaultDigitsShown, type: PrecisionType = PrecisionType.total) {
+function getThousandsNotation(value: DecimalSource, precision: number = projInfo.defaultDigitsShown + 1, type: PrecisionType = PrecisionType.total) {
     let [mantissa, exponent] = getEngineeringNotation(value, precision, type);
     return [mantissa, exponent.div(3)];
 }
 
-export function engineeringNotation(value: DecimalSource, precision: number = projInfo.defaultDigitsShown, type: PrecisionType = PrecisionType.total, skipMantissa: boolean = false) {
+export function engineeringNotation(value: DecimalSource, precision: number = projInfo.defaultDigitsShown + 1, type: PrecisionType = PrecisionType.total, skipMantissa: boolean = false) {
     const [mantissa, exponent] = getEngineeringNotation(value, precision, type);
     if (exponent.eq(0)) {
         switch(type) {
@@ -186,7 +186,7 @@ export function engineeringNotation(value: DecimalSource, precision: number = pr
         case PrecisionType.total: return `${mantissa.toPrecision(precision)}e${exponent.toStringWithDecimalPlaces(0)}`;
     }
 }
-function getEngineeringNotation(value: DecimalSource, precision: number = projInfo.defaultDigitsShown, type: PrecisionType = PrecisionType.total) {
+function getEngineeringNotation(value: DecimalSource, precision: number = projInfo.defaultDigitsShown + 1, type: PrecisionType = PrecisionType.total) {
     let [mantissa, exponent] = getScientificNotation(value, precision, type);
     if (exponent.gte(Number.MAX_SAFE_INTEGER)) return [mantissa, exponent];
 
