@@ -86,11 +86,13 @@ export function standardNotation(
     type: PrecisionType = PrecisionType.total,
     skipMantissa: boolean = false
 ) {
-    const [mantissa, exponent] = getStandardNotation(value);
+    if (precision < 3) precision = 3; // Standard Notation must be able to display a mantissa of 100-999 as a single value
+
+    const [mantissa, exponent] = getStandardNotation(value, precision);
     if (typeof exponent === "string") {
         if (skipMantissa) { return `1 ${exponent}`; }
         switch(type) {
-            case PrecisionType.decimal: return `${regularFormat(mantissa)} ${exponent}`;
+            case PrecisionType.decimal: return `${regularFormat(mantissa, precision)} ${exponent}`;
             case PrecisionType.total: return `${mantissa.toPrecision(precision)} ${exponent}`;
         }
     }
@@ -103,7 +105,7 @@ export function standardNotation(
     switch (backupNotation) {
         case Notations.thousands: return thousandsNotation(value, precision, undefined, skipMantissa);
         case Notations.engineering: return engineeringNotation(value, precision, undefined, skipMantissa);
-        case Notations.scientific: return scientificNotation(value, precision, undefined, skipMantissa);
+        case Notations.scientific: return scientificNotation(value, precision - 1, undefined, skipMantissa);
     }
 }
 function getStandardNotation(value: DecimalSource, precision: number = projInfo.defaultDigitsShown + 1): [Decimal, string|Decimal] {
@@ -152,6 +154,8 @@ function getHundreds(digit: number) {
 }
 
 export function thousandsNotation(value: DecimalSource, precision: number = projInfo.defaultDigitsShown + 1, type: PrecisionType = PrecisionType.total, skipMantissa: boolean = false) {
+    if (precision < 3) precision = 3; // Thousands Notation must be able to display a mantissa of 100-999 as a single value
+
     const [mantissa, exponent] = getThousandsNotation(value, precision, type);
     if (exponent.eq(0)) {
         switch(type) {
@@ -172,6 +176,8 @@ function getThousandsNotation(value: DecimalSource, precision: number = projInfo
 }
 
 export function engineeringNotation(value: DecimalSource, precision: number = projInfo.defaultDigitsShown + 1, type: PrecisionType = PrecisionType.total, skipMantissa: boolean = false) {
+    if (precision < 3) precision = 3; // Engineering Notation must be able to display a mantissa of 100-999 as a single value
+
     const [mantissa, exponent] = getEngineeringNotation(value, precision, type);
     if (exponent.eq(0)) {
         switch(type) {
