@@ -13,7 +13,7 @@
 
 	"allowGoBack": true,
 	"defaultShowSmall": false,
-	"defaultDecimalsShown": 2,
+	"defaultDigitsShown": 3,
 	"useHeader": true,
 	"banner": null,
 	"logo": "",
