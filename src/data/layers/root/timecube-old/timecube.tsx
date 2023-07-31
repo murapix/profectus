@@ -8,7 +8,7 @@ import { createCostRequirement } from "game/requirements";
 import Decimal, { DecimalSource } from "lib/break_eternity";
 import { format, formatWhole } from "util/break_eternity";
 import { unref } from "vue";
-import acceleron from "../acceleron-old/acceleron";
+import acceleron from "../acceleron/acceleron";
 import TimecubeUpgradesVue from "./TimecubeUpgrades.vue";
 import { noPersist } from "game/persistence"
 
@@ -82,7 +82,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 cost: new Decimal(25)
             }))
         }));
-        const twice = createUpgrade<EffectUpgradeOptions>(() => ({
+        const twice = createUpgrade<EffectUpgradeOptions<DecimalSource>>(() => ({
             visibility() { return unref(this.bought) || unref(tiny.bought) },
             display: () => ({
                 title: 'Twice',
@@ -105,7 +105,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 cost: new Decimal(4e8)
             }))
         }));
-        const ten = createUpgrade<EffectUpgradeOptions>(() => ({
+        const ten = createUpgrade<EffectUpgradeOptions<DecimalSource>>(() => ({
             visibility() { return unref(this.bought) || unref(twist.bought) },
             display: {
                 title: 'Ten',

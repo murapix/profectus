@@ -1,14 +1,15 @@
 import { Visibility, CoercableComponent, GatherProps, Replace, OptionsFunc, getUniqueID, Component } from "features/feature";
-import { deletePersistent, Persistent, persistent } from "game/persistence";
+import { Persistent, persistent } from "game/persistence";
 import Decimal, { DecimalSource } from "lib/break_eternity";
 import { Computable, GetComputableTypeWithDefault, GetComputableType, processComputable, ProcessedComputable } from "util/computed";
 import { createLazyProxy } from "util/proxies";
 import { unref, watch } from "vue";
 import LoopVue from "./Loop.vue";
+import { GenericDecorator } from "features/decorators/common";
 
 export const LoopType = Symbol("Loop");
 
-export interface LoopOptions {
+export interface LoopOptions<T = unknown> {
     visibility: Computable<Visibility | boolean>;
     buildRequirement: Computable<DecimalSource>;
     triggerRequirement: Computable<DecimalSource>;
@@ -17,28 +18,26 @@ export interface LoopOptions {
         width: number;
         description: CoercableComponent;
     }>;
-    persistentBoost?: boolean;
-    effect: Computable<any>; // eslint-disable-line @typescript-eslint/no-explicit-any
+    effect: Computable<T>;
     trigger: (this: BaseLoop, intervals: DecimalSource) => void;
 }
 
-export interface BaseLoop {
+export interface BaseLoop<T = unknown> {
     id: string;
     triggerProgress: Persistent<DecimalSource>;
     triggerRequirement: Computable<DecimalSource>;
     buildProgress: Persistent<DecimalSource>;
     buildRequirement: Computable<DecimalSource>;
     built: Persistent<boolean>;
-    currentBoost?: Persistent<DecimalSource>;
-    effect: Computable<any>; // eslint-disable-line @typescript-eslint/no-explicit-any
+    effect: Computable<T>;
     trigger(intervals: DecimalSource): void;
     type: typeof LoopType;
     [Component]: typeof LoopVue;
     [GatherProps]: () => Record<string, unknown>;
 }
 
-export type Loop<T extends LoopOptions> = Replace<
-    T & BaseLoop,
+export type Loop<T extends LoopOptions<U>, U = unknown> = Replace<
+    T & BaseLoop<U>,
     {
         visibility: GetComputableTypeWithDefault<T["visibility"], Visibility.Visible>;
         triggerRequirement: GetComputableType<T["triggerRequirement"]>;
@@ -48,26 +47,31 @@ export type Loop<T extends LoopOptions> = Replace<
     }
 >;
 
-export type GenericLoop = Loop<LoopOptions>;
+export type GenericLoop<T = unknown> = Loop<LoopOptions<T>>;
 
-export function createLoop<T extends LoopOptions>(optionsFunc: OptionsFunc<T, BaseLoop, GenericLoop>): Loop<T> {
+export function createLoop<T extends LoopOptions<U>, U = unknown>(
+    optionsFunc: OptionsFunc<T, BaseLoop<U>, GenericLoop<U>>,
+    ...decorators: GenericDecorator[]
+): Loop<T, U> {
     const triggerProgress = persistent<DecimalSource>(0);
     const buildProgress = persistent<DecimalSource>(0);
     const built = persistent<boolean>(false);
-    const persistentBoost = persistent<DecimalSource>(0);
+    const decoratedData = decorators.reduce((current, next) => Object.assign(current, next.getPersistentData?.()), {});
     return createLazyProxy(feature => {
-        const loop = optionsFunc.call(feature, feature);
+        const loop = optionsFunc.call(feature, feature as BaseLoop<U>);
 
         loop.id = getUniqueID("loop-");
         loop.type = LoopType;
+        loop[Component] = LoopVue;
+        
+        for (const decorator of decorators) {
+            decorator.preConstruct?.(loop);
+        }
 
         loop.triggerProgress = triggerProgress;
         loop.buildProgress = buildProgress;
         loop.built = built;
-
-        if (loop.persistentBoost)
-            loop.currentBoost = persistentBoost;
-        else deletePersistent(persistentBoost);
+        Object.assign(loop, decoratedData);
 
         watch(loop.buildProgress, progress => {
             if (Decimal.gte(progress, unref(loop.buildRequirement as ProcessedComputable<DecimalSource>)))
@@ -80,8 +84,12 @@ export function createLoop<T extends LoopOptions>(optionsFunc: OptionsFunc<T, Ba
         processComputable(loop as T, "display");
         processComputable(loop as T, "effect");
 
-        loop[Component] = LoopVue;
-        loop[GatherProps] = function (this: GenericLoop) {
+        for (const decorator of decorators) {
+            decorator.postConstruct?.(loop);
+        }
+
+        const decoratedProps = decorators.reduce((current, next) => Object.assign(current, next.getGatheredProps?.(loop)), {});
+        loop[GatherProps] = function (this: GenericLoop<U>) {
             const {
                 visibility,
                 display,
@@ -89,8 +97,7 @@ export function createLoop<T extends LoopOptions>(optionsFunc: OptionsFunc<T, Ba
                 buildRequirement,
                 built,
                 triggerProgress,
-                triggerRequirement,
-                currentBoost
+                triggerRequirement
             } = this;
             return {
                 visibility,
@@ -100,7 +107,7 @@ export function createLoop<T extends LoopOptions>(optionsFunc: OptionsFunc<T, Ba
                 built,
                 triggerProgress,
                 triggerRequirement,
-                currentBoost
+                ...decoratedProps
             };
         };
 

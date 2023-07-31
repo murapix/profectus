@@ -5,11 +5,10 @@ import { createResource, trackBest } from "features/resources/resource";
 import { computed, unref } from "vue";
 import Decimal, { DecimalSource } from "lib/break_eternity";
 import { getResearchEffect } from "../inflaton/research";
-import { persistent } from "game/persistence";
 import { GenericBuilding, createBuilding } from "./building";
 import fome, { FomeTypes } from "../fome/fome";
 import { format, formatSmall, formatWhole } from "util/break_eternity";
-import entangled from "../entangled-old/entangled";
+import entangled from "../entangled/entangled";
 import { id as inflatonId } from "./inflaton";
 import { GenericEffectFeature } from "features/decorators/common";
 import { BaseRepeatable } from "features/repeatable";
@@ -30,7 +29,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             cost: {
                 resource: fome[FomeTypes.subspatial].amount,
                 base: 1.1,
-                multiplier: computed(() => entangled.isFirstBranch(inflatonId) ? 1e11 : 1e82)
+                multiplier: computed(() => entangled.isFirstBranch(inflatonId) ? 1e30 : 1e82)
             },
             display: {
                 visibility: inflaton.upgrades.subspaceBuildings.bought,
@@ -50,7 +49,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             cost: {
                 resource: fome[FomeTypes.subspatial].amount,
                 base: computed(() => unref(core.research.cheaperLabs.researched) ? 1.5 : 15),
-                multiplier: computed(() => entangled.isFirstBranch(inflatonId) ? 1e11 : 1e82)
+                multiplier: computed(() => entangled.isFirstBranch(inflatonId) ? 1e30 : 1e82)
             },
             display: {
                 visibility: inflaton.upgrades.research.bought,
@@ -67,7 +66,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             cost: {
                 resource: fome[FomeTypes.quantum].amount,
                 base: 1.2,
-                multiplier: computed(() => entangled.isFirstBranch(inflatonId) ? 1e8 : 1e48)
+                multiplier: computed(() => entangled.isFirstBranch(inflatonId) ? 1e15 : 1e48)
             },
             display: {
                 visibility: core.research.storage.researched,

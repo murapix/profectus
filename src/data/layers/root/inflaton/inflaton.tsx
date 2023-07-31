@@ -5,7 +5,7 @@ import fome, { FomeTypes } from "../fome/fome";
 import { Resource, createResource } from "features/resources/resource";
 import Decimal, { DecimalSource } from "lib/break_eternity";
 import { ComputedRef, computed, unref } from "vue";
-import entangled from "../entangled-old/entangled";
+import entangled from "../entangled/entangled";
 import { createCostRequirement, displayRequirements, requirementsMet } from "game/requirements";
 import { persistent } from "game/persistence";
 import { createMultiplicativeModifier, createSequentialModifier } from "game/modifiers";
@@ -16,7 +16,7 @@ import { render, renderRow } from "util/vue";
 import SpacerVue from "components/layout/Spacer.vue";
 import { createTabFamily } from "features/tabs/tabFamily";
 import { createTab } from "features/tabs/tab";
-import { createUpgrade, getUpgradeEffect } from "features/upgrades/upgrade";
+import { createUpgrade } from "features/upgrades/upgrade";
 import core from "./coreResearch";
 import coreResearch from "./coreResearch";
 import timecube from "../timecube-old/timecube";
@@ -32,7 +32,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
     const inflatons = createResource<DecimalSource>(0, name);
     const requirement = createCostRequirement(() => ({
         resource: fome[FomeTypes.quantum].amount,
-        cost: () => entangled.isFirstBranch(id) ? 1e6 : 1e50,
+        cost: () => entangled.isFirstBranch(id) ? 1e12 : 1e50,
         requiresPay: false
     }));
     const conversion = createClickable(() => ({

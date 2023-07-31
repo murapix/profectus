@@ -11,7 +11,7 @@ import buildings from "./buildings";
 import { computed, unref } from "vue";
 import { format, formatWhole } from "util/break_eternity";
 import acceleron from "../acceleron/acceleron";
-import entangled from "../entangled-old/entangled";
+import entangled from "../entangled/entangled";
 import inflaton, { id as inflatonId } from "./inflaton";
 import ResearchTreeVue from "./ResearchTree.vue";
 import { noPersist, persistent } from "game/persistence";

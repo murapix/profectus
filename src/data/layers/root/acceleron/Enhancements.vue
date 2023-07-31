@@ -1,5 +1,5 @@
 <template>
-    <div class="enhancementRow" v-for="row in rows">
+    <div class="enhancementRow" v-for="row in processedRows">
         <div v-if="row.row.some(upgrade => unref(upgrade.visibility) !== Visibility.None)"
         >Remaining Enhancements: {{unref(row.count)}}</div>
         <Row>
@@ -12,37 +12,22 @@
     </div>    
 </template>
 
-<script lang="ts">
+<script setup lang="ts">
 import { GenericUpgrade } from 'features/upgrades/upgrade';
-import { processedPropType, render, unwrapRef } from 'util/vue';
-import { computed, defineComponent, unref, toRefs } from 'vue';
-import entropy from './entropy';
+import { render, unwrapRef } from 'util/vue';
+import { computed, unref } from 'vue';
+import entropy, { EnhancementRow } from './entropy';
 import Row from 'components/layout/Row.vue';
 import { Visibility } from 'features/feature';
 
-export default defineComponent({
-    props: {
-        rows: {
-            type: processedPropType<GenericUpgrade[][]>(Array),
-            required: true
-        }
-    },
-    setup(props) {
-        const { rows } = toRefs(props);
-        const processedRows = [1, 2, 3, 4].map(row => ({
-            count: computed(() => unref(entropy.enhancementLimits[row as 1 | 2 | 3 | 4]) - unref(entropy.enhancementCounts[row as 1 | 2 | 3 | 4])),
-            row: unwrapRef(rows)[row - 1]
-        }));
-        return {
-            rows: processedRows,
-            unref,
-            render,
+const props = defineProps<{
+    rows: Record<EnhancementRow, GenericUpgrade[]>;
+}>();
 
-            Visibility
-        };
-    },
-    components: { Row }
-})
+const processedRows = ([1, 2, 3, 4] as EnhancementRow[]).map(row => ({
+    count: computed(() => unref(entropy.enhancementLimits[row as EnhancementRow]) - unref(entropy.enhancementCounts[row as 1 | 2 | 3 | 4])),
+    row: unref(props.rows)[row]
+}));
 </script>
 
 <style scoped>

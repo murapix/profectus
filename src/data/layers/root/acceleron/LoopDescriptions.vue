@@ -4,21 +4,14 @@
     </div>
 </template>
 
-<script lang="ts">
+<script setup lang="ts" generic="T">
 import { render } from "util/vue";
-import { defineComponent, unref } from "vue";
-import acceleron from "./acceleron";
+import { unref } from "vue";
+import { GenericLoop } from "./loop";
 
-export default defineComponent({
-    setup() {
-        return {
-            unref,
-            render,
-            
-            loops: acceleron.loops
-        }
-    }
-})
+defineProps<{
+    loops: GenericLoop<T>[]
+}>();
 </script>
 
 <style scoped>

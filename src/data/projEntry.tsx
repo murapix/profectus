@@ -12,11 +12,10 @@ import { computed, Ref, unref } from "vue";
 
 import skyrmion from "./layers/root/skyrmion/skyrmion";
 import fome from "./layers/root/fome/fome";
-import acceleron from "./layers/root/acceleron-old/acceleron";
-import entropy from "./layers/root/acceleron-old/entropy";
+import acceleron from "./layers/root/acceleron/acceleron";
 import timecube from "./layers/root/timecube-old/timecube";
 import inflaton from "./layers/root/inflaton/inflaton";
-import entangled from "./layers/root/entangled-old/entangled";
+import entangled from "./layers/root/entangled/entangled";
 
 /**
  * @hidden
@@ -24,7 +23,6 @@ import entangled from "./layers/root/entangled-old/entangled";
 const id = "root";
 type layer = GenericLayer & { unlocked?: Ref<boolean>, tabStyle?: Record<string, unknown> }
 const rootLayers: Record<number, layer> = Object.fromEntries([skyrmion, fome, acceleron, timecube, inflaton, entangled].map((layer, index) => [index, layer]));
-const rootSubLayers: Record<number, layer> = Object.fromEntries([entropy].map((layer, index) => [index, layer]));
     
 export const root = createLayer(id, () => {
     const tabs: GenericTabFamily = createTabFamily(Object.fromEntries(Object.values(rootLayers).map(layer => 
@@ -68,7 +66,7 @@ export const root = createLayer(id, () => {
 export const getInitialLayers = (
     /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
     player: Partial<Player>
-): Array<GenericLayer> => [...Object.values(rootLayers), ...Object.values(rootSubLayers), root];
+): Array<GenericLayer> => [...Object.values(rootLayers), root];
 
 /**
  * A computed ref whose value is true whenever the game is over.
