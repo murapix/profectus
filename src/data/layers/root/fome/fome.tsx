@@ -4,8 +4,8 @@ import skyrmion from "../skyrmion/skyrmion";
 import Decimal, { DecimalSource } from "lib/break_eternity";
 import { ComputedRef, Ref, computed, unref } from "vue";
 import { Modifier, createMultiplicativeModifier } from "game/modifiers";
-import acceleron from "../acceleron-old/acceleron";
-import entropy from "../acceleron-old/entropy";
+import acceleron from "../acceleron/acceleron";
+import entropy from "../acceleron/entropy";
 import { EffectUpgrade, GenericUpgrade, getUpgradeEffect } from "features/upgrades/upgrade";
 import { format, formatWhole } from "util/break_eternity";
 import { GenericRepeatable } from "features/repeatable";
@@ -117,8 +117,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
             description: jsx(() => (<>[{acceleron.name}] Entropic Invention</>))
         })),
         createMultiplicativeModifier(() => ({
-            multiplier: acceleron.loops.tempFoam.currentBoost!,
-            enabled: acceleron.loops.tempFoam.built,
+            multiplier: acceleron.loops.loops.tempFome.value,
+            enabled: acceleron.loops.loops.tempFome.built,
             description: jsx(() => (<>[{acceleron.name}] Acceleron Loop #4</>))
         })),
         createMultiplicativeModifier(() => ({

@@ -13,7 +13,7 @@ import { jsx } from "features/feature";
 import { GenericBoost, createBoost, getFomeBoost } from "./boost";
 import skyrmion from "../skyrmion/skyrmion";
 import { format, formatWhole } from "util/break_eternity";
-import acceleron from "../acceleron-old/acceleron";
+import acceleron from "../acceleron/acceleron";
 import timecube from "../timecube-old/timecube";
 
 const id = "protoversal";

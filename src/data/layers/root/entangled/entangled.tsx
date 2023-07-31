@@ -8,7 +8,7 @@ import { render, renderCol, renderRow } from "util/vue";
 import { format } from "util/break_eternity";
 import { ComputedRef, computed, unref } from "vue";
 import { persistent, noPersist } from "game/persistence";
-import acceleron, { id as acceleronId } from "../acceleron-old/acceleron";
+import acceleron, { id as acceleronId } from "../acceleron/acceleron";
 import inflaton, { id as inflatonId } from "../inflaton/inflaton";
 import timecube from "../timecube-old/timecube";
 import { createAchievement, GenericAchievement } from "features/achievements/achievement";

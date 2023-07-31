@@ -4,7 +4,7 @@ import { createLayer, BaseLayer } from "game/layers";
 import { createMultiplicativeModifier, createSequentialModifier } from "game/modifiers";
 import Decimal, { DecimalSource } from "lib/break_eternity";
 import skyrmion from "./skyrmion";
-import acceleron from "../acceleron-old/acceleron";
+import acceleron from "../acceleron/acceleron";
 import { ComputedRef, computed, unref } from "vue";
 import pion from "./pion";
 import { Computable } from "util/computed";

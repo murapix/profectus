@@ -22,7 +22,7 @@ import coreResearch from "./coreResearch";
 import timecube from "../timecube-old/timecube";
 import { getResearchEffect } from "./research";
 import skyrmion from "../skyrmion/skyrmion";
-import acceleron from "../acceleron-old/acceleron";
+import acceleron from "../acceleron/acceleron";
 
 export const id = "inflaton";
 const layer = createLayer(id, function (this: BaseLayer) {

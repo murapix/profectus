@@ -18,14 +18,14 @@ import fome, { FomeTypes } from "../fome/fome";
 import inflaton from "../inflaton/inflaton";
 import MainDisplayVue from "features/resources/MainDisplay.vue";
 import SpacerVue from "components/layout/Spacer.vue";
-import { render } from "util/vue";
+import { render, renderRow } from "util/vue";
 import UpgradeRingVue from "../acceleron/UpgradeRing.vue";
 import { createTabFamily } from "features/tabs/tabFamily";
 import { createTab } from "features/tabs/tab";
 import { createCumulativeConversion } from "features/conversion";
 import { createResetButton } from "data/common";
 
-const id = "acceleron";
+export const id = "acceleron";
 const layer = createLayer(id, function (this: BaseLayer) {
     const name = "Accelerons";
     const color = "#0f52ba";
@@ -99,22 +99,28 @@ const layer = createLayer(id, function (this: BaseLayer) {
 
     const achievements = {
         protoversal: createAchievement(() => ({ // keep protoversal fome upgrades and boosts
-            shouldEarn() { return Decimal.gte(unref(totalAccelerons), 1) }
+            shouldEarn() { return Decimal.gte(unref(totalAccelerons), 1) },
+            small: true
         })),
         infinitesimal: createAchievement(() => ({ // keep infinitesimal fome upgrades and boosts
-            shouldEarn() { return Decimal.gte(unref(totalAccelerons), 2) }
+            shouldEarn() { return Decimal.gte(unref(totalAccelerons), 2) },
+            small: true
         })),
         subspatial: createAchievement(() => ({ // keep subspatial fome upgrades and boosts
-            shouldEarn() { return Decimal.gte(unref(totalAccelerons), 3) }
+            shouldEarn() { return Decimal.gte(unref(totalAccelerons), 3) },
+            small: true
         })),
         skyrmion: createAchievement(() => ({ // start with 10 skyrmions
-            shouldEarn() { return Decimal.gte(unref(totalAccelerons), 5) }
+            shouldEarn() { return Decimal.gte(unref(totalAccelerons), 5) },
+            small: true
         })),
         subplanck: createAchievement(() => ({ // keep subplanck fome upgrades and boosts
-            shouldEarn() { return Decimal.gte(unref(totalAccelerons), 7) }
+            shouldEarn() { return Decimal.gte(unref(totalAccelerons), 7) },
+            small: true
         })),
         quantum: createAchievement(() => ({ // keep quantum fome upgrades and boosts
-            shouldEarn() { return Decimal.gte(unref(totalAccelerons), 10) }
+            shouldEarn() { return Decimal.gte(unref(totalAccelerons), 10) },
+            small: true
         }))
     }
 
@@ -310,6 +316,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
                         <UpgradeRingVue radius={192} width={60} distance={150} top={4} right={right} bottom={4} left={left} />
                         <SpacerVue />
                         {render(loops.lowerDisplay)}
+                        <SpacerVue />
+                        {renderRow(...Object.values(achievements))}
                     </>
                 ))
             })),
@@ -332,6 +340,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
         timeMult,
         time,
         upgrades,
+        achievements,
+        tabs,
         display: jsx(() => (
             <>
                 {unref(upgrades.expansion.bought)

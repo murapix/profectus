@@ -6,7 +6,7 @@ import Decimal, { DecimalSource } from "lib/break_eternity";
 import { formatSmall, format, formatWhole } from "util/break_eternity";
 import { ProcessedComputable } from "util/computed";
 import { ComputedRef, computed, unref } from "vue";
-import entropy from "../acceleron-old/entropy";
+import entropy from "./entropy";
 import fome, { FomeTypes } from "../fome/fome";
 import skyrmion from "../skyrmion/skyrmion";
 import acceleronLayer from "./acceleron";
@@ -262,7 +262,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             trigger(intervals) {
                 (this as GenericPersistentLoop<Decimal>).value.value = unref((loop as GenericLoop<Decimal>).effect).div(Decimal.div(1/* right timeline effect */, 1/* right timeline bonus */)).times(intervals)
             }
-        })) as GenericPersistentLoop<Decimal>;
+        }), persistentDecorator) as GenericPersistentLoop<Decimal>;
 
         return { acceleron, instantProd, timecube, tempFome, tempAcceleron, tempSkyrmion };
     })();

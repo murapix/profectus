@@ -14,7 +14,7 @@ import { GenericBoost, createBoost, getFomeBoost } from "./boost";
 import skyrmion from "../skyrmion/skyrmion";
 import Formula from "game/formulas/formulas";
 import { format, formatWhole } from "util/break_eternity";
-import acceleron from "../acceleron-old/acceleron";
+import acceleron from "../acceleron/acceleron";
 import timecube from "../timecube-old/timecube";
 import { createReformRequirement } from "./ReformRequirement";
 

@@ -102,7 +102,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 title: 'Entropic Contraction',
                 description: 'Increase Acceleron gain based on number of purchased Entropic Enhancements'
             },
-            effect: unref(fibonacciEnhancements).pow(0.9)
+            effect: () => unref(fibonacciEnhancements).pow(0.9)
         }));
         const formation: EffectUpgrade<Decimal> = createEnhancement<Decimal>(() => ({
             row: 2,
@@ -165,7 +165,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 title: 'Entropic Invention',
                 description: 'Increase Subplanck Foam gain based on purchased Entropic Enhancements'
             },
-            effect: unref(fibonacciEnhancements).pow(1.5).plus(1)
+            effect: () => unref(fibonacciEnhancements).pow(1.5).plus(1)
         }));
         const inversion = createEnhancement<Decimal>(() => ({
             row: 3,
