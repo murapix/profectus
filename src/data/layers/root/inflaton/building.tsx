@@ -33,7 +33,6 @@ export interface BuildingData<T = DecimalSource> {
 export interface BuildingOptions<T = DecimalSource> extends RepeatableOptions, EffectFeatureOptions<T>, BonusAmountFeatureOptions {}
 export type GenericBuilding<T = DecimalSource> = GenericRepeatable & GenericEffectFeature<T> & GenericBonusAmountFeature;
 
-const availableSize = createResource(computed(() => Decimal.minus(unref(buildings.maxSize), unref(buildings.usedSize))));
 export function createBuilding<T = DecimalSource>(
     optionsFunc: OptionsFunc<BuildingData<T>, BaseRepeatable, GenericBuilding<T>>
 ): GenericBuilding<T> {
@@ -44,17 +43,28 @@ export function createBuilding<T = DecimalSource>(
             bonusAmount() { return Decimal.times(unref(this.amount), 0); }, // 3rd abyssal spinor buyable
             visibility: display.visibility,
             requirements: [
+                createBooleanRequirement(canBuild),
                 createCostRequirement(() => ({
-                    cost: buildingSize,
-                    resource: availableSize,
-                    visibility: Visibility.None
-                })),
-                createCostRequirement(() => ({
-                    cost: getBuildingCost(Formula.variable(repeatable.amount), cost.multiplier, cost.base),
+                    cost() {
+                        const multiplier = unref(cost.multiplier);
+                        const base = new Decimal(unref(cost.base));
+                        const amount = Decimal.div(unref(repeatable.amount), getResearchEffect(core.repeatables.buildingCost, 1))
+                                              .div(1); // Pion Omicron effect
+                        const size = unref(buildingSize);
+                        if (unref(core.research.autobuild.researched)) {
+                            return base.pow(amount).times(multiplier);
+                        }
+                        return base.pow(size).minus(1).times(multiplier).times(base.pow(amount)).dividedBy(base.minus(1));
+                    },
                     resource: cost.resource,
-                    requiresPay: () => !unref(cost.free)
+                    requiresPay: () => !unref(cost.free),
+                    cumulativeCost: false,
+                    maxBulkAmount: buildingSize
                 }))
             ],
+            onClick() {
+                repeatable.amount.value = unref(buildingSize).minus(1).plus(unref(repeatable.amount));
+            },
             effect() {
                 return effect(effectiveAmount(this as GenericBuilding))
             },
@@ -84,14 +94,4 @@ function effectiveAmount(building: GenericBuilding): Decimal {
     return Decimal.times(unref(building.totalAmount),
                          getResearchEffect(core.research.biggerBuildings, { size: 1, effect: 1 }).effect)
                   .times(unref(core.repeatables.buildingSize.effect).effect)
-}
-
-function getBuildingCost(amount: GenericFormula, multiplier: FormulaSource, base: FormulaSource) {
-    return amount.div(getResearchEffect(core.repeatables.buildingCost, 1))
-                 .div(1) // Pion Omicron effect
-                 .pow_base(base).times(multiplier)
-                 .if(core.research.autobuild.researched,
-                    amount => amount,
-                    amount => amount.times(Formula.pow(base, buildingSize).minus(1)).dividedBy(Formula.minus(base, 1))
-                 )
 }

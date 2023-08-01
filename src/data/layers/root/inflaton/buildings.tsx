@@ -17,6 +17,9 @@ import { render, renderRow } from "util/vue";
 import SpacerVue from "components/layout/Spacer.vue";
 import core from "./coreResearch";
 import coreResearch from "./coreResearch";
+import ToggleVue from "components/fields/Toggle.vue";
+import { persistent } from "game/persistence";
+import ColumnVue from "components/layout/Column.vue";
 
 const id = "buildings";
 const layer = createLayer(id, function (this: BaseLayer) {
@@ -153,6 +156,16 @@ const layer = createLayer(id, function (this: BaseLayer) {
         style: {...respecStyle, borderRadius: 'var(--border-radius)'}
     }));
 
+    const autoBuilding = persistent<boolean>(false);
+    inflaton.on("update", () => {
+        if (!unref(autoBuilding)) return;
+        for (const building of Object.values(buildings)) {
+            if (!isVisible(building.visibility)) continue;
+            if (!unref(building.canClick)) continue;
+            building.onClick();
+        }
+    });
+
     const buildingRenders = Object.fromEntries(Object.entries(buildings).map(([id, building]) => [id, jsx(() => {
         if (isVisible(building.visibility)) {
             return <div class="col mergeAdjacent">
@@ -172,10 +185,22 @@ const layer = createLayer(id, function (this: BaseLayer) {
         buildings,
         maxSize,
         usedSize,
+        autoBuilding,
         display: jsx(() => (
             <>
+                <div>Your buildings are taking up {format(unref(usedSize))} / {format(unref(maxSize))}</div>
+                <SpacerVue />
                 {renderRow(...Object.values(buildingRenders))}
                 <SpacerVue />
+                {unref(core.research.autobuild.researched)
+                    ? <>
+                        <ColumnVue>
+                            <span style={{fontSize: "12px"}}>Enable Auto-Building Construction</span>
+                            <ToggleVue v-model={autoBuilding.value} style={{marginTop: 0}}/>
+                        </ColumnVue>
+                    </>
+                    : undefined
+                }
                 {render(respecAll)}
             </>
         ))

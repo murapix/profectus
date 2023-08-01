@@ -7,8 +7,9 @@ import { createResource } from "features/resources/resource";
 import { Computable, ProcessedComputable } from "util/computed";
 import Decimal, { DecimalSource } from "lib/break_eternity";
 import { EffectFeatureOptions, GenericEffectFeature, effectDecorator } from "features/decorators/common";
+import { buildingSize as currentBuildingSize } from "./building";
 import buildings from "./buildings";
-import { computed, unref } from "vue";
+import { ComputedRef, computed, unref } from "vue";
 import { format, formatWhole } from "util/break_eternity";
 import acceleron from "../acceleron/acceleron";
 import entangled from "../entangled/entangled";
@@ -81,7 +82,12 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 description: 'Increase subspace building size tenfold, and their potency by twice as much'
             },
             effect: { size: 10, effect: 2 },
-            prerequisites: [quarterQuantum, repeatableUnlock, inflationResearch]
+            prerequisites: [quarterQuantum, repeatableUnlock, inflationResearch],
+            onResearch() {
+                for (const building of Object.values(buildings.buildings)) {
+                    building.amount.value = 0;
+                }
+            }
         })) as EffectResearch<{ size: DecimalSource, effect: DecimalSource }>;
         const respecs = createResearch(() => ({
             cost: 750,
@@ -297,7 +303,21 @@ const layer = createLayer(id, function (this: BaseLayer) {
             effect() { return {
                 size: Decimal.pow(10, unref(feature.amount)),
                 effect: Decimal.pow(2, unref(feature.amount))
-            }}
+            }},
+            canResearch() {
+                const minimumSize = unref(currentBuildingSize);
+                for (const building of Object.values(buildings.buildings)) {
+                    if (minimumSize.times(10).gt(unref(building.amount))) {
+                        return false;
+                    }
+                }
+                return true;
+            },
+            onResearch() {
+                for (const building of Object.values(buildings.buildings)) {
+                    building.amount.value = 0;
+                }
+            }
         })) as GenericRepeatableResearch<BuildingSizeEffect>;
         const buildingCost = createRepeatableResearch<ResearchOptions & Partial<RepeatableResearchOptions<Decimal>>, Decimal>(feature => ({
             visibility: research.moreRepeatables.researched,
@@ -327,7 +347,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
     const parallelResearchCount = computed<number>(() => 1);
     const researchQueue = persistent<string[]>([]);
 
-    const baseResearchGain = computed(() => Decimal.times(unref(buildings.buildings.lab.effect), getResearchEffect(research.researchBoost, 1)).times(1) /* 1st abyssal pion buyable */);
+    const baseResearchGain: ComputedRef<Decimal> = computed(() => Decimal.times(unref(buildings.buildings.lab.effect), getResearchEffect(research.researchBoost, 1)).times(1) /* 1st abyssal pion buyable */);
     const finalResearchGain = computed(() => unref(baseResearchGain));
     
     const autoResearching = persistent<boolean>(false);
@@ -382,7 +402,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                         unref(research.repeatableUnlock.researched)
                             ? <>
                                 <span style={{fontSize: "12px"}}>Enable Auto-Repeatable Research:</span>
-                                <ToggleVue modelValue={autoResearching.value} style={{marginTop: 0}}/>
+                                <ToggleVue v-model={autoResearching.value} style={{marginTop: 0}}/>
                                 <SpacerVue />
                             </>
                             : undefined

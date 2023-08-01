@@ -1,4 +1,4 @@
-import { jsx } from "features/feature";
+import { isVisible, jsx } from "features/feature";
 import { createResource } from "features/resources/resource";
 import { createLayer } from "game/layers";
 import Decimal, { DecimalSource } from "lib/break_eternity";
@@ -14,8 +14,7 @@ import timecube from "../timecube-old/timecube";
 import { createAchievement, GenericAchievement } from "features/achievements/achievement";
 import { createClickable, GenericClickable } from "features/clickables/clickable";
 import { createUpgrade } from "features/upgrades/upgrade";
-import { createCostRequirement, createBooleanRequirement, requirementsMet } from "game/requirements";
-import player from "game/player";
+import { createCostRequirement, createBooleanRequirement, requirementsMet, Requirement, CostRequirement } from "game/requirements";
 import { ProcessedComputable } from "util/computed";
 
 const layer = createLayer("entangled", () => {
@@ -109,7 +108,7 @@ const layer = createLayer("entangled", () => {
         if (Decimal.lte(strings.value, 1)) return true;
         return Decimal.lte(strings.value, numExpansions.value+1);
     });
-    const requirements = {
+    const requirements: Record<'expansion', Requirement> & Record<'acceleron' | 'inflaton' | 'timecube', CostRequirement> = {
         expansion: createBooleanRequirement(canEntangle),
         acceleron: createCostRequirement(() => ({
             resource: acceleron.accelerons,
@@ -298,9 +297,12 @@ const layer = createLayer("entangled", () => {
                 <div color={inflaton.color}>
                     Stored {inflaton.inflatons.displayName}: {format(unref(requirements.inflaton.resource))} / {format(unref(requirements.inflaton.cost as ProcessedComputable<DecimalSource>))}
                 </div>
-                <div color={timecube.color} v-show={requirements.timecube.visibility}>
-                    Total Timeline Score: {format(unref(requirements.timecube.resource))} / {format(unref(requirements.timecube.cost as ProcessedComputable<DecimalSource>))}
-                </div>
+                {isVisible(requirements.timecube.visibility)
+                    ? <div color={timecube.color}>
+                        Total Timeline Score: {format(unref(requirements.timecube.resource))} / {format(unref(requirements.timecube.cost as ProcessedComputable<DecimalSource>))}
+                    </div>
+                    : undefined
+                }
                 <Spacer />
                 {renderRow(...Object.values(expansions))}
                 {renderCol(...Object.values(milestones))}
