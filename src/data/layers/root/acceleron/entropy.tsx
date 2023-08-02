@@ -243,8 +243,6 @@ const layer = createLayer(id, function (this: BaseLayer) {
         enhancementLimits,
         display: jsx(() => (
             <>
-                <MainDisplayVue resource={acceleron.accelerons} color={acceleron.color} effectDisplay={jsx(() => <>which are causing time to go {format(unref(acceleron.timeMult))}x faster<br />
-                For every second in real time, {formatTime(unref(acceleron.timeMult))} passes</>)}/>
                 <SpacerVue />
                 Entropy: {formatWhole(unref(entropy))} / {formatWhole(unref(maxEntropy))}
                 <br />

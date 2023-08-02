@@ -303,14 +303,19 @@ const layer = createLayer(id, function (this: BaseLayer) {
         upgrades.superstructures
     ];
 
+    const header = jsx(() => (
+        <>
+            <MainDisplayVue resource={accelerons} color={color} effectDisplay={jsx(() => <>which are causing time to go {format(unref(timeMult))}x faster<br />
+            For every second in real time, {formatTime(unref(timeMult))} passes</>)} />
+        </>
+    ))
     const tabs = createTabFamily({
         loops: () => ({
             display: "Entropic Loops",
             tab: createTab(() => ({
                 display: jsx(() => (
                     <>
-                        <MainDisplayVue resource={accelerons} color={color} effectDisplay={jsx(() => <>which are causing time to go {format(unref(timeMult))}x faster<br />
-                        For every second in real time, {formatTime(unref(timeMult))} passes</>)} />
+                        {render(header)}
                         {unref(upgrades.tetration.bought) ? <SpacerVue height="70px" /> : render(resetButton)}
                         {render(loops.upperDisplay)}
                         <UpgradeRingVue radius={192} width={60} distance={150} top={4} right={right} bottom={4} left={left} />
@@ -320,13 +325,18 @@ const layer = createLayer(id, function (this: BaseLayer) {
                         {renderRow(...Object.values(achievements))}
                     </>
                 ))
-            })),
-            enhancements: () => ({
-                display: "Entropic Enhancements",
-                tab: createTab(() => ({
-                    display: entropy.display
-                }))
-            })
+            }))
+        }),
+        enhancements: () => ({
+            display: "Entropic Enhancements",
+            tab: createTab(() => ({
+                display: jsx(() => (
+                    <>
+                        {render(header)}
+                        {render(entropy.display)}
+                    </>
+                ))
+            }))
         })
     })
 

@@ -5,7 +5,6 @@
                 v-bind:key="loop.id"
                 fill="none"
                 :transform="unref(loop.translation)"
-                :class="`angle${unref(loop.angle)}`"
             >
                 <Loop v-if="isVisible(loop.visibility) && !isHidden(loop.visibility)"
                     :color="unref(loop.color)"
@@ -53,7 +52,14 @@ const radii: ComputedRef<number>[] = props.loops.map((loop, index, loops) => {
 
 const translations: ComputedRef<number>[] = props.loops.map((_, index, loops) => {
     if (index === loops.length-1) return computed(() => 0);
-    else return computed(() => unref(translations[index+1]) + unref(loops[index+1].display).width);
+    else return computed(() => {
+        const currentLoop = loops[index];
+        const previousLoop = loops[index+1];
+        const previousTranslation = unref(translations[index+1]);
+        const previousWidth = isVisible(previousLoop.visibility) ? unref(previousLoop.display).width/2 : 0;
+        const currentWidth = isVisible(currentLoop.visibility) ? unref(currentLoop.display).width/2 : 0;
+        return previousTranslation + previousWidth + currentWidth;
+    });
 });
 
 const progressAmounts: ComputedRef<Decimal>[] = props.loops.map(loop => 
