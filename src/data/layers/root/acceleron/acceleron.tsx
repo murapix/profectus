@@ -31,9 +31,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
     const color = "#0f52ba";
 
     const unlocked: Ref<boolean> = computed(() => {
-        if (entangled.isFirstBranch(id)) return true;
-        if (!unref(fome[FomeTypes.quantum].upgrades.condense.bought)) return false;
-        return unref(inflaton.coreResearch.research.mastery.researched);
+        if (unref(fome[FomeTypes.quantum].upgrades.condense.bought)) {
+            if (entangled.isFirstBranch(id)) return true;
+            return unref(inflaton.coreResearch.research.mastery.researched);
+        }
+        return unref(entangled.milestones[1].earned);
     });
 
     const accelerons = createResource<DecimalSource>(0, name);
