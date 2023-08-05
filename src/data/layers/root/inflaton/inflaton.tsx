@@ -30,7 +30,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
     const color = "#ff5e13";
 
     const unlocked: Ref<boolean> = computed(() => {
-        if (unref(fome[FomeTypes.quantum].upgrades.condense.bought)) {
+        if (unref(fome[FomeTypes.quantum].upgrades.condense.bought || unref(entangled.branchOrder) === id)) {
             if (entangled.isFirstBranch(id)) return true;
             return unref(acceleron.upgrades.mastery.bought);
         }
@@ -40,7 +40,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
     const inflatons = createResource<DecimalSource>(0, name);
     const requirement = createCostRequirement(() => ({
         resource: fome[FomeTypes.quantum].amount,
-        cost: () => entangled.isFirstBranch(id) ? 1e12 : 1e50,
+        cost: () => entangled.isFirstBranch(id) ? 1e9 : 1e50,
         requiresPay: false
     }));
     const conversion = createClickable(() => ({

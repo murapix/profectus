@@ -251,7 +251,7 @@ const layer = createLayer("entangled", () => {
             for (const research of keptInflatonResearch) {
                 research.researched.value = true;
             }
-            skyrmion.skyrmions.value = unref(acceleron.achievements.skyrmion.earned) ? 10 : 1
+            skyrmion.skyrmions.value = unref(acceleron.achievements.skyrmion.earned) ? 10 : 1;
         },
         display: 'Reset for 1 Entangled String'
     }));
@@ -259,8 +259,8 @@ const layer = createLayer("entangled", () => {
         thingsToReset() {
             const toReset: unknown[] = [
                 skyrmion.skyrmions,
-                skyrmion.pion.pions, skyrmion.pion.upgrades,
-                skyrmion.spinor.spinors, skyrmion.spinor.upgrades,
+                skyrmion.pion,
+                skyrmion.spinor,
 
                 fome.protoversal,
                 fome.infinitesimal,
@@ -279,9 +279,6 @@ const layer = createLayer("entangled", () => {
             ];
             if (!unref(milestones[2].earned)) {
                 toReset.push(skyrmion.upgrades, fome.achievements);
-            }
-            if (!unref(milestones[3].earned)) {
-
             }
             return toReset;
         }

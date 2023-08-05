@@ -24,6 +24,8 @@ import { createTabFamily } from "features/tabs/tabFamily";
 import { createTab } from "features/tabs/tab";
 import { createCumulativeConversion } from "features/conversion";
 import { createResetButton } from "data/common";
+import { createReset } from "features/reset";
+import skyrmion from "../skyrmion/skyrmion";
 
 export const id = "acceleron";
 const layer = createLayer(id, function (this: BaseLayer) {
@@ -31,7 +33,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
     const color = "#0f52ba";
 
     const unlocked: Ref<boolean> = computed(() => {
-        if (unref(fome[FomeTypes.quantum].upgrades.condense.bought)) {
+        if (unref(fome[FomeTypes.quantum].upgrades.condense.bought) || unref(entangled.branchOrder) === id) {
             if (entangled.isFirstBranch(id)) return true;
             return unref(inflaton.coreResearch.research.mastery.researched);
         }
@@ -45,7 +47,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
     const conversion = createCumulativeConversion(() => ({
         formula: fome => fome.times(getUpgradeEffect(upgrades.translation))
                              .times(getUpgradeEffect(upgrades.fluctuation))
-                             .dividedBy(computed(() => entangled.isFirstBranch(id) ? 1e6 : 1e80))
+                             .dividedBy(computed(() => entangled.isFirstBranch(id) ? 1e9 : 1e80))
                              .pow(computed(() => entangled.isFirstBranch(id) ? 0.1 : 0.05)),
         baseResource: noPersist(fome[FomeTypes.quantum].amount),
         gainResource: noPersist(accelerons),
@@ -53,12 +55,49 @@ const layer = createLayer(id, function (this: BaseLayer) {
             if (entangled.isFirstBranch(id)) entangled.branchOrder.value = id;
         }
     }));
+    const reset = createReset(() => ({
+        thingsToReset() {
+            const toReset: unknown[] = [
+                skyrmion.skyrmions,
+                skyrmion.pion,
+                skyrmion.spinor,
+
+                fome.achievements,
+                fome.protoversal.amount, fome.protoversal.upgrades.condense, fome.protoversal.upgrades.reform,
+                fome.infinitesimal.amount, fome.infinitesimal.upgrades.condense, fome.infinitesimal.upgrades.reform,
+                fome.subspatial.amount, fome.subspatial.upgrades.condense, fome.subspatial.upgrades.reform,
+                fome.subplanck.amount, fome.subplanck.upgrades.condense, fome.subplanck.upgrades.reform,
+                fome.quantum.amount, fome.quantum.upgrades.condense, fome.quantum.upgrades.reform,
+            ];
+            if (!unref(achievements.protoversal.earned)) {
+                toReset.push(fome.protoversal)
+            }
+            if (!unref(achievements.infinitesimal.earned)) {
+                toReset.push(fome.infinitesimal)
+            }
+            if (!unref(achievements.subspatial.earned)) {
+                toReset.push(fome.subspatial)
+            }
+            if (!unref(achievements.subplanck.earned)) {
+                toReset.push(fome.subplanck)
+            }
+            if (!unref(achievements.quantum.earned)) {
+                toReset.push(fome.quantum)
+            }
+
+            return toReset;
+        }
+    }))
     const resetButton = createResetButton(() => ({
         conversion,
         style: {
             width: 'fit-content',
             padding: '5px 10px',
             minHeight: '60px'
+        },
+        onClick() {
+            reset.reset();
+            skyrmion.skyrmions.value = unref(achievements.skyrmion.earned) ? 10 : 1;
         }
     }));
 
@@ -105,29 +144,48 @@ const layer = createLayer(id, function (this: BaseLayer) {
         time.value = Decimal.add(unref(time), diff);
     });
 
+    const totalAcceleronResource = createResource(noPersist(totalAccelerons));
     const achievements = {
         protoversal: createAchievement(() => ({ // keep protoversal fome upgrades and boosts
-            shouldEarn() { return Decimal.gte(unref(totalAccelerons), 1) },
+            requirements: createCostRequirement(() => ({
+                resource: totalAcceleronResource,
+                cost: 1
+            })),
             small: true
         })),
         infinitesimal: createAchievement(() => ({ // keep infinitesimal fome upgrades and boosts
-            shouldEarn() { return Decimal.gte(unref(totalAccelerons), 2) },
+            requirements: createCostRequirement(() => ({
+                resource: totalAcceleronResource,
+                cost: 2
+            })),
             small: true
         })),
         subspatial: createAchievement(() => ({ // keep subspatial fome upgrades and boosts
-            shouldEarn() { return Decimal.gte(unref(totalAccelerons), 3) },
+            requirements: createCostRequirement(() => ({
+                resource: totalAcceleronResource,
+                cost: 3
+            })),
             small: true
         })),
         skyrmion: createAchievement(() => ({ // start with 10 skyrmions
-            shouldEarn() { return Decimal.gte(unref(totalAccelerons), 5) },
+            requirements: createCostRequirement(() => ({
+                resource: totalAcceleronResource,
+                cost: 5
+            })),
             small: true
         })),
         subplanck: createAchievement(() => ({ // keep subplanck fome upgrades and boosts
-            shouldEarn() { return Decimal.gte(unref(totalAccelerons), 7) },
+            requirements: createCostRequirement(() => ({
+                resource: totalAcceleronResource,
+                cost: 7
+            })),
             small: true
         })),
         quantum: createAchievement(() => ({ // keep quantum fome upgrades and boosts
-            shouldEarn() { return Decimal.gte(unref(totalAccelerons), 10) },
+            requirements: createCostRequirement(() => ({
+                resource: totalAcceleronResource,
+                cost: 10
+            })),
             small: true
         }))
     }
