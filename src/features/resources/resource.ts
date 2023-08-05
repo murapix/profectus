@@ -154,6 +154,9 @@ export function trackOOMPS(
 /** Utility for displaying a resource with the correct precision. */
 export function displayResource(resource: Resource, overrideAmount?: DecimalSource): string {
     const amount = overrideAmount ?? resource.value;
+    if (resource.small && Decimal.lt(amount, 0.98)) {
+        return format(amount, undefined, resource.small);
+    }
     if (Decimal.eq(resource.precision, 0)) {
         return formatWhole(resource.small ? amount : Decimal.floor(amount));
     }

@@ -15,7 +15,7 @@ import skyrmion from "../skyrmion/skyrmion";
 import Formula from "game/formulas/formulas";
 import { format, formatWhole } from "util/break_eternity";
 import acceleron from "../acceleron/acceleron";
-import timecube from "../timecube-old/timecube";
+import timecube from "../timecube/timecube";
 import entropy from "../acceleron/entropy";
 import { createReformRequirement } from "./ReformRequirement";
 

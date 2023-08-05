@@ -10,7 +10,7 @@ import entropy from "./entropy";
 import fome, { FomeTypes } from "../fome/fome";
 import skyrmion from "../skyrmion/skyrmion";
 import acceleronLayer from "./acceleron";
-import timecubeLayer from "../timecube-old/timecube";
+import timecubeLayer from "../timecube/timecube";
 import { GenericLoop, LoopOptions, createLoop } from "./loop";
 import { GenericPersistentLoop, persistentDecorator } from "./persistentLoopDecorator";
 import { createClickable } from "features/clickables/clickable";

@@ -14,7 +14,7 @@ import { GenericBoost, createBoost, getFomeBoost } from "./boost";
 import skyrmion from "../skyrmion/skyrmion";
 import { format, formatWhole } from "util/break_eternity";
 import acceleron from "../acceleron/acceleron";
-import timecube from "../timecube-old/timecube";
+import timecube from "../timecube/timecube";
 
 const id = "protoversal";
 const layer = createLayer(id, function (this: BaseLayer) {

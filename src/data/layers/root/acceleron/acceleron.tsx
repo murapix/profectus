@@ -3,8 +3,8 @@ import { createResource, trackBest, trackTotal } from "features/resources/resour
 import { BaseLayer, createLayer } from "game/layers";
 import { createMultiplicativeModifier, createSequentialModifier } from "game/modifiers";
 import Decimal, { DecimalSource } from "lib/break_eternity";
-import { ComputedRef, computed, unref } from "vue";
-import timecube from "../timecube-old/timecube";
+import { ComputedRef, Ref, computed, unref } from "vue";
+import timecube from "../timecube/timecube";
 import { EffectUpgrade, EffectUpgradeOptions, GenericUpgrade, createUpgrade, getUpgradeEffect } from "features/upgrades/upgrade";
 import entropy from "./entropy";
 import { format, formatTime, formatWhole } from "util/break_eternity";
@@ -29,6 +29,12 @@ export const id = "acceleron";
 const layer = createLayer(id, function (this: BaseLayer) {
     const name = "Accelerons";
     const color = "#0f52ba";
+
+    const unlocked: Ref<boolean> = computed(() => {
+        if (entangled.isFirstBranch(id)) return true;
+        if (!unref(fome[FomeTypes.quantum].upgrades.condense.bought)) return false;
+        return unref(inflaton.coreResearch.research.mastery.researched);
+    });
 
     const accelerons = createResource<DecimalSource>(0, name);
     const bestAccelerons = trackBest(accelerons);
@@ -360,6 +366,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 }
             </>
         )),
+        unlocked,
 
         loops,
         entropy

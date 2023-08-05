@@ -5,7 +5,7 @@ import { createResource, trackBest } from "features/resources/resource";
 import { computed, unref } from "vue";
 import Decimal, { DecimalSource } from "lib/break_eternity";
 import { getResearchEffect } from "../inflaton/research";
-import { GenericBuilding, createBuilding } from "./building";
+import { GenericBuilding, buildingSize, createBuilding, formatLength } from "./building";
 import fome, { FomeTypes } from "../fome/fome";
 import { format, formatSmall, formatWhole } from "util/break_eternity";
 import entangled from "../entangled/entangled";
@@ -76,7 +76,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 title: 'Inflaton Containment Unit',
                 description: 'Specialized storage facilities designed to keep Inflatons separated and inert',
                 effect: jsx(() => <>Safely store up to {formatWhole(unref((building as BaseRepeatable & GenericEffectFeature<DecimalSource>).effect))} Inflatons</>)
-            }
+            },
+            size: 3
         })) as GenericBuilding;
         const tuner = createBuilding<{gain: DecimalSource, cost: DecimalSource}>(building => ({
             effect(amount) {
@@ -118,7 +119,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
                    .times(1) // passive top timeline bonus
     }));
     const maxSize = trackBest(currentSize);
-    const usedSize = computed(() => Object.values(buildings).reduce((current, next) => current.plus(unref(next.amount)), Decimal.dZero));
+    const usedSize = computed(() => Object.values(buildings)
+                                          .map(building => Decimal.times(unref(building.amount), building.size ?? 1))
+                                          .reduce((current, next) => current.plus(next), Decimal.dZero));
 
     const respecStyle = {
         width: '125px',
@@ -132,7 +135,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             visibility: building.visibility,
             canClick() { return Decimal.gt(unref(building.amount), 0); },
             display: { description: 'Sell One' },
-            onClick() { building.amount.value = Decimal.minus(building.amount.value, 1).clampMin(0); },
+            onClick() { building.amount.value = Decimal.minus(building.amount.value, unref(buildingSize)).clampMin(0); },
             style: {...respecStyle, borderBottomLeftRadius: 'var(--border-radius)'}
         })),
         all: createClickable(() => ({
@@ -188,7 +191,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         autoBuilding,
         display: jsx(() => (
             <>
-                <div>Your buildings are taking up {format(unref(usedSize))} / {format(unref(maxSize))}</div>
+                <div>Your buildings are taking up {formatLength(unref(usedSize), 0)} / {formatLength(unref(maxSize), 0)}</div>
                 <SpacerVue />
                 {renderRow(...Object.values(buildingRenders))}
                 <SpacerVue />
@@ -205,6 +208,6 @@ const layer = createLayer(id, function (this: BaseLayer) {
             </>
         ))
     }
-})
+});
 
 export default layer;

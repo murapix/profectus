@@ -4,7 +4,7 @@ import { BaseLayer, createLayer } from "game/layers";
 import fome, { FomeTypes } from "../fome/fome";
 import { Resource, createResource } from "features/resources/resource";
 import Decimal, { DecimalSource } from "lib/break_eternity";
-import { ComputedRef, computed, unref } from "vue";
+import { ComputedRef, Ref, computed, unref } from "vue";
 import entangled from "../entangled/entangled";
 import { createCostRequirement, displayRequirements, requirementsMet } from "game/requirements";
 import { persistent } from "game/persistence";
@@ -18,16 +18,22 @@ import { createTabFamily } from "features/tabs/tabFamily";
 import { createTab } from "features/tabs/tab";
 import { createUpgrade } from "features/upgrades/upgrade";
 import core from "./coreResearch";
-import coreResearch from "./coreResearch";
-import timecube from "../timecube-old/timecube";
+import timecube from "../timecube/timecube";
 import { getResearchEffect } from "./research";
 import skyrmion from "../skyrmion/skyrmion";
 import acceleron from "../acceleron/acceleron";
+import { formatLength } from "./building";
 
 export const id = "inflaton";
 const layer = createLayer(id, function (this: BaseLayer) {
     const name = "Inflatons";
     const color = "#ff5e13";
+
+    const unlocked: Ref<boolean> = computed(() => {
+        if (entangled.isFirstBranch(id)) return true;
+        if (!unref(fome[FomeTypes.quantum].upgrades.condense.bought)) return false;
+        return unref(acceleron.upgrades.mastery.bought);
+    });
 
     const inflatons = createResource<DecimalSource>(0, name);
     const requirement = createCostRequirement(() => ({
@@ -231,7 +237,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         </div>
         {render(Decimal.gte(unref(inflatons), 1) ? inflate : conversion)}
         {Decimal.gt(unref(buildings.maxSize), 0)
-            ? <div>You have managed to stabilize the universe at a diameter of {format(unref(buildings.maxSize))}</div>
+            ? <div>You have managed to stabilize the universe at a diameter of {formatLength(unref(buildings.maxSize))}</div>
             : undefined
         }
         <SpacerVue />
@@ -267,6 +273,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         id,
         name,
         color,
+        unlocked,
         inflatons,
         inflating,
         fomeBonus,
@@ -285,7 +292,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         )),
 
         buildings,
-        coreResearch
+        coreResearch: core
     }
 })
 

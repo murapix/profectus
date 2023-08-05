@@ -83,7 +83,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
     })
 
     const resource = createResource<DecimalSource>(skyrmions.amount, name);
-    const totalSkyrmions = computed(() => Decimal.add(unref(resource), 0));
+    const totalSkyrmions = computed(() => Decimal.add(unref(resource), getFomeBoost(FomeTypes.subspatial, 4)));
     const generalProductionModifiers = [
         createMultiplicativeModifier(() => ({
             multiplier: pion.upgrades.alpha.effect,

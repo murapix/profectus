@@ -5,19 +5,18 @@ import { Modifier, createAdditiveModifier, createMultiplicativeModifier, createS
 import Decimal, { DecimalSource } from "lib/break_eternity";
 import loops from "./loops";
 import acceleron from "./acceleron";
-import timecube from "../timecube-old/timecube";
+import timecube from "../timecube/timecube";
 import { ComputedRef, computed, unref, watch } from "vue";
 import { Computable, GetComputableType, GetComputableTypeWithDefault, ProcessedComputable, processComputable } from "util/computed";
 import { effectDecorator } from "features/decorators/common";
 import { EffectUpgrade, EffectUpgradeOptions, GenericUpgrade, createUpgrade, getUpgradeEffect } from "features/upgrades/upgrade";
-import { format, formatTime, formatWhole } from "util/break_eternity";
+import { format, formatWhole } from "util/break_eternity";
 import { createBooleanRequirement, createCostRequirement } from "game/requirements";
 import { noPersist } from "game/persistence";
 import { addTooltip } from "features/tooltips/tooltip";
 import { coerceComponent, render } from "util/vue";
 import fome, { FomeTypes } from "../fome/fome";
 import { createClickable } from "features/clickables/clickable";
-import MainDisplayVue from "features/resources/MainDisplay.vue";
 import SpacerVue from "components/layout/Spacer.vue";
 import EnhancementsVue from "../acceleron/Enhancements.vue";
 

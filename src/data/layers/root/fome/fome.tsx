@@ -10,7 +10,7 @@ import { EffectUpgrade, GenericUpgrade, getUpgradeEffect } from "features/upgrad
 import { format, formatWhole } from "util/break_eternity";
 import { GenericRepeatable } from "features/repeatable";
 import { GenericEffectFeature } from "features/decorators/common";
-import timecube from "../timecube-old/timecube";
+import timecube from "../timecube/timecube";
 import protoversal from "./protoversal";
 import { GenericAchievement, createAchievement } from "features/achievements/achievement";
 import { ProcessedComputable } from "util/computed";
@@ -28,6 +28,7 @@ import inflaton from "../inflaton/inflaton";
 import subspatial from "./subspatial";
 import subplanck from "./subplanck";
 import quantum from "./quantum";
+import entangled from "../entangled/entangled";
 
 export enum FomeTypes {
     protoversal = "protoversal",
@@ -90,7 +91,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
     const name = "Quantum Foam";
     const color = "#ffffff";
 
-    const unlocked: Ref<boolean> = computed(() => unref(skyrmion.upgrades.fome.bought));
+    const unlocked: Ref<boolean> = computed(() => unref(entangled.milestones[1].earned) || unref(skyrmion.upgrades.fome.bought));
 
     const highestFome = computed(() => {
         if (Decimal.gt(unref(quantum.upgrades.reform.amount), 0)) return FomeTypes.quantum;

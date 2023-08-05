@@ -13,7 +13,7 @@ import { computed, Ref, unref } from "vue";
 import skyrmion from "./layers/root/skyrmion/skyrmion";
 import fome from "./layers/root/fome/fome";
 import acceleron from "./layers/root/acceleron/acceleron";
-import timecube from "./layers/root/timecube-old/timecube";
+import timecube from "./layers/root/timecube/timecube";
 import inflaton from "./layers/root/inflaton/inflaton";
 import entangled from "./layers/root/entangled/entangled";
 
@@ -22,10 +22,10 @@ import entangled from "./layers/root/entangled/entangled";
  */
 const id = "root";
 type layer = GenericLayer & { unlocked?: Ref<boolean>, tabStyle?: Record<string, unknown> }
-const rootLayers: Record<number, layer> = Object.fromEntries([skyrmion, fome, acceleron, timecube, inflaton, entangled].map((layer, index) => [index, layer]));
+const rootLayers = [skyrmion, fome, acceleron, timecube, inflaton, entangled] as layer[];
     
 export const root = createLayer(id, () => {
-    const tabs: GenericTabFamily = createTabFamily(Object.fromEntries(Object.values(rootLayers).map(layer => 
+    const tabs: GenericTabFamily = createTabFamily(Object.fromEntries(rootLayers.map(layer => 
         [layer.name, () => ({
             display: layer.name,
             tab: createTab(() => ({

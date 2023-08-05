@@ -56,7 +56,7 @@ export function format(value: DecimalSource, precision: number = projInfo.defaul
 export function formatWhole(value: DecimalSource, displaySmall: boolean = projInfo.defaultShowSmall, notation: Notations = settings.numberFormat) {
     value = new Decimal(value);
     if (value.gte(1e9)) { return format(value, undefined, displaySmall, notation); }
-    if (value.lte(0.98) && value.neq(0) && displaySmall) { return format(value, undefined, undefined, notation); }
+    if (value.lte(0.98) && value.neq(0) && displaySmall) { return format(value, undefined, displaySmall, notation); }
 
     switch(notation) {
         case Notations.standard:
@@ -281,7 +281,7 @@ export function formatTime(time: DecimalSource): string {
     time -= hours * secondsPerHour;
     const minutes = Math.floor(time / secondsPerMinute);
     time -= minutes * secondsPerMinute;
-    const seconds = time;
+    const seconds = time.toPrecision(2);
     if (years > 0) { return `${years}y ${days}d ${hours}h`; }
     if (days > 0) { return `${days}d ${hours}h ${minutes}m`; }
     if (hours > 0) { return `${hours}h ${minutes}m ${seconds}s`; }
