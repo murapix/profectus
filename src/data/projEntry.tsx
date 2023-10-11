@@ -1,7 +1,7 @@
-import { jsx } from "features/feature";
-import { createTab } from "features/tabs/tab";
+import { isVisible, jsx } from "features/feature";
+import { createTab, GenericTab } from "features/tabs/tab";
 import { GenericTabFamily, createTabFamily } from "features/tabs/tabFamily";
-import type { GenericLayer } from "game/layers";
+import { GenericLayer, layers } from "game/layers";
 import { createLayer } from "game/layers";
 import type { Player } from "game/player";
 import player from "game/player";
@@ -16,6 +16,7 @@ import acceleron from "./layers/root/acceleron/acceleron";
 import timecube from "./layers/root/timecube/timecube";
 import inflaton from "./layers/root/inflaton/inflaton";
 import entangled from "./layers/root/entangled/entangled";
+import { createHotkey } from "features/hotkey";
 
 /**
  * @hidden
@@ -47,6 +48,97 @@ export const root = createLayer(id, () => {
         })]
     )));
 
+    const hotkeys = {
+        left: createHotkey(() => ({
+            key: "ArrowLeft",
+            description: "Previous Tab",
+            onPress() {
+                const currentTab = tabs.selected.value;
+                if (currentTab === undefined) return;
+
+                const availableTabs = Object.entries(tabs.tabs).filter(([_, tab]) => isVisible(tab.visibility)).map(([id, _]) => id);
+                if (availableTabs.length <= 0) return;
+
+                const index = availableTabs.indexOf(currentTab);
+                switch (index) {
+                    case -1: break;
+                    case 0: tabs.selected.value = availableTabs.at(-1)!; break;
+                    default: tabs.selected.value = availableTabs[index-1]; break;
+                }
+            }
+        })),
+        right: createHotkey(() => ({
+            key: "ArrowRight",
+            description: "Next Tab",
+            onPress() {
+                const currentTab = tabs.selected.value;
+                if (currentTab === undefined) return;
+
+                const availableTabs = Object.entries(tabs.tabs).filter(([_, tab]) => isVisible(tab.visibility)).map(([id, _]) => id);
+                if (availableTabs.length <= 0) return;
+
+                const index = availableTabs.indexOf(currentTab);
+                switch (index) {
+                    case -1: break;
+                    case availableTabs.length-1: tabs.selected.value = availableTabs[0]; break;
+                    default: tabs.selected.value = availableTabs[index+1]; break;
+                }
+            }
+        })),
+        shiftLeft: createHotkey(() => ({
+            key: "shift+ArrowLeft",
+            description: "Previous Subtab",
+            onPress() {
+                const currentTab = tabs.selected.value;
+                if (currentTab === undefined) return;
+                
+                const currentLayer = rootLayers.find(layer => layer.name === currentTab);
+                if (currentLayer === undefined) return;
+                if (!('tabs' in currentLayer)) return;
+                
+                const subtabs = currentLayer.tabs as GenericTabFamily;
+                const currentSubtab = subtabs.selected.value;
+                if (currentSubtab === undefined) return;
+
+                const availableSubtabs = Object.entries(subtabs.tabs).filter(([_, tab]) => isVisible(tab.visibility)).map(([id, _]) => id);
+                if (availableSubtabs.length <= 0) return;
+
+                const index = availableSubtabs.indexOf(currentSubtab);
+                switch (index) {
+                    case -1: break;
+                    case 0: subtabs.selected.value = availableSubtabs.at(-1)!; break;
+                    default: subtabs.selected.value = availableSubtabs[index-1]; break;
+                }
+            }
+        })),
+        shiftRight: createHotkey(() => ({
+            key: "shift+ArrowRight",
+            description: "Next Subtab",
+            onPress() {
+                const currentTab = tabs.selected.value;
+                if (currentTab === undefined) return;
+                
+                const currentLayer = rootLayers.find(layer => layer.name === currentTab);
+                if (currentLayer === undefined) return;
+                if (!('tabs' in currentLayer)) return;
+                
+                const subtabs = currentLayer.tabs as GenericTabFamily;
+                const currentSubtab = subtabs.selected.value;
+                if (currentSubtab === undefined) return;
+
+                const availableSubtabs = Object.entries(subtabs.tabs).filter(([_, tab]) => isVisible(tab.visibility)).map(([id, _]) => id);
+                if (availableSubtabs.length <= 0) return;
+
+                const index = availableSubtabs.indexOf(currentSubtab);
+                switch (index) {
+                    case -1: break;
+                    case availableSubtabs.length-1: subtabs.selected.value = availableSubtabs[0]; break;
+                    default: subtabs.selected.value = availableSubtabs[index+1]; break;
+                }
+            }
+        }))
+    }
+
     return {
         name: "Root",
         minWidth: 300,
@@ -55,6 +147,7 @@ export const root = createLayer(id, () => {
             ? <>{render(tabs)}</>
             : <div style={{"--layer-color": unref(skyrmion.color)}}>{render(unref(tabs.tabs[skyrmion.name].tab))}</div>
         ),
+        hotkeys,
         tabs
     };
 });
