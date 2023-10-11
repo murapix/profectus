@@ -191,7 +191,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         autoBuilding,
         display: jsx(() => (
             <>
-                <div>Your buildings are taking up {formatLength(unref(usedSize), 0)} / {formatLength(unref(maxSize), 0)}</div>
+                <div>Your buildings are taking up {formatLength(unref(usedSize), 0)} / {formatLength(Decimal.floor(unref(maxSize)), 0)}</div>
                 <SpacerVue />
                 {renderRow(...Object.values(buildingRenders))}
                 <SpacerVue />
