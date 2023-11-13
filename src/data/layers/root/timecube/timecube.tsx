@@ -13,6 +13,7 @@ import TimecubeUpgradesVue from "./TimecubeUpgrades.vue";
 import { noPersist } from "game/persistence"
 import entangled from "../entangled/entangled";
 import fome, { FomeTypes } from "../fome/fome";
+import timesquares from "./timesquares";
 
 const id = "timecube";
 const layer = createLayer(id, function (this: BaseLayer) {
@@ -340,7 +341,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 <MainDisplayVue resource={timecubes} color={color} />
                 <TimecubeUpgradesVue upgrades={Object.values(upgrades)} />
             </>
-        ))
+        )),
+
+        timesquares,
+        // timeline
     }
 })
 
