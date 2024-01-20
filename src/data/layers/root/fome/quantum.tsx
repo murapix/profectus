@@ -7,7 +7,7 @@ import { RepeatableOptions, createRepeatable } from "features/repeatable";
 import { EffectFeatureOptions, effectDecorator } from "features/decorators/common";
 import { createUpgrade } from "features/upgrades/upgrade";
 import { createCostRequirement } from "game/requirements";
-import { ComputedRef, Ref, computed, unref } from "vue";
+import { ComputedRef, computed, unref } from "vue";
 import { Persistent, noPersist, persistent } from "game/persistence";
 import { jsx } from "features/feature";
 import { GenericBoost, createBoost, getFomeBoost } from "./boost";
@@ -106,7 +106,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             display: { description: `Condense your ${amount.displayName}` }
         })),
         reform: createRepeatable<RepeatableOptions & EffectFeatureOptions>(feature => ({
-            visibility: upgrades.condense.bought,
+            visibility: noPersist(upgrades.condense.bought),
             requirements: [
                 createCostRequirement(() => ({
                     resource: noPersist(amount),

@@ -235,7 +235,7 @@ const layer = createLayer("entangled", () => {
                     Decimal.dInf  // Skyrmion Fome Acceleron Timecube Inflaton
                 ][unref(expansionScore)];
             },
-            visibility: expansions.timecube.bought
+            visibility: noPersist(expansions.timecube.bought)
         }))
     }
     const resetButton: GenericClickable = createClickable(() => ({

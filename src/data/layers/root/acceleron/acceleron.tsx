@@ -107,12 +107,12 @@ const layer = createLayer(id, function (this: BaseLayer) {
     const timeModifiers = createSequentialModifier(() => [
         createMultiplicativeModifier(() => ({
             multiplier: (timecube.upgrades.time as EffectUpgrade<DecimalSource>).effect,
-            enabled: timecube.upgrades.time.bought,
+            enabled: noPersist(timecube.upgrades.time.bought),
             description: jsx(() => <>[{timecube.name}] Time</>)
         })),
         createMultiplicativeModifier(() => ({
             multiplier: entropy.enhancements.dilation.effect,
-            enabled: entropy.enhancements.dilation.bought,
+            enabled: noPersist(entropy.enhancements.dilation.bought),
             description: jsx(() => <>[{name}] Entropic Dilation</>)
         })),
         createMultiplicativeModifier(() => ({

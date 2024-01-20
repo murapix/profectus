@@ -33,7 +33,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         })),
         createMultiplicativeModifier(() => ({
             multiplier: timecube.upgrades.twice.effect,
-            enabled: timecube.upgrades.twice.bought,
+            enabled: noPersist(timecube.upgrades.twice.bought),
             description: jsx(() => <>[{timecube.name}] Twice</>)
         }))
     ]);
@@ -96,7 +96,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         }));
         const contraction = createEnhancement<Decimal>(() => ({
             row: 1,
-            visibility: timecube.upgrades.tetrate.bought,
+            visibility: noPersist(timecube.upgrades.tetrate.bought),
             display: {
                 title: 'Entropic Contraction',
                 description: 'Increase Acceleron gain based on number of purchased Entropic Enhancements'
@@ -133,7 +133,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         }));
         const entrenchment = createEnhancement<Decimal>(() => ({
             row: 2,
-            visibility: timecube.upgrades.tetrate.bought,
+            visibility: noPersist(timecube.upgrades.tetrate.bought),
             display: {
                 title: 'Entropic Entrenchment',
                 description: 'You may select an additional second row Entropic Enhancement'
@@ -168,7 +168,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         }));
         const inversion = createEnhancement<Decimal>(() => ({
             row: 3,
-            visibility: timecube.upgrades.tetrate.bought,
+            visibility: noPersist(timecube.upgrades.tetrate.bought),
             display: {
                 title: 'Entropic Inversion',
                 description: 'Increase Acceleron gain based on Quantum Foam'
@@ -204,7 +204,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         }));
         const entitlement = createEnhancement<Decimal>(() => ({
             row: 4,
-            visibility: timecube.upgrades.tetrate.bought,
+            visibility: noPersist(timecube.upgrades.tetrate.bought),
             display: {
                 title: 'Entropic Entitlement',
                 description: 'Each purchased Entropic Enhancement gives 0.1 free levels to each Foam Boost',

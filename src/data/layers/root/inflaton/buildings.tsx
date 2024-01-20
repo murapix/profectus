@@ -18,7 +18,7 @@ import SpacerVue from "components/layout/Spacer.vue";
 import core from "./coreResearch";
 import coreResearch from "./coreResearch";
 import ToggleVue from "components/fields/Toggle.vue";
-import { persistent } from "game/persistence";
+import { noPersist, persistent } from "game/persistence";
 import ColumnVue from "components/layout/Column.vue";
 
 const id = "buildings";
@@ -35,7 +35,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 multiplier: computed(() => entangled.isFirstBranch(inflatonId) ? 1e30 : 1e82)
             },
             display: {
-                visibility: inflaton.upgrades.subspaceBuildings.bought,
+                visibility: noPersist(inflaton.upgrades.subspaceBuildings.bought),
                 title: 'M-Field Condenser',
                 description: 'Slightly reduce the loss of resources to Inflation',
                 effect: jsx(() => <>{formatSmall(unref((building as BaseRepeatable & GenericEffectFeature<DecimalSource>).effect))}</>)
@@ -55,7 +55,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 multiplier: computed(() => entangled.isFirstBranch(inflatonId) ? 1e30 : 1e82)
             },
             display: {
-                visibility: inflaton.upgrades.research.bought,
+                visibility: noPersist(inflaton.upgrades.research.bought),
                 title: 'Quantum Flux Analyzer',
                 description: 'Study fluctuations in the quantum field',
                 effect: jsx(() => <>+{formatWhole(unref((building as BaseRepeatable & GenericEffectFeature<DecimalSource>).effect))} research points/s</>)

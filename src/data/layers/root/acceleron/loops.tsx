@@ -1,7 +1,7 @@
 import { isVisible, jsx } from "features/feature";
 import { getUpgradeEffect } from "features/upgrades/upgrade";
 import { BaseLayer, createLayer } from "game/layers";
-import { persistent } from "game/persistence";
+import { noPersist, persistent } from "game/persistence";
 import Decimal, { DecimalSource } from "lib/break_eternity";
 import { formatSmall, format, formatWhole } from "util/break_eternity";
 import { ProcessedComputable } from "util/computed";
@@ -24,7 +24,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
     const isBuilding = persistent<boolean>(false);
 
     const toggleBuilding = createClickable(() => ({
-        visibility: acceleronLayer.upgrades.superstructures.bought,
+        visibility: noPersist(acceleronLayer.upgrades.superstructures.bought),
         canClick() { return unref(nextLoop) !== undefined; },
         onClick() { isBuilding.value = !unref(isBuilding); },
         display: jsx(() => ( <h3>{unref(isBuilding) ? "Halt" : "Begin"}<br/>Construction</h3> )),
@@ -42,12 +42,12 @@ const layer = createLayer(id, function (this: BaseLayer) {
     const buildSpeedModifiers = createSequentialModifier(() => [
         createMultiplicativeModifier(() => ({
             multiplier: entropy.enhancements.construction.effect,
-            enabled: entropy.enhancements.construction.bought,
+            enabled: noPersist(entropy.enhancements.construction.bought),
             description: jsx(() => <>[{acceleronLayer.name}] Entropic Construction</>)
         })),
         createMultiplicativeModifier(() => ({
             multiplier: timecubeLayer.upgrades.ten.effect,
-            enabled: timecubeLayer.upgrades.ten.bought,
+            enabled: noPersist(timecubeLayer.upgrades.ten.bought),
             description: jsx(() => <>[{timecubeLayer.name}] Ten</>)
         })),
         createMultiplicativeModifier(() => ({
@@ -65,7 +65,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
     const buildCostModifiers = createSequentialModifier(() => [
         createMultiplicativeModifier(() => ({
             multiplier: entropy.enhancements.development.effect,
-            enabled: entropy.enhancements.development.bought,
+            enabled: noPersist(entropy.enhancements.development.bought),
             description: jsx(() => <>[{acceleronLayer.name}] Entropic Development</>),
             smallerIsBetter: true
         }))
@@ -110,7 +110,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
 
     const loops = (() => {
         const acceleron = createLoop<LoopOptions<Decimal>, Decimal>(loop => ({
-            visibility: acceleronLayer.upgrades.superstructures.bought,
+            visibility: noPersist(acceleronLayer.upgrades.superstructures.bought),
             buildRequirement: new Decimal(60),
             triggerRequirement: Decimal.dOne,
             display: {

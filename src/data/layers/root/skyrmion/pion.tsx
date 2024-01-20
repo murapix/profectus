@@ -63,7 +63,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                              .if(() => Decimal.gt(amount.evaluate(), 90), value => value.times(value.pow_base(19.75)).times(2.08e-104))
                              .times(getFomeBoost(FomeTypes.infinitesimal, 2) as DecimalSource);
             },
-            shouldAutobuy: skyrmion.upgrades.alpha.bought,
+            shouldAutobuy: noPersist(skyrmion.upgrades.alpha.bought),
             display: {
                 name: "α",
                 description: <>Gain 50% more Pions and Spinors</>
@@ -78,7 +78,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                              .if(() => Decimal.gt(amount.evaluate(), 45), value => value.times(value.pow_base(29.25)).times(1e-39))
                              .plus(0.9);
             },
-            shouldAutobuy: skyrmion.upgrades.beta.bought,
+            shouldAutobuy: noPersist(skyrmion.upgrades.beta.bought),
             display: {
                 name: "β",
                 description: <>Reduce the nerf to Spinor upgrade cost by 10%</>,
@@ -94,7 +94,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                              .if(() => Decimal.gt(amount.evaluate(), 60), value => value.times(value.pow_base(29.4)).times(8.9e-74))
                              .plus(4.9).times(getFomeBoost(FomeTypes.infinitesimal, 5));
             },
-            shouldAutobuy: skyrmion.upgrades.gamma.bought,
+            shouldAutobuy: noPersist(skyrmion.upgrades.gamma.bought),
             display: {
                 name: "γ",
                 description: <>Gain 75% more Spinors</>
@@ -108,7 +108,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 return amount.pow_base(6).times(30)
                              .if(() => Decimal.gt(amount.evaluate(), 60), value => value.times(value.pow_base(37.5)).times(2.7e-71))
             },
-            shouldAutobuy: skyrmion.upgrades.delta.bought,
+            shouldAutobuy: noPersist(skyrmion.upgrades.delta.bought),
             display: {
                 name: "δ",
                 description: <>Gain 70% more Protoversal Foam from Skyrmions</>
@@ -122,7 +122,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 return amount.pow_base(5).times(50)
                              .if(() => Decimal.gt(amount.evaluate(), 60), value => value.times(value.pow_base(28.8)).times(1.77e-65))
             },
-            shouldAutobuy: skyrmion.upgrades.epsilon.bought,
+            shouldAutobuy: noPersist(skyrmion.upgrades.epsilon.bought),
             display: {
                 name: "ε",
                 description: <>Increase Protoversal Foam gain by 50% per order of magnitude of Infinitesimal Foam</>
@@ -136,7 +136,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 return amount.pow_base(5.5).times(5e3)
                              .if(() => Decimal.gt(amount.evaluate(), 60), value => value.times(value.pow_base(35.64)).times(1e-68))
             },
-            shouldAutobuy: skyrmion.upgrades.zeta.bought,
+            shouldAutobuy: noPersist(skyrmion.upgrades.zeta.bought),
             display: {
                 name: "ζ",
                 description: <>Increase Subspatial Foam gain by 5% per Skyrmion</>
@@ -150,7 +150,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 return amount.pow_base(5).times(3e5)
                              .if(() => Decimal.gt(amount.evaluate(), 60), value => value.times(value.pow_base(28.8)).times(1.77e-64))
             },
-            shouldAutobuy: skyrmion.upgrades.eta.bought,
+            shouldAutobuy: noPersist(skyrmion.upgrades.eta.bought),
             display: {
                 name: "η",
                 description: <>Gain a free level of <b>Spinor Upgrade ε</b></>,
@@ -164,7 +164,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 return amount.pow_base(6.5).times(7e5)
                              .if(() => Decimal.gt(amount.evaluate(), 45), value => value.times(value.pow_base(26)).times(5.45e-34))
             },
-            shouldAutobuy: skyrmion.upgrades.theta.bought,
+            shouldAutobuy: noPersist(skyrmion.upgrades.theta.bought),
             display: {
                 name: "θ",
                 description: <>Increase Protoversal Foam gain by 100% per order of magnitude of Subspatial Foam</>
@@ -178,7 +178,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 return amount.pow_base(7.5).times(4e8)
                              .if(() => Decimal.gt(amount.evaluate(), 45), value => value.times(value.pow_base(30)).times(5.95e-48))
             },
-            shouldAutobuy: skyrmion.upgrades.iota.bought,
+            shouldAutobuy: noPersist(skyrmion.upgrades.iota.bought),
             display: {
                 name: "ι",
                 description: <>Your Spinors increase Infinitesimal Foam generation by 2% per order of magnitude</>
@@ -192,7 +192,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 return amount.pow_base(7).times(5e9)
                              .if(() => Decimal.gt(amount.evaluate(), 45), value => value.times(value.pow_base(26)).times(1.45e-43))
             },
-            shouldAutobuy: skyrmion.upgrades.kappa.bought,
+            shouldAutobuy: noPersist(skyrmion.upgrades.kappa.bought),
             display: {
                 name: "κ",
                 description: <>Protoversal Boost 1 levels each increase other Foam Boost 1 effects by 30%</>
@@ -201,12 +201,12 @@ const layer = createLayer(id, function (this: BaseLayer) {
             bonusAmount: fome[FomeTypes.quantum].boosts[4].effect
         });
         const lambda = createUpgrade({
-            visibility: acceleron.upgrades.skyrmion.bought,
+            visibility: noPersist(acceleron.upgrades.skyrmion.bought),
             cost(amount) {
                 return amount.pow(1.1).pow_base(5).times(7e2)
                              .if(() => Decimal.gt(amount.evaluate(), 45), value => value.times(value.pow(1.1).pow_base(20)).times(7e-17))
             },
-            shouldAutobuy: skyrmion.upgrades.lambda.bought,
+            shouldAutobuy: noPersist(skyrmion.upgrades.lambda.bought),
             display: {
                 name: "λ",
                 description: <>Double the Infinitesimal Foam Boost 1 effect</>
@@ -219,7 +219,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 return amount.pow_base(5).times(7e10)
                              .if(() => Decimal.gt(amount.evaluate(), 45), value => value.times(value.pow_base(20)).times(1e-35))
             },
-            shouldAutobuy: skyrmion.upgrades.mu.bought,
+            shouldAutobuy: noPersist(skyrmion.upgrades.mu.bought),
             display: {
                 name: "μ",
                 description: <>Gain 2% more Spinors per order of magnitude<sup>2</sup> of stored Inflatons</>

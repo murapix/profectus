@@ -29,6 +29,7 @@ import subspatial from "./subspatial";
 import subplanck from "./subplanck";
 import quantum from "./quantum";
 import entangled from "../entangled/entangled";
+import { noPersist } from "game/persistence";
 
 export enum FomeTypes {
     protoversal = "protoversal",
@@ -109,12 +110,12 @@ const layer = createLayer(id, function (this: BaseLayer) {
         })),
         createMultiplicativeModifier(() => ({
             multiplier: (acceleron.upgrades.acceleration as EffectUpgrade<DecimalSource>).effect,
-            enabled: acceleron.upgrades.acceleration.bought,
+            enabled: noPersist(acceleron.upgrades.acceleration.bought),
             description: jsx(() => (<>[{acceleron.name}] Acceleration</>))
         })),
         createMultiplicativeModifier(() => ({
             multiplier: entropy.enhancements.invention.effect as Ref<DecimalSource>,
-            enabled: entropy.enhancements.invention.bought,
+            enabled: noPersist(entropy.enhancements.invention.bought),
             description: jsx(() => (<>[{acceleron.name}] Entropic Invention</>))
         })),
         createMultiplicativeModifier(() => ({
@@ -124,7 +125,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         })),
         createMultiplicativeModifier(() => ({
             multiplier: entropy.enhancements.formation.effect as Ref<DecimalSource>,
-            enabled: entropy.enhancements.formation.bought,
+            enabled: noPersist(entropy.enhancements.formation.bought),
             description: jsx(() => (<>[{acceleron.name}] Entropic Formation</>))
         })),
         createMultiplicativeModifier(() => ({

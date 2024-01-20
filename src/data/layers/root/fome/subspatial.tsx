@@ -62,7 +62,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         })),
         createMultiplicativeModifier(() => ({
             multiplier: entropy.enhancements.configuration.effect as Ref<DecimalSource>,
-            enabled: entropy.enhancements.configuration.bought,
+            enabled: noPersist(entropy.enhancements.configuration.bought),
             description: jsx(() => (<>[{acceleron.name}] Entropic Configuration</>))
         })),
         createExponentialModifier(() => ({
@@ -133,7 +133,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             onPurchase() { fome.subplanck.upgrades.reform.amount.value = Decimal.dOne }
         })),
         reform: createRepeatable<RepeatableOptions & EffectFeatureOptions>(feature => ({
-            visibility: upgrades.condense.bought,
+            visibility: noPersist(upgrades.condense.bought),
             requirements: [
                 createCostRequirement(() => ({
                     resource: noPersist(amount),
