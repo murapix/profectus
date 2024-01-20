@@ -1,4 +1,4 @@
-import { jsx } from "features/feature";
+import { StyleValue, jsx } from "features/feature";
 import { createResource, trackBest, trackTotal } from "features/resources/resource";
 import { BaseLayer, createLayer } from "game/layers";
 import { createMultiplicativeModifier, createSequentialModifier } from "game/modifiers";
@@ -144,8 +144,14 @@ const layer = createLayer(id, function (this: BaseLayer) {
     });
 
     const totalAcceleronResource = createResource(noPersist(totalAccelerons));
+    const achievementStyle = {
+        fontSize: '48px',
+        fontWeight: 'normal',
+        color: 'var(--feature-foreground)'
+    } as StyleValue
     const achievements = {
         protoversal: createAchievement(() => ({ // keep protoversal fome upgrades and boosts
+            display: jsx(() => <span style={achievementStyle}>P</span>),
             requirements: createCostRequirement(() => ({
                 resource: totalAcceleronResource,
                 cost: 1
@@ -153,6 +159,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             small: true
         })),
         infinitesimal: createAchievement(() => ({ // keep infinitesimal fome upgrades and boosts
+            display: jsx(() => <span style={achievementStyle}>I</span>),
             requirements: createCostRequirement(() => ({
                 resource: totalAcceleronResource,
                 cost: 2
@@ -160,6 +167,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             small: true
         })),
         subspatial: createAchievement(() => ({ // keep subspatial fome upgrades and boosts
+            display: jsx(() => <span style={achievementStyle}>Ss</span>),
             requirements: createCostRequirement(() => ({
                 resource: totalAcceleronResource,
                 cost: 3
@@ -167,6 +175,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             small: true
         })),
         skyrmion: createAchievement(() => ({ // start with 10 skyrmions
+            display: jsx(() => <span style={achievementStyle}>S</span>),
             requirements: createCostRequirement(() => ({
                 resource: totalAcceleronResource,
                 cost: 5
@@ -174,6 +183,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             small: true
         })),
         subplanck: createAchievement(() => ({ // keep subplanck fome upgrades and boosts
+            display: jsx(() => <span style={achievementStyle}>Sp</span>),
             requirements: createCostRequirement(() => ({
                 resource: totalAcceleronResource,
                 cost: 7
@@ -181,6 +191,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             small: true
         })),
         quantum: createAchievement(() => ({ // keep quantum fome upgrades and boosts
+            display: jsx(() => <span style={achievementStyle}>Q</span>),
             requirements: createCostRequirement(() => ({
                 resource: totalAcceleronResource,
                 cost: 10
