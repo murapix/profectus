@@ -18,6 +18,8 @@ import acceleron from "../acceleron/acceleron";
 import timecube from "../timecube/timecube";
 import entropy from "../acceleron/entropy";
 import { createReformRequirement } from "./ReformRequirement";
+import entangled from "../entangled/entangled";
+import inflaton from "../inflaton/inflaton";
 
 const id = "subplanck";
 const layer = createLayer(id, function (this: BaseLayer) {
@@ -52,7 +54,12 @@ const layer = createLayer(id, function (this: BaseLayer) {
         })),
         createExponentialModifier(() => ({
             exponent: upgrades.reform.effect,
-            enabled: Decimal.gt(unref(upgrades.reform.amount), 1),
+            enabled: () => Decimal.gt(unref(upgrades.reform.amount), 1),
+            description: jsx(() => (<>[{fome.name}] Subplanck Foam<sup>{formatWhole(unref(upgrades.reform.amount))}</sup></>))
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: 0,
+            enabled: () => Decimal.eq(unref(upgrades.reform.amount), 0),
             description: jsx(() => (<>[{fome.name}] Subplanck Foam<sup>{formatWhole(unref(upgrades.reform.amount))}</sup></>))
         })),
         ...fome.timelineProduction,
@@ -71,9 +78,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
         amount.value = delta.times(unref(production)).plus(amount.value);
     });
 
+    const visibility = computed(() => unref(acceleron.unlocked) || unref(inflaton.unlocked) || unref(entangled.unlocked) || Decimal.gt(unref(upgrades.reform.amount), 0));
     const upgrades: FomeUpgrades = {
         [FomeDims.height]: createRepeatable<RepeatableOptions & EffectFeatureOptions>(feature => ({
-            visibility: () => Decimal.gt(unref(upgrades.reform.amount), 0),
+            visibility,
             requirements: createCostRequirement(() => ({
                 resource: noPersist(amount),
                 cost: () => Decimal.pow(unref(feature.amount), 1.15).pow_base(7).times(15),
@@ -85,7 +93,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             onClick: () => onDimRepeatable(FomeTypes.subplanck)
         }), effectDecorator) as FomeUpgrade,
         [FomeDims.width]: createRepeatable<RepeatableOptions & EffectFeatureOptions>(feature => ({
-            visibility: () => Decimal.gt(unref(upgrades.reform.amount), 0),
+            visibility,
             requirements: createCostRequirement(() => ({
                 resource: noPersist(amount),
                 cost: () => Decimal.pow(unref(feature.amount), 1.15).pow_base(9).times(25),
@@ -97,7 +105,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             onClick: () => onDimRepeatable(FomeTypes.subplanck)
         }), effectDecorator) as FomeUpgrade,
         [FomeDims.depth]: createRepeatable<RepeatableOptions & EffectFeatureOptions>(feature => ({
-            visibility: () => Decimal.gt(unref(upgrades.reform.amount), 0),
+            visibility,
             requirements: createCostRequirement(() => ({
                 resource: noPersist(amount),
                 cost: () => Decimal.pow(unref(feature.amount), 1.15).pow_base(11).times(90),
@@ -109,7 +117,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             onClick: () => onDimRepeatable(FomeTypes.subplanck)
         }), effectDecorator) as FomeUpgrade,
         condense: createUpgrade(feature => ({
-            visibility: () => !unref(feature.bought) && unref(fome[FomeTypes.subspatial].upgrades.condense.bought),
+            visibility: () => !unref(feature.bought) && (unref(acceleron.unlocked) || unref(inflaton.unlocked) || unref(entangled.unlocked) || unref(fome[FomeTypes.subspatial].upgrades.condense.bought)),
             requirements: createCostRequirement(() => ({
                 resource: noPersist(amount),
                 cost: 1e6

@@ -1,7 +1,7 @@
 <template>
     <div class="fome-grid">
         <template v-for="fomeType in Object.values(FomeTypes).slice().reverse()" :key="fomeType">
-            <div v-if="Decimal.gt(unref(fome[fomeType].upgrades.reform.amount), 0)">
+            <div v-if="unref(acceleron.unlocked) || unref(inflaton.unlocked) || unref(entangled.unlocked) || Decimal.gt(unref(fome[fomeType].upgrades.reform.amount), 0)">
                 <div v-html="getFomeDisplay(fomeType)" style="white-space: nowrap" />
                 <div>+{{ format(unref(fome[fomeType].production)) }}/s</div>
             </div>
@@ -16,6 +16,9 @@
 import Decimal, { format, formatWhole } from "util/break_eternity";
 import { unref } from "vue";
 import fome, { FomeDims, FomeTypes } from "./fome";
+import acceleron from "../acceleron/acceleron";
+import inflaton from "../inflaton/inflaton";
+import entangled from "../entangled/entangled";
 import { render } from "util/vue";
 
 function getFomeDisplay(fomeType: FomeTypes) {
