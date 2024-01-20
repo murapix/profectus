@@ -248,6 +248,9 @@ const layer = createLayer("entangled", () => {
                 ? [inflaton.coreResearch.research.queueTwo, inflaton.coreResearch.research.queueFour]
                 : []).filter(research => unref(research.researched));
             reset.reset();
+            if (unref(milestones[2].earned)) {
+                fome.protoversal.upgrades.reform.amount.value = Decimal.dOne;
+            }
             for (const research of keptInflatonResearch) {
                 research.researched.value = true;
             }

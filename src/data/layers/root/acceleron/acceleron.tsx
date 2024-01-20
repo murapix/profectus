@@ -61,7 +61,6 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 skyrmion.pion,
                 skyrmion.spinor,
 
-                fome.achievements,
                 fome.protoversal.amount, fome.protoversal.upgrades.condense, fome.protoversal.upgrades.reform,
                 fome.infinitesimal.amount, fome.infinitesimal.upgrades.condense, fome.infinitesimal.upgrades.reform,
                 fome.subspatial.amount, fome.subspatial.upgrades.condense, fome.subspatial.upgrades.reform,
@@ -85,6 +84,13 @@ const layer = createLayer(id, function (this: BaseLayer) {
             }
 
             return toReset;
+        },
+        onReset() {
+            fome.protoversal.upgrades.reform.amount.value = Decimal.dOne;
+            
+            if (unref(achievements.skyrmion.earned)) {
+                skyrmion.skyrmions.value = Decimal.dTen;
+            }
         }
     }))
     const resetButton = createResetButton(() => ({
