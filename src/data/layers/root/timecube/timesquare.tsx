@@ -86,7 +86,7 @@ export function createTimesquare<T = Decimal>(
             canClick: () => requirementsMet(requirements.buy.cost),
             display: {
                 title: 'Buy',
-                description: jsx(() => <>+{format(unref(resource))}: {formatWhole(unref(requirements.buy.cost.cost) as DecimalSource)}</>)
+                description: jsx(() => <>+{format(unref(requirements.buy.buyAmount))}: {formatWhole(unref(requirements.buy.cost.cost) as DecimalSource)} {resource.displayName}</>)
             },
             onClick() {
                 const boughtAmount = unref(requirements.buy.buyAmount);
@@ -98,7 +98,7 @@ export function createTimesquare<T = Decimal>(
             canClick: () => requirementsMet(requirements.buyNext.cost),
             display: {
                 title: 'Buy Next',
-                description: jsx(() => <>+{format(unref(resource))}: {formatWhole(unref(requirements.buyNext.cost.cost) as DecimalSource)}</>)
+                description: jsx(() => <>+{format(unref(requirements.buyNext.buyAmount))}: {formatWhole(unref(requirements.buyNext.cost.cost) as DecimalSource)} {resource.displayName}</>)
             },
             onClick() {
                 const boughtAmount = unref(requirements.buyNext.buyAmount);
@@ -110,7 +110,7 @@ export function createTimesquare<T = Decimal>(
             canClick: () => requirementsMet(requirements.buyMax.cost),
             display: {
                 title: 'Buy Max',
-                description: jsx(() => <>+{format(unref(resource))}: {formatWhole(unref(requirements.buyMax.cost.cost) as DecimalSource)}</>)
+                description: jsx(() => <>+{format(unref(requirements.buyMax.buyAmount))}: {formatWhole(unref(requirements.buyMax.cost.cost) as DecimalSource)} {resource.displayName}</>)
             },
             onClick() {
                 const boughtAmount = unref(requirements.buyMax.buyAmount);

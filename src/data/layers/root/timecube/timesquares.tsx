@@ -6,11 +6,16 @@ import { BaseLayer, createLayer } from "game/layers";
 import { persistent } from "game/persistence";
 import { createCostRequirement } from "game/requirements";
 import Decimal, { DecimalSource } from "lib/break_eternity";
-import { formatWhole } from "util/break_eternity";
+import { format, formatWhole } from "util/break_eternity";
 import { computed, unref } from "vue";
 import timecube from "./timecube";
 import { Computable } from "util/computed";
 import { createTimesquare, Timesquare } from "./timesquare";
+import RowVue from "components/layout/Row.vue";
+import { render } from "util/vue";
+import SpacerVue from "components/layout/Spacer.vue";
+import TextVue from "components/fields/Text.vue";
+import ColumnVue from "components/layout/Column.vue";
 
 const id = "timesquare";
 const layer = createLayer(id, function (this: BaseLayer) {
@@ -30,6 +35,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             style: buyAmountStyle
         })),
         plusOne: createClickable(() => ({
+            canClick() { return Decimal.gte(unref(buyAmount), 10) },
             display: jsx(() => <>+{formatWhole(unref(buyAmountScale))}</>),
             onClick() { buyAmount.value = unref(buyAmountScale).plus(unref(buyAmount)); },
             style: buyAmountStyle
@@ -52,7 +58,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             onClick() { buyAmount.value = Decimal.div(unref(buyAmount), 10).clampMin(1); },
             style: buyAmountStyle
         }))
-    }
+    };
     
     enum Squares {
         FRONT = "front",
@@ -64,42 +70,42 @@ const layer = createLayer(id, function (this: BaseLayer) {
     }
     const squares: Record<Squares, Timesquare> = {
         [Squares.FRONT]: createTimesquare(square => ({
-            display: jsx(() => <></>),
+            display: jsx(() => <>Front</>),
             effect() { return new Decimal(unref(square.square.amount)) },
             resource: timecube.timecubes,
             baseCost: 1e6,
             buyAmount
         })),
         [Squares.RIGHT]: createTimesquare(square => ({
-            display: jsx(() => <></>),
+            display: jsx(() => <>Right</>),
             effect() { return new Decimal(unref(square.square.amount)) },
             resource: timecube.timecubes,
             baseCost: 1e6,
             buyAmount
         })),
         [Squares.TOP]: createTimesquare(square => ({
-            display: jsx(() => <></>),
+            display: jsx(() => <>Top</>),
             effect() { return new Decimal(unref(square.square.amount)) },
             resource: timecube.timecubes,
             baseCost: 1e6,
             buyAmount
         })),
         [Squares.BACK]: createTimesquare(square => ({
-            display: jsx(() => <></>),
+            display: jsx(() => <>Back</>),
             effect() { return new Decimal(unref(square.square.amount)) },
             resource: timecube.timecubes,
             baseCost: 1e6,
             buyAmount
         })),
         [Squares.LEFT]: createTimesquare(square => ({
-            display: jsx(() => <></>),
+            display: jsx(() => <>Left</>),
             effect() { return new Decimal(unref(square.square.amount)) },
             resource: timecube.timecubes,
             baseCost: 1e6,
             buyAmount
         })),
         [Squares.BOTTOM]: createTimesquare(square => ({
-            display: jsx(() => <></>),
+            display: jsx(() => <>Bottom</>),
             effect() { return new Decimal(unref(square.square.amount)) },
             resource: timecube.timecubes,
             baseCost: 1e6,
@@ -109,7 +115,36 @@ const layer = createLayer(id, function (this: BaseLayer) {
 
     return {
         buyAmount,
-        display: jsx(() => <></>)
+        squares,
+        display: jsx(() =>
+            <>
+                <RowVue>
+                    {render(buyAmountButtons.overTen)}
+                    {render(buyAmountButtons.minusTen)}
+                    {render(buyAmountButtons.minusOne)}
+                    <TextVue
+                        style={{width: 'fit-content'}}
+                        onUpdate:modelValue={value => Decimal.isNaN(value) && Decimal.gte(value, 1)
+                            ? (buyAmount.value = value)
+                            : null
+                        }
+                        modelValue={formatWhole(buyAmount.value)}
+                    />
+                    {render(buyAmountButtons.plusOne)}
+                    {render(buyAmountButtons.plusTen)}
+                    {render(buyAmountButtons.timesTen)}
+                </RowVue>
+                <SpacerVue />
+                <RowVue>
+                    {render(squares.top.square)}
+                    <ColumnVue>
+                        {render(squares.top.buy)}
+                        {render(squares.top.buyNext)}
+                        {render(squares.top.buyMax)}
+                    </ColumnVue>
+                </RowVue>
+            </>
+        )
     }
 });
 
