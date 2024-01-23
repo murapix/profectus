@@ -37,9 +37,4 @@ const center = computed(() => props.radius + props.width/2);
 
 const arcString = computed(() => `${unref(arc)}, ${unref(circumference)}`);
 const rotationString = computed(() => `rotate(${props.offset}deg)`);
-
-// arc: arcString,
-// rotate: rotationString,
-// center,
-// unref
 </script>

@@ -34,6 +34,16 @@ const processedRows = ([1, 2, 3, 4] as EnhancementRow[]).map(row => ({
 .enhancementRow {
     width: fit-content;
     margin: var(--feature-margin) auto;
+    :deep(.row), :deep(button) {
+        margin: 0;
+        border-radius: 0;
+    }
+    :deep(.tooltip-container:first-child button) {
+        border-bottom-left-radius: var(--border-radius);
+    }
+    :deep(.tooltip-container:last-child button) {
+       border-bottom-right-radius: var(--border-radius);
+    }
 }
 
 .enhancementRow > :not(.table) {
@@ -42,18 +52,5 @@ const processedRows = ([1, 2, 3, 4] as EnhancementRow[]).map(row => ({
     border-radius: 0;
     border-top-left-radius: var(--border-radius);
     border-top-right-radius: var(--border-radius);
-}
-
-.enhancementRow :deep(.row), .enhancementRow :deep(button) {
-    margin: 0;
-    border-radius: 0;
-}
-
-.enhancementRow :deep(.tooltip-container:first-child button) {
-    border-bottom-left-radius: var(--border-radius);
-}
-
-.enhancementRow :deep(.tooltip-container:last-child button) {
-    border-bottom-right-radius: var(--border-radius);
 }
 </style>

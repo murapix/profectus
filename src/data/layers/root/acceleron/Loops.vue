@@ -90,17 +90,15 @@ const processedLoops = props.loops.map((loop, index) => ({
 <style>
 .loop-container {
     position: relative;
-}
-
-.loop-container > button {
-    position: absolute;
-    top: calc(50% - 60px);
-    left: calc(50% - 60px);
-    margin: 0;
-}
-
-.loop-container > button.can:hover {
-    transform: none;
-    box-shadow: inset 0 0 20px var(--layer-color);
+    > button {
+        position: absolute;
+        top: calc(50% - 60px);
+        left: calc(50% - 60px);
+        margin: 0;
+    }
+    > button.can:hover {
+        transform: none;
+        box-shadow: inset 0 0 20px var(--layer-color);
+    }
 }
 </style>
