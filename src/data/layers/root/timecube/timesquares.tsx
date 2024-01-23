@@ -1,18 +1,14 @@
-import { createClickable, GenericClickable } from "features/clickables/clickable";
-import { EffectFeatureOptions, GenericEffectFeature, effectDecorator } from "features/decorators/common";
-import { CoercableComponent, jsx } from "features/feature";
-import { GenericRepeatable, RepeatableOptions, createRepeatable } from "features/repeatable";
+import { createClickable } from "features/clickables/clickable";
+import { jsx } from "features/feature";
 import { BaseLayer, createLayer } from "game/layers";
 import { persistent } from "game/persistence";
-import { createCostRequirement } from "game/requirements";
 import Decimal, { DecimalSource } from "lib/break_eternity";
-import { format, formatWhole } from "util/break_eternity";
+import { formatWhole } from "util/break_eternity";
 import { computed, unref } from "vue";
 import timecube from "./timecube";
-import { Computable } from "util/computed";
 import { createTimesquare, Timesquare } from "./timesquare";
 import RowVue from "components/layout/Row.vue";
-import { render } from "util/vue";
+import { render, renderRow } from "util/vue";
 import SpacerVue from "components/layout/Spacer.vue";
 import TextVue from "components/fields/Text.vue";
 import ColumnVue from "components/layout/Column.vue";
@@ -125,7 +121,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                     <TextVue
                         style={{width: 'fit-content'}}
                         onUpdate:modelValue={value => Decimal.isNaN(value) && Decimal.gte(value, 1)
-                            ? (buyAmount.value = value)
+                            ? (buyAmount.value = Decimal.floor(value))
                             : null
                         }
                         modelValue={formatWhole(buyAmount.value)}
@@ -135,14 +131,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
                     {render(buyAmountButtons.timesTen)}
                 </RowVue>
                 <SpacerVue />
-                <RowVue>
-                    {render(squares.top.square)}
-                    <ColumnVue>
-                        {render(squares.top.buy)}
-                        {render(squares.top.buyNext)}
-                        {render(squares.top.buyMax)}
-                    </ColumnVue>
-                </RowVue>
+                {renderRow(squares.front, squares.right, squares.top)}
+                {renderRow(squares.back, squares.left, squares.bottom)}
             </>
         )
     }

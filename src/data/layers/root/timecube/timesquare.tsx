@@ -1,6 +1,6 @@
 import { EffectFeatureOptions, GenericEffectFeature, effectDecorator } from "features/decorators/common";
 import { Computable, ProcessedComputable, convertComputable } from "util/computed";
-import { CoercableComponent, OptionsFunc, jsx } from "features/feature";
+import { CoercableComponent, Component, GatherProps, GenericComponent, OptionsFunc, jsx } from "features/feature";
 import { Persistent, persistent } from "game/persistence";
 import Decimal, { DecimalSource } from "lib/break_eternity";
 import { createLazyProxy } from "util/proxies";
@@ -10,6 +10,7 @@ import { ComputedRef, computed, unref } from "vue";
 import { CostRequirement, createBooleanRequirement, createCostRequirement, requirementsMet, payRequirements } from "game/requirements";
 import { Resource } from "features/resources/resource";
 import { format, formatWhole } from "util/break_eternity";
+import TimeSquareVue from "./TimeSquare.vue";
 
 export const TimesquareType = Symbol("Timesquare");
 
@@ -26,6 +27,9 @@ export type Timesquare<T = Decimal> = {
     buy: GenericClickable;
     buyNext: GenericClickable;
     buyMax: GenericClickable;
+    type: typeof TimesquareType;
+    [Component]: GenericComponent;
+    [GatherProps]: () => Record<string, unknown>;
 };
 
 // timeline bonus per square = hasUpgrade(timecube, 43) ? temp.timecube.timelineBonus[id] : 0
@@ -118,7 +122,24 @@ export function createTimesquare<T = Decimal>(
                 timesquare.square.amount.value = Decimal.add(unref(timesquare.square.amount), boughtAmount);
             }
         }));
-        
+
+        timesquare.type = TimesquareType;
+        timesquare[Component] = TimeSquareVue as GenericComponent;
+        timesquare[GatherProps] = function (this: Timesquare<T>) {
+            const {
+                square,
+                buy,
+                buyNext,
+                buyMax
+            } = this;
+            return {
+                square,
+                buy,
+                buyNext,
+                buyMax
+            }
+        }
+
         return timesquare;
     });
 }

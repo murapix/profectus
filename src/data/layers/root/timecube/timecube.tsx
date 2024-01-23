@@ -15,6 +15,8 @@ import entangled from "../entangled/entangled";
 import fome, { FomeTypes } from "../fome/fome";
 import timesquares from "./timesquares";
 import { render } from "util/vue";
+import { createTabFamily } from "features/tabs/tabFamily";
+import { createTab } from "features/tabs/tab";
 
 const id = "timecube";
 const layer = createLayer(id, function (this: BaseLayer) {
@@ -330,6 +332,42 @@ const layer = createLayer(id, function (this: BaseLayer) {
         }
     })();
 
+    const tabs = createTabFamily(({
+        cubes: () => ({
+            display: "Time Cubes",
+            tab: createTab(() => ({
+                display: jsx(() => (
+                    <>
+                        <MainDisplayVue resource={timecubes} color={color} />
+                        <TimecubeUpgradesVue upgrades={Object.values(upgrades)} />
+                    </>
+                ))
+            }))
+        }),
+        squares: () => ({
+            display: "Time Squares",
+            tab: createTab(() => ({
+                display: jsx(() => (
+                    <>
+                        <MainDisplayVue resource={timecubes} color={color} />
+                        {render(unref(timesquares.display))}
+                    </>
+                ))
+            }))
+        }),
+        lines: () => ({
+            display: "Timelines",
+            unlocked: noPersist(upgrades.tactics.bought),
+            tab: createTab(() => ({
+                display: jsx(() => (
+                    <>
+                        <MainDisplayVue resource={timecubes} color={color} />
+                    </>
+                ))
+            }))
+        })
+    }));
+
     return {
         name,
         color,
@@ -337,12 +375,13 @@ const layer = createLayer(id, function (this: BaseLayer) {
         timecubes,
         bestTimecubes,
         upgrades,
+        tabs,
         display: jsx(() => (
             <>
-                <MainDisplayVue resource={timecubes} color={color} />
-                <TimecubeUpgradesVue upgrades={Object.values(upgrades)} />
-
-                {render(unref(timesquares.display))}
+                {unref(upgrades.tesselate.bought)
+                    ? render(tabs)
+                    : render(unref(tabs.tabs.cubes.tab))
+                }
             </>
         )),
 
