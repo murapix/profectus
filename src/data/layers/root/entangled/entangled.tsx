@@ -6,7 +6,7 @@ import MainDisplay from "features/resources/MainDisplay.vue";
 import Spacer from "components/layout/Spacer.vue";
 import { render, renderCol, renderRow } from "util/vue";
 import { format } from "util/break_eternity";
-import { ComputedRef, Ref, computed, unref } from "vue";
+import { ComputedRef, Ref, computed, nextTick, unref } from "vue";
 import { persistent, noPersist } from "game/persistence";
 import acceleron, { id as acceleronId } from "../acceleron/acceleron";
 import inflaton, { id as inflatonId } from "../inflaton/inflaton";
@@ -36,7 +36,7 @@ const layer = createLayer("entangled", () => {
     }
 
     const expansions = (() => {
-        const cost: ComputedRef<number> = computed(() => [skyrmion, fome, acceleron, timecube, inflaton].filter(layer => unref(layer.bought)).length);
+        const cost: ComputedRef<number> = computed(() => [skyrmion, fome, acceleron, timecube, inflaton].filter(layer => unref(layer.bought)).length + 2);
         const skyrmion = createUpgrade(() => ({
             requirements: createCostRequirement(() => ({
                 resource: noPersist(strings),
@@ -244,17 +244,19 @@ const layer = createLayer("entangled", () => {
         },
         onClick() {
             strings.value = Decimal.add(unref(strings.value), 1);
-            const keptInflatonResearch = (unref(milestones[3].earned)
-                ? [inflaton.coreResearch.research.queueTwo, inflaton.coreResearch.research.queueFour]
-                : []).filter(research => unref(research.researched));
-            reset.reset();
-            if (unref(milestones[2].earned)) {
-                fome.protoversal.upgrades.reform.amount.value = Decimal.dOne;
-            }
-            for (const research of keptInflatonResearch) {
-                research.researched.value = true;
-            }
-            skyrmion.skyrmions.value = unref(acceleron.achievements.skyrmion.earned) ? 10 : 1;
+            nextTick(() => {
+                const keptInflatonResearch = (unref(milestones[3].earned)
+                    ? [inflaton.coreResearch.research.queueTwo, inflaton.coreResearch.research.queueFour]
+                    : []).filter(research => unref(research.researched));
+                reset.reset();
+                if (unref(milestones[2].earned)) {
+                    fome.protoversal.upgrades.reform.amount.value = Decimal.dOne;
+                }
+                for (const research of keptInflatonResearch) {
+                    research.researched.value = true;
+                }
+                skyrmion.skyrmions.value = unref(acceleron.achievements.skyrmion.earned) ? 10 : 1;
+            });
         },
         display: 'Reset for 1 Entangled String'
     }));
