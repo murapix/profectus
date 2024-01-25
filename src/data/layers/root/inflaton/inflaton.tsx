@@ -58,15 +58,12 @@ const layer = createLayer(id, function (this: BaseLayer) {
         style: {
             width: 'fit-content',
             minHeight: '60px'
-        }
+        },
+        visibility: () => Decimal.eq(unref(inflatons), 0)
     }));
 
     const inflate = createClickable(() => ({
-        display: jsx(() => (
-            <>
-                INFLATE
-            </>
-        )),
+        display: jsx(() => (<>INFLATE</>)),
         onClick() {
             if (unref(inflating)) endInflation();
             else startInflation();
@@ -74,7 +71,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
         style: {
             width: '150px',
             minHeight: '60px'
-        }
+        },
+        visibility: () => Decimal.gte(unref(inflatons), 1)
     }));
     function startInflation() {
         inflating.value = true;
@@ -162,7 +160,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 resource: fome[FomeTypes.quantum].amount
             })),
             visibility() {
-                return unref(this.bought)
+                return unref(this.bought) || unref(entangled.milestones[1].earned)
                 || Decimal.gte(unref(buildings.maxSize), 6);
             },
             style: { width: '250px' }
@@ -177,7 +175,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 resource: fome[FomeTypes.quantum].amount
             })),
             visibility() {
-                return unref(this.bought)
+                return unref(this.bought) || unref(entangled.milestones[1].earned)
                 || (
                     unref(subspaceBuildings.bought)
                     && Decimal.gte(unref(buildings.maxSize), 7)
@@ -185,15 +183,30 @@ const layer = createLayer(id, function (this: BaseLayer) {
             },
             style: { width: '250px' }
         }));
+        const moreFome = createUpgrade(() => ({
+            display: {
+                title: 'Dynamic Inflational Formation',
+                description: `<br />Generate more Foam based on the size of your universe<br />`
+            },
+            requirements: createCostRequirement(() => ({
+                cost: () => entangled.isFirstBranch(id) ? 1e25 : 1e58,
+                resource: fome[FomeTypes.quantum].amount
+            })),
+            visibility() {
+                return unref(this.bought) || unref(entangled.milestones[1].earned)
+                || unref(core.research.upgrades.researched);
+            }
+        }));
         return {
             subspaceBuildings,
-            research
+            research,
+            moreFome
         }
     })();
 
     
-    this.on("preUpdate", diff => {
-        if (!unref(inflating)) return;
+    this.on("preUpdate", () => {
+        if (!(unref(inflating) || (unref(core.research.autofillStorage.researched) && Decimal.lt(unref(inflatons), unref(buildings.buildings.storage.effect))))) return;
 
         for (const [resource, nerf] of [
             [skyrmion.pion.pions, individualNerfs.pion],
@@ -236,7 +249,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 }</>
             }
         </div>
-        {render(Decimal.gte(unref(inflatons), 1) ? inflate : conversion)}
+        {render(inflate)}
+        {render(conversion)}
         {Decimal.gt(unref(buildings.maxSize), 0)
             ? <div>You have managed to stabilize the universe at a diameter of {formatLength(unref(buildings.maxSize))}</div>
             : undefined
