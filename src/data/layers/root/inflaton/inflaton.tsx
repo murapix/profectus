@@ -206,7 +206,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
 
     
     this.on("preUpdate", () => {
-        if (!(unref(inflating) || (unref(core.research.autofillStorage.researched) && Decimal.lt(unref(inflatons), unref(buildings.buildings.storage.effect))))) return;
+        if (!unref(inflating)) return;
 
         for (const [resource, nerf] of [
             [skyrmion.pion.pions, individualNerfs.pion],
@@ -230,7 +230,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
         }
     });
     this.on("postUpdate", diff => {
-        if (unref(inflating)) {
+        let shouldInflate = false;
+        if (unref(inflating)) shouldInflate = true;
+        if (unref(core.research.autofillStorage.researched) && Decimal.lt(unref(inflatons), unref(buildings.buildings.storage.effect))) shouldInflate = true;
+
+        if (shouldInflate) {
             inflatons.value = unref(inflatonGain).times(diff).plus(unref(inflatons));
         }
         else if (Decimal.gt(unref(inflatons), unref(buildings.buildings.storage.effect))) {
