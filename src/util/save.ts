@@ -4,7 +4,7 @@ import type { Player } from "game/player";
 import player, { stringifySave } from "game/player";
 import settings, { loadSettings } from "game/settings";
 import LZString from "lz-string";
-import { ref } from "vue";
+import { ref, unref } from "vue";
 
 export function setupInitialStore(player: Partial<Player> = {}): Player {
     return Object.assign(
@@ -24,7 +24,10 @@ export function setupInitialStore(player: Partial<Player> = {}): Player {
     ) as Player;
 }
 
+export const isSwapping = ref(false);
+
 export function save(playerData?: Player): string {
+    if (unref(isSwapping)) return localStorage.getItem((playerData ?? player).id) ?? "";
     const stringifiedSave = LZString.compressToUTF16(stringifySave(playerData ?? player));
     localStorage.setItem((playerData ?? player).id, stringifiedSave);
     return stringifiedSave;
