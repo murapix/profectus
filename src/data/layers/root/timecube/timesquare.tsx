@@ -10,7 +10,7 @@ import { ComputedRef, computed, unref } from "vue";
 import { CostRequirement, createBooleanRequirement, createCostRequirement, requirementsMet, payRequirements } from "game/requirements";
 import { Resource } from "features/resources/resource";
 import { format, formatWhole } from "util/break_eternity";
-import TimeSquareVue from "./TimeSquare.vue";
+import TimesquareComponent from "./Timesquare.vue";
 
 export const TimesquareType = Symbol("Timesquare");
 
@@ -124,7 +124,7 @@ export function createTimesquare<T = Decimal>(
         }));
 
         timesquare.type = TimesquareType;
-        timesquare[Component] = TimeSquareVue as GenericComponent;
+        timesquare[Component] = TimesquareComponent as GenericComponent;
         timesquare[GatherProps] = function (this: Timesquare<T>) {
             const {
                 square,
