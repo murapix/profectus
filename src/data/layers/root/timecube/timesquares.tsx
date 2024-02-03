@@ -56,16 +56,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
         }))
     };
     
-    enum Squares {
-        FRONT = "front",
-        RIGHT = "right",
-        TOP = "top",
-        BACK = "back",
-        LEFT = "left",
-        BOTTOM = "bottom"
-    }
-    const squares: Record<Squares, Timesquare> = {
-        [Squares.FRONT]: createTimesquare(square => ({
+    const squares: Record<Sides, Timesquare> = {
+        [Sides.FRONT]: createTimesquare(square => ({
             display: jsx(() => <>Front</>),
             effect() { return new Decimal(unref(square.square.amount)) },
             resource: noPersist(timecube.timecubes),
@@ -139,3 +131,12 @@ const layer = createLayer(id, function (this: BaseLayer) {
 });
 
 export default layer;
+
+export enum Sides {
+    FRONT = "front",
+    RIGHT = "right",
+    TOP = "top",
+    BACK = "back",
+    LEFT = "left",
+    BOTTOM = "bottom"
+}

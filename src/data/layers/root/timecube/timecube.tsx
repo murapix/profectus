@@ -14,6 +14,7 @@ import { noPersist } from "game/persistence"
 import entangled from "../entangled/entangled";
 import fome, { FomeTypes } from "../fome/fome";
 import timesquares from "./timesquares";
+import timelines from "./timelines";
 import { render } from "util/vue";
 import { createTabFamily } from "features/tabs/tabFamily";
 import { createTab } from "features/tabs/tab";
@@ -362,6 +363,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 display: jsx(() => (
                     <>
                         <MainDisplayVue resource={timecubes} color={color} />
+                        {render(unref(timelines.display))}
                     </>
                 ))
             }))
@@ -386,7 +388,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         )),
 
         timesquares,
-        // timeline
+        timelines
     }
 })
 

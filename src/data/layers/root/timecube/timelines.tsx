@@ -6,63 +6,49 @@ import fome, { FomeTypes } from "../fome/fome";
 import acceleron from "../acceleron/acceleron";
 import timecube from "./timecube";
 import inflaton from "../inflaton/inflaton";
-import { clonePersistentData, swapPersistentData } from "util/util";
-import { createClickable } from "features/clickables/clickable";
-import { isSwapping } from "util/save";
+import { GenericClickable, createClickable } from "features/clickables/clickable";
+import { render } from "util/vue";
+import { Sides } from "./timesquares";
+import { Persistent, persistent } from "game/persistence";
 
 const id = "timeline";
 const layer = createLayer(id, function (this: BaseLayer) {
-    const originalData = {
-        skyrmion: {
-            skyrmions: clonePersistentData(skyrmion.conversion),
-            pion: clonePersistentData(skyrmion.pion),
-            spinor: clonePersistentData(skyrmion.spinor)
-        },
-        fome: {
-            [FomeTypes.protoversal]: clonePersistentData(fome[FomeTypes.protoversal]),
-            [FomeTypes.infinitesimal]: clonePersistentData(fome[FomeTypes.infinitesimal]),
-            [FomeTypes.subspatial]: clonePersistentData(fome[FomeTypes.subspatial]),
-            [FomeTypes.subplanck]: clonePersistentData(fome[FomeTypes.subplanck]),
-            [FomeTypes.quantum]: clonePersistentData(fome[FomeTypes.quantum]),
-        },
-        acceleron: {
-            accelerons: clonePersistentData(acceleron.accelerons),
-            bestAccelerons: clonePersistentData(acceleron.bestAccelerons),
-            totalAccelerons: clonePersistentData(acceleron.totalAccelerons),
-            upgrades: {
-                acceleration: clonePersistentData(acceleron.upgrades.acceleration),
-                fluctuation: clonePersistentData(acceleron.upgrades.fluctuation),
-                conversion: clonePersistentData(acceleron.upgrades.conversion),
-                translation: clonePersistentData(acceleron.upgrades.translation),
-                alacrity: clonePersistentData(acceleron.upgrades.alacrity)
-            }
-        },
-        timecube: {
-            timecubes: clonePersistentData(timecube.timecubes)
-        },
-        inflaton: {
-            inflatons: clonePersistentData(inflaton.inflatons),
-            buildings: {
-                buildings: clonePersistentData(inflaton.buildings.buildings),
-                maxSize: clonePersistentData(inflaton.buildings.maxSize)
-            },
-            inflating: clonePersistentData(inflaton.inflating),
-            upgrades: {
-                moreFome: clonePersistentData(inflaton.upgrades.moreFome)
-            },
-            coreResearch: {
-                repeatables: {
-                    buildingSize: clonePersistentData(inflaton.coreResearch.repeatables.buildingSize)
-                }
+    
+    const timelineToggles = (() => {
+        const toggles = {} as Record<string, GenericClickable> & {active: Persistent<boolean>, next: Persistent<boolean>};
+
+        const sides = [] as (keyof typeof Sides)[];
+        for (const side in Sides) {
+            sides.push(side as keyof typeof Sides);
+        }
+        for (let i = 0; i < sides.length; i++) {
+            const firstSide = Sides[sides[i]];
+            const firstSideName = firstSide[0].toUpperCase() + firstSide.slice(1);
+            for (let j = i+1; j < sides.length; j++) {
+                const otherSide = Sides[sides[j]];
+                const otherSideName = otherSide[0].toUpperCase() + otherSide.slice(1);
+
+                const active = persistent<boolean>(false);
+                const next = persistent<boolean>(false);
+                const button = createClickable(() => ({
+                    display: `${firstSideName} ${otherSideName}`,
+                    onClick() { next.value = !next.value; },
+                }));
+                const toggle = button as GenericClickable & {active: Persistent<boolean>, next: Persistent<boolean>};
+                toggle.active = active;
+                toggle.next = next;
+
+                toggles[`${firstSide}_${otherSide}`] = toggle;
             }
         }
-    };
+
+        return toggles;
+    })();
 
     const enterTimeline = createClickable(() => ({
+        display: 'Enter Timeline',
         onClick() {
-            isSwapping.value = true;
-            swapPersistentData({skyrmion, fome, acceleron, timecube, inflaton}, originalData);
-            isSwapping.value = false;
+            reset.reset();
         }
     }));
 
@@ -100,12 +86,13 @@ const layer = createLayer(id, function (this: BaseLayer) {
     }));
 
     return {
-        display: jsx(() => <>TODO: Fill</>),
-
-        originalData
+        timelineToggles,
+        display: jsx(() => (
+            <>
+                {render(enterTimeline)}
+            </>
+        ))
     }
 });
 
-function saveOriginalData() {
-    return 
-}
+export default layer;
