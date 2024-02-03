@@ -90,7 +90,7 @@ const fillPercent = computed(() => Decimal.times(unref(props.progressPercentage)
     flex-flow: column;
 }
 
-.research.hidden {
+.research.hidden, .research.locked {
     border-color: var(--outline);
     color: var(--locked);
 }
