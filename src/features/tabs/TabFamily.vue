@@ -235,10 +235,6 @@ export default defineComponent({
     padding-left: 0;
 }
 
-.minimizable > .tab-buttons-container:not(.floating):first-child {
-    padding-right: 50px;
-}
-
 .tab-buttons-container:not(.floating):first-child .tab-buttons {
     margin-top: -50px;
 }

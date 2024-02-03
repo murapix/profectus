@@ -3,23 +3,11 @@
     <div class="layer-container" :style="{ '--layer-color': unref(color) }" v-bind="$attrs" v-else>
         <button v-if="showGoBack" class="goBack" @click="goBack">❌</button>
 
-        <button
-            class="layer-tab minimized"
-            v-if="unref(minimized)"
-            @click="$emit('setMinimized', false)"
-        >
-            <component v-if="minimizedComponent" :is="minimizedComponent" />
-            <div v-else>{{ unref(name) }}</div>
-        </button>
         <div class="layer-tab" :class="{ showGoBack }" v-else>
             <Context @update-nodes="updateNodes">
                 <component :is="component" />
             </Context>
         </div>
-
-        <button v-if="unref(minimizable)" class="minimize" @click="$emit('setMinimized', true)">
-            ▼
-        </button>
     </div>
 </template>
 
@@ -44,17 +32,11 @@ export default defineComponent({
             type: processedPropType<CoercableComponent>(Object, String, Function),
             required: true
         },
-        minimizedDisplay: processedPropType<CoercableComponent>(Object, String, Function),
-        minimized: {
-            type: Object as PropType<Ref<boolean>>,
-            required: true
-        },
         name: {
             type: processedPropType<string>(String),
             required: true
         },
         color: processedPropType<string>(String),
-        minimizable: processedPropType<boolean>(Boolean),
         nodes: {
             type: Object as PropType<Ref<Record<string, FeatureNode | undefined>>>,
             required: true
@@ -62,12 +44,11 @@ export default defineComponent({
     },
     emits: ["setMinimized"],
     setup(props) {
-        const { display, index, minimized, minimizedDisplay } = toRefs(props);
+        const { display, index } = toRefs(props);
 
         const component = computeComponent(display);
-        const minimizedComponent = computeOptionalComponent(minimizedDisplay);
         const showGoBack = computed(
-            () => projInfo.allowGoBack && index.value > 0 && !unwrapRef(minimized)
+            () => projInfo.allowGoBack && index.value > 0
         );
 
         function goBack() {
@@ -89,7 +70,6 @@ export default defineComponent({
 
         return {
             component,
-            minimizedComponent,
             showGoBack,
             updateNodes,
             unref,
@@ -110,7 +90,7 @@ export default defineComponent({
     isolation: isolate;
 }
 
-.layer-tab:not(.minimized) {
+.layer-tab {
     padding-top: 20px;
     padding-bottom: 20px;
     min-height: 100%;
@@ -119,36 +99,11 @@ export default defineComponent({
     position: relative;
 }
 
-.inner-tab > .layer-container > .layer-tab:not(.minimized) {
+.inner-tab > .layer-container > .layer-tab {
     padding-top: 50px;
 }
 
-.layer-tab.minimized {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    display: flex;
-    padding: 0;
-    padding-top: 55px;
-    margin: 0;
-    cursor: pointer;
-    font-size: 40px;
-    color: var(--foreground);
-    border: none;
-    background-color: transparent;
-}
-
-.layer-tab.minimized > * {
-    margin: 0;
-    writing-mode: vertical-rl;
-    text-align: left;
-    padding-left: 10px;
-    width: 50px;
-}
-
-.inner-tab > .layer-container > .layer-tab:not(.minimized) {
+.inner-tab > .layer-container > .layer-tab {
     margin: -50px -10px;
     padding: 50px 10px;
 }
@@ -159,30 +114,6 @@ export default defineComponent({
 
 .modal-body .layer-tab:not(.hasSubtabs) {
     padding-top: 0;
-}
-
-.minimize {
-    position: sticky;
-    top: 6px;
-    right: 9px;
-    z-index: 7;
-    line-height: 30px;
-    border: none;
-    background: var(--background);
-    box-shadow: var(--background) 0 2px 3px 5px;
-    border-radius: 50%;
-    color: var(--foreground);
-    font-size: 40px;
-    cursor: pointer;
-    margin-top: -44px;
-    margin-right: -30px;
-}
-
-.minimized + .minimize {
-    transform: rotate(-90deg);
-    top: 10px;
-    right: 18px;
-    pointer-events: none;
 }
 
 .goBack {
@@ -205,12 +136,5 @@ export default defineComponent({
 .goBack:hover {
     transform: scale(1.1, 1.1);
     text-shadow: 0 0 7px var(--foreground);
-}
-</style>
-
-<style>
-.layer-tab.minimized > * > .desc {
-    color: var(--accent1);
-    font-size: 30px;
 }
 </style>

@@ -142,7 +142,6 @@ export const root = createLayer(id, () => {
     return {
         name: "Root",
         minWidth: 300,
-        minimizable: false,
         display: jsx(() => unref(fome.unlocked)
             ? <>{render(tabs)}</>
             : <div style={{"--layer-color": unref(skyrmion.color)}}>{render(unref(tabs.tabs[skyrmion.name].tab))}</div>

@@ -117,20 +117,10 @@ export interface LayerOptions {
     /** Styles that should be applied to the display. */
     style?: Computable<StyleValue>;
     /**
-     * The name of the layer, used on minimized tabs.
+     * The name of the layer.
      * Defaults to {@link BaseLayer.id}.
      */
     name?: Computable<string>;
-    /**
-     * Whether or not the layer can be minimized.
-     * Defaults to true.
-     */
-    minimizable?: Computable<boolean>;
-    /**
-     * The layout of this layer's features.
-     * When the layer is open in {@link game/player.PlayerData.tabs}, but the tab is {@link Layer.minimized} this is the content that is displayed.
-     */
-    minimizedDisplay?: Computable<CoercableComponent>;
     /**
      * Whether or not to force the go back button to be hidden.
      * If true, go back will be hidden regardless of {@link data/projInfo.allowGoBack}.
@@ -152,8 +142,6 @@ export interface BaseLayer {
      * Used for saving and tracking open tabs.
      */
     id: string;
-    /** A persistent ref tracking if the tab is minimized or not. */
-    minimized: Persistent<boolean>;
     /** An emitter for sending {@link LayerEvents} events for this layer. */
     emitter: Emitter<LayerEvents>;
     /** A function to register an event listener on {@link emitter}. */
@@ -174,8 +162,6 @@ export type Layer<T extends LayerOptions> = Replace<
         style: GetComputableType<T["style"]>;
         name: GetComputableTypeWithDefault<T["name"], string>;
         minWidth: GetComputableTypeWithDefault<T["minWidth"], 600>;
-        minimizable: GetComputableTypeWithDefault<T["minimizable"], true>;
-        minimizedDisplay: GetComputableType<T["minimizedDisplay"]>;
         forceHideGoBack: GetComputableType<T["forceHideGoBack"]>;
     }
 >;
@@ -186,7 +172,6 @@ export type GenericLayer = Replace<
     {
         name: ProcessedComputable<string>;
         minWidth: ProcessedComputable<number>;
-        minimizable: ProcessedComputable<boolean>;
     }
 >;
 
@@ -219,7 +204,6 @@ export function createLayer<T extends LayerOptions>(
 
         addingLayers.push(id);
         persistentRefs[id] = new Set();
-        layer.minimized = persistent(false, false);
         Object.assign(layer, optionsFunc.call(layer, layer as BaseLayer));
         if (
             addingLayers[addingLayers.length - 1] == null ||
@@ -239,9 +223,6 @@ export function createLayer<T extends LayerOptions>(
         setDefault(layer, "name", layer.id);
         processComputable(layer as T, "minWidth");
         setDefault(layer, "minWidth", 600);
-        processComputable(layer as T, "minimizable");
-        setDefault(layer, "minimizable", true);
-        processComputable(layer as T, "minimizedDisplay");
 
         const style = layer.style as ProcessedComputable<StyleValue> | undefined;
         layer.style = computed(() => {
@@ -251,23 +232,14 @@ export function createLayer<T extends LayerOptions>(
             }
             return [
                 unref(style) ?? "",
-                layer.minimized?.value
-                    ? {
-                          flexGrow: "0",
-                          flexShrink: "0",
-                          width: "60px",
-                          minWidth: "",
-                          flexBasis: "",
-                          margin: "0"
-                      }
-                    : {
-                          flexGrow: "",
-                          flexShrink: "",
-                          width: "",
-                          minWidth: width,
-                          flexBasis: width,
-                          margin: ""
-                      }
+                {
+                    flexGrow: "",
+                    flexShrink: "",
+                    width: "",
+                    minWidth: width,
+                    flexBasis: width,
+                    margin: ""
+                }
             ];
         }) as Ref<StyleValue>;
 
