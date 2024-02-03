@@ -19,7 +19,8 @@ export function clonePersistentData(object: unknown) {
 
     const copy = {} as Record<string | number | symbol, unknown>;
     for (const [key, value] of Object.entries(object)) {
-        copy[key] = clonePersistentData(value);
+        let data = clonePersistentData(value);
+        if (data !== undefined) copy[key] = clonePersistentData(value);
     }
     return copy;
 }
@@ -38,6 +39,7 @@ export function swapPersistentData(object: unknown, clone: unknown) {
         const swap = o.value;
         o.value = c.value;
         c.value = swap;
+        return;
     }
 
     if (isRef(object)) return;
