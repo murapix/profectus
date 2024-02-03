@@ -194,14 +194,27 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 resource: fome[FomeTypes.quantum].amount
             })),
             visibility() {
-                return unref(this.bought) || unref(entangled.milestones[1].earned)
-                || unref(core.research.upgrades.researched);
+                return unref(this.bought) || unref(core.research.upgrades.researched);
+            }
+        }));
+        const skyrmionUpgrades = createUpgrade(() => ({
+            display: {
+                title: 'Micro-Inflational Subsystems',
+                description: `<br />Gain a new Pion and Spinor Upgrade<br />`
+            },
+            requirements: createCostRequirement(() => ({
+                cost: () => entangled.isFirstBranch(id) ? 1e27 : 1e60,
+                resource: fome[FomeTypes.quantum].amount
+            })),
+            visibility() {
+                return unref(this.bought) || unref(core.research.upgrades.researched);
             }
         }));
         return {
             subspaceBuildings,
             research,
-            moreFome
+            moreFome,
+            skyrmionUpgrades
         }
     })();
 
@@ -256,8 +269,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
         </div>
         {render(inflate)}
         {render(conversion)}
-        {Decimal.gt(unref(buildings.maxSize), 0)
-            ? <div>You have managed to stabilize the universe at a diameter of {formatLength(unref(buildings.maxSize))}</div>
+        {Decimal.gt(unref(inflatons), 0) && Decimal.gt(unref(buildings.maxSize), 0)
+            ? <div>
+                You have managed to stabilize the universe at a diameter of {formatLength(unref(buildings.maxSize))}
+                {unref(inflating) && Decimal.lt(unref(buildings.currentSize), unref(buildings.maxSize)) ? <> ({formatLength(unref(buildings.currentSize))})</> : undefined}
+            </div>
             : undefined
         }
         <SpacerVue />
@@ -269,9 +285,14 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 display: jsx(() => (
                     <>
                         {render(header)}
-                        {unref(upgrades.subspaceBuildings.bought) ? render(buildings.display) : undefined}
-                        <SpacerVue />
-                        {renderRow(...Object.values(upgrades))}
+                        {Decimal.gt(unref(inflatons), 0)
+                            ? <>
+                                {unref(upgrades.subspaceBuildings.bought) ? render(buildings.display) : undefined}
+                                <SpacerVue />
+                                {renderRow(...Object.values(upgrades))}
+                            </>
+                            : undefined
+                        }
                     </>
                 ))
             }))
