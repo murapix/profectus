@@ -113,7 +113,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
                       .times(getResearchEffect(core.research.doubleSize, 1))
                       .times(getResearchEffect(core.research.quadrupleSize, 1))
                       .times(getResearchEffect(core.repeatables.universeSize, 1));
-        if (size.gt(6.187e10)) size = size.pow(0.1);
+        const softcap = 6.187e10;
+        if (size.gt(softcap)) {
+            size = size.pow(0.1).times(Decimal.dOne.minus(0.1).pow_base(softcap));
+        }
         return size.times(1) // top time square effect
                    .div(1) // active top timeline nerf
                    .times(1) // passive top timeline bonus
