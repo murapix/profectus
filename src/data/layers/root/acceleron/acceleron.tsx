@@ -159,7 +159,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         protoversal: createAchievement(() => ({ // keep protoversal fome upgrades and boosts
             display: jsx(() => <span style={achievementStyle}>P</span>),
             requirements: createCostRequirement(() => ({
-                resource: totalAcceleronResource,
+                resource: noPersist(totalAcceleronResource),
                 cost: 1
             })),
             small: true
@@ -167,7 +167,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         infinitesimal: createAchievement(() => ({ // keep infinitesimal fome upgrades and boosts
             display: jsx(() => <span style={achievementStyle}>I</span>),
             requirements: createCostRequirement(() => ({
-                resource: totalAcceleronResource,
+                resource: noPersist(totalAcceleronResource),
                 cost: 2
             })),
             small: true
@@ -175,7 +175,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         subspatial: createAchievement(() => ({ // keep subspatial fome upgrades and boosts
             display: jsx(() => <span style={achievementStyle}>Ss</span>),
             requirements: createCostRequirement(() => ({
-                resource: totalAcceleronResource,
+                resource: noPersist(totalAcceleronResource),
                 cost: 3
             })),
             small: true
@@ -183,7 +183,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         skyrmion: createAchievement(() => ({ // start with 10 skyrmions
             display: jsx(() => <span style={achievementStyle}>S</span>),
             requirements: createCostRequirement(() => ({
-                resource: totalAcceleronResource,
+                resource: noPersist(totalAcceleronResource),
                 cost: 5
             })),
             small: true
@@ -191,7 +191,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         subplanck: createAchievement(() => ({ // keep subplanck fome upgrades and boosts
             display: jsx(() => <span style={achievementStyle}>Sp</span>),
             requirements: createCostRequirement(() => ({
-                resource: totalAcceleronResource,
+                resource: noPersist(totalAcceleronResource),
                 cost: 7
             })),
             small: true
@@ -199,7 +199,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         quantum: createAchievement(() => ({ // keep quantum fome upgrades and boosts
             display: jsx(() => <span style={achievementStyle}>Q</span>),
             requirements: createCostRequirement(() => ({
-                resource: totalAcceleronResource,
+                resource: noPersist(totalAcceleronResource),
                 cost: 10
             })),
             small: true

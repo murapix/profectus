@@ -117,7 +117,7 @@ const layer = createLayer("entangled", () => {
     const requirements: Record<'expansion', Requirement> & Record<'acceleron' | 'inflaton' | 'timecube', CostRequirement> = {
         expansion: createBooleanRequirement(canEntangle),
         acceleron: createCostRequirement(() => ({
-            resource: acceleron.accelerons,
+            resource: noPersist(acceleron.accelerons),
             cost() {
                 if (Decimal.eq(unref(strings), 0)) return 1e19;
                 return [
@@ -157,7 +157,7 @@ const layer = createLayer("entangled", () => {
             }
         })),
         inflaton: createCostRequirement(() => ({
-            resource: inflaton.inflatons,
+            resource: noPersist(inflaton.inflatons),
             cost() {
                 if (Decimal.eq(unref(strings), 0)) return Decimal.pow10(8000);
                 return [
@@ -197,7 +197,7 @@ const layer = createLayer("entangled", () => {
             }
         })),
         timecube: createCostRequirement(() => ({
-            resource: timecube.timecubes,
+            resource: noPersist(timecube.timecubes),
             cost() {
                 if (!unref(expansions.timecube.bought)) return 0;
                 return [

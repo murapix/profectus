@@ -23,6 +23,7 @@ import abyss from "./abyss";
 import ResourceVue from "features/resources/Resource.vue";
 import Formula, { calculateCost } from "game/formulas/formulas";
 import { getFomeBoost } from "../fome/boost";
+import { noPersist } from "game/persistence"
 
 const id = "skyrmion";
 const layer = createLayer(id, function (this: BaseLayer) {
@@ -40,14 +41,14 @@ const layer = createLayer(id, function (this: BaseLayer) {
             initialAmount: 1,
             requirements: [
                 createCostRequirement(() => ({
-                    resource: pion.pions,
+                    resource: noPersist(pion.pions),
                     requiresPay: () => !unref(upgrades.autoGain.bought),
                     cumulativeCost: true,
                     maxBulkAmount: 10, // TODO: Set to Decimal.dInf once integration is better
                     cost: costFunc(feature.amount)
                 })),
                 createCostRequirement(() => ({
-                    resource: spinor.spinors,
+                    resource: noPersist(spinor.spinors),
                     requiresPay: () => !unref(upgrades.autoGain.bought),
                     cumulativeCost: true,
                     maxBulkAmount: 10, // TODO: Set to Decimal.dInf once integration is better
@@ -328,7 +329,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             visibility,
             requirements: createCostRequirement(() => ({
                 cost,
-                resource: resource,
+                resource: noPersist(resource),
                 requiresPay: false
             })),
             display,

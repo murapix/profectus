@@ -12,6 +12,7 @@ import buildings from "./buildings";
 import core from "./coreResearch";
 import { coerceComponent } from "util/vue";
 import { format, formatWhole } from "util/break_eternity";
+import { noPersist } from "game/persistence";
 
 export interface BuildingData<T = DecimalSource> {
     effect: (amount: DecimalSource) => T;
@@ -56,7 +57,7 @@ export function createBuilding<T = DecimalSource>(
                         }
                         return base.pow(size).minus(1).times(multiplier).times(base.pow(amount)).dividedBy(base.minus(1));
                     },
-                    resource: cost.resource,
+                    resource: noPersist(cost.resource),
                     requiresPay: () => !unref(cost.free),
                     cumulativeCost: false,
                     maxBulkAmount: buildingSize

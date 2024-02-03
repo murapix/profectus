@@ -11,7 +11,7 @@ import RowVue from "components/layout/Row.vue";
 import { render, renderRow } from "util/vue";
 import SpacerVue from "components/layout/Spacer.vue";
 import TextVue from "components/fields/Text.vue";
-import ColumnVue from "components/layout/Column.vue";
+import { noPersist } from "game/persistence"
 
 const id = "timesquare";
 const layer = createLayer(id, function (this: BaseLayer) {
@@ -68,42 +68,42 @@ const layer = createLayer(id, function (this: BaseLayer) {
         [Squares.FRONT]: createTimesquare(square => ({
             display: jsx(() => <>Front</>),
             effect() { return new Decimal(unref(square.square.amount)) },
-            resource: timecube.timecubes,
+            resource: noPersist(timecube.timecubes),
             baseCost: 1e6,
             buyAmount
         })),
-        [Squares.RIGHT]: createTimesquare(square => ({
+        [Sides.RIGHT]: createTimesquare(square => ({
             display: jsx(() => <>Right</>),
             effect() { return new Decimal(unref(square.square.amount)) },
-            resource: timecube.timecubes,
+            resource: noPersist(timecube.timecubes),
             baseCost: 1e6,
             buyAmount
         })),
-        [Squares.TOP]: createTimesquare(square => ({
+        [Sides.TOP]: createTimesquare(square => ({
             display: jsx(() => <>Top</>),
             effect() { return new Decimal(unref(square.square.amount)) },
-            resource: timecube.timecubes,
+            resource: noPersist(timecube.timecubes),
             baseCost: 1e6,
             buyAmount
         })),
-        [Squares.BACK]: createTimesquare(square => ({
+        [Sides.BACK]: createTimesquare(square => ({
             display: jsx(() => <>Back</>),
             effect() { return new Decimal(unref(square.square.amount)) },
-            resource: timecube.timecubes,
+            resource: noPersist(timecube.timecubes),
             baseCost: 1e6,
             buyAmount
         })),
-        [Squares.LEFT]: createTimesquare(square => ({
+        [Sides.LEFT]: createTimesquare(square => ({
             display: jsx(() => <>Left</>),
             effect() { return new Decimal(unref(square.square.amount)) },
-            resource: timecube.timecubes,
+            resource: noPersist(timecube.timecubes),
             baseCost: 1e6,
             buyAmount
         })),
-        [Squares.BOTTOM]: createTimesquare(square => ({
+        [Sides.BOTTOM]: createTimesquare(square => ({
             display: jsx(() => <>Bottom</>),
             effect() { return new Decimal(unref(square.square.amount)) },
-            resource: timecube.timecubes,
+            resource: noPersist(timecube.timecubes),
             baseCost: 1e6,
             buyAmount
         }))

@@ -23,6 +23,7 @@ import { getResearchEffect } from "./research";
 import skyrmion from "../skyrmion/skyrmion";
 import acceleron from "../acceleron/acceleron";
 import { formatLength } from "./building";
+import { noPersist } from "game/persistence"
 
 export const id = "inflaton";
 const layer = createLayer(id, function (this: BaseLayer) {
@@ -38,7 +39,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
 
     const inflatons = createResource<DecimalSource>(0, name);
     const requirement = createCostRequirement(() => ({
-        resource: fome[FomeTypes.quantum].amount,
+        resource: noPersist(fome[FomeTypes.quantum].amount),
         cost: () => entangled.isFirstBranch(id) ? 1e9 : 1e50,
         requiresPay: false
     }));

@@ -1,7 +1,7 @@
 import { createLayer, BaseLayer } from "game/layers";
 import { isVisible, jsx } from "features/feature";
 import inflaton from "./inflaton";
-import { createResource, trackBest } from "features/resources/resource";
+import { Resource, createResource, trackBest } from "features/resources/resource";
 import { computed, unref } from "vue";
 import Decimal, { DecimalSource } from "lib/break_eternity";
 import { getResearchEffect } from "../inflaton/research";
@@ -30,7 +30,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                               .pow_base(0.975);
             },
             cost: {
-                resource: fome[FomeTypes.subspatial].amount,
+                resource: noPersist(fome[FomeTypes.subspatial].amount),
                 base: 1.1,
                 multiplier: computed(() => entangled.isFirstBranch(inflatonId) ? 1e30 : 1e82)
             },
@@ -50,7 +50,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                         .times(1) // 1st abyssal pion buyable
             },
             cost: {
-                resource: fome[FomeTypes.subspatial].amount,
+                resource: noPersist(fome[FomeTypes.subspatial].amount),
                 base: computed(() => unref(core.research.cheaperLabs.researched) ? 1.5 : 15),
                 multiplier: computed(() => entangled.isFirstBranch(inflatonId) ? 1e30 : 1e82)
             },
@@ -67,7 +67,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                               .pow_base(500);
             },
             cost: {
-                resource: fome[FomeTypes.quantum].amount,
+                resource: noPersist(fome[FomeTypes.quantum].amount),
                 base: 1.2,
                 multiplier: computed(() => entangled.isFirstBranch(inflatonId) ? 1e15 : 1e48)
             },
@@ -90,7 +90,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 return { gain, cost }
             },
             cost: {
-                resource: fome[FomeTypes.subspatial].amount,
+                resource: noPersist(fome[FomeTypes.subspatial].amount),
                 base: 1.5,
                 multiplier: computed(() => entangled.isFirstBranch(inflatonId) ? 1e40 : 1e92)
             },
@@ -105,7 +105,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         return { condenser, lab, storage, tuner };
     })();
 
-    const currentSize = createResource(computed(() => {
+    const currentSize: Resource<Decimal> = createResource(computed(() => {
         if (Decimal.lt(unref(inflaton.inflatons), 1)) return Decimal.dZero;
 
         let size = Decimal.clampMin(unref(inflaton.inflatons), 2)
@@ -186,6 +186,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
 
     return {
         buildings,
+        currentSize,
         maxSize,
         usedSize,
         autoBuilding,

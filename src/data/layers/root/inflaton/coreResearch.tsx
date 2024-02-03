@@ -468,7 +468,7 @@ function createResearch<T extends ResearchOptions>(
             visibility,
             prerequisites,
             requirements: createCostRequirement(() => ({
-                resource: createResource(noPersist(research.progress), "Research Points"),
+                resource: noPersist(createResource(noPersist(research.progress), "Research Points")),
                 cost
             })),
             display,
@@ -489,7 +489,7 @@ function createEffectResearch<T extends ResearchOptions & EffectFeatureOptions<U
             visibility,
             prerequisites,
             requirements: createCostRequirement(() => ({
-                resource: createResource(noPersist(research.progress), "Research Points"),
+                resource: noPersist(createResource(noPersist(research.progress), "Research Points")),
                 cost
             })),
             display,
@@ -511,7 +511,7 @@ function createRepeatableResearch<T extends ResearchOptions & Partial<Repeatable
             visibility,
             prerequisites,
             requirements: createCostRequirement(() => ({
-                resource: createResource(noPersist(research.progress), "Research Points"),
+                resource: noPersist(createResource(noPersist(research.progress), "Research Points")),
                 cost
             })),
             display,
