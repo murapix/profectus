@@ -3,13 +3,13 @@ import { Persistent, persistent } from "game/persistence";
 import { Requirements, requirementsMet } from "game/requirements";
 import Decimal, { DecimalSource } from "lib/break_eternity";
 import { Computable, GetComputableType, GetComputableTypeWithDefault, ProcessedComputable, processComputable } from "util/computed";
-import { Ref, computed, unref, watch } from "vue";
+import { Ref, computed, unref } from "vue";
 import { GenericDecorator, GenericEffectFeature } from "features/decorators/common";
 import { createLazyProxy } from "util/proxies";
 import ResearchComponent from "../inflaton/Research.vue";
-import { GenericRepeatableResearch, RepeatableResearch } from "./repeatableDecorator";
+import { GenericRepeatableResearch } from "./repeatableDecorator";
 import Formula, { calculateCost } from "game/formulas/formulas";
-import { FormulaSource, GenericFormula } from "game/formulas/types";
+import { FormulaSource } from "game/formulas/types";
 import { Resource } from "features/resources/resource";
 
 export const ResearchType = Symbol("Research");
