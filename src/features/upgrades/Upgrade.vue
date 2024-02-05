@@ -89,7 +89,7 @@ export default defineComponent({
             }
             const Title = coerceComponent(currDisplay.title || "", "h3");
             const Description = coerceComponent(currDisplay.description, "div");
-            const EffectDisplay = coerceComponent(currDisplay.effectDisplay || "");
+            const EffectDisplay = coerceComponent(currDisplay.effect || "");
             component.value = coerceComponent(
                 jsx(() => (
                     <span>
@@ -99,7 +99,7 @@ export default defineComponent({
                             </div>
                         ) : null}
                         <Description />
-                        {currDisplay.effectDisplay != null ? (
+                        {currDisplay.effect != null ? (
                             <div>
                                 Currently: <EffectDisplay />
                             </div>

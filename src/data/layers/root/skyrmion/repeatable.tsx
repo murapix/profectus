@@ -53,13 +53,13 @@ export function createSkyrmionRepeatable(
             if (Decimal.gt(bonusAmount, 0)) {
                 bonusAmountDisplay = <>+{formatWhole(unref(repeatable.bonusAmount))}</>
             }
-            const effectDisplay = data.display.effect!(unref(repeatable.effect));
+            const effect = data.display.effect!(unref(repeatable.effect));
             return <>
                 {data.display.description}
                 <br />
                 Amount: {formatWhole(unref(repeatable.amount))}{bonusAmountDisplay}
                 <br />
-                Currently: {effectDisplay}
+                Currently: {effect}
                 <br />
                 {displayRequirements(repeatable.requirements)}
             </>

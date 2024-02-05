@@ -44,7 +44,7 @@ export type RepeatableDisplay =
           /** The main text that appears in the display. */
           description?: CoercableComponent;
           /** A description of the current effect of this repeatable, based off its amount. */
-          effectDisplay?: CoercableComponent;
+          effect?: CoercableComponent;
           /** Whether or not to show the current amount of this repeatable at the bottom of the display. */
           showAmount?: boolean;
       };
@@ -221,7 +221,7 @@ export function createRepeatable<T extends RepeatableOptions>(
                 const genericRepeatable = repeatable as GenericRepeatable;
                 const Title = coerceComponent(currDisplay.title ?? "", "h3");
                 const Description = coerceComponent(currDisplay.description ?? "");
-                const EffectDisplay = coerceComponent(currDisplay.effectDisplay ?? "");
+                const EffectDisplay = coerceComponent(currDisplay.effect ?? "");
 
                 return (
                     <span>
@@ -240,7 +240,7 @@ export function createRepeatable<T extends RepeatableOptions>(
                                 ) : undefined}
                             </div>
                         )}
-                        {currDisplay.effectDisplay == null ? null : (
+                        {currDisplay.effect == null ? null : (
                             <div>
                                 <br />
                                 Currently: <EffectDisplay />

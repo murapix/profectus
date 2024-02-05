@@ -71,7 +71,7 @@ export interface AchievementOptions {
               /** Description of the requirement(s) for this achievement. If unspecified then the requirements will be displayed automatically based on {@link requirements}. */
               requirement?: CoercableComponent;
               /** Description of what will change (if anything) for achieving this. */
-              effectDisplay?: CoercableComponent;
+              effect?: CoercableComponent;
               /** Any additional things to display on this achievement, such as a toggle for it's effect. */
               optionsDisplay?: CoercableComponent;
           }

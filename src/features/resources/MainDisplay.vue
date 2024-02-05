@@ -33,14 +33,14 @@ const _props = defineProps<{
     classes?: Record<string, boolean>;
     style?: StyleValue;
     stickyStyle?: StyleValue;
-    effectDisplay?: CoercableComponent;
+    effect?: CoercableComponent;
 }>();
 const props = toRefs(_props);
 
 const effectRef = ref<ComponentPublicInstance | null>(null);
 
 const effectComponent = computeOptionalComponent(
-    props.effectDisplay as Ref<CoercableComponent | undefined>
+    props.effect as Ref<CoercableComponent | undefined>
 );
 
 const showPrefix = computed(() => {

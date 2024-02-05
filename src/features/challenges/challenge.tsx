@@ -73,7 +73,7 @@ export interface ChallengeOptions {
               /** A description of what will change upon completing this challenge. */
               reward?: CoercableComponent;
               /** A description of the current effect of this challenge. */
-              effectDisplay?: CoercableComponent;
+              effect?: CoercableComponent;
           }
     >;
     /** A function that is called when the challenge is completed. */

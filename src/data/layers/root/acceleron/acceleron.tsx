@@ -387,7 +387,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
 
     const header = jsx(() => (
         <>
-            <MainDisplayVue resource={accelerons} color={color} effectDisplay={jsx(() => <>which are causing time to go {format(unref(timeMult))}x faster<br />
+            <MainDisplayVue resource={accelerons} color={color} effect={jsx(() => <>which are causing time to go {format(unref(timeMult))}x faster<br />
             For every second in real time, {formatTime(unref(timeMult))} passes</>)} />
         </>
     ))

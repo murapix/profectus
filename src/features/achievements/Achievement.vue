@@ -75,7 +75,7 @@ export default defineComponent({
                 return;
             }
             const Requirement = coerceComponent(currDisplay.requirement ? currDisplay.requirement : jsx(() => displayRequirements(unwrapRef(requirements) ?? [])), "h3");
-            const EffectDisplay = coerceComponent(currDisplay.effectDisplay || "", "b");
+            const EffectDisplay = coerceComponent(currDisplay.effect || "", "b");
             const OptionsDisplay = unwrapRef(earned) ?
                 coerceComponent(currDisplay.optionsDisplay || "", "span") :
                 "";
@@ -83,7 +83,7 @@ export default defineComponent({
                 jsx(() => (
                     <span>
                         <Requirement />
-                        {currDisplay.effectDisplay != null ? (
+                        {currDisplay.effect != null ? (
                             <div>
                                 <EffectDisplay />
                             </div>

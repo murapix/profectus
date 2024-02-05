@@ -132,7 +132,7 @@ export default defineComponent({
             const Description = coerceComponent(currDisplay.description, "div");
             const Goal = coerceComponent(currDisplay.goal != null ? currDisplay.goal : jsx(() => displayRequirements(unwrapRef(requirements) ?? [])), "h3");
             const Reward = coerceComponent(currDisplay.reward || "");
-            const EffectDisplay = coerceComponent(currDisplay.effectDisplay || "");
+            const EffectDisplay = coerceComponent(currDisplay.effect || "");
             comp.value = coerceComponent(
                 jsx(() => (
                     <span>
@@ -152,7 +152,7 @@ export default defineComponent({
                                 Reward: <Reward />
                             </div>
                         ) : null}
-                        {currDisplay.effectDisplay != null ? (
+                        {currDisplay.effect != null ? (
                             <div>
                                 Currently: <EffectDisplay />
                             </div>

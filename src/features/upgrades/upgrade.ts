@@ -61,7 +61,7 @@ export interface UpgradeOptions {
               /** The main text that appears in the display. */
               description: CoercableComponent;
               /** A description of the current effect of the achievement. Useful when the effect changes dynamically. */
-              effectDisplay?: CoercableComponent;
+              effect?: CoercableComponent;
           }
     >;
     /** The requirements to purchase this upgrade. */

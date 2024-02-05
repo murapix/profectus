@@ -297,7 +297,7 @@ const layer = createLayer("entangled", () => {
             })),
             display: {
                 requirement: `1 ${strings.displayName}`,
-                effectDisplay: `${acceleron.accelerons.displayName} and ${inflaton.inflatons.displayName} no longer inflate each other's costs`
+                effect: `${acceleron.accelerons.displayName} and ${inflaton.inflatons.displayName} no longer inflate each other's costs`
             },
             small: false
         })),
@@ -308,7 +308,7 @@ const layer = createLayer("entangled", () => {
             })),
             display: {
                 requirement: `2 ${strings.displayName}`,
-                effectDisplay: jsx(() => <>
+                effect: jsx(() => <>
                     Unlock expansions to previous content<br />
                     Keep Skyrmion upgrades and Foam milestones
                 </>)
@@ -322,7 +322,7 @@ const layer = createLayer("entangled", () => {
             })),
             display: {
                 requirement: `3 ${strings.displayName}`,
-                effectDisplay: 'Keep all parallel research and research queue researches'
+                effect: 'Keep all parallel research and research queue researches'
             },
             small: false
         })),
@@ -333,7 +333,7 @@ const layer = createLayer("entangled", () => {
             })),
             display: {
                 requirement: `7 ${strings.displayName}`,
-                effectDisplay: 'Unlock Fundamental Particles'
+                effect: 'Unlock Fundamental Particles'
             },
             small: false
         }))
