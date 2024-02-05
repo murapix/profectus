@@ -7,7 +7,7 @@
 </template>
 
 <script setup lang="ts">
-import { Visibility } from 'features/feature';
+import { Visibility, isVisible } from 'features/feature';
 import { GenericUpgrade } from 'features/upgrades/upgrade';
 import { render } from 'util/vue';
 import { computed, unref } from 'vue';
@@ -17,23 +17,25 @@ const props = defineProps<{
 }>();
 
 const rows: GenericUpgrade[][] = [];
-unref(props.upgrades).forEach((upgrade, index) => {
-    const rowIndex = ~~(index/5);
-    const row = rows[rowIndex] ?? [];
-    row.push(upgrade);
-    rows[rowIndex] = row;
-});
+for (let i = 0; i < unref(props.upgrades).length; i += 5) {
+    rows.push([]);
+}
+let row = 0;
+for (const upgrade of unref(props.upgrades)) {
+    rows[row].push(upgrade);
+    if (rows[row].length >= 5) row++;
+}
 
 const left = rows.map(row => row.map((_, index) => {
     if (index === 0) return false;
-    return computed(() => unref(row[index-1].visibility) === Visibility.Visible);
+    return computed(() => isVisible(row[index-1].visibility));
 }));
 const right = rows.map(row => row.map((_, index) => {
     if (index >= row.length-1) return false;
-    return computed(() => unref(row[index+1].visibility) === Visibility.Visible);
+    return computed(() => isVisible(row[index+1].visibility));
 }));
 
-const visibleCounts = rows.map(row => computed(() => row.filter(upgrade => unref(upgrade.visibility) === Visibility.Visible).length));
+const visibleCounts = rows.map(row => computed(() => row.filter(upgrade => isVisible(upgrade.visibility)).length));
 const top = rows.map((row, index) => {
     const result = index === 0 ? false : unref(visibleCounts[index]) <= unref(visibleCounts[index-1]);
     return row.map(() => result);

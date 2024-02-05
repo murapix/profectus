@@ -149,7 +149,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             }))
         }));
         const tesselate = createUpgrade(() => ({
-            visibility() { return unref(this.bought) || (unref(tetrate.bought) && unref(entangled.expansions.timecube.bought)) },
+            visibility() { return unref(this.bought) || unref(entangled.expansions.timecube.bought) },
             display: {
                 title: 'Tesselate',
                 description: 'Unlock Time Squares'
@@ -179,7 +179,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
             requirements: createCostRequirement(() => ({
                 resource: noPersist(timecubes),
                 cost: 1e12
-            }))
+            })),
+            effect: 1.5
         }));
         const tall = createUpgrade(() => ({
             visibility() { return unref(this.bought) || unref(turn.bought) },
@@ -190,7 +191,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
             requirements: createCostRequirement(() => ({
                 resource: noPersist(timecubes),
                 cost: 2e12
-            }))
+            })),
+            effect: 1.5
         }));
         const tour = createUpgrade(() => ({
             visibility() { return unref(this.bought) || unref(turn.bought) },
@@ -201,7 +203,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
             requirements: createCostRequirement(() => ({
                 resource: noPersist(timecubes),
                 cost: 5e12
-            }))
+            })),
+            effect: 2
         }));
         const tactics = createUpgrade(() => ({
             visibility() { return unref(this.bought) || unref(tour.bought) },
@@ -237,7 +240,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             }))
         }));
         const tempo = createUpgrade(() => ({
-            visibility() { return unref(this.bought) || unref(tactics.bought) },
+            visibility() { return unref(this.bought) || unref(tower.bought) },
             display: {
                 title: 'Tempo',
                 description: 'The first entropic loop always produces at least one Acceleron'
@@ -255,7 +258,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             [FomeTypes.quantum]: 1e16
         };
         const toil = createUpgrade<EffectUpgradeOptions<Record<FomeTypes, DecimalSource>>>(() => ({
-            visibility() { return unref(this.bought) || unref(tactics.bought) },
+            visibility() { return unref(this.bought) || unref(tower.bought) },
             display: {
                 title: 'Toil',
                 description: 'While in at least one Left timeline, Foam gain is massively increased based on how little of that Foam you have'
