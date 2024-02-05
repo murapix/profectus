@@ -19,6 +19,7 @@ import fome, { FomeTypes } from "../fome/fome";
 import { createClickable } from "features/clickables/clickable";
 import SpacerVue from "components/layout/Spacer.vue";
 import EnhancementsVue from "../acceleron/Enhancements.vue";
+import { Sides } from "../timecube/timesquares";
 
 const id = "entropy";
 const layer = createLayer(id, function (this: BaseLayer) {
@@ -61,7 +62,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         return [Number(row), computed(() => upgrades.map(upgrade => enhancements[upgrade]).filter(upgrade => unref(upgrade.bought)).length)];
     })) as Record<EnhancementRow, ComputedRef<number>>;
     const totalEnhancements = computed(() => Object.values(enhancementCounts).map(count => unref(count)).reduce((a,b) => a + b));
-    const effectiveEnhancements = computed(() => Decimal.add(unref(totalEnhancements), 0)); // bottom time square
+    const effectiveEnhancements = computed(() => Decimal.add(unref(totalEnhancements), unref(timecube.getTimesquareEffect(Sides.BOTTOM))));
     const fibonacciEnhancements = computed(() => fibonacciNumber(unref(effectiveEnhancements)));
     const enhancementCost = computed(() => fibonacciNumber(unref(totalEnhancements)).round());
 

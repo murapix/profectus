@@ -26,6 +26,7 @@ import { createCumulativeConversion } from "features/conversion";
 import { createResetButton } from "data/common";
 import { createReset } from "features/reset";
 import skyrmion from "../skyrmion/skyrmion";
+import { Sides } from "../timecube/timesquares";
 
 export const id = "acceleron";
 const layer = createLayer(id, function (this: BaseLayer) {
@@ -122,8 +123,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
             description: jsx(() => <>[{name}] Entropic Dilation</>)
         })),
         createMultiplicativeModifier(() => ({
-            multiplier: Decimal.dOne,
-            enabled: false,
+            multiplier: timecube.getTimesquareEffect(Sides.BACK),
+            enabled: () => Decimal.gt(unref(timecube.timesquares.squares[Sides.BACK].square.amount), 0),
             description: jsx(() => <>[{timecube.name}] Back Time Squares ({formatWhole(Decimal.dZero)})</>)
         })),
         createMultiplicativeModifier(() => ({

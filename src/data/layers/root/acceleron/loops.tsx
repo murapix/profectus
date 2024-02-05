@@ -18,6 +18,7 @@ import { createMultiplicativeModifier, createSequentialModifier } from "game/mod
 import LoopsVue from "./Loops.vue";
 import SpacerVue from "components/layout/Spacer.vue";
 import LoopDescriptionsVue from "./LoopDescriptions.vue";
+import { Sides } from "../timecube/timesquares";
 
 const id = "loops";
 const layer = createLayer(id, function (this: BaseLayer) {
@@ -56,8 +57,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
             description: jsx(() => <>[{skyrmion.name}] 4th abyssal pion buyable</>)
         })),
         createMultiplicativeModifier(() => ({
-            multiplier: 1,
-            enabled: false,
+            multiplier: timecubeLayer.getTimesquareEffect(Sides.RIGHT),
+            enabled: () => Decimal.gt(unref(timecubeLayer.timesquares.squares[Sides.RIGHT].square.amount), 0),
             description: jsx(() => <>[{timecubeLayer.name}] Right Time Squares</>)
         }))
     ]);
@@ -190,7 +191,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             effect() { return new Decimal(getUpgradeEffect(timecubeLayer.upgrades.tile))
                                 .times(getUpgradeEffect(acceleronLayer.upgrades.conversion))
                                 .times(getUpgradeEffect(entropy.enhancements.tesselation))
-                                .times(1) // front time square
+                                .times(unref(timecubeLayer.getTimesquareEffect(Sides.FRONT)))
                                 .div(1) // active right timeline effect
                                 .times(1) // passive right timeline bonus
                                 .div(1) // active front timeline effect

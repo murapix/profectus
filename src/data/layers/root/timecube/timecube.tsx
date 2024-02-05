@@ -13,7 +13,7 @@ import TimecubeUpgradesVue from "./TimecubeUpgrades.vue";
 import { noPersist } from "game/persistence"
 import entangled from "../entangled/entangled";
 import fome, { FomeTypes } from "../fome/fome";
-import timesquares from "./timesquares";
+import timesquares, { Sides } from "./timesquares";
 import timelines from "./timelines";
 import { render } from "util/vue";
 import { createTabFamily } from "features/tabs/tabFamily";
@@ -388,7 +388,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
         )),
 
         timesquares,
-        timelines
+        timelines,
+
+        getTimesquareEffect(side: Sides) {
+            return timesquares.squares[side].square.effect
+        }
     }
 })
 

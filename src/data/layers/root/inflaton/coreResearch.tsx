@@ -21,6 +21,8 @@ import SpacerVue from "components/layout/Spacer.vue";
 import ResearchQueueVue from "./ResearchQueue.vue";
 import { render } from "util/vue";
 import ColumnVue from "components/layout/Column.vue";
+import timecube from "../timecube/timecube";
+import { Sides } from "../timecube/timesquares";
 
 const id = "coreResearch";
 const layer = createLayer(id, function (this: BaseLayer) {
@@ -299,7 +301,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 description: 'Increase Subspace building size tenfold, and their potency by twice as much',
                 effect: jsx(() => <>{formatWhole(unref(feature.effect as ProcessedComputable<BuildingSizeEffect>).size)}x, {formatWhole(Decimal.times(unref(feature.effect as ProcessedComputable<BuildingSizeEffect>).size, unref(feature.effect as ProcessedComputable<BuildingSizeEffect>).effect))}x</>)
             },
-            cost() { return Decimal.pow(200, unref(feature.amount)).times(150000).dividedBy(1).div(1); /* 1st abyssal spinor buyable, left time square */},
+            cost() { return Decimal.pow(200, unref(feature.amount)).times(150000).dividedBy(1).div(unref(timecube.getTimesquareEffect(Sides.LEFT))); /* 1st abyssal spinor buyable */},
             effect() { return {
                 size: Decimal.pow(10, unref(feature.amount)),
                 effect: Decimal.pow(2, unref(feature.amount))

@@ -3,8 +3,8 @@ import { jsx } from "features/feature";
 import { BaseLayer, createLayer } from "game/layers";
 import { persistent } from "game/persistence";
 import Decimal, { DecimalSource } from "lib/break_eternity";
-import { formatWhole } from "util/break_eternity";
-import { computed, unref } from "vue";
+import { format, formatWhole } from "util/break_eternity";
+import { computed, ref, unref, watch } from "vue";
 import timecube from "./timecube";
 import { createTimesquare, Timesquare } from "./timesquare";
 import RowVue from "components/layout/Row.vue";
@@ -12,6 +12,8 @@ import { render, renderRow } from "util/vue";
 import SpacerVue from "components/layout/Spacer.vue";
 import TextVue from "components/fields/Text.vue";
 import { noPersist } from "game/persistence"
+import { getUpgradeEffect } from "features/upgrades/upgrade";
+import acceleron from "../acceleron/acceleron";
 
 const id = "timesquare";
 const layer = createLayer(id, function (this: BaseLayer) {
@@ -58,48 +60,73 @@ const layer = createLayer(id, function (this: BaseLayer) {
     
     const squares: Record<Sides, Timesquare> = {
         [Sides.FRONT]: createTimesquare(square => ({
-            display: jsx(() => <>Front</>),
-            effect() { return new Decimal(unref(square.square.amount)) },
+            display: {
+                title: jsx(() => <>Front</>),
+                effect: jsx(() => <>+{format(unref(square.square.effect).minus(1).times(100))}% {timecube.timecubes.displayName}</>)
+            },
+            effect() { return Decimal.pow(unref(square.square.amount), 0.45).times(getUpgradeEffect(timecube.upgrades.turn)).plus(1) },
             resource: noPersist(timecube.timecubes),
             baseCost: 1e6,
             buyAmount
         })),
         [Sides.RIGHT]: createTimesquare(square => ({
-            display: jsx(() => <>Right</>),
-            effect() { return new Decimal(unref(square.square.amount)) },
+            display: {
+                title: jsx(() => <>Right</>),
+                effect: jsx(() => <>+{format(unref(square.square.effect))}x Entropic Loop build speed</>)
+            },
+            effect() { return Decimal.pow(unref(square.square.amount), 0.7).plus(1) },
             resource: noPersist(timecube.timecubes),
             baseCost: 1e6,
             buyAmount
         })),
         [Sides.TOP]: createTimesquare(square => ({
-            display: jsx(() => <>Top</>),
-            effect() { return new Decimal(unref(square.square.amount)) },
+            display: {
+                title: jsx(() => <>Top</>),
+                effect: jsx(() => <>+{format(unref(square.square.effect).minus(1).times(100))}% increased Universe diameter</>)
+            },
+            effect() { return Decimal.pow(unref(square.square.amount), 0.15).dividedBy(15).plus(1) },
             resource: noPersist(timecube.timecubes),
             baseCost: 1e6,
             buyAmount
         })),
         [Sides.BACK]: createTimesquare(square => ({
-            display: jsx(() => <>Back</>),
-            effect() { return new Decimal(unref(square.square.amount)) },
+            display: {
+                title: jsx(() => <>Back</>),
+                effect: jsx(() => <>+{format(unref(square.square.effect).minus(1).times(100))}% {acceleron.accelerons.displayName} effect</>)
+            },
+            effect() { return Decimal.pow(unref(square.square.amount), 0.2).dividedBy(5).plus(1) },
             resource: noPersist(timecube.timecubes),
             baseCost: 1e6,
             buyAmount
         })),
         [Sides.LEFT]: createTimesquare(square => ({
-            display: jsx(() => <>Left</>),
-            effect() { return new Decimal(unref(square.square.amount)) },
+            display: {
+                title: jsx(() => <>Left</>),
+                effect: jsx(() => <>1/{format(unref(square.square.effect))}x Subspatial Construction cost</>)
+            },
+            effect() { return Decimal.pow(unref(square.square.amount), 0.5).plus(1) },
             resource: noPersist(timecube.timecubes),
             baseCost: 1e6,
             buyAmount
         })),
         [Sides.BOTTOM]: createTimesquare(square => ({
-            display: jsx(() => <>Bottom</>),
-            effect() { return new Decimal(unref(square.square.amount)) },
+            display: {
+                title: jsx(() => <>Bottom</>),
+                effect: jsx(() => <>+{format(unref(square.square.effect))} effective Entropic Enhancements</>)
+            },
+            effect() { return Decimal.pow(unref(square.square.amount), 0.1).times(getUpgradeEffect(timecube.upgrades.tall)) },
             resource: noPersist(timecube.timecubes),
             baseCost: 1e6,
             buyAmount
         }))
     }
+
+    const buyAmountInput = ref<string>('1');
+    watch(buyAmountInput, updated => {
+        if (Decimal.isNaN(updated)) return;
+        if (Decimal.lt(updated, 1)) return;
+        buyAmount.value = Decimal.floor(updated);
+    });
 
     return {
         buyAmount,
@@ -112,11 +139,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
                     {render(buyAmountButtons.minusOne)}
                     <TextVue
                         style={{width: 'fit-content'}}
-                        onUpdate:modelValue={value => Decimal.isNaN(value) && Decimal.gte(value, 1)
-                            ? (buyAmount.value = Decimal.floor(value))
-                            : null
-                        }
-                        modelValue={formatWhole(buyAmount.value)}
+                        onUpdate:modelValue={value => buyAmountInput.value = value}
+                        modelValue={buyAmountInput.value}
                     />
                     {render(buyAmountButtons.plusOne)}
                     {render(buyAmountButtons.plusTen)}

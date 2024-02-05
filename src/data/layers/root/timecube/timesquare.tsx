@@ -15,7 +15,12 @@ import TimesquareComponent from "./Timesquare.vue";
 export const TimesquareType = Symbol("Timesquare");
 
 export interface TimesquareOptions<T = Decimal> extends EffectFeatureOptions<T> {
-    display: Computable<CoercableComponent>;
+    display: Computable<CoercableComponent |
+        {
+            title: CoercableComponent;
+            effect: CoercableComponent;
+        }
+    >;
     buyAmount: Computable<DecimalSource>;
     baseCost: Computable<DecimalSource>;
     resource: Resource;

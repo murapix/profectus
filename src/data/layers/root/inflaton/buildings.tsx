@@ -20,6 +20,8 @@ import coreResearch from "./coreResearch";
 import ToggleVue from "components/fields/Toggle.vue";
 import { noPersist, persistent } from "game/persistence";
 import ColumnVue from "components/layout/Column.vue";
+import { Sides } from "../timecube/timesquares";
+import timecube from "../timecube/timecube";
 
 const id = "buildings";
 const layer = createLayer(id, function (this: BaseLayer) {
@@ -117,7 +119,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         if (size.gt(softcap)) {
             size = size.pow(0.1).times(Decimal.dOne.minus(0.1).pow_base(softcap));
         }
-        return size.times(1) // top time square effect
+        return size.times(unref(timecube.getTimesquareEffect(Sides.TOP)))
                    .div(1) // active top timeline nerf
                    .times(1) // passive top timeline bonus
     }));
