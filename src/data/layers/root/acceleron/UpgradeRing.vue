@@ -557,17 +557,18 @@ export default defineComponent({
 
     border-radius: 0;
     border-width: 2px;
-    background: #0000002F;
 }
 
 :deep(.ring-upgrade.left) {
     text-align: left;
     border-style: solid solid solid none;
+    background: linear-gradient(to right, #0000, #0000002F);
 }
 
 :deep(.ring-upgrade.right) {
     text-align: right;
     border-style: solid none solid solid;
+    background: linear-gradient(to left, #0000, #0000002F);
 }
 
 :deep(.ring-upgrade.locked) {
