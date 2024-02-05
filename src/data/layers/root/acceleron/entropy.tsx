@@ -331,7 +331,9 @@ export type GenericEnhancement<T> = Replace<
 const sqrt5 = Decimal.sqrt(5);
 const phi = sqrt5.plus(1).div(2);
 function fibonacciNumber(index: DecimalSource) {
-    return phi.pow(index).minus(Decimal.dOne.minus(phi).pow(index)).div(sqrt5);
+    const pow = phi.pow(index);
+    const cos = Decimal.times(index, Math.PI).cos();
+    return pow.minus(cos.dividedBy(pow)).dividedBy(sqrt5);
 }
 
 export default layer;
