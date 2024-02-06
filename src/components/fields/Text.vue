@@ -39,6 +39,7 @@ const props = defineProps<{
     placeholder?: string;
     maxHeight?: number;
     submitOnBlur?: boolean;
+    autofocus?: boolean;
 }>();
 const emit = defineEmits<{
     (e: "update:modelValue", value: string): void;
@@ -49,9 +50,11 @@ const emit = defineEmits<{
 const titleComponent = computeOptionalComponent(toRef(props, "title"), "span");
 
 const field = shallowRef<HTMLElement | null>(null);
-onMounted(() => {
-    field.value?.focus();
-});
+if (props.autofocus ?? true) {
+    onMounted(() => {
+        field.value?.focus();
+    });
+}
 
 const value = computed({
     get() {

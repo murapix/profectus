@@ -141,6 +141,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                         style={{width: 'fit-content'}}
                         onUpdate:modelValue={value => buyAmountInput.value = value}
                         modelValue={buyAmountInput.value}
+                        autofocus={false}
                     />
                     {render(buyAmountButtons.plusOne)}
                     {render(buyAmountButtons.plusTen)}
