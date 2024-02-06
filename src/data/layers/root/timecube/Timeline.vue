@@ -10,15 +10,16 @@
     >
         <h2>{{ sideNames[0] }} {{ sideNames[1] }}</h2>
         <div>Amount: {{ format(unref(score)) }}</div>
-        <div>{{ sideNames[0] }}: +{{ format(effect.times(100)) }}%</div>
-        <div>{{ sideNames[1] }}: +{{ format(effect.times(100)) }}%</div>
+        <div>{{ sideNames[0] }}: +{{ format(unref(sideEffects[sides[0]]).times(100)) }}%</div>
+        <div>{{ sideNames[1] }}: +{{ format(unref(sideEffects[sides[1]]).times(100)) }}%</div>
     </button>
 </template>
 
 <script setup lang="tsx">
 import Decimal, { format } from 'util/break_eternity';
 import { GenericTimeline } from './timeline';
-import { unref } from 'vue';
+import { computed, unref } from 'vue';
+import timelines from './timelines'
 
 const props = defineProps<{
     id: GenericTimeline["id"];
@@ -30,7 +31,11 @@ const props = defineProps<{
 }>();
 
 const sideNames = props.sides.map(side => side[0].toUpperCase() + side.slice(1));
-const effect = Decimal.add(unref(props.score), 1).log10().dividedBy(10);
+const effect = computed(() => Decimal.add(unref(props.score), 1).log10().dividedBy(10));
+const sideEffects = {
+    [props.sides[0]]: computed(() => unref(effect).times(timelines.scoreMultipliers[props.sides[0]])),
+    [props.sides[1]]: computed(() => unref(effect).times(timelines.scoreMultipliers[props.sides[1]]))
+};
 </script>
 
 <style scoped>
@@ -41,9 +46,8 @@ const effect = Decimal.add(unref(props.score), 1).log10().dividedBy(10);
     font-size: 10px;
 
     background-color: var(--locked);
-    border-color: rgba(0,0,0,0.125);
+    border-color: #424B5D;
     border-width: 4px;
-    border-radius: 0;
 }
 
 .timeline:hover {
