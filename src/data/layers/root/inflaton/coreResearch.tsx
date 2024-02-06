@@ -7,7 +7,7 @@ import { createResource } from "features/resources/resource";
 import { Computable, ProcessedComputable } from "util/computed";
 import Decimal, { DecimalSource } from "lib/break_eternity";
 import { EffectFeatureOptions, GenericEffectFeature, effectDecorator } from "features/decorators/common";
-import { buildingSize as currentBuildingSize } from "./building";
+import { buildingSize, buildingSize as currentBuildingSize } from "./building";
 import buildings from "./buildings";
 import { ComputedRef, computed, unref } from "vue";
 import { format, formatWhole } from "util/break_eternity";
@@ -350,7 +350,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
     const researchQueue = persistent<string[]>([]);
 
     const baseResearchGain: ComputedRef<Decimal> = computed(() => Decimal.times(unref(buildings.buildings.lab.effect), getResearchEffect(research.researchBoost, 1)).times(1) /* 1st abyssal pion buyable */);
-    const finalResearchGain = computed(() => unref(baseResearchGain));
+    const finalResearchGain: ComputedRef<Decimal> = computed(() => unref(baseResearchGain).minus(unref(buildings.buildings.tuner.effect).cost).clampMin(0));
     
     const autoResearching = persistent<boolean>(false);
     inflaton.on("preUpdate", diff => {
@@ -363,7 +363,22 @@ const layer = createLayer(id, function (this: BaseLayer) {
     });
     inflaton.on("update", () => { // if automating research and below parallel count, add the cheapest repeatables to the queue
         if (!unref(autoResearching)) return;
-        if (unref(researchQueue).length >= unref(parallelResearchCount)) return;
+        if (unref(researchQueue).length >= unref(parallelResearchCount)) {
+            if (!unref(repeatables.buildingSize.canResearch)) return;
+            if (unref(researchQueue).some(id => id === repeatables.buildingSize.id)) return;
+            if (unref(researchQueue).length >= unref(queueLength)) return;
+            
+            researchQueue.value = [repeatables.buildingSize.id, ...unref(researchQueue)]
+                .map(id => [research, repeatables].flatMap(location => Object.values(location) as GenericResearch[]).find(node => node.id === id))
+                .filter(node => node !== undefined)
+                .sort((a,b) => Decimal.compare(
+                    unref((a!.requirements as CostRequirement).cost as ProcessedComputable<DecimalSource>),
+                    unref((b!.requirements as CostRequirement).cost as ProcessedComputable<DecimalSource>)
+                ))
+                .map(node => node!.id);
+            
+            return;
+        }
         Object.values(repeatables).filter(repeatable => Decimal.gte(unref(repeatable.amount), 1))
                                   .filter(repeatable => !unref(repeatable.isResearching))
                                   .filter(repeatable => unref(repeatable.canResearch))
@@ -394,37 +409,41 @@ const layer = createLayer(id, function (this: BaseLayer) {
         parallelResearchCount,
         researchQueue,
 
-        researchGain: finalResearchGain,
+        researchGain: baseResearchGain,
+        totalResearchGain: finalResearchGain,
         autoResearching,
         display: jsx(() => (
-            <div class='row' style={{flexFlow: 'row-reverse nowrap', alignItems: 'flex-start', justifyContent: 'space-evenly'}}>
-                <ColumnVue>
-                    <ResearchQueueVue parallel={parallelResearchCount} queue={computed(() => Array.from({...unref(researchQueue), length: Math.max(unref(researchQueue).length, unref(queueLength))}))} />
-                    {
-                        unref(research.repeatableUnlock.researched)
-                            ? <>
-                                <span style={{fontSize: "12px"}}>Enable Auto-Repeatable Research:</span>
-                                <ToggleVue v-model={autoResearching.value} style={{marginTop: 0}}/>
-                                <SpacerVue />
-                            </>
-                            : undefined
-                    }
-                </ColumnVue>
-                <ResearchTreeVue research={[
-                    [research.quintupleCondenser],
-                    [research.doubleSize, research.cheaperLabs],
-                    [research.fomeGain, research.researchBoost, research.storage],
-                    [research.halfQuantum, research.quadrupleSize, research.upgrades, research.respecs],
-                    [research.moreFomeGain, research.queueTwo, research.improvedStorage],
-                    [research.quarterQuantum, research.repeatableUnlock, research.inflationResearch, research.autofillStorage],
-                    [research.evenMoreFomeGain, research.biggerBuildings, research.isolatedStorage, research.instantInflation],
-                    [research.moreRepeatables, research.queueFour, research.autobuild],
-                    [research.mastery]
-                ]}/>
-                <ColumnVue>
-                    {...Object.values(repeatables).map(render).map(element => <div style={{margin: 'var(--feature-margin) 0px'}}>{element}</div>)}
-                </ColumnVue>
-            </div>
+            <>
+                <div>Your buildings are producing {formatWhole(unref(finalResearchGain))} Research Points</div>
+                <div class='row' style={{flexFlow: 'row-reverse nowrap', alignItems: 'flex-start', justifyContent: 'space-evenly'}}>
+                    <ColumnVue>
+                        <ResearchQueueVue parallel={parallelResearchCount} queue={computed(() => Array.from({...unref(researchQueue), length: Math.max(unref(researchQueue).length, unref(queueLength))}))} />
+                        {
+                            unref(research.repeatableUnlock.researched)
+                                ? <>
+                                    <span style={{fontSize: "12px"}}>Enable Auto-Repeatable Research:</span>
+                                    <ToggleVue v-model={autoResearching.value} style={{marginTop: 0}}/>
+                                    <SpacerVue />
+                                </>
+                                : undefined
+                        }
+                    </ColumnVue>
+                    <ResearchTreeVue research={[
+                        [research.quintupleCondenser],
+                        [research.doubleSize, research.cheaperLabs],
+                        [research.fomeGain, research.researchBoost, research.storage],
+                        [research.halfQuantum, research.quadrupleSize, research.upgrades, research.respecs],
+                        [research.moreFomeGain, research.queueTwo, research.improvedStorage],
+                        [research.quarterQuantum, research.repeatableUnlock, research.inflationResearch, research.autofillStorage],
+                        [research.evenMoreFomeGain, research.biggerBuildings, research.isolatedStorage, research.instantInflation],
+                        [research.moreRepeatables, research.queueFour, research.autobuild],
+                        [research.mastery]
+                    ]}/>
+                    <ColumnVue>
+                        {...Object.values(repeatables).map(render).map(element => <div style={{margin: 'var(--feature-margin) 0px'}}>{element}</div>)}
+                    </ColumnVue>
+                </div>
+            </>
         ))
     }
 });

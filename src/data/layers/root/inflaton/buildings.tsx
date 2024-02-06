@@ -61,7 +61,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 visibility: noPersist(inflaton.upgrades.research.bought),
                 title: 'Quantum Flux Analyzer',
                 description: 'Study fluctuations in the quantum field',
-                effect: jsx(() => <>+{formatWhole(unref((building as BaseRepeatable & GenericEffectFeature<DecimalSource>).effect))} research points/s</>)
+                effect: jsx(() => <>+{formatWhole(unref(coreResearch.researchGain))} research points/s</>)
             }
         })) as GenericBuilding;
         const storage = createBuilding(building => ({
