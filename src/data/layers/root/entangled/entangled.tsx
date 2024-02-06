@@ -19,6 +19,8 @@ import { ProcessedComputable } from "util/computed";
 import { createReset } from "features/reset";
 import skyrmion from "../skyrmion/skyrmion";
 import fome from "../fome/fome";
+import Row from "components/layout/Row.vue";
+import Column from "components/layout/Column.vue";
 
 const layer = createLayer("entangled", () => {
     const name = "Entangled Strings";
@@ -35,6 +37,7 @@ const layer = createLayer("entangled", () => {
         return ['', branch].includes(unref(branchOrder));
     }
 
+    const buttonSize = '160px';
     const expansions = (() => {
         const cost: ComputedRef<number> = computed(() => [skyrmion, fome, acceleron, timecube, inflaton].filter(layer => unref(layer.bought)).length + 2);
         const skyrmion = createUpgrade(() => ({
@@ -47,7 +50,8 @@ const layer = createLayer("entangled", () => {
             display: {
                 title: 'Grasp the Void',
                 description: 'You have long since extracted all you can from your Skyrmions, but new insights show there may be yet more to gain'
-            }
+            },
+            style: { width: buttonSize, height: buttonSize }
         }));
         const fome = createUpgrade(() => ({
             requirements: createCostRequirement(() => ({
@@ -59,7 +63,8 @@ const layer = createLayer("entangled", () => {
             display: {
                 title: 'Architectural Renaissance (TBD)',
                 description: 'Look to the past, and see what glories the future may hold'
-            }
+            },
+            style: { width: buttonSize, height: buttonSize }
         }));
         const acceleron = createUpgrade(() => ({
             requirements: createCostRequirement(() => ({
@@ -71,7 +76,8 @@ const layer = createLayer("entangled", () => {
             display: {
                 title: 'Tetradimensional Engineering (TBD)',
                 description: 'Application of structural ideas gained from Entropic Loops may give rise to a powerful new sector of exploration and progress'
-            }
+            },
+            style: { width: buttonSize, height: buttonSize }
         }));
         const timecube = createUpgrade(() => ({
             requirements: createCostRequirement(() => ({
@@ -83,7 +89,8 @@ const layer = createLayer("entangled", () => {
             display: {
                 title: 'Enigmatic Engineering',
                 description: 'Time Cubes seem helpful, but limited in power. Maybe your newfound mastery over space and time can reveal more of their secrets'
-            }
+            },
+            style: { width: buttonSize, height: buttonSize }
         }));
         const inflaton = createUpgrade(() => ({
             requirements: createCostRequirement(() => ({
@@ -95,7 +102,8 @@ const layer = createLayer("entangled", () => {
             display: {
                 title: 'Technological Ascendency (TBD)',
                 description: 'You have shown mastery over space and time, at least individually. Together, though, there are more secrets to unlock'
-            }
+            },
+            style: { width: buttonSize, height: buttonSize }
         }));
         return { skyrmion, fome, acceleron, timecube, inflaton };
     })();
@@ -103,11 +111,11 @@ const layer = createLayer("entangled", () => {
     const numExpansions = computed(() => Object.values(expansions).filter(expansion => expansion.bought.value).length);
     const expansionScore = computed(() => {
         return (
-            (unref(expansions.skyrmion.bought) ? 1 : 0)  // 13 - 1
-          + (unref(expansions.fome.bought) ? 2 : 0)      // 33 - 16
-          + (unref(expansions.acceleron.bought) ? 4 : 0) // 31 - 4
-          + (unref(expansions.timecube.bought) ? 8 : 0)  // 23 - 2
-          + (unref(expansions.inflaton.bought) ? 16 : 0) // 32 - 8
+            (unref(expansions.skyrmion.bought) ? 1 : 0)
+          + (unref(expansions.fome.bought) ? 2 : 0)
+          + (unref(expansions.acceleron.bought) ? 4 : 0)
+          + (unref(expansions.timecube.bought) ? 8 : 0)
+          + (unref(expansions.inflaton.bought) ? 16 : 0)
         )
     })
     const canEntangle = computed(() => {
@@ -258,7 +266,8 @@ const layer = createLayer("entangled", () => {
                 skyrmion.skyrmions.value = unref(acceleron.achievements.skyrmion.earned) ? 10 : 1;
             });
         },
-        display: 'Reset for 1 Entangled String'
+        display: '<h2>Condense reality into 1 Entangled String</h2>',
+        style: { width: buttonSize, height: buttonSize }
     }));
     const reset = createReset(() => ({
         thingsToReset() {
@@ -349,8 +358,15 @@ const layer = createLayer("entangled", () => {
         display: jsx(() => (
             <>
                 <MainDisplay resource={strings} color={color} />
-                <Spacer />
-                {render(resetButton)}
+                <Row>
+                    {renderCol(expansions.skyrmion, expansions.fome)}
+                    <Column>
+                        {render(resetButton)}
+                        <Spacer height={buttonSize} />
+                        {render(expansions.acceleron)}
+                    </Column>
+                    {renderCol(expansions.inflaton, expansions.timecube)}
+                </Row>
                 <Spacer />
                 <div>The next {strings.displayName} requires:</div>
                 <Spacer />
@@ -367,7 +383,6 @@ const layer = createLayer("entangled", () => {
                     : undefined
                 }
                 <Spacer />
-                {renderRow(...Object.values(expansions))}
                 {renderCol(...Object.values(milestones))}
             </>
         )),

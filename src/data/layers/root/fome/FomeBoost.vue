@@ -1,5 +1,5 @@
 <template>
-    <div style="display: grid; gridTemplateColumns: repeat(7, auto); width: fit-content; margin: auto">
+    <div style="display: grid; gridTemplateColumns: repeat(7, auto); width: fit-content; margin: auto; padding-left: 150px">
         <template v-for="(fomeBoosts, key) in boosts" :key="key">
             <Spacer :num-labels="7" v-for="n in 7" :key="n" />
             <template v-for="(boost, index) in fomeBoosts" :key="key + '-' + index">

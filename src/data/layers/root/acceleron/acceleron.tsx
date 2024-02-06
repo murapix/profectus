@@ -10,16 +10,16 @@ import entropy from "./entropy";
 import { format, formatTime, formatWhole } from "util/break_eternity";
 import loops from "./loops";
 import { noPersist, persistent } from "game/persistence";
-import { createAchievement } from "features/achievements/achievement";
+import { createAchievement, BaseAchievement } from "features/achievements/achievement";
 import { effectDecorator } from "features/decorators/common";
 import { displayRequirements, createCostRequirement } from "game/requirements";
 import entangled from "../entangled/entangled";
 import fome, { FomeTypes } from "../fome/fome";
 import inflaton from "../inflaton/inflaton";
-import MainDisplayVue from "features/resources/MainDisplay.vue";
-import SpacerVue from "components/layout/Spacer.vue";
+import MainDisplay from "features/resources/MainDisplay.vue";
+import Spacer from "components/layout/Spacer.vue";
 import { render, renderRow } from "util/vue";
-import UpgradeRingVue from "../acceleron/UpgradeRing.vue";
+import UpgradeRing from "../acceleron/UpgradeRing.vue";
 import { createTabFamily } from "features/tabs/tabFamily";
 import { createTab } from "features/tabs/tab";
 import { createCumulativeConversion } from "features/conversion";
@@ -27,6 +27,7 @@ import { createResetButton } from "data/common";
 import { createReset } from "features/reset";
 import skyrmion from "../skyrmion/skyrmion";
 import { Sides } from "../timecube/timesquares";
+import { addTooltip } from "features/tooltips/tooltip";
 
 export const id = "acceleron";
 const layer = createLayer(id, function (this: BaseLayer) {
@@ -151,61 +152,103 @@ const layer = createLayer(id, function (this: BaseLayer) {
     });
 
     const totalAcceleronResource = createResource(noPersist(totalAccelerons));
-    const achievementStyle = {
+    const achievementTextStyle = {
         fontSize: '48px',
-        fontWeight: 'normal',
-        color: 'var(--feature-foreground)'
+        fontWeight: 'normal'
     } as StyleValue
+    const achievementStyle = (feature: BaseAchievement) => computed(() => ({
+        background: '#0000002F',
+        border: `solid ${unref(feature.earned) ? 'var(--bought)' : 'var(--layer-color)'} 2px`,
+        borderRadius: 0,
+        color: unref(feature.earned) ? 'var(--bought)' : 'var(--layer-color)',
+    }));
     const achievements = {
-        protoversal: createAchievement(() => ({ // keep protoversal fome upgrades and boosts
-            display: jsx(() => <span style={achievementStyle}>P</span>),
+        protoversal: createAchievement(feature => ({ // keep protoversal fome upgrades and boosts
+            display: jsx(() => <span style={achievementTextStyle}>P</span>),
             requirements: createCostRequirement(() => ({
                 resource: noPersist(totalAcceleronResource),
                 cost: 1
             })),
-            small: true
+            small: true,
+            style: achievementStyle(feature),
+            tooltip: {
+                requirement: <>1 Acceleron</>,
+                effect: <>Keep Protoversal Boosts and Size Upgrades on Acceleron reset<br />
+                          Keep Foam Achievements on Acceleron reset</>
+            }
         })),
-        infinitesimal: createAchievement(() => ({ // keep infinitesimal fome upgrades and boosts
-            display: jsx(() => <span style={achievementStyle}>I</span>),
+        infinitesimal: createAchievement(feature => ({ // keep infinitesimal fome upgrades and boosts
+            display: jsx(() => <span style={achievementTextStyle}>I</span>),
             requirements: createCostRequirement(() => ({
                 resource: noPersist(totalAcceleronResource),
                 cost: 2
             })),
-            small: true
+            small: true,
+            style: achievementStyle(feature),
+            tooltip: {
+                requirement: <>2 {accelerons.displayName}</>,
+                effect: <>Keep Infinitesimal Boosts and Size Upgrades on Acceleron reset</>
+            }
         })),
-        subspatial: createAchievement(() => ({ // keep subspatial fome upgrades and boosts
-            display: jsx(() => <span style={achievementStyle}>Ss</span>),
+        subspatial: createAchievement(feature => ({ // keep subspatial fome upgrades and boosts
+            display: jsx(() => <span style={achievementTextStyle}>Ss</span>),
             requirements: createCostRequirement(() => ({
                 resource: noPersist(totalAcceleronResource),
                 cost: 3
             })),
-            small: true
+            small: true,
+            style: achievementStyle(feature),
+            tooltip: {
+                requirement: <>3 {accelerons.displayName}</>,
+                effect: <>Keep Subspatial Boosts and Size Upgrades on Acceleron reset</>
+            }
         })),
-        skyrmion: createAchievement(() => ({ // start with 10 skyrmions
-            display: jsx(() => <span style={achievementStyle}>S</span>),
+        skyrmion: createAchievement(feature => ({ // start with 10 skyrmions
+            display: jsx(() => <span style={achievementTextStyle}>S</span>),
             requirements: createCostRequirement(() => ({
                 resource: noPersist(totalAcceleronResource),
                 cost: 5
             })),
-            small: true
+            small: true,
+            style: achievementStyle(feature),
+            tooltip: {
+                requirement: <>5 {accelerons.displayName}</>,
+                effect: <>Start with 10 Skyrmions on Acceleron reset</>
+            }
         })),
-        subplanck: createAchievement(() => ({ // keep subplanck fome upgrades and boosts
-            display: jsx(() => <span style={achievementStyle}>Sp</span>),
+        subplanck: createAchievement(feature => ({ // keep subplanck fome upgrades and boosts
+            display: jsx(() => <span style={achievementTextStyle}>Sp</span>),
             requirements: createCostRequirement(() => ({
                 resource: noPersist(totalAcceleronResource),
                 cost: 7
             })),
-            small: true
+            small: true,
+            style: achievementStyle(feature),
+            tooltip: {
+                requirement: <>7 {accelerons.displayName}</>,
+                effect: <>Keep Subplanck Boosts and Size Upgrades on Acceleron reset</>
+            }
         })),
-        quantum: createAchievement(() => ({ // keep quantum fome upgrades and boosts
-            display: jsx(() => <span style={achievementStyle}>Q</span>),
+        quantum: createAchievement(feature => ({ // keep quantum fome upgrades and boosts
+            display: jsx(() => <span style={achievementTextStyle}>Q</span>),
             requirements: createCostRequirement(() => ({
                 resource: noPersist(totalAcceleronResource),
                 cost: 10
             })),
-            small: true
+            small: true,
+            style: achievementStyle(feature),
+            tooltip: {
+                requirement: <>10 {accelerons.displayName}</>,
+                effect: <>Keep Protoversal Boosts and Size Upgrades on Acceleron reset</>
+            }
         }))
     }
+    for (const achievement of Object.values(achievements)) {
+        addTooltip(achievement, {
+            display: jsx(() => (<><h3>{achievement.tooltip.requirement}</h3><br />{achievement.tooltip.effect}</>))
+        });
+    }
+
 
     const upgrades = (() => {
         const acceleration = createUpgrade<EffectUpgradeOptions>(upgrade => ({
@@ -388,10 +431,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
 
     const header = jsx(() => (
         <>
-            <MainDisplayVue resource={accelerons} color={color} effect={jsx(() => <>which are causing time to go {format(unref(timeMult))}x faster<br />
-            For every second in real time, {formatTime(unref(timeMult))} passes</>)} />
+            <MainDisplay resource={accelerons} color={color} effect={jsx(() => <>which are causing time to go {format(unref(timeMult))}x faster<br />
+            For every second in real time, <pre style={{display: 'inline'}}>{formatTime(unref(timeMult))}</pre> passes</>)} />
         </>
-    ))
+    ));
     const tabs = createTabFamily({
         loops: () => ({
             display: "Entropic Loops",
@@ -399,12 +442,13 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 display: jsx(() => (
                     <>
                         {render(header)}
-                        {unref(upgrades.tetration.bought) ? <SpacerVue height="70px" /> : render(resetButton)}
+                        {unref(upgrades.tetration.bought) ? <Spacer height="70px" /> : render(resetButton)}
                         {render(loops.upperDisplay)}
-                        <UpgradeRingVue radius={192} width={60} distance={150} top={4} right={right} bottom={4} left={left} />
-                        <SpacerVue />
+                        <UpgradeRing radius={192} width={60} distance={150} top={4} right={right} bottom={4} left={left} />
+                        <Spacer />
                         {render(loops.lowerDisplay)}
-                        <SpacerVue />
+                        <Spacer />
+                        <Spacer />
                         {renderRow(...Object.values(achievements))}
                     </>
                 ))

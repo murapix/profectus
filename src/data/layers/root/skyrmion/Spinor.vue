@@ -17,7 +17,7 @@
 
 <script setup lang="ts">
 import { render } from "util/vue";
-import { defineComponent, unref } from "vue";
+import { unref } from "vue";
 import { StyleValue, Visibility } from "features/feature";
 import spinor from "./spinor"
 
@@ -48,6 +48,7 @@ function getPos(index: keyof typeof upgrades) {
     --row: 1;
     --col: 1;
     --gap: 5px;
+    margin: 0px 125px;
     width: calc(
         var(--width) * var(--upgrade-width) + (var(--width) - 1) * var(--upgrade-width) / 2 +
             (var(--width) - 1) * var(--gap)

@@ -11,19 +11,20 @@ import fome, { FomeTypes } from "../fome/fome";
 import pion from "./pion";
 import spinor from "./spinor";
 import { GenericUpgrade } from "features/upgrades/upgrade";
-import SpacerVue from "components/layout/Spacer.vue";
-import RowVue from "components/layout/Row.vue";
+import Spacer from "components/layout/Spacer.vue";
+import Row from "components/layout/Row.vue";
 import { render } from "util/vue";
-import SkyrmionVue from "./Skyrmion.vue";
+import Skyrmion from "./Skyrmion.vue";
 import { GenericRepeatable, createRepeatable } from "features/repeatable";
 import { addTooltip } from "features/tooltips/tooltip";
 import { Direction } from "util/common";
 import { format, formatWhole } from "util/break_eternity";
 import abyss from "./abyss";
-import ResourceVue from "features/resources/Resource.vue";
+import Resource from "features/resources/Resource.vue";
 import Formula, { calculateCost } from "game/formulas/formulas";
 import { getFomeBoost } from "../fome/boost";
 import { noPersist } from "game/persistence"
+import entangled from "../entangled/entangled";
 
 const id = "skyrmion";
 const layer = createLayer(id, function (this: BaseLayer) {
@@ -291,20 +292,20 @@ const layer = createLayer(id, function (this: BaseLayer) {
         upgrades,
         display: jsx(() => (
             <>
-                You have <ResourceVue resource={resource} color={color} tag="h2" /> {resource.displayName}
+                You have <Resource resource={resource} color={color} tag="h2" /> {resource.displayName}
                 {Decimal.gt(getFomeBoost(FomeTypes.subspatial, 4), 0)
                 ?   <><br />Your {fome.subspatial.amount.displayName} is granting an additional <h3 style={{ color, textShadow: `0px 0px 10px ${color}` }}>
                         {format(getFomeBoost(FomeTypes.subspatial, 4))}
                     </h3> {resource.displayName}</>
                 : undefined}
-                <SpacerVue />
-                <RowVue><div style={{ flexFlow: "row nowrap" }}>
+                <Spacer />
+                <div class="row" style={{ flexFlow: "row nowrap" }}>
                     {render(pion.display)}
-                    {render(unref(abyss.display))}
+                    {unref(entangled.expansions.skyrmion.bought) ? render(unref(abyss.display)) : <Spacer width='250px' height='250px' />}
                     {render(spinor.display)}
-                </div></RowVue>
-                <SpacerVue />
-                <SkyrmionVue>{render(skyrmions)}</SkyrmionVue>
+                </div>
+                <Spacer />
+                <Skyrmion>{render(skyrmions)}</Skyrmion>
             </>
         )),
         

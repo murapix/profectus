@@ -64,7 +64,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
     }));
 
     const inflate = createClickable(() => ({
-        display: jsx(() => (<>INFLATE</>)),
+        display: jsx(() => unref(inflating) ? <>DISPERSE</> : <>INFLATE</>),
         onClick() {
             if (unref(inflating)) endInflation();
             else startInflation();
@@ -195,7 +195,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
             })),
             visibility() {
                 return unref(this.bought) || unref(core.research.upgrades.researched);
-            }
+            },
+            style: { width: '250px' }
         }));
         const skyrmionUpgrades = createUpgrade(() => ({
             display: {
@@ -208,7 +209,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
             })),
             visibility() {
                 return unref(this.bought) || unref(core.research.upgrades.researched);
-            }
+            },
+            style: { width: '250px' }
         }));
         return {
             subspaceBuildings,
@@ -289,7 +291,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                             ? <>
                                 {unref(upgrades.subspaceBuildings.bought) ? render(buildings.display) : undefined}
                                 <SpacerVue />
-                                {renderRow(...Object.values(upgrades))}
+                                {renderRow(upgrades.moreFome, upgrades.subspaceBuildings, upgrades.research, upgrades.skyrmionUpgrades)}
                             </>
                             : undefined
                         }

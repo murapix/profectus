@@ -48,6 +48,7 @@ function getPos(index: keyof typeof upgrades) {
     --row: 1;
     --col: 1;
     --gap: 5px;
+    margin: 0px 125px;
     width: calc(
         var(--width) * var(--upgrade-width) + (var(--width) - 1) * var(--upgrade-width) / 2 +
             (var(--width) - 1) * var(--gap)

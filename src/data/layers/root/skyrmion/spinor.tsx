@@ -17,8 +17,8 @@ import fome, { FomeTypes } from "../fome/fome";
 import ColumnVue from "components/layout/Column.vue";
 import ResourceVue from "features/resources/Resource.vue";
 import { format, formatSmall } from "util/break_eternity";
-import SpacerVue from "components/layout/Spacer.vue";
-import SpinorVue from "./Spinor.vue";
+import Spacer from "components/layout/Spacer.vue";
+import Spinor from "./Spinor.vue";
 import abyss from "./abyss";
 import { getFomeBoost } from "../fome/boost";
 import { displayResource } from "features/resources/resource";
@@ -128,7 +128,6 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 description: <>Increase Infinitesimal Foam gain by 50% per order of magnitude of Protoversal Foam</>
             },
             effect: amount => Decimal.max(unref(fome[FomeTypes.protoversal].amount), 0).plus(1).log10().times(amount).times(0.5).plus(1),
-            // bonusAmount: () => Decimal.add(unref(fome[FomeTypes.subplanck].boosts[3].effect))
             bonusAmount: () => Decimal.add(getFomeBoost(FomeTypes.subplanck, 3), unref(pion.upgrades.eta.effect))
         }),
         zeta: createUpgrade({
@@ -235,12 +234,14 @@ const layer = createLayer(id, function (this: BaseLayer) {
         upgradeCount: effectiveUpgradeCount,
         upgrades,
         display: jsx(() => (
-            <ColumnVue>
-                <div>You have <ResourceVue resource={spinors} color={skyrmion.color} tag="h3" /> {spinors.displayName} (+{displayResource(spinors, production.value)}/s)</div>
-                <div style="font-size: 12px">Your Pion upgrades are increasing Spinor upgrade costs by {formatSmall(unref(costNerf).minus(1).times(100))}%</div>
-                <SpacerVue />
-                <SpinorVue />
-            </ColumnVue>
+            <div class="table" style="width: 530px; align-items: flex-start">
+                <div class="col" style="align-items: flex-start">
+                    <div>You have <ResourceVue resource={spinors} color={skyrmion.color} tag="h3" /> {spinors.displayName} (+{displayResource(spinors, production.value)}/s)</div>
+                    <div style="font-size: 12px">Your Pion upgrades are increasing Spinor upgrade costs by {formatSmall(unref(costNerf).minus(1).times(100))}%</div>
+                    <Spacer />
+                    <Spinor />
+                </div>
+            </div>
         ))
     }
 

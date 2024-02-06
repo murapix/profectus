@@ -282,11 +282,17 @@ export function formatTime(time: DecimalSource): string {
     const minutes = Math.floor(time / secondsPerMinute);
     time -= minutes * secondsPerMinute;
     const seconds = time.toPrecision(2);
-    if (years > 0) { return `${years}y ${days}d ${hours}h`; }
-    if (days > 0) { return `${days}d ${hours}h ${minutes}m`; }
-    if (hours > 0) { return `${hours}h ${minutes}m ${seconds}s`; }
-    if (minutes > 0) { return `${minutes}m ${seconds}s`; }
-    return `${seconds}s`;
+
+    const daysOut = String(days).padStart(3);
+    const hoursOut = String(hours).padStart(2);
+    const minutesOut = String(minutes).padStart(2);
+    const secondsOut = seconds.padStart(2);
+
+    if (years > 0) { return `${years}y ${daysOut}d ${hoursOut}h`; }
+    if (days > 0) { return `${daysOut}d ${hoursOut}h ${minutesOut}m`; }
+    if (hours > 0) { return `${hoursOut}h ${minutesOut}m ${secondsOut}s`; }
+    if (minutes > 0) { return `${minutesOut}m ${secondsOut}s`; }
+    return `${secondsOut}s`;
 }
 
 export function toPlaces(value: DecimalSource, precision: number, maxAccepted: DecimalSource): string {

@@ -1,10 +1,11 @@
 <template>
-    <div class="enhancementRow" v-for="row in processedRows">
-        <div v-if="row.row.some(upgrade => unref(upgrade.visibility) !== Visibility.None)"
-        >Remaining Enhancements: {{unref(row.count)}}</div>
-        <Row>
+    <div class="enhancementRow" v-for="(row, index) in processedRows">
+        <Row v-if="row.row.every(upgrade => isVisible(upgrade.visibility))">
+            <div :class="{ bought: unref(row.count) >= unref(row.limit) }">
+                <span>Row {{ index+1 }}: {{ unref(row.count) }}/{{ unref(row.limit) }}</span>
+            </div>
             <template v-for="upgrade in row.row">
-                <template v-if="unref(upgrade.visibility) !== Visibility.None">
+                <template v-if="isVisible(upgrade.visibility)">
                     <component :is="render(upgrade)" />
                 </template>
             </template>
@@ -14,18 +15,19 @@
 
 <script setup lang="ts">
 import { GenericUpgrade } from 'features/upgrades/upgrade';
-import { render, unwrapRef } from 'util/vue';
-import { computed, unref } from 'vue';
+import { render } from 'util/vue';
+import { unref } from 'vue';
 import entropy, { EnhancementRow } from './entropy';
 import Row from 'components/layout/Row.vue';
-import { Visibility } from 'features/feature';
+import { isVisible } from 'features/feature';
 
 const props = defineProps<{
     rows: Record<EnhancementRow, GenericUpgrade[]>;
 }>();
 
 const processedRows = ([1, 2, 3, 4] as EnhancementRow[]).map(row => ({
-    count: computed(() => unref(entropy.enhancementLimits[row as EnhancementRow]) - unref(entropy.enhancementCounts[row as 1 | 2 | 3 | 4])),
+    limit: entropy.enhancementLimits[row as EnhancementRow],
+    count: entropy.enhancementCounts[row as EnhancementRow],
     row: unref(props.rows)[row]
 }));
 </script>
@@ -34,23 +36,49 @@ const processedRows = ([1, 2, 3, 4] as EnhancementRow[]).map(row => ({
 .enhancementRow {
     width: fit-content;
     margin: var(--feature-margin) auto;
-    :deep(.row), :deep(button) {
+    .row {
         margin: 0;
         border-radius: 0;
+        border-left: 0;
+        border-right: 0;
     }
-    :deep(.tooltip-container:first-child button) {
-        border-bottom-left-radius: var(--border-radius);
+    
+    :deep(button), .row > div:first-child {
+        width: 120px;
+        margin: 0 -1px;
+
+        border-radius: 0;
+        border: solid var(--layer-color) 2px;
+
+        background: #0000002F;
+        color: var(--layer-color);
+        z-index: 2;
+    }
+
+    :deep(button.locked) {
+        border-color: var(--locked);
+        color: var(--locked);
+        z-index: -1;
+    }
+
+    :deep(button.bought), .row > div.bought {
+        border-color: var(--bought);
+        color: var(--bought);
+        z-index: 1;
+    }
+
+    :deep(button:hover:not(.locked):not(.bought)) {
+        transform: none;
+        box-shadow: inset 0 0 20px var(--layer-color);
+    }
+
+    .row > div:first-child {
+        background: linear-gradient(to left, #0000002F, #0000);
+        border-left: 0;
     }
     :deep(.tooltip-container:last-child button) {
-       border-bottom-right-radius: var(--border-radius);
+        background: linear-gradient(to right, #0000002F, #0000);
+        border-right: 0;
     }
-}
-
-.enhancementRow > :not(.table) {
-    background-color: var(--layer-color);
-    border: 2px solid rgba(0, 0, 0, 0.125);
-    border-radius: 0;
-    border-top-left-radius: var(--border-radius);
-    border-top-right-radius: var(--border-radius);
 }
 </style>
