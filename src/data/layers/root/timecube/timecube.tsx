@@ -183,7 +183,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             effect: 1.5
         }));
         const tall = createUpgrade(() => ({
-            visibility() { return unref(this.bought) || unref(turn.bought) },
+            visibility() { return unref(this.bought) || (unref(triple.bought) && unref(turn.bought)) },
             display: {
                 title: 'Tall',
                 description: 'Bottom squares are 50% stronger'
@@ -195,7 +195,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             effect: 1.5
         }));
         const tour = createUpgrade(() => ({
-            visibility() { return unref(this.bought) || unref(turn.bought) },
+            visibility() { return unref(this.bought) || (unref(triple.bought) && unref(turn.bought)) },
             display: {
                 title: 'Tour',
                 description: 'Double the Acceleron effect'
@@ -220,7 +220,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         const tower = createUpgrade(() => ({
             visibility() { return unref(this.bought) || unref(tactics.bought) },
             display: {
-                title: 'Tactics',
+                title: 'Tower',
                 description: 'While in at least one Top timeline, Foam retainment applies to Pions and Spinors as well'
             },
             requirements: createCostRequirement(() => ({
@@ -240,7 +240,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             }))
         }));
         const tempo = createUpgrade(() => ({
-            visibility() { return unref(this.bought) || unref(tower.bought) },
+            visibility() { return unref(this.bought) || (unref(title.bought) && unref(tower.bought)) },
             display: {
                 title: 'Tempo',
                 description: 'The first entropic loop always produces at least one Acceleron'
@@ -258,7 +258,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             [FomeTypes.quantum]: 1e16
         };
         const toil = createUpgrade<EffectUpgradeOptions<Record<FomeTypes, DecimalSource>>>(() => ({
-            visibility() { return unref(this.bought) || unref(tower.bought) },
+            visibility() { return unref(this.bought) || (unref(title.bought) && unref(tower.bought)) },
             display: {
                 title: 'Toil',
                 description: 'While in at least one Left timeline, Foam gain is massively increased based on how little of that Foam you have'

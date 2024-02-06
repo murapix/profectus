@@ -37,12 +37,10 @@ const right = rows.map(row => row.map((_, index) => {
 
 const visibleCounts = rows.map(row => computed(() => row.filter(upgrade => isVisible(upgrade.visibility)).length));
 const top = rows.map((row, index) => {
-    const result = index === 0 ? false : unref(visibleCounts[index]) <= unref(visibleCounts[index-1]);
-    return row.map(() => result);
+    return row.map(() => computed(() => index === 0 ? false : unref(visibleCounts[index]) <= unref(visibleCounts[index-1])));
 });
 const bottom = rows.map((row, index) => {
-    const result = index >= rows.length-1 ? false : unref(visibleCounts[index]) <= unref(visibleCounts[index+1]);
-    return row.map(() => result);
+    return row.map(() => computed(() => index >= rows.length-1 ? false : unref(visibleCounts[index]) <= unref(visibleCounts[index+1])));
 });
 
 const joined = rows.map((row, rowIndex) => row.map((upgrade, upgradeIndex) => computed(() => ({
