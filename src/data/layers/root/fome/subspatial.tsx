@@ -138,7 +138,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 cost: 4e5
             })),
             display: { description: `Condense your ${amount.displayName}` },
-            onPurchase() { fome.subplanck.upgrades.reform.amount.value = Decimal.dOne }
+            onPurchase() { fome.subplanck.upgrades.reform.amount.value = Decimal.dOne },
+            classes: () => ({ auto: unref(fome.achievements.reform.earned) })
         })),
         reform: createRepeatable<RepeatableOptions & EffectFeatureOptions>(feature => ({
             visibility: noPersist(upgrades.condense.bought),

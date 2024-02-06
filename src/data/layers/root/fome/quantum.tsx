@@ -111,7 +111,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 resource: noPersist(amount),
                 cost: 1e5
             })),
-            display: { description: `Condense your ${amount.displayName}` }
+            display: { description: `Condense your ${amount.displayName}` },
+            classes: () => ({ auto: unref(fome.achievements.reform.earned) })
         })),
         reform: createRepeatable<RepeatableOptions & EffectFeatureOptions>(feature => ({
             visibility: noPersist(upgrades.condense.bought),

@@ -44,7 +44,7 @@ function getFomeDisplay(fomeType: FomeTypes) {
     min-height: 100px;
 }
 
-.fome-grid > :deep(.clickable.auto) {
+.fome-grid > :deep(.clickable.auto), .fome-grid > :deep(.upgrade.auto) {
     background-color: var(--bought);
 }
 </style>
