@@ -30,6 +30,8 @@ import subplanck from "./subplanck";
 import quantum from "./quantum";
 import entangled from "../entangled/entangled";
 import { noPersist } from "game/persistence";
+import { Sides } from "../timecube/timesquares";
+import timelines from "../timecube/timelines";
 
 export enum FomeTypes {
     protoversal = "protoversal",
@@ -152,13 +154,13 @@ const layer = createLayer(id, function (this: BaseLayer) {
 
     const timelineBonuses: Modifier[] = [
         createMultiplicativeModifier(() => ({
-            multiplier: Decimal.dOne,
-            enabled: false,
+            multiplier: timelines.buffs[Sides.LEFT],
+            enabled: noPersist(timecube.upgrades.tactics.bought),
             description: jsx(() => (<>[{timecube.name}] Passive Left Timeline Bonus</>))
         })),
         createMultiplicativeModifier(() => ({
-            multiplier: Decimal.dOne,
-            enabled: false,
+            multiplier: () => Decimal.reciprocate(unref(timelines.nerfs[Sides.LEFT])),
+            enabled: noPersist(timecube.upgrades.tactics.bought),
             description: jsx(() => (<>[{timecube.name}] Active Left Timeline Effect</>))
         }))
     ];

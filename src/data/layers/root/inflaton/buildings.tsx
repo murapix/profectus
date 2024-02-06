@@ -22,6 +22,7 @@ import { noPersist, persistent } from "game/persistence";
 import ColumnVue from "components/layout/Column.vue";
 import { Sides } from "../timecube/timesquares";
 import timecube from "../timecube/timecube";
+import timelines from "../timecube/timelines";
 
 const id = "buildings";
 const layer = createLayer(id, function (this: BaseLayer) {
@@ -120,8 +121,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
             size = size.pow(0.1).times(Decimal.dOne.minus(0.1).pow_base(softcap));
         }
         return size.times(unref(timecube.getTimesquareEffect(Sides.TOP)))
-                   .div(1) // active top timeline nerf
-                   .times(1) // passive top timeline bonus
+                   .div(unref(timelines.nerfs[Sides.TOP]))
+                   .times(unref(timelines.buffs[Sides.TOP]))
     }));
     const maxSize = trackBest(currentSize);
     const usedSize = computed(() => Object.values(buildings)

@@ -59,7 +59,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
     };
     
     const squares: Record<Sides, Timesquare> = {
-        [Sides.FRONT]: createTimesquare(square => ({
+        [Sides.FRONT]: createTimesquare(Sides.FRONT, square => ({
             display: {
                 title: jsx(() => <>Front</>),
                 effect: jsx(() => <>+{format(unref(square.square.effect).minus(1).times(100))}% {timecube.timecubes.displayName}</>)
@@ -69,7 +69,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             baseCost: 1e6,
             buyAmount
         })),
-        [Sides.RIGHT]: createTimesquare(square => ({
+        [Sides.RIGHT]: createTimesquare(Sides.RIGHT, square => ({
             display: {
                 title: jsx(() => <>Right</>),
                 effect: jsx(() => <>+{format(unref(square.square.effect))}x Entropic Loop build speed</>)
@@ -79,7 +79,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             baseCost: 1e6,
             buyAmount
         })),
-        [Sides.TOP]: createTimesquare(square => ({
+        [Sides.TOP]: createTimesquare(Sides.TOP, square => ({
             display: {
                 title: jsx(() => <>Top</>),
                 effect: jsx(() => <>+{format(unref(square.square.effect).minus(1).times(100))}% increased Universe diameter</>)
@@ -89,7 +89,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             baseCost: 1e6,
             buyAmount
         })),
-        [Sides.BACK]: createTimesquare(square => ({
+        [Sides.BACK]: createTimesquare(Sides.BACK, square => ({
             display: {
                 title: jsx(() => <>Back</>),
                 effect: jsx(() => <>+{format(unref(square.square.effect).minus(1).times(100))}% {acceleron.accelerons.displayName} effect</>)
@@ -99,7 +99,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             baseCost: 1e6,
             buyAmount
         })),
-        [Sides.LEFT]: createTimesquare(square => ({
+        [Sides.LEFT]: createTimesquare(Sides.LEFT, square => ({
             display: {
                 title: jsx(() => <>Left</>),
                 effect: jsx(() => <>1/{format(unref(square.square.effect))}x Subspatial Construction cost</>)
@@ -109,7 +109,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             baseCost: 1e6,
             buyAmount
         })),
-        [Sides.BOTTOM]: createTimesquare(square => ({
+        [Sides.BOTTOM]: createTimesquare(Sides.BOTTOM, square => ({
             display: {
                 title: jsx(() => <>Bottom</>),
                 effect: jsx(() => <>+{format(unref(square.square.effect))} effective Entropic Enhancements</>)

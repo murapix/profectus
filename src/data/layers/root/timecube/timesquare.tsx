@@ -11,6 +11,9 @@ import { CostRequirement, createBooleanRequirement, createCostRequirement, requi
 import { Resource } from "features/resources/resource";
 import { format, formatWhole } from "util/break_eternity";
 import TimesquareComponent from "./Timesquare.vue";
+import { Sides } from "./timesquares";
+import timelines from "./timelines";
+import timecube from "./timecube";
 
 export const TimesquareType = Symbol("Timesquare");
 
@@ -37,8 +40,8 @@ export type Timesquare<T = Decimal> = {
     [GatherProps]: () => Record<string, unknown>;
 };
 
-// timeline bonus per square = hasUpgrade(timecube, 43) ? temp.timecube.timelineBonus[id] : 0
 export function createTimesquare<T = Decimal>(
+    side: Sides,
     optionsFunc: OptionsFunc<TimesquareOptions<T>, Timesquare<T>, Timesquare<T>>
 ): Timesquare<T> {
     return createLazyProxy<Timesquare<T>, Timesquare<T>>(timesquare => {
@@ -46,7 +49,7 @@ export function createTimesquare<T = Decimal>(
 
         const baseSquareCost = convertComputable(baseCost);
         const toBuy = convertComputable(buyAmount);
-        const baseCostFactor = computed(() => Decimal.dOne.plus(1 /* timeline bonus per square */).reciprocate().times(unref(baseSquareCost)));
+        const baseCostFactor = computed(() => Decimal.dOne.plus(unref(timecube.upgrades.title.bought) ? unref(timelines.scores[side]) : 0).reciprocate().times(unref(baseSquareCost)));
 
         type SquareBuyRequirement = { buyAmount: ProcessedComputable<DecimalSource>, cost: CostRequirement }
         const requirements = (() => {

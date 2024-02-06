@@ -19,6 +19,7 @@ import LoopsVue from "./Loops.vue";
 import SpacerVue from "components/layout/Spacer.vue";
 import LoopDescriptionsVue from "./LoopDescriptions.vue";
 import { Sides } from "../timecube/timesquares";
+import timelines from "../timecube/timelines";
 
 const id = "loops";
 const layer = createLayer(id, function (this: BaseLayer) {
@@ -129,14 +130,14 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 ))
             },
             effect() { return Decimal.add(0.001, getUpgradeEffect(entropy.enhancements.acceleration, 0))
-                                     .div(1) // active timeline right effect
-                                     .times(0 + 1) // passive timeline right bonus
+                                     .div(unref(timelines.nerfs[Sides.RIGHT]))
+                                     .times(unref(timelines.buffs[Sides.RIGHT]))
             },
             trigger(intervals) {
                 let gain = new Decimal(unref(acceleronLayer.conversion.currentGain));
                 gain = gain.times(unref((loop as GenericLoop<Decimal>).effect));
                 gain = gain.times(intervals);
-                if (false) gain = gain.max(1); // timecube upgrade 44
+                if (unref(timecubeLayer.upgrades.tempo.bought)) gain = gain.clampMin(1);
 
                 acceleronLayer.accelerons.value = Decimal.add(unref(acceleronLayer.accelerons), gain);
             }
@@ -160,8 +161,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 ))
             }),
             effect() { return Decimal.plus(1, getUpgradeEffect(entropy.enhancements.expansion, 0))
-                                     .div(1) // active right timeline effect
-                                     .times(1) // passive right timeline bonus
+                                     .div(unref(timelines.nerfs[Sides.RIGHT]))
+                                     .times(unref(timelines.buffs[Sides.RIGHT]))
             },
             trigger(intervals) {
                 const gain = new Decimal(unref(this.triggerRequirement as ProcessedComputable<DecimalSource>)).times(unref((loop as GenericLoop<Decimal>).effect)).times(intervals);
@@ -192,10 +193,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
                                 .times(getUpgradeEffect(acceleronLayer.upgrades.conversion))
                                 .times(getUpgradeEffect(entropy.enhancements.tesselation))
                                 .times(unref(timecubeLayer.getTimesquareEffect(Sides.FRONT)))
-                                .div(1) // active right timeline effect
-                                .times(1) // passive right timeline bonus
-                                .div(1) // active front timeline effect
-                                .times(1) // passive front timeline bonus
+                                .div(unref(timelines.nerfs[Sides.RIGHT]))
+                                .times(unref(timelines.buffs[Sides.RIGHT]))
+                                .div(unref(timelines.nerfs[Sides.FRONT]))
+                                .times(unref(timelines.buffs[Sides.FRONT]))
             },
             trigger(intervals) {
                 timecubeLayer.timecubes.value = unref((loop as GenericLoop<Decimal>).effect).times(intervals).plus(unref(timecubeLayer.timecubes))
@@ -219,8 +220,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
             effect() { return new Decimal(1e6) },
             trigger(intervals) {
                 (this as GenericPersistentLoop<Decimal>).value.value = unref((loop as GenericLoop<Decimal>).effect).div(
-                    Decimal.div(1/* right timeline effect */,
-                                1/* right timeline bonus */))
+                    Decimal.div(unref(timelines.nerfs[Sides.RIGHT]),
+                                unref(timelines.buffs[Sides.RIGHT])))
                             .times(intervals)
             }
         }), persistentDecorator) as GenericPersistentLoop<Decimal>;
@@ -241,7 +242,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             },
             effect() { return new Decimal(1e3) },
             trigger(intervals) {
-                (this as GenericPersistentLoop<Decimal>).value.value = unref((loop as GenericLoop<Decimal>).effect).div(Decimal.div(1/* right timeline effect */, 1/* right timeline bonus */)).times(intervals)
+                (this as GenericPersistentLoop<Decimal>).value.value = unref((loop as GenericLoop<Decimal>).effect).div(Decimal.div(unref(timelines.nerfs[Sides.RIGHT]), unref(timelines.buffs[Sides.RIGHT]))).times(intervals)
             }
         }), persistentDecorator) as GenericPersistentLoop<Decimal>;
         const tempSkyrmion = createLoop<LoopOptions<Decimal>, Decimal>(loop => ({
@@ -261,7 +262,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             },
             effect() { return new Decimal(1e9) },
             trigger(intervals) {
-                (this as GenericPersistentLoop<Decimal>).value.value = unref((loop as GenericLoop<Decimal>).effect).div(Decimal.div(1/* right timeline effect */, 1/* right timeline bonus */)).times(intervals)
+                (this as GenericPersistentLoop<Decimal>).value.value = unref((loop as GenericLoop<Decimal>).effect).div(Decimal.div(unref(timelines.nerfs[Sides.RIGHT]), unref(timelines.buffs[Sides.RIGHT]))).times(intervals)
             }
         }), persistentDecorator) as GenericPersistentLoop<Decimal>;
 
