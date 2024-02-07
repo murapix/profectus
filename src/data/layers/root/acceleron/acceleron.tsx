@@ -129,20 +129,20 @@ const layer = createLayer(id, function (this: BaseLayer) {
             description: jsx(() => <>[{timecube.name}] Back Time Squares ({formatWhole(Decimal.dZero)})</>)
         })),
         createMultiplicativeModifier(() => ({
-            multiplier: Decimal.dOne,
-            enabled: false,
-            description: jsx(() => <>[{timecube.name}] Timecube Upgrade 35</>)
+            multiplier: 2,
+            enabled: timecube.upgrades.tour.bought,
+            description: jsx(() => <>[{timecube.name}] Tour</>)
         })),
         createMultiplicativeModifier(() => ({
-            multiplier: Decimal.dOne,
-            enabled: false,
+            multiplier: timecube.timelines.nerfs[Sides.BACK],
+            enabled: () => unref(timecube.timelines.depths[Sides.BACK]) > 0,
             description: jsx(() => <>[{timecube.name}] Active Back Timeline Effect</>)
         })),
         createMultiplicativeModifier(() => ({
-            multiplier: Decimal.dOne,
-            enabled: false,
+            multiplier: timecube.timelines.buffs[Sides.BACK],
+            enabled: () => unref(timecube.timelines.scores[Sides.BACK]).gt(0),
             description: jsx(() => <>[{timecube.name}] Passive Back Timeline Bonus</>)
-        }))
+        })),
     ]);
     const timeMult: ComputedRef<Decimal> = computed(() => new Decimal(timeModifiers.apply(unref(timeInput))));
 

@@ -53,9 +53,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
         })),
         ...fome.timelineProduction,
         createMultiplicativeModifier(() => ({
-            multiplier: Decimal.dOne,
-            enabled: false,
-            description: jsx(() => (<>[{timecube.name}] Timecube Upgrade 45, Subplanck Foam bonus</>))
+            multiplier: () => (unref(timecube.upgrades.toil.effect) as Record<FomeTypes, Decimal>)[FomeTypes.quantum],
+            enabled: () => unref(timecube.upgrades.toil.bought) && unref(timecube.timelines.inTimeline),
+            description: jsx(() => (<>[{timecube.name}] Toil</>))
         }))
     ]);
     const production: ComputedRef<DecimalSource> = computed(() => productionModifiers.apply(unref(skyrmion.totalSkyrmions).times(0.01)));

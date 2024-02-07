@@ -20,6 +20,7 @@ import entropy from "../acceleron/entropy";
 import { createReformRequirement } from "./ReformRequirement";
 import entangled from "../entangled/entangled";
 import inflaton from "../inflaton/inflaton";
+import { Sides } from "../timecube/timesquares";
 
 const id = "infinitesimal";
 const layer = createLayer(id, function (this: BaseLayer) {
@@ -79,9 +80,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
         })),
         ...fome.timelineProduction,
         createMultiplicativeModifier(() => ({
-            multiplier: Decimal.dOne,
-            enabled: false,
-            description: jsx(() => (<>[{timecube.name}] Timecube Upgrade 45, Infinitesimal Foam bonus</>))
+            multiplier: () => (unref(timecube.upgrades.toil.effect) as Record<FomeTypes, Decimal>)[FomeTypes.infinitesimal],
+            enabled: () => unref(timecube.upgrades.toil.bought) && unref(timecube.timelines.inTimeline),
+            description: jsx(() => (<>[{timecube.name}] Toil</>))
         }))
     ]);
     const production: ComputedRef<DecimalSource> = computed(() => productionModifiers.apply(unref(skyrmion.totalSkyrmions).times(0.01)));

@@ -16,7 +16,7 @@ import { render, renderRow } from "util/vue";
 import SpacerVue from "components/layout/Spacer.vue";
 import { createTabFamily } from "features/tabs/tabFamily";
 import { createTab } from "features/tabs/tab";
-import { createUpgrade } from "features/upgrades/upgrade";
+import { createUpgrade, getUpgradeEffect } from "features/upgrades/upgrade";
 import core from "./coreResearch";
 import timecube from "../timecube/timecube";
 import { getResearchEffect } from "./research";
@@ -100,8 +100,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
                                                           .clampMin(1)
     );
     const individualNerfs = {
-        pion: computed(() => Decimal.div(unref(inflatonNerf), 1).clampMin(1)),//getUpgradeEffect(timecube.upgrades.tower))),
-        spinor: computed(() => Decimal.div(unref(inflatonNerf), 1).clampMin(1)),//etUpgradeEffect(timecube.upgrades.tower))),
+        pion: computed(() => Decimal.div(unref(inflatonNerf), getUpgradeEffect(timecube.upgrades.tower)).clampMin(1)),
+        spinor: computed(() => Decimal.div(unref(inflatonNerf), getUpgradeEffect(timecube.upgrades.tower)).clampMin(1)),
         [FomeTypes.protoversal]: allFomeNerf,
         [FomeTypes.infinitesimal]: allFomeNerf,
         [FomeTypes.subspatial]: allFomeNerf,

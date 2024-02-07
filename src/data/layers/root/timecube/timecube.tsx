@@ -173,7 +173,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         const turn = createUpgrade(() => ({
             visibility() { return unref(this.bought) || unref(tesselate.bought) },
             display: {
-                title: 'Triple',
+                title: 'Turn',
                 description: 'Front squares are 50% stronger'
             },
             requirements: createCostRequirement(() => ({
@@ -268,12 +268,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 cost: 1e19
             })),
             effect() {
-                if (unref(this.bought)) {
-                    return Object.fromEntries((Object.entries(fomeLimits) as [FomeTypes, number][]).map(([type, limit]) => [type,
-                        Decimal.minus(Math.E/Math.PI, Decimal.div(unref(fome[type].amount), limit)).pow10().times(15).plus(1)
-                    ])) as Record<FomeTypes, Decimal>;
-                }
-                return Object.fromEntries(Object.keys(fomeLimits).map(type => [type, 1])) as Record<FomeTypes, number>
+                return Object.fromEntries((Object.entries(fomeLimits) as [FomeTypes, number][]).map(([type, limit]) => [type,
+                    Decimal.minus(Math.E/Math.PI, Decimal.div(unref(fome[type].amount), limit)).pow10().times(15).plus(1)
+                ])) as Record<FomeTypes, Decimal>;
             }
         }));
         const a = createUpgrade(upgrade => ({

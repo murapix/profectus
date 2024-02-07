@@ -58,9 +58,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
             description: jsx(() => (<>[{skyrmion.name}] Spinor Upgrade θ ({formatWhole(unref(skyrmion.spinor.upgrades.theta.totalAmount))})</>))
         })),
         createMultiplicativeModifier(() => ({
-            multiplier: Decimal.dOne,
-            enabled: false,
-            description: jsx(() => (<>[{acceleron.name}] Acceleron upgrade 23</>))
+            multiplier: acceleron.upgrades.alacrity.effect,
+            enabled: unref(acceleron.upgrades.alacrity.bought),
+            description: jsx(() => (<>[{acceleron.name}] Subspatial Alacrity</>))
         })),
         createMultiplicativeModifier(() => ({
             multiplier: entropy.enhancements.configuration.effect as Ref<DecimalSource>,
@@ -79,9 +79,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
         })),
         ...fome.timelineProduction,
         createMultiplicativeModifier(() => ({
-            multiplier: Decimal.dOne,
-            enabled: false,
-            description: jsx(() => (<>[{timecube.name}] Timecube Upgrade 45, Subspatial Foam bonus</>))
+            multiplier: () => (unref(timecube.upgrades.toil.effect) as Record<FomeTypes, Decimal>)[FomeTypes.subspatial],
+            enabled: () => unref(timecube.upgrades.toil.bought) && unref(timecube.timelines.inTimeline),
+            description: jsx(() => (<>[{timecube.name}] Toil</>))
         }))
     ]);
     const production: ComputedRef<DecimalSource> = computed(() => productionModifiers.apply(unref(skyrmion.totalSkyrmions).times(0.01)));

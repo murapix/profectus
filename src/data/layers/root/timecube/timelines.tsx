@@ -56,6 +56,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             ).length)]
         )
     );
+    const inTimeline = computed(() => Object.values(activeDepths).some(depth => unref(depth) > 0));
 
     const sidedScoreMulti: Record<Sides, DecimalSource> = {
         [Sides.FRONT]: 100,
@@ -199,7 +200,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
         scores,
         buffs: passiveBuffs,
         nerfs: activeDepthNerfs,
+        depths: activeDepths,
         scoreMultipliers: sidedScoreMulti,
+        inTimeline,
         display: jsx(() => (
             <>
                 {render(enterTimeline)}
