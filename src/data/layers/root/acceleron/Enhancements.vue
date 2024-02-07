@@ -1,6 +1,6 @@
 <template>
     <div class="enhancementRow" v-for="(row, index) in processedRows">
-        <Row v-if="row.row.every(upgrade => isVisible(upgrade.visibility))">
+        <Row v-if="row.row.some(upgrade => isVisible(upgrade.visibility))">
             <div :class="{ bought: unref(row.count) >= unref(row.limit) }">
                 <span>Row {{ index+1 }}: {{ unref(row.count) }}/{{ unref(row.limit) }}</span>
             </div>
