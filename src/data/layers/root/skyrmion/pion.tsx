@@ -104,7 +104,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             bonusAmount: fome[FomeTypes.protoversal].boosts[4].effect
         });
         const delta = createUpgrade({
-            visibility: () => Decimal.gt(unref(fome[FomeTypes.protoversal].boosts[1].total), 0),
+            visibility: () => unref(abyss.challenge.active) || Decimal.gt(unref(fome[FomeTypes.protoversal].boosts[1].total), 0),
             cost(amount) {
                 return amount.pow_base(6).times(30)
                              .if(() => Decimal.gt(amount.evaluate(), 60), value => value.times(value.pow_base(37.5)).times(2.7e-71))
@@ -118,7 +118,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             bonusAmount: fome[FomeTypes.subplanck].boosts[2].effect
         });
         const epsilon = createUpgrade({
-            visibility: () => Decimal.gt(unref(fome[FomeTypes.infinitesimal].upgrades.reform.amount), 0),
+            visibility: () => unref(abyss.challenge.active) || Decimal.gt(unref(fome[FomeTypes.infinitesimal].upgrades.reform.amount), 0),
             cost(amount) {
                 return amount.pow_base(5).times(50)
                              .if(() => Decimal.gt(amount.evaluate(), 60), value => value.times(value.pow_base(28.8)).times(1.77e-65))
@@ -132,7 +132,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             bonusAmount: fome[FomeTypes.subplanck].boosts[3].effect
         });
         const zeta = createUpgrade({
-            visibility: () => Decimal.gt(unref(fome[FomeTypes.subspatial].upgrades.reform.amount), 0),
+            visibility: () => unref(abyss.challenge.active) || Decimal.gt(unref(fome[FomeTypes.subspatial].upgrades.reform.amount), 0),
             cost(amount) {
                 return amount.pow_base(5.5).times(5e3)
                              .if(() => Decimal.gt(amount.evaluate(), 60), value => value.times(value.pow_base(35.64)).times(1e-68))
@@ -146,7 +146,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             bonusAmount: fome[FomeTypes.subplanck].boosts[4].effect
         });
         const eta = createUpgrade({
-            visibility: () => Decimal.gt(unref(fome[FomeTypes.protoversal].upgrades.reform.amount), 1),
+            visibility: () => unref(abyss.challenge.active) || Decimal.gt(unref(fome[FomeTypes.protoversal].upgrades.reform.amount), 1),
             cost(amount) {
                 return amount.pow_base(5).times(3e5)
                              .if(() => Decimal.gt(amount.evaluate(), 60), value => value.times(value.pow_base(28.8)).times(1.77e-64))
@@ -160,7 +160,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             bonusAmount: fome[FomeTypes.subplanck].boosts[5].effect
         });
         const theta = createUpgrade({
-            visibility: () => Decimal.gt(unref(fome[FomeTypes.subplanck].upgrades.reform.amount), 0),
+            visibility: () => unref(abyss.challenge.active) || Decimal.gt(unref(fome[FomeTypes.subplanck].upgrades.reform.amount), 0),
             cost(amount) {
                 return amount.pow_base(6.5).times(7e5)
                              .if(() => Decimal.gt(amount.evaluate(), 45), value => value.times(value.pow_base(26)).times(5.45e-34))
@@ -174,7 +174,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             bonusAmount: fome[FomeTypes.quantum].boosts[2].effect
         });
         const iota = createUpgrade({
-            visibility: () => Decimal.gt(unref(fome[FomeTypes.protoversal].upgrades.reform.amount), 2),
+            visibility: () => unref(abyss.challenge.active) || Decimal.gt(unref(fome[FomeTypes.protoversal].upgrades.reform.amount), 2),
             cost(amount) {
                 return amount.pow_base(7.5).times(4e8)
                              .if(() => Decimal.gt(amount.evaluate(), 45), value => value.times(value.pow_base(30)).times(5.95e-48))
@@ -188,7 +188,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             bonusAmount: fome[FomeTypes.quantum].boosts[4].effect
         });
         const kappa = createUpgrade({
-            visibility: () => Decimal.gt(unref(fome[FomeTypes.infinitesimal].upgrades.reform.amount), 1),
+            visibility: () => unref(abyss.challenge.active) || Decimal.gt(unref(fome[FomeTypes.infinitesimal].upgrades.reform.amount), 1),
             cost(amount) {
                 return amount.pow_base(7).times(5e9)
                              .if(() => Decimal.gt(amount.evaluate(), 45), value => value.times(value.pow_base(26)).times(1.45e-43))
@@ -202,7 +202,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             bonusAmount: fome[FomeTypes.quantum].boosts[4].effect
         });
         const lambda = createUpgrade({
-            visibility: noPersist(acceleron.upgrades.skyrmion.bought),
+            visibility: () => unref(abyss.challenge.active) || unref(acceleron.upgrades.skyrmion.bought),
             cost(amount) {
                 return amount.pow(1.1).pow_base(5).times(7e2)
                              .if(() => Decimal.gt(amount.evaluate(), 45), value => value.times(value.pow(1.1).pow_base(20)).times(7e-17))
@@ -215,7 +215,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             effect: amount => Decimal.pow(2, amount)
         });
         const mu = createUpgrade({
-            visibility: noPersist(inflaton.upgrades.skyrmionUpgrades.bought),
+            visibility: () => unref(abyss.challenge.active) || unref(inflaton.upgrades.skyrmionUpgrades.bought),
             cost(amount) {
                 return amount.pow_base(5).times(7e10)
                              .if(() => Decimal.gt(amount.evaluate(), 45), value => value.times(value.pow_base(20)).times(1e-35))
@@ -331,6 +331,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             }))
         });
         skyrmion.on("update", () => {
+            if (unref(abyss.challenge.active)) return;
             if (unref(shouldAutobuy) && requirementsMet(repeatable.requirements)) {
                 repeatable.onClick();
             }
