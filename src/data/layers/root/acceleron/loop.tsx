@@ -4,7 +4,7 @@ import Decimal, { DecimalSource } from "lib/break_eternity";
 import { Computable, GetComputableTypeWithDefault, GetComputableType, processComputable, ProcessedComputable } from "util/computed";
 import { createLazyProxy } from "util/proxies";
 import { unref, watch } from "vue";
-import LoopVue from "./Loop.vue";
+import Loop from "./Loop.vue";
 import { GenericDecorator } from "features/decorators/common";
 
 export const LoopType = Symbol("Loop");
@@ -32,7 +32,7 @@ export interface BaseLoop<T = unknown> {
     effect: Computable<T>;
     trigger(intervals: DecimalSource): void;
     type: typeof LoopType;
-    [Component]: typeof LoopVue;
+    [Component]: typeof Loop;
     [GatherProps]: () => Record<string, unknown>;
 }
 
@@ -62,7 +62,7 @@ export function createLoop<T extends LoopOptions<U>, U = unknown>(
 
         loop.id = getUniqueID("loop-");
         loop.type = LoopType;
-        loop[Component] = LoopVue;
+        loop[Component] = Loop;
         
         for (const decorator of decorators) {
             decorator.preConstruct?.(loop);

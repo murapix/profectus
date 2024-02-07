@@ -7,7 +7,7 @@
 </template>
 
 <script setup lang="ts">
-import { Visibility, isVisible } from 'features/feature';
+import { isVisible } from 'features/feature';
 import { GenericUpgrade } from 'features/upgrades/upgrade';
 import { render } from 'util/vue';
 import { computed, unref } from 'vue';

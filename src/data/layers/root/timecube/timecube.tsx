@@ -1,6 +1,6 @@
 import { effectDecorator } from "features/decorators/common";
 import { jsx } from "features/feature";
-import MainDisplayVue from "features/resources/MainDisplay.vue";
+import MainDisplay from "features/resources/MainDisplay.vue";
 import { createResource, trackBest } from "features/resources/resource";
 import { createUpgrade, EffectUpgrade, EffectUpgradeOptions } from "features/upgrades/upgrade";
 import { BaseLayer, createLayer } from "game/layers";
@@ -9,7 +9,7 @@ import Decimal, { DecimalSource } from "lib/break_eternity";
 import { format, formatWhole } from "util/break_eternity";
 import { Ref, computed, unref } from "vue";
 import acceleron from "../acceleron/acceleron";
-import TimecubeUpgradesVue from "./TimecubeUpgrades.vue";
+import TimecubeUpgrades from "./TimecubeUpgrades.vue";
 import { noPersist } from "game/persistence"
 import entangled from "../entangled/entangled";
 import fome, { FomeTypes } from "../fome/fome";
@@ -339,8 +339,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
             tab: createTab(() => ({
                 display: jsx(() => (
                     <>
-                        <MainDisplayVue resource={timecubes} color={color} />
-                        <TimecubeUpgradesVue upgrades={Object.values(upgrades)} />
+                        <MainDisplay resource={timecubes} color={color} />
+                        <TimecubeUpgrades upgrades={Object.values(upgrades)} />
                     </>
                 ))
             }))
@@ -350,7 +350,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             tab: createTab(() => ({
                 display: jsx(() => (
                     <>
-                        <MainDisplayVue resource={timecubes} color={color} />
+                        <MainDisplay resource={timecubes} color={color} />
                         {render(unref(timesquares.display))}
                     </>
                 ))
@@ -362,7 +362,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             tab: createTab(() => ({
                 display: jsx(() => (
                     <>
-                        <MainDisplayVue resource={timecubes} color={color} />
+                        <MainDisplay resource={timecubes} color={color} />
                         {render(unref(timelines.display))}
                     </>
                 ))

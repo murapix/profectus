@@ -7,10 +7,10 @@ import { format, formatWhole } from "util/break_eternity";
 import { computed, ref, unref, watch } from "vue";
 import timecube from "./timecube";
 import { createTimesquare, Timesquare } from "./timesquare";
-import RowVue from "components/layout/Row.vue";
+import Row from "components/layout/Row.vue";
 import { render, renderRow } from "util/vue";
-import SpacerVue from "components/layout/Spacer.vue";
-import TextVue from "components/fields/Text.vue";
+import Spacer from "components/layout/Spacer.vue";
+import Text from "components/fields/Text.vue";
 import { noPersist } from "game/persistence"
 import { getUpgradeEffect } from "features/upgrades/upgrade";
 import acceleron from "../acceleron/acceleron";
@@ -134,11 +134,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
         squares,
         display: jsx(() =>
             <>
-                <RowVue>
+                <Row>
                     {render(buyAmountButtons.overTen)}
                     {render(buyAmountButtons.minusTen)}
                     {render(buyAmountButtons.minusOne)}
-                    <TextVue
+                    <Text
                         style={{width: 'fit-content'}}
                         onUpdate:modelValue={value => buyAmountInput.value = value}
                         modelValue={buyAmountInput.value}
@@ -147,8 +147,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
                     {render(buyAmountButtons.plusOne)}
                     {render(buyAmountButtons.plusTen)}
                     {render(buyAmountButtons.timesTen)}
-                </RowVue>
-                <SpacerVue />
+                </Row>
+                <Spacer />
                 {renderRow(squares.front, squares.right, squares.top)}
                 {renderRow(squares.back, squares.left, squares.bottom)}
             </>

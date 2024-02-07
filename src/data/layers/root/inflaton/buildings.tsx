@@ -14,12 +14,12 @@ import { GenericEffectFeature } from "features/decorators/common";
 import { BaseRepeatable } from "features/repeatable";
 import { GenericClickable, createClickable } from "features/clickables/clickable";
 import { render, renderRow } from "util/vue";
-import SpacerVue from "components/layout/Spacer.vue";
+import Spacer from "components/layout/Spacer.vue";
 import core from "./coreResearch";
 import coreResearch from "./coreResearch";
-import ToggleVue from "components/fields/Toggle.vue";
+import Toggle from "components/fields/Toggle.vue";
 import { noPersist, persistent } from "game/persistence";
-import ColumnVue from "components/layout/Column.vue";
+import Column from "components/layout/Column.vue";
 import { Sides } from "../timecube/timesquares";
 import timecube from "../timecube/timecube";
 import timelines from "../timecube/timelines";
@@ -200,15 +200,15 @@ const layer = createLayer(id, function (this: BaseLayer) {
         display: jsx(() => (
             <>
                 <div>Your buildings are taking up {formatLength(unref(usedSize), 0)} / {formatLength(Decimal.floor(unref(maxSize)), 0)}</div>
-                <SpacerVue />
+                <Spacer />
                 {renderRow(...Object.values(buildingRenders))}
-                <SpacerVue />
+                <Spacer />
                 {unref(core.research.autobuild.researched)
                     ? <>
-                        <ColumnVue>
+                        <Column>
                             <span style={{fontSize: "12px"}}>Enable Auto-Building Construction</span>
-                            <ToggleVue v-model={autoBuilding.value} style={{marginTop: 0}}/>
-                        </ColumnVue>
+                            <Toggle v-model={autoBuilding.value} style={{marginTop: 0}}/>
+                        </Column>
                     </>
                     : undefined
                 }

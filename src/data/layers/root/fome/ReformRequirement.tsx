@@ -1,13 +1,12 @@
-import { OptionsFunc, Replace, Visibility, setDefault } from "features/feature";
-import { GenericFormula, InvertibleFormula } from "game/formulas/types";
+import { OptionsFunc, Replace, Visibility } from "features/feature";
+import { GenericFormula } from "game/formulas/types";
 import { Requirement } from "game/requirements";
 import Decimal, { DecimalSource, formatWhole } from "util/bignum";
 import { Computable, ProcessedComputable, processComputable } from "util/computed";
-import { Ref, computed, unref } from "vue";
+import { computed, unref } from "vue";
 import fome, { FomeTypes } from "./fome";
 import { createLazyProxy } from "util/proxies";
-import Formula, { calculateCost, calculateMaxAffordable } from "game/formulas/formulas";
-import { createResource } from "features/resources/resource";
+import Formula, { calculateCost } from "game/formulas/formulas";
 
 export interface ReformRequirementOptions {
     fomeType: Computable<FomeTypes>;

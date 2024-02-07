@@ -17,8 +17,8 @@ import { addTooltip } from "features/tooltips/tooltip";
 import { coerceComponent, render } from "util/vue";
 import fome, { FomeTypes } from "../fome/fome";
 import { createClickable } from "features/clickables/clickable";
-import SpacerVue from "components/layout/Spacer.vue";
-import EnhancementsVue from "../acceleron/Enhancements.vue";
+import Spacer from "components/layout/Spacer.vue";
+import Enhancements from "../acceleron/Enhancements.vue";
 import { Sides } from "../timecube/timesquares";
 
 const id = "entropy";
@@ -243,14 +243,14 @@ const layer = createLayer(id, function (this: BaseLayer) {
         enhancementLimits,
         display: jsx(() => (
             <>
-                <SpacerVue />
+                <Spacer />
                 Entropy: {formatWhole(unref(entropy))} / {formatWhole(unref(maxEntropy))}
                 <br />
                 Next Enhancement: {formatWhole(unref(enhancementCost))} {entropy.displayName}
-                <SpacerVue />
+                <Spacer />
                 {render(respec)}
-                <SpacerVue />
-                <EnhancementsVue rows={(Object.keys(enhancementRows) as unknown as EnhancementRow[]).reduce((result, key) => {
+                <Spacer />
+                <Enhancements rows={(Object.keys(enhancementRows) as unknown as EnhancementRow[]).reduce((result, key) => {
                     result[key] = enhancementRows[key].map(upgrade => enhancements[upgrade]);
                     return result;
                 }, {} as Record<EnhancementRow, GenericUpgrade[]>)}/>

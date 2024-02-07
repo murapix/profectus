@@ -11,7 +11,7 @@ import { getResearchEffect } from "../inflaton/research";
 import buildings from "./buildings";
 import core from "./coreResearch";
 import { coerceComponent } from "util/vue";
-import { format, formatWhole } from "util/break_eternity";
+import { format } from "util/break_eternity";
 import { noPersist } from "game/persistence";
 import skyrmion from "../skyrmion/skyrmion";
 

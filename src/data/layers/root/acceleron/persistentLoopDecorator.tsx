@@ -1,7 +1,6 @@
 import { DecimalSource } from "lib/break_eternity";
 import { BaseLoop, GenericLoop, Loop, LoopOptions } from "./loop";
 import { Persistent, persistent } from "game/persistence";
-import { Replace } from "features/feature";
 import { Decorator } from "features/decorators/common";
 
 export interface BasePersistentLoop<T = unknown> extends BaseLoop<T> {

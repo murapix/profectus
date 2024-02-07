@@ -15,9 +15,9 @@ import { GenericLoop, LoopOptions, createLoop } from "./loop";
 import { GenericPersistentLoop, persistentDecorator } from "./persistentLoopDecorator";
 import { createClickable } from "features/clickables/clickable";
 import { createMultiplicativeModifier, createSequentialModifier } from "game/modifiers";
-import LoopsVue from "./Loops.vue";
-import SpacerVue from "components/layout/Spacer.vue";
-import LoopDescriptionsVue from "./LoopDescriptions.vue";
+import Loops from "./Loops.vue";
+import Spacer from "components/layout/Spacer.vue";
+import LoopDescriptions from "./LoopDescriptions.vue";
 import { Sides } from "../timecube/timesquares";
 import timelines from "../timecube/timelines";
 import abyss from "../skyrmion/abyss";
@@ -288,9 +288,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
         upperDisplay: jsx(() => (
             <>
                 {(unref(nextLoop) === undefined)
-                    ? <SpacerVue height="50px" />
+                    ? <Spacer height="50px" />
                     : (<>
-                        <SpacerVue height="18px" />
+                        <Spacer height="18px" />
                         <div style={{fontSize: '12px', color: 'var(--link)'}}>
                             Construction Progress: {formatWhole(unref(unref(nextLoop)?.buildProgress ?? 0))} / {formatWhole(unref(unref(nextLoop)?.buildRequirement ?? 0))}<br />
                             Construction will consume {formatWhole(unref(remainingBuildCost))} {acceleronLayer.accelerons.displayName}
@@ -301,9 +301,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
         )),
         lowerDisplay: jsx(() => (
             <>
-                <LoopsVue radius={175} loops={Object.values(loops)} buildButton={toggleBuilding} />
-                <SpacerVue />
-                <LoopDescriptionsVue loops={Object.values(loops)}/>
+                <Loops radius={175} loops={Object.values(loops)} buildButton={toggleBuilding} />
+                <Spacer />
+                <LoopDescriptions loops={Object.values(loops)}/>
             </>
         )),
         display: "This page intentionally left blank"

@@ -11,9 +11,9 @@ import { persistent } from "game/persistence";
 import { createMultiplicativeModifier, createSequentialModifier } from "game/modifiers";
 import { format, formatWhole } from "util/break_eternity";
 import buildings from "./buildings";
-import MainDisplayVue from "features/resources/MainDisplay.vue";
+import MainDisplay from "features/resources/MainDisplay.vue";
 import { render, renderRow } from "util/vue";
-import SpacerVue from "components/layout/Spacer.vue";
+import Spacer from "components/layout/Spacer.vue";
 import { createTabFamily } from "features/tabs/tabFamily";
 import { createTab } from "features/tabs/tab";
 import { createUpgrade, getUpgradeEffect } from "features/upgrades/upgrade";
@@ -259,7 +259,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
     });
 
     const header = jsx(() => (<>
-        <MainDisplayVue resource={inflatons} color={color} stickyStyle={{background: 'unset'}} />
+        <MainDisplay resource={inflatons} color={color} stickyStyle={{background: 'unset'}} />
         <div style={{marginTop: '-20px', fontSize: '12px'}}>
             {unref(inflating)
                 ? <>Runaway inflation is dividing all other resources by <span style={{color, textShadow: `${color} 0px 0px 10px`}}>{formatWhole(unref(inflatonNerf))}</span></>
@@ -278,7 +278,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             </div>
             : undefined
         }
-        <SpacerVue />
+        <Spacer />
     </>));
     const tabs = createTabFamily(({
         buildings: () => ({
@@ -290,7 +290,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                         {Decimal.gt(unref(inflatons), 0)
                             ? <>
                                 {unref(upgrades.subspaceBuildings.bought) ? render(buildings.display) : undefined}
-                                <SpacerVue />
+                                <Spacer />
                                 {renderRow(upgrades.moreFome, upgrades.subspaceBuildings, upgrades.research, upgrades.skyrmionUpgrades)}
                             </>
                             : undefined

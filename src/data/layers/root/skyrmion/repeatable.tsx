@@ -9,7 +9,7 @@ import { Requirements, displayRequirements } from "game/requirements";
 import Decimal, { DecimalSource } from "lib/break_eternity";
 import { formatSmall, formatWhole } from "util/break_eternity";
 import { Direction } from "util/common";
-import { Computable, ProcessedComputable } from "util/computed";
+import { Computable } from "util/computed";
 import { unref } from "vue";
 
 export interface SkyrmionRepeatableData {

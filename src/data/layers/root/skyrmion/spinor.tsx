@@ -14,8 +14,7 @@ import { GenericFormula } from "game/formulas/types";
 import { noPersist } from "game/persistence";
 import { createCostRequirement, requirementsMet } from "game/requirements";
 import fome, { FomeTypes } from "../fome/fome";
-import ColumnVue from "components/layout/Column.vue";
-import ResourceVue from "features/resources/Resource.vue";
+import Resource from "features/resources/Resource.vue";
 import { format, formatSmall } from "util/break_eternity";
 import Spacer from "components/layout/Spacer.vue";
 import Spinor from "./Spinor.vue";
@@ -293,7 +292,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         display: jsx(() => (
             <div class="table" style="width: 530px; align-items: flex-start">
                 <div class="col" style="align-items: flex-start">
-                    <div>You have <ResourceVue resource={spinors} color={unref(abyss.challenge.active) ? abyss.color : skyrmion.color} tag="h3" /> {spinors.displayName} (+{displayResource(spinors, production.value)}/s)</div>
+                    <div>You have <Resource resource={spinors} color={unref(abyss.challenge.active) ? abyss.color : skyrmion.color} tag="h3" /> {spinors.displayName} (+{displayResource(spinors, production.value)}/s)</div>
                     <div style="font-size: 12px">Your Pion upgrades are increasing Spinor upgrade costs by {formatSmall(unref(costNerf).minus(1).times(100))}%</div>
                     <Spacer />
                     <Spinor />

@@ -13,13 +13,12 @@ import { GenericEffectFeature } from "features/decorators/common";
 import timecube from "../timecube/timecube";
 import protoversal from "./protoversal";
 import { GenericAchievement, createAchievement } from "features/achievements/achievement";
-import { ProcessedComputable } from "util/computed";
-import ResourceVue from "features/resources/Resource.vue";
-import SpacerVue from "components/layout/Spacer.vue";
-import FomeVue from "../fome/Fome.vue";
+import Resource from "features/resources/Resource.vue";
+import Spacer from "components/layout/Spacer.vue";
+import Fome from "../fome/Fome.vue";
 import { render, renderRowJSX } from "util/vue";
 import { createTab } from "features/tabs/tab";
-import FomeBoostVue from "../fome/FomeBoost.vue";
+import FomeBoost from "../fome/FomeBoost.vue";
 import { createTabFamily } from "features/tabs/tabFamily";
 import { createBooleanRequirement, displayRequirements } from "game/requirements";
 import { addTooltip } from "features/tooltips/tooltip";
@@ -235,15 +234,15 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 display: jsx(() => (
                     <>
                         <div>
-                            You have <ResourceVue resource={layer[unref(highestFome)].amount} color={color} /> {layer[unref(highestFome)].amount.displayName}
+                            You have <Resource resource={layer[unref(highestFome)].amount} color={color} /> {layer[unref(highestFome)].amount.displayName}
                             {Decimal.gt(unref(layer[unref(highestFome)].upgrades.reform.amount), 1)
                                 ? <sup>{formatWhole(unref(layer[unref(highestFome)].upgrades.reform.amount))}</sup>
                                 : undefined
                             }
                         </div>
-                        <SpacerVue />
-                        <FomeVue />
-                        <SpacerVue height="8px" />
+                        <Spacer />
+                        <Fome />
+                        <Spacer height="8px" />
                         {renderRowJSX(...Object.values(achievements))}
                     </>
                 ))
@@ -251,7 +250,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         }),
         boosts: () => ({
             display: "Boosts",
-            tab: createTab(() => ({ display: jsx(() => (<FomeBoostVue />)) }))
+            tab: createTab(() => ({ display: jsx(() => (<FomeBoost />)) }))
         })
     });
 

@@ -4,7 +4,7 @@ import { createLayer } from "game/layers";
 import Decimal, { DecimalSource } from "lib/break_eternity";
 import MainDisplay from "features/resources/MainDisplay.vue";
 import Spacer from "components/layout/Spacer.vue";
-import { render, renderCol, renderRow } from "util/vue";
+import { render, renderCol } from "util/vue";
 import { format } from "util/break_eternity";
 import { ComputedRef, Ref, computed, nextTick, unref } from "vue";
 import { persistent, noPersist } from "game/persistence";

@@ -20,7 +20,6 @@ import entropy from "../acceleron/entropy";
 import { createReformRequirement } from "./ReformRequirement";
 import entangled from "../entangled/entangled";
 import inflaton from "../inflaton/inflaton";
-import { Sides } from "../timecube/timesquares";
 
 const id = "infinitesimal";
 const layer = createLayer(id, function (this: BaseLayer) {

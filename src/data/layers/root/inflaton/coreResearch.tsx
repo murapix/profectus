@@ -7,20 +7,20 @@ import { createResource } from "features/resources/resource";
 import { Computable, ProcessedComputable } from "util/computed";
 import Decimal, { DecimalSource } from "lib/break_eternity";
 import { EffectFeatureOptions, GenericEffectFeature, effectDecorator } from "features/decorators/common";
-import { buildingSize, buildingSize as currentBuildingSize } from "./building";
+import { buildingSize as currentBuildingSize } from "./building";
 import buildings from "./buildings";
 import { ComputedRef, computed, unref } from "vue";
 import { format, formatWhole } from "util/break_eternity";
 import acceleron from "../acceleron/acceleron";
 import entangled from "../entangled/entangled";
 import inflaton, { id as inflatonId } from "./inflaton";
-import ResearchTreeVue from "./ResearchTree.vue";
+import ResearchTree from "./ResearchTree.vue";
 import { noPersist, persistent } from "game/persistence";
-import ToggleVue from "components/fields/Toggle.vue";
-import SpacerVue from "components/layout/Spacer.vue";
-import ResearchQueueVue from "./ResearchQueue.vue";
+import Toggle from "components/fields/Toggle.vue";
+import Spacer from "components/layout/Spacer.vue";
+import ResearchQueue from "./ResearchQueue.vue";
 import { render } from "util/vue";
-import ColumnVue from "components/layout/Column.vue";
+import Column from "components/layout/Column.vue";
 import timecube from "../timecube/timecube";
 import { Sides } from "../timecube/timesquares";
 import skyrmion from "../skyrmion/skyrmion";
@@ -417,19 +417,19 @@ const layer = createLayer(id, function (this: BaseLayer) {
             <>
                 <div>Your buildings are producing {formatWhole(unref(finalResearchGain))} Research Points</div>
                 <div class='row' style={{flexFlow: 'row-reverse nowrap', alignItems: 'flex-start', justifyContent: 'space-evenly'}}>
-                    <ColumnVue>
-                        <ResearchQueueVue parallel={parallelResearchCount} queue={computed(() => Array.from({...unref(researchQueue), length: Math.max(unref(researchQueue).length, unref(queueLength))}))} />
+                    <Column>
+                        <ResearchQueue parallel={parallelResearchCount} queue={computed(() => Array.from({...unref(researchQueue), length: Math.max(unref(researchQueue).length, unref(queueLength))}))} />
                         {
                             unref(research.repeatableUnlock.researched)
                                 ? <>
                                     <span style={{fontSize: "12px"}}>Enable Auto-Repeatable Research:</span>
-                                    <ToggleVue v-model={autoResearching.value} style={{marginTop: 0}}/>
-                                    <SpacerVue />
+                                    <Toggle v-model={autoResearching.value} style={{marginTop: 0}}/>
+                                    <Spacer />
                                 </>
                                 : undefined
                         }
-                    </ColumnVue>
-                    <ResearchTreeVue research={[
+                    </Column>
+                    <ResearchTree research={[
                         [research.quintupleCondenser],
                         [research.doubleSize, research.cheaperLabs],
                         [research.fomeGain, research.researchBoost, research.storage],
@@ -440,9 +440,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
                         [research.moreRepeatables, research.queueFour, research.autobuild],
                         [research.mastery]
                     ]}/>
-                    <ColumnVue>
+                    <Column>
                         {...Object.values(repeatables).map(render).map(element => <div style={{margin: 'var(--feature-margin) 0px'}}>{element}</div>)}
-                    </ColumnVue>
+                    </Column>
                 </div>
             </>
         ))

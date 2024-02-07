@@ -1,12 +1,11 @@
 import { EffectFeatureOptions, GenericEffectFeature, effectDecorator } from "features/decorators/common";
 import { Computable, ProcessedComputable, convertComputable } from "util/computed";
 import { CoercableComponent, Component, GatherProps, GenericComponent, OptionsFunc, jsx } from "features/feature";
-import { Persistent, persistent } from "game/persistence";
 import Decimal, { DecimalSource } from "lib/break_eternity";
 import { createLazyProxy } from "util/proxies";
 import { createClickable, GenericClickable } from "features/clickables/clickable"
 import { GenericRepeatable, RepeatableOptions, createRepeatable } from "features/repeatable";
-import { ComputedRef, computed, unref } from "vue";
+import { computed, unref } from "vue";
 import { CostRequirement, createBooleanRequirement, createCostRequirement, requirementsMet, payRequirements } from "game/requirements";
 import { Resource } from "features/resources/resource";
 import { format, formatWhole } from "util/break_eternity";

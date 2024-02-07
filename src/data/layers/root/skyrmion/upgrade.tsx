@@ -1,4 +1,4 @@
-import SpacerVue from "components/layout/Spacer.vue";
+import Spacer from "components/layout/Spacer.vue";
 import { Visibility, jsx } from "features/feature";
 import { addTooltip } from "features/tooltips/tooltip";
 import { GenericUpgrade, createUpgrade } from "features/upgrades/upgrade";
@@ -29,7 +29,7 @@ export function createSkyrmionUpgrade(data: SkyrmionUpgradeData): GenericUpgrade
         display: jsx(() => (
             <>
                 {data.display.description}
-                <SpacerVue />
+                <Spacer />
                 {displayRequirements(data.requirements)}
             </>
         ))

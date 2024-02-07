@@ -10,7 +10,7 @@ import { createClickable } from "features/clickables/clickable";
 import { render, renderRow } from "util/vue";
 import { Sides } from "./timesquares";
 import Decimal, { DecimalSource } from "lib/break_eternity";
-import SpacerVue from "components/layout/Spacer.vue";
+import Spacer from "components/layout/Spacer.vue";
 import { computed, unref } from "vue";
 import { createExponentialModifier, createMultiplicativeModifier, createSequentialModifier } from "game/modifiers";
 import { GenericTimeline, createTimeline } from "./timeline";
@@ -206,7 +206,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         display: jsx(() => (
             <>
                 {render(enterTimeline)}
-                <SpacerVue />
+                <Spacer />
                 {renderRow(timelines.topLeft, timelines.topFront, timelines.topBack, timelines.topRight)}
                 {renderRow(timelines.frontLeft, timelines.frontRight, timelines.backLeft, timelines.backRight)}
                 {renderRow(timelines.bottomLeft, timelines.bottomFront, timelines.bottomBack, timelines.bottomRight)}

@@ -12,7 +12,6 @@ import pion from "./pion";
 import spinor from "./spinor";
 import { GenericUpgrade } from "features/upgrades/upgrade";
 import Spacer from "components/layout/Spacer.vue";
-import Row from "components/layout/Row.vue";
 import { render } from "util/vue";
 import Skyrmion from "./Skyrmion.vue";
 import { GenericRepeatable, createRepeatable } from "features/repeatable";
