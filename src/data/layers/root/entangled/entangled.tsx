@@ -205,7 +205,11 @@ const layer = createLayer("entangled", () => {
             }
         })),
         timecube: createCostRequirement(() => ({
-            resource: noPersist(timecube.timecubes),
+            resource: createResource(computed(() => 
+                Object.values(timecube.timelines.timelines)
+                    .map(timeline => unref(timeline.score))
+                    .reduce((sum: Decimal, score) => sum.plus(score), Decimal.dZero)
+                )),
             cost() {
                 if (!unref(expansions.timecube.bought)) return 0;
                 return [

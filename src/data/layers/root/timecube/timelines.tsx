@@ -68,13 +68,13 @@ const layer = createLayer(id, function (this: BaseLayer) {
     const scores = Object.fromEntries(
         Object.entries(timelineSides).map(
             ([side, timelines]) => [side, computed(() => (timelines as GenericTimeline[]).reduce(
-                (sum, timeline) => sum.plus(unref(timeline.score)), Decimal.dOne)
+                (sum, timeline) => sum.plus(unref(timeline.score)), Decimal.dZero)
             )]
         )
     );
     const passiveBuffs = Object.fromEntries(
         Object.entries(scores).map(
-            ([side, score]) => [side, computed(() => unref(score).times(sidedScoreMulti[side as Sides]))]
+            ([side, score]) => [side, computed(() => unref(score).times(sidedScoreMulti[side as Sides]).plus(1))]
         )
     );
 
