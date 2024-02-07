@@ -187,7 +187,7 @@ export default defineComponent({
     align-items: center;
 }
 
-.challenge.done {
+.challenge.maxed {
     background-color: var(--bought);
 }
 

@@ -302,7 +302,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 ?   <><br />Your {fome.subspatial.amount.displayName} is granting an additional <h3 style={{ color, textShadow: `0px 0px 10px ${color}` }}>
                         {format(getFomeBoost(FomeTypes.subspatial, 4))}
                     </h3> {resource.displayName}</>
-                : undefined}
+                : <Spacer height="25px" /> }
                 <Spacer />
                 <div class="row" style={{ flexFlow: "row nowrap" }}>
                     {render(pion.display)}

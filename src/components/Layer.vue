@@ -100,12 +100,8 @@ export default defineComponent({
 }
 
 .inner-tab > .layer-container > .layer-tab {
-    padding-top: 50px;
-}
-
-.inner-tab > .layer-container > .layer-tab {
     margin: -50px -10px;
-    padding: 50px 10px;
+    padding: 50px 10px 25px 10px;
 }
 
 .modal-body .layer-tab {

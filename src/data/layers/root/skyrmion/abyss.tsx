@@ -1,7 +1,7 @@
 import { createChallenge } from "features/challenges/challenge";
 import { jsx } from "features/feature";
 import { Resource, createResource } from "features/resources/resource";
-import { createLayer, BaseLayer } from "game/layers";
+import { createLayer, BaseLayer, layers } from "game/layers";
 import { createCostRequirement } from "game/requirements";
 import { computed, unref, watch } from "vue";
 import skyrmion from "./skyrmion";
@@ -10,7 +10,7 @@ import { noPersist } from "game/persistence";
 import Decimal from "lib/break_eternity";
 import pion from "./pion";
 import spinor from "./spinor"
-import { clonePersistentData } from "util/util";
+import { clonePersistentData, swapPersistentData } from "util/util";
 import fome from "../fome/fome";
 import acceleron from "../acceleron/acceleron";
 import timecube from "../timecube/timecube";
@@ -32,16 +32,22 @@ const layer = createLayer(id, function (this: BaseLayer) {
             boxShadow: "0"
         },
         requirements: createCostRequirement(() => ({
-            cost: noPersist(feature.completions),
+            cost: () => Decimal.add(unref(feature.completions), 1),
             resource: upgradeCount
         })),
-        completionLimit: 4
+        completionLimit: 4,
+        onEnter() {
+            swapPersistentData(layers, swapData);
+        },
+        onExit() {
+            swapPersistentData(layers, swapData);
+        }
     }));
 
     const challengeUpgradeCount = computed(() => Decimal.add(unref(pion.upgradeCount), unref(spinor.upgradeCount)).times(0.75));
 
     const upgradeCount: Resource<number> = createResource(computed(() =>
-        [ skyrmion.upgrades.nu, skyrmion.upgrades.pi, skyrmion.upgrades.xi, skyrmion.upgrades.rho ].filter(upgrade => unref(upgrade.bought)).length
+        [ skyrmion.upgrades.nu, skyrmion.upgrades.xi, skyrmion.upgrades.pi, skyrmion.upgrades.rho ].filter(upgrade => unref(upgrade.bought)).length
     ), "Abyssal Skyrmion Upgrades");
     watch(upgradeCount, count => challenge.completions.value = Decimal.max(unref(challenge.completions), count));
 
