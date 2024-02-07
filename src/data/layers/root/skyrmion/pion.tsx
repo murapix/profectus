@@ -324,7 +324,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
 
             requirements: createCostRequirement(() => ({
                 resource: noPersist(pions),
-                cost: cost(Formula.variable(repeatable.amount)).times(costNerf),
+                cost: () => cost(Formula.variable(repeatable.amount)).times(costNerf).evaluate(),
                 requiresPay: () => !unref(shouldAutobuy),
                 canMaximize: false
             }))
