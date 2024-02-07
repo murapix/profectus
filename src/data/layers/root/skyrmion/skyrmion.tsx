@@ -5,7 +5,7 @@ import { createMultiplicativeModifier } from "game/modifiers";
 import Decimal, { DecimalSource } from "lib/break_eternity";
 import { computed, unref } from "vue";
 import { createSkyrmionUpgrade } from "./upgrade";
-import { createCostRequirement, maxRequirementsMet, requirementsMet } from "game/requirements";
+import { Requirement, createCostRequirement, maxRequirementsMet, requirementsMet } from "game/requirements";
 import { Computable, ProcessedComputable } from "util/computed";
 import fome, { FomeTypes } from "../fome/fome";
 import pion from "./pion";
@@ -25,6 +25,7 @@ import Formula, { calculateCost } from "game/formulas/formulas";
 import { getFomeBoost } from "../fome/boost";
 import { noPersist } from "game/persistence"
 import entangled from "../entangled/entangled";
+import { createReformRequirement } from "../fome/ReformRequirement";
 
 const id = "skyrmion";
 const layer = createLayer(id, function (this: BaseLayer) {
@@ -253,7 +254,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 title: "Neutralization",
                 description: <>Autobuy ν upgrades<br />ν upgrades no longer consume Pions or Spinors</>
             },
-            cost: Decimal.dInf
+            requirement: createReformRequirement(() => ({
+                fomeType: () => [FomeTypes.infinitesimal, FomeTypes.subspatial, FomeTypes.subplanck, FomeTypes.quantum][unref(abyss.abyssUpgradeCount)],
+                cost: 2
+            }))
         }),
         xi: createUpgrade({
             visibility(this: GenericUpgrade) {
@@ -263,7 +267,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 title: "Externalization",
                 description: <>Autobuy ξ upgrades<br />ξ upgrades no longer consume Pions or Spinors</>
             },
-            cost: Decimal.dInf
+            requirement: createReformRequirement(() => ({
+                fomeType: () => [FomeTypes.infinitesimal, FomeTypes.subspatial, FomeTypes.subplanck, FomeTypes.quantum][unref(abyss.abyssUpgradeCount)],
+                cost: 2
+            }))
         }),
         pi: createUpgrade({
             visibility(this: GenericUpgrade) {
@@ -273,7 +280,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 title: "Prioritization",
                 description: <>Autobuy π upgrades<br />π upgrades no longer consume Pions or Spinors</>
             },
-            cost: Decimal.dInf
+            requirement: createReformRequirement(() => ({
+                fomeType: () => [FomeTypes.infinitesimal, FomeTypes.subspatial, FomeTypes.subplanck, FomeTypes.quantum][unref(abyss.abyssUpgradeCount)],
+                cost: 2
+            }))
         }),
         rho: createUpgrade({
             visibility(this: GenericUpgrade) {
@@ -283,7 +293,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 title: "Obfuscation",
                 description: <>Autobuy ρ upgrades<br />ρ upgrades no longer consume Pions or Spinors</>
             },
-            cost: Decimal.dInf
+            requirement: createReformRequirement(() => ({
+                fomeType: () => [FomeTypes.infinitesimal, FomeTypes.subspatial, FomeTypes.subplanck, FomeTypes.quantum][unref(abyss.abyssUpgradeCount)],
+                cost: 2
+            }))
         })
     }
 
@@ -321,7 +334,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
 
     interface SkyrmionUpgradeData {
         visibility?: Computable<Visibility | boolean>;
-        cost: DecimalSource;
+        cost?: DecimalSource;
+        requirement?: Requirement;
         display: {
             title: string,
             description: JSX.Element;
@@ -330,11 +344,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
     }
 
     function createUpgrade(data: SkyrmionUpgradeData): GenericUpgrade {
-        const { visibility, cost, display, onPurchase } = data;
+        const { visibility, cost, requirement, display, onPurchase } = data;
         return createSkyrmionUpgrade({
             visibility,
-            requirements: createCostRequirement(() => ({
-                cost,
+            requirements: requirement ?? createCostRequirement(() => ({
+                cost: cost!,
                 resource: noPersist(resource),
                 requiresPay: false
             })),

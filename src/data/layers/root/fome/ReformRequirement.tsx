@@ -10,13 +10,14 @@ import Formula, { calculateCost, calculateMaxAffordable } from "game/formulas/fo
 import { createResource } from "features/resources/resource";
 
 export interface ReformRequirementOptions {
-    fomeType: FomeTypes;
+    fomeType: Computable<FomeTypes>;
     cost: Computable<DecimalSource> | GenericFormula;
 }
 
 export type ReformRequirement = Replace<
     Requirement & ReformRequirementOptions,
     {
+        fomeType: ProcessedComputable<FomeTypes>;
         cost: ProcessedComputable<DecimalSource> | GenericFormula;
     }
 >;
@@ -27,6 +28,8 @@ export function createReformRequirement<T extends ReformRequirementOptions>(
     return createLazyProxy(feature => {
         const req = optionsFunc.call(feature, feature) as T & Partial<Requirement>;
 
+        processComputable(req as T, "fomeType");
+
         req.partialDisplay = amount => (
             <span
                 style={
@@ -35,7 +38,7 @@ export function createReformRequirement<T extends ReformRequirementOptions>(
                         : "color: var(--danger)"
                 }
             >
-                {fome[req.fomeType].amount.displayName}
+                {fome[unref(req.fomeType as ProcessedComputable<FomeTypes>)].amount.displayName}
                 <sup>{formatWhole(Decimal.floor(
                     req.cost instanceof Formula
                         ? calculateCost(req.cost, amount ?? 1, false)
@@ -45,7 +48,7 @@ export function createReformRequirement<T extends ReformRequirementOptions>(
         );
         req.display = amount => (
             <div>
-                Requires: {fome[req.fomeType].amount.displayName}
+                Requires: {fome[unref(req.fomeType as ProcessedComputable<FomeTypes>)].amount.displayName}
                 <sup>{formatWhole(Decimal.floor(
                     req.cost instanceof Formula
                         ? calculateCost(req.cost, amount ?? 1, false)
@@ -60,10 +63,10 @@ export function createReformRequirement<T extends ReformRequirementOptions>(
         
         req.requirementMet = computed(() => {
             if (req.cost instanceof Formula) {
-                return Decimal.gte(fome[req.fomeType].upgrades.reform.amount.value, req.cost.evaluate());
+                return Decimal.gte(fome[unref(req.fomeType as ProcessedComputable<FomeTypes>)].upgrades.reform.amount.value, req.cost.evaluate());
             } else {
                 return Decimal.gte(
-                    fome[req.fomeType].upgrades.reform.amount.value,
+                    fome[unref(req.fomeType as ProcessedComputable<FomeTypes>)].upgrades.reform.amount.value,
                     unref(req.cost as ProcessedComputable<DecimalSource>)
                 );
             }
