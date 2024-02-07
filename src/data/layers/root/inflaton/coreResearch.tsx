@@ -23,6 +23,7 @@ import { render } from "util/vue";
 import ColumnVue from "components/layout/Column.vue";
 import timecube from "../timecube/timecube";
 import { Sides } from "../timecube/timesquares";
+import skyrmion from "../skyrmion/skyrmion";
 
 const id = "coreResearch";
 const layer = createLayer(id, function (this: BaseLayer) {
@@ -280,7 +281,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 description: 'Double the size of your universe',
                 effect: jsx(() => <>{formatWhole(unref(feature.effect as ProcessedComputable<Decimal>))}x</>)
             },
-            cost() { return Decimal.pow(4, unref(feature.amount)).times(12000).dividedBy(1); /* 1st abyssal spinor buyable */},
+            cost() { return Decimal.pow(4, unref(feature.amount)).times(12000).dividedBy(unref(skyrmion.spinor.upgrades.nu.effect)); },
             effect() { return Decimal.pow(2, unref(feature.amount)); }
         })) as GenericRepeatableResearch<DecimalSource>;
         const analysis = createRepeatableResearch<ResearchOptions & Partial<RepeatableResearchOptions<Decimal>>, Decimal>(feature => ({
@@ -290,7 +291,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 description: 'Increase Distributed Analysis Framework\'s maximum bonus by 80%',
                 effect: jsx(() => <>{formatWhole(unref(feature.effect as ProcessedComputable<Decimal>))}x</>)
             },
-            cost() { return Decimal.pow(8, unref(feature.amount)).times(15000).dividedBy(1); /* 1st abyssal spinor buyable */},
+            cost() { return Decimal.pow(8, unref(feature.amount)).times(15000).dividedBy(unref(skyrmion.spinor.upgrades.nu.effect)); },
             effect() { return Decimal.pow(1.8, unref(feature.amount)); }
         })) as GenericRepeatableResearch<DecimalSource>;
         type BuildingSizeEffect = { size: DecimalSource, effect: DecimalSource };
@@ -301,7 +302,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 description: 'Increase Subspace building size tenfold, and their potency by twice as much',
                 effect: jsx(() => <>{formatWhole(unref(feature.effect as ProcessedComputable<BuildingSizeEffect>).size)}x, {formatWhole(Decimal.times(unref(feature.effect as ProcessedComputable<BuildingSizeEffect>).size, unref(feature.effect as ProcessedComputable<BuildingSizeEffect>).effect))}x</>)
             },
-            cost() { return Decimal.pow(200, unref(feature.amount)).times(150000).dividedBy(1).div(unref(timecube.getTimesquareEffect(Sides.LEFT))); /* 1st abyssal spinor buyable */},
+            cost() { return Decimal.pow(200, unref(feature.amount)).times(150000).dividedBy(unref(skyrmion.spinor.upgrades.nu.effect)).div(unref(timecube.getTimesquareEffect(Sides.LEFT))); },
             effect() { return {
                 size: Decimal.pow(10, unref(feature.amount)),
                 effect: Decimal.pow(2, unref(feature.amount))
@@ -328,7 +329,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 description: 'Decrease Subspace building cost scaling by 1.5x',
                 effect: jsx(() => <>1/{format(unref(feature.effect as ProcessedComputable<Decimal>))}x</>)
             },
-            cost() { return Decimal.pow(3, unref(feature.amount)).times(120000).dividedBy(1); /* 1st abyssal spinor buyable */},
+            cost() { return Decimal.pow(3, unref(feature.amount)).times(120000).dividedBy(unref(skyrmion.spinor.upgrades.nu.effect)); },
             effect() { return Decimal.pow(1.5, unref(feature.amount)); }
         })) as GenericRepeatableResearch<DecimalSource>;
         const fome = createRepeatableResearch<ResearchOptions & Partial<RepeatableResearchOptions<Decimal>>, Decimal>(feature => ({
@@ -338,7 +339,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 description: 'Retain up to 1e6x more Foam',
                 effect: jsx(() => <>{formatWhole(unref(feature.effect as ProcessedComputable<Decimal>))}x</>)
             },
-            cost() { return Decimal.pow(5, unref(feature.amount)).times(160000).dividedBy(1); /* 1st abyssal spinor buyable */},
+            cost() { return Decimal.pow(5, unref(feature.amount)).times(160000).dividedBy(unref(skyrmion.spinor.upgrades.nu.effect)); },
             effect() { return Decimal.pow(1e6, unref(feature.amount)); }
         })) as GenericRepeatableResearch<DecimalSource>;
 
@@ -349,7 +350,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
     const parallelResearchCount = computed<number>(() => 1);
     const researchQueue = persistent<string[]>([]);
 
-    const baseResearchGain: ComputedRef<Decimal> = computed(() => Decimal.times(unref(buildings.buildings.lab.effect), getResearchEffect(research.researchBoost, 1)).times(1) /* 1st abyssal pion buyable */);
+    const baseResearchGain: ComputedRef<Decimal> = computed(() => Decimal.times(unref(buildings.buildings.lab.effect), getResearchEffect(research.researchBoost, 1)).times(unref(skyrmion.spinor.upgrades.nu.effect)));
     const finalResearchGain: ComputedRef<Decimal> = computed(() => unref(baseResearchGain).minus(unref(buildings.buildings.tuner.effect).cost).clampMin(0));
     
     const autoResearching = persistent<boolean>(false);

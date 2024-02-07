@@ -127,81 +127,87 @@ const layer = createLayer("entangled", () => {
         acceleron: createCostRequirement(() => ({
             resource: noPersist(acceleron.accelerons),
             cost() {
-                if (Decimal.eq(unref(strings), 0)) return 1e19;
-                return [
-                    1e29,         // 
-                    1.5e41,       // Skyrmion
-                    Decimal.dInf, //          Fome
-                    Decimal.dInf, // Skyrmion Fome
-                    Decimal.dInf, //               Acceleron
-                    Decimal.dInf, // Skyrmion      Acceleron
-                    Decimal.dInf, //          Fome Acceleron
-                    Decimal.dInf, // Skyrmion Fome Acceleron
-                    2.5e41,       //                         Timecube
-                    1e64,         // Skyrmion                Timecube
-                    Decimal.dInf, //          Fome           Timecube
-                    Decimal.dInf, // Skyrmion Fome           Timecube
-                    Decimal.dInf, //               Acceleron Timecube
-                    Decimal.dInf, // Skyrmion      Acceleron Timecube
-                    Decimal.dInf, //          Fome Acceleron Timecube
-                    Decimal.dInf, // Skyrmion Fome Acceleron Timecube
-                    Decimal.dInf, //                                  Inflaton
-                    Decimal.dInf, // Skyrmion                         Inflaton
-                    Decimal.dInf, //          Fome                    Inflaton
-                    Decimal.dInf, // Skyrmion Fome                    Inflaton
-                    Decimal.dInf, //               Acceleron          Inflaton
-                    Decimal.dInf, // Skyrmion      Acceleron          Inflaton
-                    Decimal.dInf, //          Fome Acceleron          Inflaton
-                    Decimal.dInf, // Skyrmion Fome Acceleron          Inflaton
-                    Decimal.dInf, //                         Timecube Inflaton
-                    Decimal.dInf, // Skyrmion                Timecube Inflaton
-                    Decimal.dInf, //          Fome           Timecube Inflaton
-                    Decimal.dInf, // Skyrmion Fome           Timecube Inflaton
-                    Decimal.dInf, //               Acceleron Timecube Inflaton
-                    Decimal.dInf, // Skyrmion      Acceleron Timecube Inflaton
-                    Decimal.dInf, //          Fome Acceleron Timecube Inflaton
-                    Decimal.dInf  // Skyrmion Fome Acceleron Timecube Inflaton
-                ][unref(expansionScore)];
+                const cost = (() => {
+                    if (Decimal.eq(unref(strings), 0)) return 1e19;
+                    return [
+                        1e29,         // 
+                        1.5e41,       // Skyrmion
+                        Decimal.dInf, //          Fome
+                        Decimal.dInf, // Skyrmion Fome
+                        Decimal.dInf, //               Acceleron
+                        Decimal.dInf, // Skyrmion      Acceleron
+                        Decimal.dInf, //          Fome Acceleron
+                        Decimal.dInf, // Skyrmion Fome Acceleron
+                        2.5e41,       //                         Timecube
+                        1e64,         // Skyrmion                Timecube
+                        Decimal.dInf, //          Fome           Timecube
+                        Decimal.dInf, // Skyrmion Fome           Timecube
+                        Decimal.dInf, //               Acceleron Timecube
+                        Decimal.dInf, // Skyrmion      Acceleron Timecube
+                        Decimal.dInf, //          Fome Acceleron Timecube
+                        Decimal.dInf, // Skyrmion Fome Acceleron Timecube
+                        Decimal.dInf, //                                  Inflaton
+                        Decimal.dInf, // Skyrmion                         Inflaton
+                        Decimal.dInf, //          Fome                    Inflaton
+                        Decimal.dInf, // Skyrmion Fome                    Inflaton
+                        Decimal.dInf, //               Acceleron          Inflaton
+                        Decimal.dInf, // Skyrmion      Acceleron          Inflaton
+                        Decimal.dInf, //          Fome Acceleron          Inflaton
+                        Decimal.dInf, // Skyrmion Fome Acceleron          Inflaton
+                        Decimal.dInf, //                         Timecube Inflaton
+                        Decimal.dInf, // Skyrmion                Timecube Inflaton
+                        Decimal.dInf, //          Fome           Timecube Inflaton
+                        Decimal.dInf, // Skyrmion Fome           Timecube Inflaton
+                        Decimal.dInf, //               Acceleron Timecube Inflaton
+                        Decimal.dInf, // Skyrmion      Acceleron Timecube Inflaton
+                        Decimal.dInf, //          Fome Acceleron Timecube Inflaton
+                        Decimal.dInf  // Skyrmion Fome Acceleron Timecube Inflaton
+                    ][unref(expansionScore)];
+                })();
+                return Decimal.times(cost, unref(skyrmion.pion.upgrades.xi.effect));
             }
         })),
         inflaton: createCostRequirement(() => ({
             resource: noPersist(inflaton.inflatons),
             cost() {
-                if (Decimal.eq(unref(strings), 0)) return Decimal.pow10(8000);
-                return [
-                    Decimal.pow10(1.8e4),  // 
-                    Decimal.pow10(8.5e12), // Skyrmion
-                    Decimal.dInf,          //          Fome
-                    Decimal.dInf,          // Skyrmion Fome
-                    Decimal.dInf,          //               Acceleron
-                    Decimal.dInf,          // Skyrmion      Acceleron
-                    Decimal.dInf,          //          Fome Acceleron
-                    Decimal.dInf,          // Skyrmion Fome Acceleron
-                    Decimal.pow10(3.7e5),  //                         Timecube
-                    Decimal.pow10(4.5e17), // Skyrmion                Timecube
-                    Decimal.dInf,          //          Fome           Timecube
-                    Decimal.dInf,          // Skyrmion Fome           Timecube
-                    Decimal.dInf,          //               Acceleron Timecube
-                    Decimal.dInf,          // Skyrmion      Acceleron Timecube
-                    Decimal.dInf,          //          Fome Acceleron Timecube
-                    Decimal.dInf,          // Skyrmion Fome Acceleron Timecube
-                    Decimal.dInf,          //                                  Inflaton
-                    Decimal.dInf,          // Skyrmion                         Inflaton
-                    Decimal.dInf,          //          Fome                    Inflaton
-                    Decimal.dInf,          // Skyrmion Fome                    Inflaton
-                    Decimal.dInf,          //               Acceleron          Inflaton
-                    Decimal.dInf,          // Skyrmion      Acceleron          Inflaton
-                    Decimal.dInf,          //          Fome Acceleron          Inflaton
-                    Decimal.dInf,          // Skyrmion Fome Acceleron          Inflaton
-                    Decimal.dInf,          //                         Timecube Inflaton
-                    Decimal.dInf,          // Skyrmion                Timecube Inflaton
-                    Decimal.dInf,          //          Fome           Timecube Inflaton
-                    Decimal.dInf,          // Skyrmion Fome           Timecube Inflaton
-                    Decimal.dInf,          //               Acceleron Timecube Inflaton
-                    Decimal.dInf,          // Skyrmion      Acceleron Timecube Inflaton
-                    Decimal.dInf,          //          Fome Acceleron Timecube Inflaton
-                    Decimal.dInf           // Skyrmion Fome Acceleron Timecube Inflaton
-                ][unref(expansionScore)];
+                const cost = (() => {
+                    if (Decimal.eq(unref(strings), 0)) return Decimal.pow10(8000);
+                    return [
+                        Decimal.pow10(1.8e4),  // 
+                        Decimal.pow10(8.5e12), // Skyrmion
+                        Decimal.dInf,          //          Fome
+                        Decimal.dInf,          // Skyrmion Fome
+                        Decimal.dInf,          //               Acceleron
+                        Decimal.dInf,          // Skyrmion      Acceleron
+                        Decimal.dInf,          //          Fome Acceleron
+                        Decimal.dInf,          // Skyrmion Fome Acceleron
+                        Decimal.pow10(3.7e5),  //                         Timecube
+                        Decimal.pow10(4.5e17), // Skyrmion                Timecube
+                        Decimal.dInf,          //          Fome           Timecube
+                        Decimal.dInf,          // Skyrmion Fome           Timecube
+                        Decimal.dInf,          //               Acceleron Timecube
+                        Decimal.dInf,          // Skyrmion      Acceleron Timecube
+                        Decimal.dInf,          //          Fome Acceleron Timecube
+                        Decimal.dInf,          // Skyrmion Fome Acceleron Timecube
+                        Decimal.dInf,          //                                  Inflaton
+                        Decimal.dInf,          // Skyrmion                         Inflaton
+                        Decimal.dInf,          //          Fome                    Inflaton
+                        Decimal.dInf,          // Skyrmion Fome                    Inflaton
+                        Decimal.dInf,          //               Acceleron          Inflaton
+                        Decimal.dInf,          // Skyrmion      Acceleron          Inflaton
+                        Decimal.dInf,          //          Fome Acceleron          Inflaton
+                        Decimal.dInf,          // Skyrmion Fome Acceleron          Inflaton
+                        Decimal.dInf,          //                         Timecube Inflaton
+                        Decimal.dInf,          // Skyrmion                Timecube Inflaton
+                        Decimal.dInf,          //          Fome           Timecube Inflaton
+                        Decimal.dInf,          // Skyrmion Fome           Timecube Inflaton
+                        Decimal.dInf,          //               Acceleron Timecube Inflaton
+                        Decimal.dInf,          // Skyrmion      Acceleron Timecube Inflaton
+                        Decimal.dInf,          //          Fome Acceleron Timecube Inflaton
+                        Decimal.dInf           // Skyrmion Fome Acceleron Timecube Inflaton
+                    ][unref(expansionScore)];
+                })();
+                return Decimal.times(cost, unref(skyrmion.spinor.upgrades.xi.effect));
             }
         })),
         timecube: createCostRequirement(() => ({

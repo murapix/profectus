@@ -13,6 +13,7 @@ import core from "./coreResearch";
 import { coerceComponent } from "util/vue";
 import { format, formatWhole } from "util/break_eternity";
 import { noPersist } from "game/persistence";
+import skyrmion from "../skyrmion/skyrmion";
 
 export interface BuildingData<T = DecimalSource> {
     effect: (amount: DecimalSource) => T;
@@ -41,7 +42,7 @@ export function createBuilding<T = DecimalSource>(
         const { effect, cost, display, size } = optionsFunc.call(repeatable, repeatable);
         cost.free ??= core.research.autobuild.researched;
         return {
-            bonusAmount() { return Decimal.times(unref(this.amount), 0); }, // 3rd abyssal spinor buyable
+            bonusAmount() { return Decimal.times(unref(this.amount), unref(skyrmion.spinor.upgrades.rho.effect)); },
             visibility: display.visibility,
             requirements: [
                 createBooleanRequirement(canBuild(size ?? 1)),
@@ -50,7 +51,7 @@ export function createBuilding<T = DecimalSource>(
                         const multiplier = unref(cost.multiplier);
                         const base = new Decimal(unref(cost.base));
                         const amount = Decimal.div(unref(repeatable.amount), getResearchEffect(core.repeatables.buildingCost, 1))
-                                              .div(1); // Pion Omicron effect
+                                              .div(unref(skyrmion.pion.upgrades.rho.effect));
                         const size = unref(buildingSize);
                         if (unref(core.research.autobuild.researched)) {
                             return base.pow(amount).times(multiplier);

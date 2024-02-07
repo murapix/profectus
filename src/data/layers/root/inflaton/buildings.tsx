@@ -23,6 +23,7 @@ import ColumnVue from "components/layout/Column.vue";
 import { Sides } from "../timecube/timesquares";
 import timecube from "../timecube/timecube";
 import timelines from "../timecube/timelines";
+import skyrmion from "../skyrmion/skyrmion";
 
 const id = "buildings";
 const layer = createLayer(id, function (this: BaseLayer) {
@@ -44,13 +45,13 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 effect: jsx(() => <>{formatSmall(unref((building as BaseRepeatable & GenericEffectFeature<DecimalSource>).effect))}</>)
             }
         })) as GenericBuilding;
-        const lab = createBuilding(building => ({
+        const lab = createBuilding(() => ({
             effect(amount) {
                 return (unref(core.research.researchBoost.researched)
                         ? Decimal.times(unref(core.research.researchBoost.effect), 0.9)
                         : Decimal.dOne)
                         .times(amount)
-                        .times(1) // 1st abyssal pion buyable
+                        .times(unref(skyrmion.pion.upgrades.nu.effect))
             },
             cost: {
                 resource: noPersist(fome[FomeTypes.subspatial].amount),

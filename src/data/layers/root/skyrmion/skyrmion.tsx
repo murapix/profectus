@@ -101,6 +101,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
             multiplier: spinor.upgrades.lambda.effect,
             enabled: () => Decimal.gt(unref(spinor.upgrades.lambda.totalAmount), 0),
             description: jsx(() => (<>[{name}] Spinor Upgrade λ ({format(unref(spinor.upgrades.lambda.totalAmount))})</>))
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: spinor.upgrades.pi.effect,
+            enabled: () => Decimal.gt(unref(spinor.upgrades.pi.totalAmount), 0),
+            description: jsx(() => (<>[{name}] Spinor Upgrade π ({format(unref(spinor.upgrades.pi.totalAmount))})</>))
         }))
     ];
 

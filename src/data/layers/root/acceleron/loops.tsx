@@ -20,6 +20,7 @@ import SpacerVue from "components/layout/Spacer.vue";
 import LoopDescriptionsVue from "./LoopDescriptions.vue";
 import { Sides } from "../timecube/timesquares";
 import timelines from "../timecube/timelines";
+import abyss from "../skyrmion/abyss";
 
 const id = "loops";
 const layer = createLayer(id, function (this: BaseLayer) {
@@ -53,9 +54,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
             description: jsx(() => <>[{timecubeLayer.name}] Ten</>)
         })),
         createMultiplicativeModifier(() => ({
-            multiplier: 1,
-            enabled: false,
-            description: jsx(() => <>[{skyrmion.name}] 4th abyssal pion buyable</>)
+            multiplier: skyrmion.pion.upgrades.pi.effect,
+            enabled: () => Decimal.gt(unref(skyrmion.pion.upgrades.pi.totalAmount), 0),
+            description: jsx(() => <>[{skyrmion.name}] Pion Upgrade π ({format(unref(skyrmion.pion.upgrades.pi.totalAmount))})</>)
         })),
         createMultiplicativeModifier(() => ({
             multiplier: timecubeLayer.getTimesquareEffect(Sides.RIGHT),
