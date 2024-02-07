@@ -6,8 +6,7 @@ import { createCostRequirement } from "game/requirements";
 import { computed, unref, watch } from "vue";
 import skyrmion from "./skyrmion";
 import { render } from "util/vue";
-import { noPersist } from "game/persistence";
-import Decimal from "lib/break_eternity";
+import Decimal, { DecimalSource } from "lib/break_eternity";
 import pion from "./pion";
 import spinor from "./spinor"
 import { clonePersistentData, swapPersistentData } from "util/util";
@@ -15,6 +14,7 @@ import fome from "../fome/fome";
 import acceleron from "../acceleron/acceleron";
 import timecube from "../timecube/timecube";
 import inflaton from "../inflaton/inflaton";
+import { persistent } from "game/persistence";
 
 const id = "abyss";
 const layer = createLayer(id, function (this: BaseLayer) {
@@ -54,7 +54,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
     const swapData: Record<string, unknown> = (() => {
         const swapData = {
             skyrmion: {
-                conversion: clonePersistentData(skyrmion.conversion),
+                conversion: { amount: persistent<DecimalSource>(1) },
                 pion: clonePersistentData(skyrmion.pion),
                 spinor: clonePersistentData(skyrmion.spinor)
             },
@@ -84,6 +84,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         color,
         challenge,
         upgradeCount: challengeUpgradeCount,
+        abyssUpgradeCount: upgradeCount,
         swapData,
         display: jsx(() => (
             <>
