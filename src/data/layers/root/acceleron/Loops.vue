@@ -31,6 +31,7 @@ import Loop from "./Loop.vue";
 
 const props = defineProps<{
     radius: number;
+    // @ts-ignore
     loops: GenericLoop<T>[];
     buildButton: GenericClickable;
 }>();

@@ -13,6 +13,7 @@ import { jsx } from "features/feature";
 import Tooltip from "features/tooltips/Tooltip.vue";
 
 const props = defineProps<{
+    // @ts-ignore
     loops: GenericLoop<T>[]
 }>();
 
