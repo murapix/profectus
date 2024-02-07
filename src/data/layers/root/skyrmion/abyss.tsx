@@ -6,10 +6,15 @@ import { createCostRequirement } from "game/requirements";
 import { computed, unref, watch } from "vue";
 import skyrmion from "./skyrmion";
 import { render } from "util/vue";
-import { noPersist, persistent } from "game/persistence";
-import Decimal, { DecimalSource } from "lib/break_eternity";
+import { noPersist } from "game/persistence";
+import Decimal from "lib/break_eternity";
 import pion from "./pion";
 import spinor from "./spinor"
+import { clonePersistentData } from "util/util";
+import fome from "../fome/fome";
+import acceleron from "../acceleron/acceleron";
+import timecube from "../timecube/timecube";
+import inflaton from "../inflaton/inflaton";
 
 const id = "abyss";
 const layer = createLayer(id, function (this: BaseLayer) {
@@ -36,32 +41,38 @@ const layer = createLayer(id, function (this: BaseLayer) {
     const challengeUpgradeCount = computed(() => Decimal.add(unref(pion.upgradeCount), unref(spinor.upgradeCount)).times(0.75));
 
     const upgradeCount: Resource<number> = createResource(computed(() =>
-        [
-            skyrmion.upgrades.nu,
-            skyrmion.upgrades.pi,
-            skyrmion.upgrades.xi,
-            skyrmion.upgrades.rho
-        ].filter(upgrade => unref(upgrade.bought)).length
+        [ skyrmion.upgrades.nu, skyrmion.upgrades.pi, skyrmion.upgrades.xi, skyrmion.upgrades.rho ].filter(upgrade => unref(upgrade.bought)).length
     ), "Abyssal Skyrmion Upgrades");
-    this.on("update", () => {
-        if (Decimal.lt(unref(challenge.completions), unref(upgradeCount))) {
-            challenge.completions.value = new Decimal(unref(upgradeCount));
-        }
-    })
+    watch(upgradeCount, count => challenge.completions.value = Decimal.max(unref(challenge.completions), count));
 
-    const swapData = {
-        skyrmion: {
-            conversion: { amoung: persistent<DecimalSource>(0) },
-            pion: {
-                pions: persistent<DecimalSource>(0),
-                upgrades: Object.fromEntries(Object.keys(pion.upgrades).map(id => [id, { amount: persistent<DecimalSource>(0) }]))
+    const swapData: Record<string, unknown> = (() => {
+        const swapData = {
+            skyrmion: {
+                conversion: clonePersistentData(skyrmion.conversion),
+                pion: clonePersistentData(skyrmion.pion),
+                spinor: clonePersistentData(skyrmion.spinor)
             },
-            spinor: {
-                spinors: persistent<DecimalSource>(0),
-                upgrades: Object.fromEntries(Object.keys(spinor.upgrades).map(id => [id, { amount: persistent<DecimalSource>(0) }]))
-            }
-        }
-    }
+            fome: {
+                protoversal: clonePersistentData(fome.protoversal),
+                infinitesimal: clonePersistentData(fome.infinitesimal),
+                subspatial: clonePersistentData(fome.subspatial),
+                subplanck: clonePersistentData(fome.subplanck),
+                quantum: clonePersistentData(fome.quantum)
+            },
+            acceleron: {
+                accelerons: clonePersistentData(acceleron.accelerons),
+                bestAccelerons: clonePersistentData(acceleron.bestAccelerons),
+                totalAccelerons: clonePersistentData(acceleron.totalAccelerons),
+                entropy: clonePersistentData(acceleron.entropy),
+                loops: clonePersistentData(acceleron.loops),
+                upgrades: clonePersistentData(acceleron.upgrades)
+            },
+            timecube: clonePersistentData(timecube),
+            inflaton: clonePersistentData(inflaton)
+        };
+
+        return swapData;
+    })();
 
     return {
         color,
