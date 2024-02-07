@@ -117,7 +117,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             buildRequirement: new Decimal(60),
             triggerRequirement: Decimal.dOne,
             display: {
-                color: acceleronLayer.color,
+                color: computed(() => unref(abyss.challenge.active) ? abyss.color : acceleronLayer.color),
                 width: 10,
                 description: jsx(() => (
                     <>
@@ -148,7 +148,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             buildRequirement: new Decimal(360),
             triggerRequirement: new Decimal(60),
             display: () => ({
-                color: skyrmion.color,
+                color: computed(() => unref(abyss.challenge.active) ? abyss.color : skyrmion.color),
                 width: 10,
                 description: jsx(() => (
                     <>
@@ -177,7 +177,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             buildRequirement: new Decimal(600),
             triggerRequirement: new Decimal(3600),
             display: {
-                color: timecubeLayer.color,
+                color: computed(() => unref(abyss.challenge.active) ? abyss.color : timecubeLayer.color),
                 width: 10,
                 description: jsx(() => (
                     <>
@@ -208,7 +208,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             buildRequirement: new Decimal(250000),
             triggerRequirement: new Decimal(86400),
             display: {
-                color: fome.color,
+                color: computed(() => unref(abyss.challenge.active) ? abyss.color : fome.color),
                 width: 10,
                 description: jsx(() => (
                     <>
@@ -231,7 +231,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             buildRequirement: new Decimal(1e11),
             triggerRequirement: new Decimal(31536000),
             display: {
-                color: acceleronLayer.color,
+                color: computed(() => unref(abyss.challenge.active) ? abyss.color : acceleronLayer.color),
                 width: 10,
                 description: jsx(() => (
                     <>
@@ -251,7 +251,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             buildRequirement: new Decimal(4e17),
             triggerRequirement: new Decimal(315360000),
             display: {
-                color: skyrmion.color,
+                color: computed(() => unref(abyss.challenge.active) ? abyss.color : skyrmion.color),
                 width: 10,
                 description: jsx(() => (
                     <>

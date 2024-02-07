@@ -17,6 +17,7 @@ import timecube from "./layers/root/timecube/timecube";
 import inflaton from "./layers/root/inflaton/inflaton";
 import entangled from "./layers/root/entangled/entangled";
 import { createHotkey } from "features/hotkey";
+import abyss from "./layers/root/skyrmion/abyss";
 
 /**
  * @hidden
@@ -31,7 +32,7 @@ export const root = createLayer(id, () => {
             display: layer.name,
             tab: createTab(() => ({
                 style: computed(() => ({
-                    "--layer-color": unref(layer.color),
+                    "--layer-color": unref(abyss.challenge.active) ? unref(abyss.color) : unref(layer.color),
                     ...(unref(layer.tabStyle))
                 })),
                 display: jsx(() => (<><div>{render(unref(layer.display))}</div></>))

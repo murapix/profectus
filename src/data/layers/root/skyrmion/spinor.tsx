@@ -293,7 +293,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         display: jsx(() => (
             <div class="table" style="width: 530px; align-items: flex-start">
                 <div class="col" style="align-items: flex-start">
-                    <div>You have <ResourceVue resource={spinors} color={skyrmion.color} tag="h3" /> {spinors.displayName} (+{displayResource(spinors, production.value)}/s)</div>
+                    <div>You have <ResourceVue resource={spinors} color={unref(abyss.challenge.active) ? abyss.color : skyrmion.color} tag="h3" /> {spinors.displayName} (+{displayResource(spinors, production.value)}/s)</div>
                     <div style="font-size: 12px">Your Pion upgrades are increasing Spinor upgrade costs by {formatSmall(unref(costNerf).minus(1).times(100))}%</div>
                     <Spacer />
                     <Spinor />
