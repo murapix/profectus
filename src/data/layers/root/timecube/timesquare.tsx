@@ -9,7 +9,7 @@ import { computed, unref } from "vue";
 import { CostRequirement, createBooleanRequirement, createCostRequirement, requirementsMet, payRequirements } from "game/requirements";
 import { Resource } from "features/resources/resource";
 import { format, formatWhole } from "util/break_eternity";
-import TimesquareComponent from "./Timesquare.vue";
+import TimesquareComponent from "./TimesquareComponent.vue";
 import { Sides } from "./timesquares";
 import timelines from "./timelines";
 import timecube from "./timecube";

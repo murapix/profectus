@@ -3,7 +3,7 @@ import { Sides } from "./timesquares";
 import { Persistent, persistent } from "game/persistence";
 import { createLazyProxy } from "util/proxies";
 import { DecimalSource } from "lib/break_eternity";
-import TimelineComponent from "./Timeline.vue"
+import TimelineComponent from "./TimelineComponent.vue"
 
 export const TimelineType = Symbol("Timeline");
 
