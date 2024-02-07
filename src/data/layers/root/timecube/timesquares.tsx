@@ -123,8 +123,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
 
     const buyAmountInput = ref<string>('1');
     watch(buyAmountInput, updated => {
+        if (updated === '') { buyAmount.value = Decimal.dOne; return; }
         if (Decimal.isNaN(updated)) return;
-        if (Decimal.lt(updated, 1)) return;
+        if (Decimal.lt(updated, 1)) { buyAmount.value = Decimal.dOne; return; }
         buyAmount.value = Decimal.floor(updated);
     });
 
