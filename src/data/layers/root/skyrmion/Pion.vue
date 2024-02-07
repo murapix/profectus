@@ -34,7 +34,11 @@ const positions: Record<keyof typeof upgrades, { row: number; col: number }> = {
     iota: { row: 7, col: 7 },
     kappa: { row: 4, col: 1 },
     lambda: { row: 6, col: 1 },
-    mu: { row: 7, col: 3 }
+    mu: { row: 7, col: 3 },
+    nu: { row: 8, col: 5 },
+    xi: { row: 8, col: 1 },
+    pi: { row: 9, col: 3 },
+    rho: { row: 10, col: 1 }
 };
 function getPos(index: keyof typeof upgrades) {
     return { "--row": positions[index].row, "--col": positions[index].col } as StyleValue;
@@ -53,6 +57,7 @@ function getPos(index: keyof typeof upgrades) {
         var(--width) * var(--upgrade-width) + (var(--width) - 1) * var(--upgrade-width) / 2 +
             (var(--width) - 1) * var(--gap)
     );
+    height: 150px;
 }
 
 .pion-grid {

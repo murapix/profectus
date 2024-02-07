@@ -22,6 +22,7 @@ import Pion from "./Pion.vue";
 import abyss from "./abyss";
 import { getFomeBoost } from "../fome/boost";
 import { displayResource } from "features/resources/resource";
+import inflaton from "../inflaton/inflaton";
 
 const id = "pion";
 const layer = createLayer(id, function (this: BaseLayer) {
@@ -214,7 +215,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             effect: amount => Decimal.pow(2, amount)
         });
         const mu = createUpgrade({
-            visibility: () => false,
+            visibility: noPersist(inflaton.upgrades.skyrmionUpgrades.bought),
             cost(amount) {
                 return amount.pow_base(5).times(7e10)
                              .if(() => Decimal.gt(amount.evaluate(), 45), value => value.times(value.pow_base(20)).times(1e-35))
@@ -224,11 +225,61 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 name: "μ",
                 description: <>Gain 2% more Spinors per order of magnitude<sup>2</sup> of stored Inflatons</>
             },
-            effect: amount => Decimal.clamp(1, 1, 1).plus(9).log10().log10().times(0.02).plus(1).pow(amount)
+            effect: amount => Decimal.clamp(unref(inflaton.inflatons), 1, unref(inflaton.buildings.buildings.storage.effect)).plus(9).log10().log10().times(0.02).plus(1).pow(amount)
+        });
+        const nu = createUpgrade({
+            visibility: () => unref(abyss.challenge.active) || unref(skyrmion.upgrades.nu.bought),
+            cost(amount) {
+                return amount.pow_base(150).times(1e50)
+            },
+            shouldAutobuy: noPersist(skyrmion.upgrades.nu.bought),
+            display: {
+                name: "ν",
+                description: <>Increase research speed by {formatSmall(0.00025)}x per order of magnitude of Pions</>,
+                effect: effect => `${formatSmall(effect)}x`
+            },
+            effect: amount => Decimal.clampMin(unref(pions), 0).plus(1).log10().times(amount).times(0.00025).plus(1)
+        });
+        const xi = createUpgrade({
+            visibility: () => unref(abyss.challenge.active) || unref(skyrmion.upgrades.xi.bought),
+            cost(amount) {
+                return amount.pow_base(135).times(1e50)
+            },
+            shouldAutobuy: noPersist(skyrmion.upgrades.xi.bought),
+            display: {
+                name: "π",
+                description: <>Decrease the Entangled String Acceleron requirement by 5%</>,
+                effect: effect => `${formatSmall(effect)}x`
+            },
+            effect: amount => Decimal.pow_base(0.95, amount)
+        });
+        const pi = createUpgrade({
+            visibility: () => unref(abyss.challenge.active) || unref(skyrmion.upgrades.pi.bought),
+            cost(amount) {
+                return amount.pow_base(160).times(1e50)
+            },
+            shouldAutobuy: noPersist(skyrmion.upgrades.pi.bought),
+            display: {
+                name: "π",
+                description: <>Increase Entropic Loop construction speed by 5% per completed Entropic Loop</>
+            },
+            effect: amount => Decimal.times(amount, 0.05).times(unref(acceleron.loops.numBuiltLoops))
+        });
+        const rho = createUpgrade({
+            visibility: () => unref(abyss.challenge.active) || unref(skyrmion.upgrades.rho.bought),
+            cost(amount) {
+                return amount.pow_base(175).times(1e50)
+            },
+            shouldAutobuy: noPersist(skyrmion.upgrades.rho.bought),
+            display: {
+                name: "ρ",
+                description: <>Decrease Subspace building cost scaling by 1.1x</>
+            },
+            effect: amount => Decimal.pow(1.1, amount)
         });
 
         return {
-            alpha, beta, gamma, delta, epsilon, zeta, eta, theta, iota, kappa,lambda, mu
+            alpha, beta, gamma, delta, epsilon, zeta, eta, theta, iota, kappa, lambda, mu, nu, xi, pi, rho
         }
     })();
 

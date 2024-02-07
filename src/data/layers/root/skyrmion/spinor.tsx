@@ -22,6 +22,8 @@ import Spinor from "./Spinor.vue";
 import abyss from "./abyss";
 import { getFomeBoost } from "../fome/boost";
 import { displayResource } from "features/resources/resource";
+import inflaton from "../inflaton/inflaton";
+import entropy from "../acceleron/entropy";
 
 const id = "spinor";
 const layer = createLayer(id, function (this: BaseLayer) {
@@ -55,8 +57,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
         const exponent = amount.times(0.25).times(getFomeBoost(FomeTypes.quantum, 2));
         return base.pow(exponent);
     });
-    const upgrades: Record<string, SkyrmionRepeatable> = {
-        alpha: createUpgrade({
+    const upgrades = (() => {
+        const alpha = createUpgrade({
             cost(amount) {
                 return amount.pow_base(1.2).times(0.1)
                              .if(() => Decimal.gt(amount.evaluate(), 25), value => value.times(value.pow_base(7.9)).times(3.42e-23))
@@ -70,8 +72,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
             },
             effect: amount => Decimal.pow(1.5, amount),
             bonusAmount: fome[FomeTypes.protoversal].boosts[2].effect
-        }),
-        beta: createUpgrade({
+        });
+        const beta = createUpgrade({
             cost(amount) {
                 return amount.pow_base(1.3).times(0.1)
                              .if(() => Decimal.gt(amount.evaluate(), 15), value => value.times(value.pow_base(7.7)).times(6e-14))
@@ -86,8 +88,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
             },
             effect: amount => Decimal.pow(0.9, amount),
             bonusAmount: fome[FomeTypes.protoversal].boosts[3].effect
-        }),
-        gamma: createUpgrade({
+        });
+        const gamma = createUpgrade({
             cost(amount) {
                 return amount.pow_base(1.7).times(0.1)
                              .if(() => Decimal.gt(amount.evaluate(), 10), value => value.times(value.pow_base(7.35)).times(2.68e-9))
@@ -101,8 +103,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
             },
             effect: amount => Decimal.pow(1.75, amount),
             bonusAmount: fome[FomeTypes.protoversal].boosts[4].effect
-        }),
-        delta: createUpgrade({
+        });
+        const delta = createUpgrade({
             visibility: () => Decimal.gt(unref(fome[FomeTypes.protoversal].boosts[1].total), 0),
             cost(amount) {
                 return amount.pow_base(6).times(30)
@@ -115,8 +117,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
             },
             effect: amount => Decimal.pow(1.7, amount),
             bonusAmount: fome[FomeTypes.subplanck].boosts[2].effect
-        }),
-        epsilon: createUpgrade({
+        });
+        const epsilon = createUpgrade({
             visibility: () => Decimal.gt(unref(fome[FomeTypes.infinitesimal].upgrades.reform.amount), 0),
             cost(amount) {
                 return amount.pow_base(5).times(50)
@@ -129,8 +131,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
             },
             effect: amount => Decimal.max(unref(fome[FomeTypes.protoversal].amount), 0).plus(1).log10().times(amount).times(0.5).plus(1),
             bonusAmount: () => Decimal.add(getFomeBoost(FomeTypes.subplanck, 3), unref(pion.upgrades.eta.effect))
-        }),
-        zeta: createUpgrade({
+        });
+        const zeta = createUpgrade({
             visibility: () => Decimal.gt(unref(fome[FomeTypes.subspatial].upgrades.reform.amount), 0),
             cost(amount) {
                 return amount.pow_base(5.5).times(5e3)
@@ -143,8 +145,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
             },
             effect: amount => Decimal.max(unref(fome[FomeTypes.subspatial].amount), 0).plus(1).log10().times(amount).times(0.3).plus(1),
             bonusAmount: fome[FomeTypes.subplanck].boosts[4].effect
-        }),
-        eta: createUpgrade({
+        });
+        const eta = createUpgrade({
             visibility: () => Decimal.gt(unref(fome[FomeTypes.protoversal].upgrades.reform.amount), 1),
             cost(amount) {
                 return amount.pow_base(5).times(3e5)
@@ -157,8 +159,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
             },
             effect: amount => Decimal.times(amount, 1.2).plus(1),
             bonusAmount: fome[FomeTypes.subplanck].boosts[5].effect
-        }),
-        theta: createUpgrade({
+        });
+        const theta = createUpgrade({
             visibility: () => Decimal.gt(unref(fome[FomeTypes.subplanck].upgrades.reform.amount), 0),
             cost(amount) {
                 return amount.pow_base(6.5).times(7e5)
@@ -171,8 +173,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
             },
             effect: amount => Decimal.add(Decimal.max(unref(fome[FomeTypes.protoversal].amount), 0).plus(1).log10(), Decimal.max(unref(fome[FomeTypes.infinitesimal].amount), 0).plus(1).log10()).times(amount).times(0.3).plus(1),
             bonusAmount: fome[FomeTypes.quantum].boosts[2].effect
-        }),
-        iota: createUpgrade({
+        });
+        const iota = createUpgrade({
             visibility: () => Decimal.gt(unref(fome[FomeTypes.protoversal].upgrades.reform.amount), 2),
             cost(amount) {
                 return amount.pow_base(7.5).times(4e8)
@@ -185,8 +187,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
             },
             effect: amount => Decimal.max(unref(pion.pions), 0).plus(1).log10().times(amount).times(0.02).plus(1),
             bonusAmount: fome[FomeTypes.quantum].boosts[4].effect
-        }),
-        kappa: createUpgrade({
+        });
+        const kappa = createUpgrade({
             visibility: () => Decimal.gt(unref(fome[FomeTypes.infinitesimal].upgrades.reform.amount), 1),
             cost(amount) {
                 return amount.pow_base(7).times(5e9)
@@ -199,8 +201,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
             },
             effect: amount => Decimal.max(unref(fome[FomeTypes.subplanck].amount), 0).plus(1).log10().times(amount).times(0.4).plus(1),
             bonusAmount: fome[FomeTypes.quantum].boosts[4].effect
-        }),
-        lambda: createUpgrade({
+        });
+        const lambda = createUpgrade({
             visibility: noPersist(acceleron.upgrades.skyrmion.bought),
             cost(amount) {
                 return amount.pow_base(5).times(7e10)
@@ -212,9 +214,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 description: <>ln(Best Accelerons) increases Pion and Spinor gain</>
             },
             effect: amount => Decimal.max(unref(acceleron.bestAccelerons), 0).plus(1).ln().times(amount).plus(1)
-        }),
-        mu: createUpgrade({
-            visibility: () => false,
+        });
+        const mu = createUpgrade({
+            visibility: noPersist(inflaton.upgrades.skyrmionUpgrades.bought),
             cost(amount) {
                 return amount.pow_base(5).times(7e10)
                              .if(() => Decimal.gt(amount.evaluate(), 45), value => value.times(value.pow_base(20)).times(1e-35))
@@ -224,9 +226,64 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 name: "μ",
                 description: <>Gain 2% more Pions per order of magnitude<sup>2</sup> of stored Inflatons</>
             },
-            effect: amount => Decimal.clamp(1, 1, 1).plus(9).log10().log10().times(0.02).plus(1).pow(amount)
-        })
-    }
+            effect: amount => Decimal.clamp(unref(inflaton.inflatons), 1, unref(inflaton.buildings.buildings.storage.effect)).plus(9).log10().log10().times(0.02).plus(1).pow(amount)
+        });
+        const nu = createUpgrade({
+            visibility: () => unref(abyss.challenge.active) || unref(skyrmion.upgrades.nu.bought),
+            cost(amount) {
+                return amount.pow_base(150).times(1e50)
+            },
+            shouldAutobuy: noPersist(skyrmion.upgrades.nu.bought),
+            display: {
+                name: "ν",
+                description: <>Add {formatSmall(0.00025)} to a repeatable research cost divider per order of magnitude of Spinors</>,
+                effect: effect => `/${formatSmall(effect)}x`
+            },
+            effect: amount => Decimal.clampMin(unref(spinors), 0).plus(1).log10().times(amount).times(0.00025).plus(1)
+        });
+        const xi = createUpgrade({
+            visibility: () => unref(abyss.challenge.active) || unref(skyrmion.upgrades.xi.bought),
+            cost(amount) {
+                return amount.pow_base(135).times(1e50)
+            },
+            shouldAutobuy: noPersist(skyrmion.upgrades.xi.bought),
+            display: {
+                name: "π",
+                description: <>Decrease the magnitude of the Entangled String Inflaton requirement by 5%</>,
+                effect: effect => `${formatSmall(effect)}x`
+            },
+            effect: amount => Decimal.pow_base(0.95, amount)
+        });
+        const pi = createUpgrade({
+            visibility: () => unref(abyss.challenge.active) || unref(skyrmion.upgrades.pi.bought),
+            cost(amount) {
+                return amount.pow_base(160).times(1e50)
+            },
+            shouldAutobuy: noPersist(skyrmion.upgrades.pi.bought),
+            display: {
+                name: "π",
+                description: <>Increase Pion and Spinor gain by 0.25% per total {entropy.entropy.displayName}</>
+            },
+            effect: amount => Decimal.times(amount, 0.0025).times(unref(entropy.maxEntropy)).plus(1)
+        });
+        const rho = createUpgrade({
+            visibility: () => unref(abyss.challenge.active) || unref(skyrmion.upgrades.rho.bought),
+            cost(amount) {
+                return amount.pow_base(175).times(1e50)
+            },
+            shouldAutobuy: noPersist(skyrmion.upgrades.rho.bought),
+            display: {
+                name: "ρ",
+                description: <>Increase effective Subspace building count by 0.1%</>,
+                effect: effect => `${format(Decimal.times(effect, 100), 1)}%`
+            },
+            effect: amount => Decimal.times(amount, 0.001)
+        });
+
+        return {
+            alpha, beta, gamma, delta, epsilon, zeta, eta, theta, iota, kappa, lambda, mu, nu, xi, pi, rho
+        }
+    })();
     
     return {
         name,
@@ -252,7 +309,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         display: {
             name: string;
             description: JSX.Element;
-            effect?(effect: unknown): CoercableComponent;
+            effect?(effect: DecimalSource): CoercableComponent;
         };
         effect?(amount: DecimalSource): DecimalSource;
         bonusAmount?: Computable<DecimalSource>;

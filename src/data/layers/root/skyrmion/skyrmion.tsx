@@ -242,7 +242,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         }),
         nu: createUpgrade({
             visibility(this: GenericUpgrade) {
-                return false;
+                return unref(this.bought) || unref(abyss.challenge.active);
             },
             display: {
                 title: "Neutralization",
@@ -252,7 +252,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         }),
         xi: createUpgrade({
             visibility(this: GenericUpgrade) {
-                return false;
+                return unref(this.bought) || unref(abyss.challenge.active);
             },
             display: {
                 title: "Externalization",
@@ -262,7 +262,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         }),
         pi: createUpgrade({
             visibility(this: GenericUpgrade) {
-                return false;
+                return unref(this.bought) || unref(abyss.challenge.active);
             },
             display: {
                 title: "Prioritization",
@@ -272,7 +272,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         }),
         rho: createUpgrade({
             visibility(this: GenericUpgrade) {
-                return false;
+                return unref(this.bought) || unref(abyss.challenge.active);
             },
             display: {
                 title: "Obfuscation",
@@ -301,7 +301,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 <Spacer />
                 <div class="row" style={{ flexFlow: "row nowrap" }}>
                     {render(pion.display)}
-                    {unref(entangled.expansions.skyrmion.bought) ? render(unref(abyss.display)) : <Spacer width='250px' height='250px' />}
+                    {unref(entangled.expansions.skyrmion.bought) ? render(abyss.challenge) : <Spacer width='250px' height='250px' />}
                     {render(spinor.display)}
                 </div>
                 <Spacer />
