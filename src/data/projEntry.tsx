@@ -34,15 +34,7 @@ export const root = createLayer(id, () => {
                     "--layer-color": unref(layer.color),
                     ...(unref(layer.tabStyle))
                 })),
-                display: jsx(() => (
-                    <>
-                        <div>
-                            {player.devSpeed === 0 ? <div>Game Paused</div> : null}
-                            {player.devSpeed && player.devSpeed !== 1 ? <div>Dev Speed: {format(player.devSpeed)}x</div> : null}
-                            {render(unref(layer.display))}
-                        </div>
-                    </>
-                ))
+                display: jsx(() => (<><div>{render(unref(layer.display))}</div></>))
             })),
             visibility: 'unlocked' in layer ? () => unref(layer.unlocked ?? true) : true
         })]
