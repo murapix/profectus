@@ -37,6 +37,13 @@ function update() {
     diff = Math.max(diff, 0);
 
     if (player.devSpeed === 0) {
+        if (settings.unthrottled) {
+            requestAnimationFrame(update);
+            if (intervalID != null) {
+                clearInterval(intervalID);
+                intervalID = null;
+            }
+        }
         return;
     }
 
