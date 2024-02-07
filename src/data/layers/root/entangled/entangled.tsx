@@ -380,14 +380,14 @@ const layer = createLayer("entangled", () => {
                 <Spacer />
                 <div>The next {strings.displayName} requires:</div>
                 <Spacer />
-                <div color={acceleron.color}>
+                <div style={{ color: acceleron.color }}>
                     {acceleron.accelerons.displayName}: {format(unref(requirements.acceleron.resource))} / {format(unref(requirements.acceleron.cost as ProcessedComputable<DecimalSource>))}
                 </div>
-                <div color={inflaton.color}>
+                <div style={{ color: inflaton.color }}>
                     Stored {inflaton.inflatons.displayName}: {format(unref(requirements.inflaton.resource))} / {format(unref(requirements.inflaton.cost as ProcessedComputable<DecimalSource>))}
                 </div>
                 {isVisible(requirements.timecube.visibility)
-                    ? <div color={timecube.color}>
+                    ? <div style={{ color: timecube.color }}>
                         Total Timeline Score: {format(unref(requirements.timecube.resource))} / {format(unref(requirements.timecube.cost as ProcessedComputable<DecimalSource>))}
                     </div>
                     : undefined
