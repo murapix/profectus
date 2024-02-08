@@ -99,9 +99,13 @@ const layer = createLayer(id, function (this: BaseLayer) {
                                                           .dividedBy(getResearchEffect(core.repeatables.fome, 1))
                                                           .clampMin(1)
     );
+    const skyrmionNerf = computed(() => {
+        if (!unref(timecube.upgrades.tower.bought)) return unref(inflatonNerf);
+        return unref(timecube.timelines.inTimeline) ? unref(allFomeNerf) : unref(inflatonNerf);
+    });
     const individualNerfs = {
-        pion: computed(() => Decimal.div(unref(inflatonNerf), getUpgradeEffect(timecube.upgrades.tower)).clampMin(1)),
-        spinor: computed(() => Decimal.div(unref(inflatonNerf), getUpgradeEffect(timecube.upgrades.tower)).clampMin(1)),
+        pion: skyrmionNerf,
+        spinor: skyrmionNerf,
         [FomeTypes.protoversal]: allFomeNerf,
         [FomeTypes.infinitesimal]: allFomeNerf,
         [FomeTypes.subspatial]: allFomeNerf,
