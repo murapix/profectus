@@ -239,7 +239,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             style: achievementStyle(feature),
             tooltip: {
                 requirement: <>10 {accelerons.displayName}</>,
-                effect: <>Keep Protoversal Boosts and Size Upgrades on Acceleron reset</>
+                effect: <>Keep Quantum Boosts and Size Upgrades on Acceleron reset</>
             }
         }))
     }
@@ -272,8 +272,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
             display: jsx(() => (
                 <>
                     <h3>Quantum Translation</h3><br /><br />
-                    Each Foam re-formation increases Acceleron gain by 100%<br /><br />
-                    Currently: {formatWhole(getUpgradeEffect(upgrade as EffectUpgrade, undefined, true))}x<br />
+                    Acceleron's Quantum Foam requirement is divided by the number of Foam re-formations<br /><br />
+                    Currently: /{formatWhole(getUpgradeEffect(upgrade as EffectUpgrade, undefined, true))}x<br />
                     {displayRequirements((upgrade as GenericUpgrade).requirements)}
                 </>
             )),
@@ -319,8 +319,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
             display: jsx(() => (
                 <>
                     <h3>Temporal Fluctuation</h3><br /><br />
-                    Each Entropic Loop multiplies Acceleron gain<br /><br />
-                    Currently: {formatWhole(getUpgradeEffect(upgrade as EffectUpgrade, undefined, true))}x<br />
+                    Acceleron's Quantum Foam requirement is divided by the number of completed Entropic Loops<br /><br />
+                    Currently: /{formatWhole(getUpgradeEffect(upgrade as EffectUpgrade, undefined, true))}x<br />
                     {displayRequirements((upgrade as GenericUpgrade).requirements)}
                 </>
             )),
