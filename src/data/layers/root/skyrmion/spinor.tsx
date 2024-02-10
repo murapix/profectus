@@ -59,10 +59,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
     const upgrades = (() => {
         const alpha = createUpgrade({
             cost(amount) {
-                return amount.pow_base(1.2).times(0.1)
-                             .if(() => Decimal.gt(amount.evaluate(), 25), value => value.times(value.pow_base(7.9)).times(3.42e-23))
-                             .if(() => Decimal.gt(amount.evaluate(), 90), value => value.times(value.pow_base(19.75)).times(2.08e-104))
-                             .times(getFomeBoost(FomeTypes.infinitesimal, 2));
+                let cost = amount.pow_base(1.2).times(0.1)
+                if (amount.gt(25)) cost = amount.pow_base(7.9).times(3.42e-23).times(cost);
+                if (amount.gt(90)) cost = amount.pow_base(19.75).times(2.08e-104).times(cost);
+                return cost.times(getFomeBoost(FomeTypes.infinitesimal, 2));
             },
             shouldAutobuy: noPersist(skyrmion.upgrades.alpha.bought),
             display: {
@@ -74,10 +74,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
         });
         const beta = createUpgrade({
             cost(amount) {
-                return amount.pow_base(1.3).times(0.1)
-                             .if(() => Decimal.gt(amount.evaluate(), 15), value => value.times(value.pow_base(7.7)).times(6e-14))
-                             .if(() => Decimal.gt(amount.evaluate(), 45), value => value.times(value.pow_base(29.25)).times(1e-39))
-                             .plus(0.9);
+                let cost = amount.pow_base(1.3).times(0.1)
+                if (amount.gt(15)) cost = amount.pow_base(7.7).times(6e-14).times(cost);
+                if (amount.gt(45)) cost = amount.pow_base(29.25).times(1e-39).times(cost);
+                return cost.plus(0.9);
             },
             shouldAutobuy: noPersist(skyrmion.upgrades.beta.bought),
             display: {
@@ -90,10 +90,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
         });
         const gamma = createUpgrade({
             cost(amount) {
-                return amount.pow_base(1.7).times(0.1)
-                             .if(() => Decimal.gt(amount.evaluate(), 10), value => value.times(value.pow_base(7.35)).times(2.68e-9))
-                             .if(() => Decimal.gt(amount.evaluate(), 60), value => value.times(value.pow_base(29.4)).times(8.9e-74))
-                             .plus(4.9).times(getFomeBoost(FomeTypes.infinitesimal, 5));
+                let cost = amount.pow_base(1.7).times(0.1)
+                if (amount.gt(10)) cost = amount.pow_base(7.35).times(2.68e-9).times(cost);
+                if (amount.gt(60)) cost = amount.pow_base(29.4).times(8.9e-74).times(cost);
+                return cost.plus(4.9).times(getFomeBoost(FomeTypes.infinitesimal, 5));
             },
             shouldAutobuy: noPersist(skyrmion.upgrades.gamma.bought),
             display: {
@@ -106,8 +106,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
         const delta = createUpgrade({
             visibility: () => unref(abyss.challenge.active) || Decimal.gt(unref(fome[FomeTypes.protoversal].boosts[1].total), 0),
             cost(amount) {
-                return amount.pow_base(6).times(30)
-                             .if(() => Decimal.gt(amount.evaluate(), 60), value => value.times(value.pow_base(37.5)).times(2.7e-71))
+                let cost = amount.pow_base(6).times(30)
+                if (amount.gt(60)) cost = amount.pow_base(37.5).times(2.7e-71).times(cost);
+                return cost;
             },
             shouldAutobuy: noPersist(skyrmion.upgrades.delta.bought),
             display: {
@@ -120,8 +121,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
         const epsilon = createUpgrade({
             visibility: () => unref(abyss.challenge.active) || Decimal.gt(unref(fome[FomeTypes.infinitesimal].upgrades.reform.amount), 0),
             cost(amount) {
-                return amount.pow_base(5).times(50)
-                             .if(() => Decimal.gt(amount.evaluate(), 60), value => value.times(value.pow_base(28.8)).times(1.77e-65))
+                let cost = amount.pow_base(5).times(50)
+                if (amount.gt(60)) cost = amount.pow_base(28.8).times(1.77e-65).times(cost);
+                return cost;
             },
             shouldAutobuy: noPersist(skyrmion.upgrades.epsilon.bought),
             display: {
@@ -134,8 +136,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
         const zeta = createUpgrade({
             visibility: () => unref(abyss.challenge.active) || Decimal.gt(unref(fome[FomeTypes.subspatial].upgrades.reform.amount), 0),
             cost(amount) {
-                return amount.pow_base(5.5).times(5e3)
-                             .if(() => Decimal.gt(amount.evaluate(), 60), value => value.times(value.pow_base(35.64)).times(1e-68))
+                let cost = amount.pow_base(5.5).times(5e3)
+                if (amount.gt(60)) cost = amount.pow_base(35.64).times(1e-68).times(cost);
+                return cost;
             },
             shouldAutobuy: noPersist(skyrmion.upgrades.zeta.bought),
             display: {
@@ -148,8 +151,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
         const eta = createUpgrade({
             visibility: () => unref(abyss.challenge.active) || Decimal.gt(unref(fome[FomeTypes.protoversal].upgrades.reform.amount), 1),
             cost(amount) {
-                return amount.pow_base(5).times(3e5)
-                             .if(() => Decimal.gt(amount.evaluate(), 60), value => value.times(value.pow_base(28.8)).times(1.77e-64))
+                let cost = amount.pow_base(5).times(3e5)
+                if (amount.gt(60)) cost = amount.pow_base(28.8).times(1.77e-64).times(cost);
+                return cost;
             },
             shouldAutobuy: noPersist(skyrmion.upgrades.eta.bought),
             display: {
@@ -162,8 +166,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
         const theta = createUpgrade({
             visibility: () => unref(abyss.challenge.active) || Decimal.gt(unref(fome[FomeTypes.subplanck].upgrades.reform.amount), 0),
             cost(amount) {
-                return amount.pow_base(6.5).times(7e5)
-                             .if(() => Decimal.gt(amount.evaluate(), 45), value => value.times(value.pow_base(26)).times(5.45e-34))
+                let cost = amount.pow_base(6.5).times(7e5)
+                if (amount.gt(45)) cost = amount.pow_base(26).times(5.45e-34).times(cost);
+                return cost;
             },
             shouldAutobuy: noPersist(skyrmion.upgrades.theta.bought),
             display: {
@@ -176,8 +181,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
         const iota = createUpgrade({
             visibility: () => unref(abyss.challenge.active) || Decimal.gt(unref(fome[FomeTypes.protoversal].upgrades.reform.amount), 2),
             cost(amount) {
-                return amount.pow_base(7.5).times(4e8)
-                             .if(() => Decimal.gt(amount.evaluate(), 45), value => value.times(value.pow_base(30)).times(5.95e-48))
+                let cost = amount.pow_base(7.5).times(4e8)
+                if (amount.gt(45)) cost = amount.pow_base(30).times(5.95e-48).times(cost);
+                return cost;
             },
             shouldAutobuy: noPersist(skyrmion.upgrades.iota.bought),
             display: {
@@ -190,8 +196,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
         const kappa = createUpgrade({
             visibility: () => unref(abyss.challenge.active) || Decimal.gt(unref(fome[FomeTypes.infinitesimal].upgrades.reform.amount), 1),
             cost(amount) {
-                return amount.pow_base(7).times(5e9)
-                             .if(() => Decimal.gt(amount.evaluate(), 45), value => value.times(value.pow_base(26)).times(1.45e-43))
+                let cost = amount.pow_base(7).times(5e9)
+                if (amount.gt(45)) cost = amount.pow_base(26).times(1.45e-43).times(cost);
+                return cost;
             },
             shouldAutobuy: noPersist(skyrmion.upgrades.kappa.bought),
             display: {
@@ -204,8 +211,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
         const lambda = createUpgrade({
             visibility: () => unref(abyss.challenge.active) || unref(acceleron.upgrades.skyrmion.bought),
             cost(amount) {
-                return amount.pow_base(5).times(7e10)
-                             .if(() => Decimal.gt(amount.evaluate(), 45), value => value.times(value.pow_base(20)).times(1e-35))
+                let cost = amount.pow_base(5).times(7e10)
+                if (amount.gt(45)) cost = amount.pow_base(20).times(1e-35).times(cost);
+                return cost;
             },
             shouldAutobuy: noPersist(skyrmion.upgrades.lambda.bought),
             display: {
@@ -217,8 +225,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
         const mu = createUpgrade({
             visibility: () => unref(abyss.challenge.active) || unref(inflaton.upgrades.skyrmionUpgrades.bought),
             cost(amount) {
-                return amount.pow_base(5).times(7e10)
-                             .if(() => Decimal.gt(amount.evaluate(), 45), value => value.times(value.pow_base(20)).times(1e-35))
+                let cost = amount.pow_base(5).times(7e10)
+                if (amount.gt(45)) cost = amount.pow_base(20).times(1e-35).times(cost);
+                return cost;
             },
             shouldAutobuy: noPersist(skyrmion.upgrades.mu.bought),
             display: {
@@ -303,7 +312,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
 
     interface SpinorRepeatableData {
         visibility?: Computable<Visibility | boolean>;
-        cost(amount: GenericFormula): GenericFormula;
+        cost(amount: Decimal): Decimal;
         shouldAutobuy: Computable<boolean>;
         display: {
             name: string;
@@ -326,7 +335,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
 
             requirements: createCostRequirement(() => ({
                 resource: noPersist(spinors),
-                cost: () => cost(Formula.variable(repeatable.amount)).times(costNerf).evaluate(),
+                cost: () => cost(new Decimal(unref(repeatable.amount))).times(unref(costNerf)),
                 requiresPay: () => !unref(shouldAutobuy),
                 canMaximize: false
             }))
