@@ -120,7 +120,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             visibility: () => !unref(feature.bought) && (unref(acceleron.unlocked) || unref(inflaton.unlocked) || unref(entangled.unlocked) || unref(fome[FomeTypes.subspatial].upgrades.condense.bought)),
             requirements: createCostRequirement(() => ({
                 resource: noPersist(amount),
-                cost: 2e5
+                cost: 1e6
             })),
             display: { description: `Condense your ${amount.displayName}` },
             onPurchase() { fome.quantum.upgrades.reform.amount.value = Decimal.dOne },
@@ -131,7 +131,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             requirements: [
                 createCostRequirement(() => ({
                     resource: noPersist(amount),
-                    cost: () => Decimal.minus(unref(feature.amount), 3).max(2).pow_base(unref(feature.amount)).plus(1).times(5).pow10().times(2),
+                    cost: () => Decimal.minus(unref(feature.amount), 3).max(2).pow_base(unref(feature.amount)).plus(1).times(6).pow10(),
                     requiresPay: () => !unref(fome.achievements.reform.earned)
                 })),
                 createReformRequirement(() => ({
