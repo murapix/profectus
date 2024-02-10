@@ -163,9 +163,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         index: persistent<1|2|3|4|5>(1),
         1: createBoost(feature => ({
             display: () => `Multiply the generation of Protoversal Foam by ${format(getFomeBoost(FomeTypes.protoversal, 1))}`,
-            effect: () => new Decimal(unref(feature.total)).times(unref(skyrmion.pion.upgrades.kappa.effect))
-                                                           .times(unref(skyrmion.spinor.upgrades.delta.effect))
-                                                           .plus(1),
+            effect: () => new Decimal(unref(feature.total)).times(unref(skyrmion.spinor.upgrades.delta.effect)).plus(1),
             bonus: fullBoostBonus
         })),
         2: createBoost(feature => ({

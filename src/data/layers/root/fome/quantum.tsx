@@ -149,17 +149,27 @@ const layer = createLayer(id, function (this: BaseLayer) {
         index: persistent<1|2|3|4|5>(1),
         1: createBoost(feature => ({
             display: () => `Multiply the generation of all Foam types by ${format(getFomeBoost(FomeTypes.quantum, 1))}`,
-            effect: () => Decimal.times(unref(feature.total), unref(skyrmion.pion.upgrades.kappa.effect)).sqr().plus(1),
+            effect: () => new Decimal(unref(feature.total)).times(unref(skyrmion.pion.upgrades.kappa.effect))
+                                                           .sqr()
+                                                           .plus(1),
             bonus: boostBonus
         })),
         2: createBoost(feature => ({
             display: () => `Reduce the Pion and Spinor cost nerf exponent by ${format(Decimal.sub(1, getFomeBoost(FomeTypes.quantum, 2)).times(100))}%`,
-            effect: () => Decimal.pow(0.975, Decimal.gt(unref(feature.total), 16) ? Decimal.ln(unref(feature.total)).times(Decimal.ln(2).recip().times(4)) : unref(feature.total)),
+            effect: () => {
+                let total = unref(feature.total);
+                if (Decimal.gt(total, 16)) total = Decimal.ln(2).recip().times(4).times(total);
+                return Decimal.pow(0.975, total)
+            },
             bonus: boostBonus
         })),
         3: createBoost(feature => ({
             display: () => `Multiply the generation of all Foam types again by ${format(getFomeBoost(FomeTypes.quantum, 3))}x`,
-            effect: () => Decimal.times(Decimal.gt(unref(feature.total), 16) ? Decimal.sqrt(unref(feature.total)).times(4) : unref(feature.total), Decimal.sqrt(getFomeBoost(FomeTypes.quantum, 1))).dividedBy(10).plus(1),
+            effect: () => {
+                let total = unref(feature.total);
+                if (Decimal.gt(total, 16)) total = Decimal.sqrt(total).times(4);
+                return Decimal.sqrt(getFomeBoost(FomeTypes.quantum, 1)).times(total).dividedBy(10).plus(1);
+            },
             bonus: boostBonus
         })),
         4: createBoost(feature => ({
