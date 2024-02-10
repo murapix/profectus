@@ -79,7 +79,9 @@ export function createBuilding<T = DecimalSource>(
                 return <span>
                     <div><Title /></div>
                     <Description />
-                    <div><br /><b>Size:</b> {formatLength(Decimal.times(unref(building.amount), building.size ?? 1), 0)}</div>
+                    <div><br /><b>Size:</b> {formatLength(Decimal.times(unref(building.amount), building.size ?? 1), 0)}
+                        {Decimal.gt(unref(building.bonusAmount), 0) ? formatLength(Decimal.times(unref(building.bonusAmount), building.size ?? 1), 0) : undefined}
+                    </div>
                     <div><br /><b>Currently:</b> <Effect/></div>
                     <div><br />{displayRequirements(building.requirements)}</div>
                 </span>
