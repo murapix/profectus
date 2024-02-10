@@ -25,6 +25,7 @@ import { getFomeBoost } from "../fome/boost";
 import { noPersist } from "game/persistence"
 import entangled from "../entangled/entangled";
 import { createReformRequirement } from "../fome/ReformRequirement";
+import entropy from "../acceleron/entropy";
 
 const id = "skyrmion";
 const layer = createLayer(id, function (this: BaseLayer) {
@@ -36,7 +37,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
     ) => Formula.variable(amount)
                 .pow10()
                 .dividedBy(fome.infinitesimal.boosts[4].effect)
-                .dividedBy(spinor.upgrades.alpha.effect);
+                .dividedBy(spinor.upgrades.alpha.effect)
+                .dividedBy(entropy.enhancements.amplification.effect);
     const skyrmions: GenericRepeatable = createRepeatable(feature => {
         return {
             initialAmount: 1,
@@ -106,6 +108,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
             multiplier: spinor.upgrades.pi.effect,
             enabled: () => Decimal.gt(unref(spinor.upgrades.pi.totalAmount), 0),
             description: jsx(() => (<>[{name}] Spinor Upgrade π ({format(unref(spinor.upgrades.pi.totalAmount))})</>))
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: fome[FomeTypes.infinitesimal].boosts[2].effect,
+            enabled: () => Decimal.gt(unref(fome[FomeTypes.infinitesimal].boosts[2].total), 0),
+            description: jsx(() => (<>[{fome.name}] Infinitesimal Boost 2 ({formatWhole(unref(fome[FomeTypes.infinitesimal].boosts[2].total))})</>))
         }))
     ];
 

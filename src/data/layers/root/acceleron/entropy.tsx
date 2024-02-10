@@ -100,7 +100,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
             visibility: noPersist(timecube.upgrades.tetrate.bought),
             display: {
                 title: 'Entropic Contraction',
-                description: 'Increase Acceleron gain based on number of purchased Entropic Enhancements'
+                description: 'Divide Acceleron cost based on number of purchased Entropic Enhancements',
+                effect: effect => `/${format(effect)}`
             },
             effect: () => unref(fibonacciEnhancements).pow(0.9)
         }));
@@ -172,7 +173,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
             visibility: noPersist(timecube.upgrades.tetrate.bought),
             display: {
                 title: 'Entropic Inversion',
-                description: 'Increase Acceleron gain based on Quantum Foam'
+                description: 'Divide Acceleron cost based on Quantum Foam',
+                effect: effect => `/${format(effect)}`
             },
             effect: () => Decimal.max(unref(fome[FomeTypes.quantum].amount), 0).plus(1).log10().plus(1)
         }));
@@ -190,7 +192,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
             visibility: loops.loops.tempFome.built,
             display: {
                 title: 'Entropic Amplification',
-                description: 'Skyrmions are cheaper based on best Time Cubes'
+                description: 'Skyrmions are cheaper based on best Time Cubes',
+                effect: effect => `/${format(effect.reciprocate())}`
             },
             effect: () => fibonacciNumber(Decimal.max(unref(timecube.bestTimecubes), 0).plus(1).log10().floor()).pow_base(0.9)
         }));
@@ -199,7 +202,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
             visibility: loops.loops.tempFome.built,
             display: {
                 title: 'Entropic Rotation',
-                description: 'Increase Acceleron gain based on best Time Cubes'
+                description: 'Divide Acceleron cost based on best Time Cubes',
+                effect: effect => `/${format(effect)}`
             },
             effect: () => Decimal.max(unref(timecube.bestTimecubes), 0).plus(1).log10().plus(1)
         }));

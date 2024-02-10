@@ -61,7 +61,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 let cost = amount.pow_base(1.2).times(0.1);
                 if (amount.gt(25)) cost = amount.pow_base(7.9).times(3.42e-23).times(cost);
                 if (amount.gt(90)) cost = amount.pow_base(19.75).times(2.08e-104).times(cost);
-                return cost.times(getFomeBoost(FomeTypes.infinitesimal, 2));
+                return cost.times(getFomeBoost(FomeTypes.infinitesimal, 3));
             },
             shouldAutobuy: noPersist(skyrmion.upgrades.alpha.bought),
             display: {
@@ -160,6 +160,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 description: <>Gain a free level of <b>Spinor Upgrade ε</b></>,
                 effect: effect => `${format(effect as DecimalSource)} free levels`
             },
+            effect: amount => amount,
             bonusAmount: fome[FomeTypes.subplanck].boosts[5].effect
         });
         const theta = createUpgrade({
@@ -175,7 +176,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 description: <>Increase Protoversal Foam gain by 100% per order of magnitude of Subspatial Foam</>
             },
             effect: amount => Decimal.max(unref(fome[FomeTypes.subspatial].amount), 0).plus(1).log10().times(amount).plus(1),
-            bonusAmount: fome[FomeTypes.quantum].boosts[2].effect
+            bonusAmount: fome[FomeTypes.quantum].boosts[4].effect
         });
         const iota = createUpgrade({
             visibility: () => unref(abyss.challenge.active) || Decimal.gt(unref(fome[FomeTypes.protoversal].upgrades.reform.amount), 2),
@@ -255,7 +256,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             },
             shouldAutobuy: noPersist(skyrmion.upgrades.xi.bought),
             display: {
-                name: "π",
+                name: "ξ",
                 description: <>Decrease the Entangled String Acceleron requirement by 5%</>,
                 effect: effect => `${formatSmall(effect)}x`
             },
@@ -333,7 +334,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
 
             requirements: createCostRequirement(() => ({
                 resource: noPersist(pions),
-                cost: () => cost(new Decimal(unref(repeatable.amount))).times(unref(costNerf)),
+                cost: () => cost(Decimal.sub(unref(repeatable.amount), getFomeBoost(FomeTypes.subspatial, 5))).times(unref(costNerf)),
                 requiresPay: () => !unref(shouldAutobuy),
                 canMaximize: false
             }))

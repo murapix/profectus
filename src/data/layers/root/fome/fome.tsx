@@ -115,11 +115,6 @@ const layer = createLayer(id, function (this: BaseLayer) {
             description: jsx(() => (<>[{acceleron.name}] Acceleration</>))
         })),
         createMultiplicativeModifier(() => ({
-            multiplier: entropy.enhancements.invention.effect as Ref<DecimalSource>,
-            enabled: noPersist(entropy.enhancements.invention.bought),
-            description: jsx(() => (<>[{acceleron.name}] Entropic Invention</>))
-        })),
-        createMultiplicativeModifier(() => ({
             multiplier: acceleron.loops.loops.tempFome.value,
             enabled: acceleron.loops.loops.tempFome.built,
             description: jsx(() => (<>[{acceleron.name}] Acceleron Loop #4</>))
@@ -131,13 +126,13 @@ const layer = createLayer(id, function (this: BaseLayer) {
         })),
         createMultiplicativeModifier(() => ({
             multiplier: inflaton.fomeBonus,
-            enabled: () => Decimal.gt(unref(inflaton.inflatons), 0),
-            description: jsx(() => (<>[{inflaton.name}]</>))
+            enabled: () => unref(inflaton.coreResearch.research.fomeGain.researched),
+            description: jsx(() => (<>[{inflaton.name}] Inflaton Resonance</>))
         })),
         createMultiplicativeModifier(() => ({
-            multiplier: Decimal.dOne,
-            enabled: false,
-            description: jsx(() => (<>[{inflaton.name}] Inflaton Upgrade 21</>))
+            multiplier: inflaton.upgrades.moreFome.effect,
+            enabled: noPersist(inflaton.upgrades.moreFome.bought),
+            description: jsx(() => (<>[{inflaton.name}] Dynamic Inflational Formation</>))
         })),
         createMultiplicativeModifier(() => ({
             multiplier: quantum.boosts[1].effect,

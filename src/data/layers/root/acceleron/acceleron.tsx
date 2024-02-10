@@ -48,6 +48,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
     const conversion = createCumulativeConversion(() => ({
         formula: fome => fome.times(getUpgradeEffect(upgrades.translation))
                              .times(getUpgradeEffect(upgrades.fluctuation))
+                             .times(getUpgradeEffect(entropy.enhancements.contraction))
+                             .times(getUpgradeEffect(entropy.enhancements.inversion))
+                             .times(getUpgradeEffect(entropy.enhancements.rotation))
                              .dividedBy(computed(() => entangled.isFirstBranch(id) ? 1e9 : 1e80))
                              .pow(computed(() => entangled.isFirstBranch(id) ? 0.1 : 0.05)),
         baseResource: noPersist(fome[FomeTypes.quantum].amount),
@@ -272,7 +275,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             display: jsx(() => (
                 <>
                     <h3>Quantum Translation</h3><br /><br />
-                    Acceleron's Quantum Foam requirement is divided by the number of Foam re-formations<br /><br />
+                    Acceleron cost is divided by the number of Foam re-formations<br /><br />
                     Currently: /{formatWhole(getUpgradeEffect(upgrade as EffectUpgrade, undefined, true))}x<br />
                     {displayRequirements((upgrade as GenericUpgrade).requirements)}
                 </>
@@ -319,7 +322,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             display: jsx(() => (
                 <>
                     <h3>Temporal Fluctuation</h3><br /><br />
-                    Acceleron's Quantum Foam requirement is divided by the number of completed Entropic Loops<br /><br />
+                    Acceleron cost is divided by the number of completed Entropic Loops<br /><br />
                     Currently: /{formatWhole(getUpgradeEffect(upgrade as EffectUpgrade, undefined, true))}x<br />
                     {displayRequirements((upgrade as GenericUpgrade).requirements)}
                 </>
@@ -398,7 +401,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             display: jsx(() => (
                 <>
                     <h3>Temporal Mastery</h3><br /><br />
-                    Unlock {entangled.isFirstBranch(id) ? inflaton.inflatons.displayName : entangled.strings.displayName}<br /><br /><br />
+                    Unlock {(entangled.isFirstBranch(id) || Decimal.gt(unref(entangled.strings), 0)) ? inflaton.inflatons.displayName : entangled.strings.displayName}<br /><br /><br />
                     <br />
                     {displayRequirements((upgrade as GenericUpgrade).requirements)}
                 </>

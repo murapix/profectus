@@ -16,7 +16,7 @@ import { render, renderRow } from "util/vue";
 import Spacer from "components/layout/Spacer.vue";
 import { createTabFamily } from "features/tabs/tabFamily";
 import { createTab } from "features/tabs/tab";
-import { createUpgrade, getUpgradeEffect } from "features/upgrades/upgrade";
+import { EffectUpgrade, EffectUpgradeOptions, createUpgrade, getUpgradeEffect } from "features/upgrades/upgrade";
 import core from "./coreResearch";
 import timecube from "../timecube/timecube";
 import { getResearchEffect } from "./research";
@@ -24,6 +24,7 @@ import skyrmion from "../skyrmion/skyrmion";
 import acceleron from "../acceleron/acceleron";
 import { formatLength } from "./building";
 import { noPersist } from "game/persistence"
+import { effectDecorator } from "features/decorators/common";
 
 export const id = "inflaton";
 const layer = createLayer(id, function (this: BaseLayer) {
@@ -188,7 +189,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             },
             style: { width: '250px' }
         }));
-        const moreFome = createUpgrade(() => ({
+        const moreFome = createUpgrade<EffectUpgradeOptions<DecimalSource>>(() => ({
             display: {
                 title: 'Dynamic Inflational Formation',
                 description: `<br />Generate more Foam based on the size of your universe<br />`
@@ -200,8 +201,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
             visibility() {
                 return unref(this.bought) || unref(core.research.upgrades.researched);
             },
+            effect: buildings.maxSize,
             style: { width: '250px' }
-        }));
+        }), effectDecorator) as EffectUpgrade<DecimalSource>;
         const skyrmionUpgrades = createUpgrade(() => ({
             display: {
                 title: 'Micro-Inflational Subsystems',

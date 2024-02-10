@@ -67,7 +67,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
             shouldAutobuy: noPersist(skyrmion.upgrades.alpha.bought),
             display: {
                 name: "α",
-                description: <>Gain 50% more Skyrmions</>
+                description: <>Reduce the cost of {skyrmion.skyrmions.displayName} by 33%</>,
+                effect: effect => `/${format(effect)}`
             },
             effect: amount => Decimal.pow(1.5, amount),
             bonusAmount: fome[FomeTypes.protoversal].boosts[2].effect
@@ -176,7 +177,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 description: <>Increase Subspatial Foam gain by 30% per order of magnitude of Protoversal and Infinitesimal Foam</>
             },
             effect: amount => Decimal.add(Decimal.max(unref(fome[FomeTypes.protoversal].amount), 0).plus(1).log10(), Decimal.max(unref(fome[FomeTypes.infinitesimal].amount), 0).plus(1).log10()).times(amount).times(0.3).plus(1),
-            bonusAmount: fome[FomeTypes.quantum].boosts[2].effect
+            bonusAmount: fome[FomeTypes.quantum].boosts[4].effect
         });
         const iota = createUpgrade({
             visibility: () => unref(abyss.challenge.active) || Decimal.gt(unref(fome[FomeTypes.protoversal].upgrades.reform.amount), 2),
@@ -256,7 +257,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             },
             shouldAutobuy: noPersist(skyrmion.upgrades.xi.bought),
             display: {
-                name: "π",
+                name: "ξ",
                 description: <>Decrease the magnitude of the Entangled String Inflaton requirement by 5%</>,
                 effect: effect => `${formatSmall(effect)}x`
             },
@@ -335,7 +336,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
 
             requirements: createCostRequirement(() => ({
                 resource: noPersist(spinors),
-                cost: () => cost(new Decimal(unref(repeatable.amount))).times(unref(costNerf)),
+                cost: () => cost(Decimal.sub(unref(repeatable.amount), getFomeBoost(FomeTypes.subplanck, 5))).times(unref(costNerf)),
                 requiresPay: () => !unref(shouldAutobuy),
                 canMaximize: false
             }))

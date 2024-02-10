@@ -255,7 +255,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             cost: 750000,
             display: {
                 title: 'Spatial Mastery',
-                description: jsx(() => <span>Unlock {entangled.isFirstBranch(inflatonId) ? acceleron.accelerons.displayName : entangled.strings.displayName}</span>)
+                description: jsx(() => <span>Unlock {(entangled.isFirstBranch(inflatonId) || Decimal.gt(unref(entangled.strings), 0)) ? acceleron.accelerons.displayName : entangled.strings.displayName}</span>)
             },
             prerequisites: [moreRepeatables, queueFour, autobuild]
         }));

@@ -150,7 +150,6 @@ const layer = createLayer(id, function (this: BaseLayer) {
         1: createBoost(feature => ({
             display: () => `Multiply the generation of all Foam types by ${format(getFomeBoost(FomeTypes.quantum, 1))}`,
             effect: () => new Decimal(unref(feature.total)).times(unref(skyrmion.pion.upgrades.kappa.effect))
-                                                           .sqr()
                                                            .plus(1),
             bonus: boostBonus
         })),
