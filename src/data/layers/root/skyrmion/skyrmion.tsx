@@ -254,7 +254,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 description: <>Autobuy ν upgrades<br />ν upgrades no longer consume Pions or Spinors</>
             },
             requirement: createReformRequirement(() => ({
-                fomeType: () => [FomeTypes.infinitesimal, FomeTypes.subspatial, FomeTypes.subplanck, FomeTypes.quantum][unref(abyss.abyssUpgradeCount)],
+                fomeType: () => [FomeTypes.infinitesimal, FomeTypes.subspatial, FomeTypes.subplanck, FomeTypes.quantum][unref(abyss.abyssUpgradeCount)] ?? FomeTypes.quantum,
                 cost: 2
             }))
         }),
@@ -267,7 +267,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 description: <>Autobuy ξ upgrades<br />ξ upgrades no longer consume Pions or Spinors</>
             },
             requirement: createReformRequirement(() => ({
-                fomeType: () => [FomeTypes.infinitesimal, FomeTypes.subspatial, FomeTypes.subplanck, FomeTypes.quantum][unref(abyss.abyssUpgradeCount)],
+                fomeType: () => [FomeTypes.infinitesimal, FomeTypes.subspatial, FomeTypes.subplanck, FomeTypes.quantum][unref(abyss.abyssUpgradeCount)] ?? FomeTypes.quantum,
                 cost: 2
             }))
         }),
@@ -280,7 +280,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 description: <>Autobuy π upgrades<br />π upgrades no longer consume Pions or Spinors</>
             },
             requirement: createReformRequirement(() => ({
-                fomeType: () => [FomeTypes.infinitesimal, FomeTypes.subspatial, FomeTypes.subplanck, FomeTypes.quantum][unref(abyss.abyssUpgradeCount)],
+                fomeType: () => [FomeTypes.infinitesimal, FomeTypes.subspatial, FomeTypes.subplanck, FomeTypes.quantum][unref(abyss.abyssUpgradeCount)] ?? FomeTypes.quantum,
                 cost: 2
             }))
         }),
@@ -293,7 +293,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 description: <>Autobuy ρ upgrades<br />ρ upgrades no longer consume Pions or Spinors</>
             },
             requirement: createReformRequirement(() => ({
-                fomeType: () => [FomeTypes.infinitesimal, FomeTypes.subspatial, FomeTypes.subplanck, FomeTypes.quantum][unref(abyss.abyssUpgradeCount)],
+                fomeType: () => [FomeTypes.infinitesimal, FomeTypes.subspatial, FomeTypes.subplanck, FomeTypes.quantum][unref(abyss.abyssUpgradeCount)] ?? FomeTypes.quantum,
                 cost: 2
             }))
         })
