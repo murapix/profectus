@@ -129,6 +129,14 @@ export const root = createLayer(id, () => {
                     default: subtabs.selected.value = availableSubtabs[index+1]; break;
                 }
             }
+        })),
+        pause: createHotkey(() => ({
+            key: "p",
+            description: "Pause",
+            onPress() {
+                if (player.devSpeed === 0) player.devSpeed = null;
+                else player.devSpeed = 0;
+            }
         }))
     }
 

@@ -22,6 +22,8 @@ import { createModifierModal } from "util/util";
 import { createMultiplicativeModifier, createSequentialModifier } from "game/modifiers";
 import entropy from "../acceleron/entropy";
 import Row from "components/layout/Row.vue";
+import { createHotkey } from "features/hotkey";
+import { root } from "data/projEntry";
 
 const id = "timecube";
 const layer = createLayer(id, function (this: BaseLayer) {
@@ -371,6 +373,15 @@ const layer = createLayer(id, function (this: BaseLayer) {
         }
     })();
 
+    const hotkeys = {
+        switchTab: createHotkey(() => ({
+            enabled: unlocked,
+            key: "ctrl+c",
+            description: "Move to Timecubes",
+            onPress() { root.tabs.selected.value = name; }
+        }))
+    }
+
     const modifierModal = createModifierModal("Time Cube Modifiers", () => [
         {
             title: timecubes.displayName,
@@ -429,6 +440,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         bestTimecubes,
         production,
         upgrades,
+        hotkeys,
         tabs,
         display: jsx(() => (
             <>

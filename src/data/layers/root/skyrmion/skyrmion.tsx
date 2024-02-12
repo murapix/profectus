@@ -1,4 +1,4 @@
-import { Visibility, jsx } from "features/feature";
+import { Visibility, isVisible, jsx } from "features/feature";
 import { createResource } from "features/resources/resource";
 import { createLayer, BaseLayer } from "game/layers";
 import { createMultiplicativeModifier, createSequentialModifier } from "game/modifiers";
@@ -28,6 +28,8 @@ import { createReformRequirement } from "../fome/ReformRequirement";
 import entropy from "../acceleron/entropy";
 import acceleron from "../acceleron/acceleron";
 import { createModifierModal } from "util/util";
+import { createHotkey } from "features/hotkey";
+import { root } from "data/projEntry";
 
 const id = "skyrmion";
 const layer = createLayer(id, function (this: BaseLayer) {
@@ -101,9 +103,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         })
     });
     this.on("update", () => {
-        if (unref(upgrades.autoGain.bought) && requirementsMet(skyrmions.requirements)) {
-            skyrmions.onClick();
-        }
+        if (unref(upgrades.autoGain.bought)) { skyrmions.onClick(); }
     })
 
     const resource = createResource<DecimalSource>(skyrmions.amount, name);
@@ -331,6 +331,49 @@ const layer = createLayer(id, function (this: BaseLayer) {
         })
     }
 
+    const hotkeys = {
+        sell: createHotkey(() => ({
+            enabled: noPersist(abyss.challenge.active),
+            key: "s",
+            description: "Sell all Pion and Spinor Upgrades",
+            onPress() {
+                for (const upgrade of [...Object.values(pion.upgrades), ...Object.values(spinor.upgrades)]) {
+                    upgrade.amount.value = 0;
+                }
+            }
+        })),
+        reset: createHotkey(() => ({
+            enabled: () => !unref(upgrades.autoGain.bought),
+            key: "s",
+            description: "Condense some Pions and Spinors into Skyrmions",
+            onPress: skyrmions.onClick
+        })),
+        switchTab: createHotkey(() => ({
+            enabled: () => unref(fome.unlocked),
+            key: "ctrl+s",
+            description: "Move to Skyrmions",
+            onPress() { root.tabs.selected.value = name; }
+        })),
+        buy: createHotkey(() => ({
+            enabled() {
+                if (!unref(fome.unlocked)) return false;
+                return Object.keys(upgrades)
+                             .filter(key => !unref(upgrades[key as keyof typeof upgrades].bought))
+                             .filter(key => key !== 'autogain')
+                             .filter(key => isVisible(pion.upgrades[key as keyof typeof pion.upgrades].visibility))
+                             .filter(key => isVisible(spinor.upgrades[key as keyof typeof spinor.upgrades].visibility))
+                             .length > 0;
+            },
+            key: "shift+s",
+            description: "Buy one of each Pion and Spinor Upgrade",
+            onPress() {
+                for (const upgrade of [...Object.values(pion.upgrades), ...Object.values(spinor.upgrades)]) {
+                    upgrade.onClick();
+                }
+            }
+        }))
+    }
+
     const modifierModal = createModifierModal("Skyrmion Modifiers", () => [
         {
             title: "Skyrmion Cost",
@@ -349,6 +392,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         totalSkyrmions,
         production: generalProductionModifiers,
         upgrades,
+        hotkeys,
         display: jsx(() => (
             <>
                 You have <Resource resource={resource} color={color} tag="h2" /> {resource.displayName}{render(modifierModal)}

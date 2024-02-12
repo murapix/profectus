@@ -21,6 +21,8 @@ import skyrmion from "../skyrmion/skyrmion";
 import fome from "../fome/fome";
 import Row from "components/layout/Row.vue";
 import Column from "components/layout/Column.vue";
+import { createHotkey } from "features/hotkey";
+import { root } from "data/projEntry";
 
 const layer = createLayer("entangled", () => {
     const name = "Entangled Strings";
@@ -358,6 +360,21 @@ const layer = createLayer("entangled", () => {
         }))
     }
 
+    const hotkeys = {
+        reset: createHotkey(() => ({
+            enabled: unlocked,
+            key: "e",
+            description: "Entangle spacetime into another String",
+            onPress: resetButton.onClick!
+        })),
+        switchTab: createHotkey(() => ({
+            enabled: unlocked,
+            key: "ctrl+e",
+            description: "Move to Entangled Strings",
+            onPress() { root.tabs.selected.value = name; }
+        }))
+    }
+
     return {
         name,
         color,
@@ -365,6 +382,7 @@ const layer = createLayer("entangled", () => {
         strings,
         expansions,
         milestones,
+        hotkeys,
         display: jsx(() => (
             <>
                 <MainDisplay resource={strings} color={color} />

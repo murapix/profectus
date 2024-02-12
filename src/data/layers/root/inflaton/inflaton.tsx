@@ -27,6 +27,8 @@ import { noPersist } from "game/persistence"
 import { effectDecorator } from "features/decorators/common";
 import { createModifierModal } from "util/util";
 import { formatRoman } from "./repeatableDecorator"
+import { createHotkey } from "features/hotkey";
+import { root } from "data/projEntry";
 
 export const id = "inflaton";
 const layer = createLayer(id, function (this: BaseLayer) {
@@ -266,6 +268,15 @@ const layer = createLayer(id, function (this: BaseLayer) {
         }
     });
 
+    const hotkeys = {
+        switchTab: createHotkey(() => ({
+            enabled: unlocked,
+            key: "ctrl+i",
+            description: "Move to Inflatons",
+            onPress() { root.tabs.selected.value = name; }
+        }))
+    }
+
     const fomeModifierModal = createModifierModal("Inflaton Resonance", () => [
         {
             title: "Maximum Potential Foam Gain",
@@ -337,6 +348,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         inflating,
         fomeBonus,
         upgrades,
+        hotkeys,
         tabs,
         tabStyle: {
             '--bought': '#b14e24'

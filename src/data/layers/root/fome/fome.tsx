@@ -31,6 +31,8 @@ import entangled from "../entangled/entangled";
 import { noPersist } from "game/persistence";
 import { Sides } from "../timecube/timesquares";
 import timelines from "../timecube/timelines";
+import { GenericHotkey, createHotkey } from "features/hotkey";
+import { root } from "data/projEntry";
 
 export enum FomeTypes {
     protoversal = "protoversal",
@@ -222,6 +224,32 @@ const layer = createLayer(id, function (this: BaseLayer) {
         });
     }
 
+    const hotkeys: Record<string, GenericHotkey> = {
+        buyAll: createHotkey(() => ({
+            enabled() {
+                if (!unref(unlocked)) return false;
+                if (Object.values(achievements).every(achievement => unref(achievement.earned))) return false;
+                return Decimal.gt(unref(inflaton.inflatons), 0) || unref(acceleron.achievements.protoversal.earned)
+            },
+            key: "shift+f",
+            description: "Buy one of each Foam upgrade",
+            onPress() {
+                for (const fome of [protoversal, infinitesimal, subspatial, subplanck, quantum]) {
+                    fome.upgrades.condense.purchase();
+                    for (const upgrade of [...Object.values(FomeDims), 'reform']) {
+                        (fome.upgrades[upgrade as keyof FomeUpgrades] as FomeUpgrade).onClick();
+                    }
+                }
+            }
+        })),
+        switchTab: createHotkey(() => ({
+            enabled: unlocked,
+            key: "ctrl+f",
+            description: "Move to Foam",
+            onPress() { root.tabs.selected.value = name; }
+        }))
+    }
+
     const tabs = createTabFamily({
         main: () => ({
             display: "Foam",
@@ -257,6 +285,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         timelineProduction: timelineBonuses,
         globalBoostBonus,
         achievements,
+        hotkeys,
         display: jsx(() => (
             <>
                 {Decimal.gt(unref(protoversal.boosts[1].total), 0)

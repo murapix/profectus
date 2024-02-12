@@ -29,7 +29,7 @@ export interface HotkeyOptions {
     /** The key tied to this hotkey */
     key: string;
     /** The description of this hotkey, to display in the settings. */
-    description: Computable<string>;
+    description?: Computable<string>;
     /** What to do upon pressing the key. */
     onPress: VoidFunction;
 }
@@ -126,7 +126,8 @@ registerInfoComponent(
                 <br />
                 <h4>Hotkeys</h4>
                 <div style="column-count: 2">
-                    {keys.map(hotkey => (
+                    {keys.filter(hotkey => hotkey?.description ?? false)
+                        .map(hotkey => (
                         <div>
                             <Hotkey hotkey={hotkey as GenericHotkey} /> {hotkey?.description}
                         </div>

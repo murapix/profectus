@@ -29,6 +29,8 @@ import skyrmion from "../skyrmion/skyrmion";
 import { Sides } from "../timecube/timesquares";
 import { addTooltip } from "features/tooltips/tooltip";
 import { createModifierModal } from "util/util";
+import { createHotkey } from "features/hotkey";
+import { root } from "data/projEntry";
 
 export const id = "acceleron";
 const layer = createLayer(id, function (this: BaseLayer) {
@@ -472,6 +474,21 @@ const layer = createLayer(id, function (this: BaseLayer) {
         upgrades.superstructures
     ];
 
+    const hotkeys = {
+        reset: createHotkey(() => ({
+            enabled: () => unref(unlocked) && !unref(upgrades.tetration.bought),
+            key: "a",
+            description: "Form your Quantum Foam into Accelerons",
+            onPress: resetButton.onClick
+        })),
+        switchTab: createHotkey(() => ({
+            enabled: unlocked,
+            key: "ctrl+a",
+            description: "Move to Accelerons",
+            onPress() { root.tabs.selected.value = name; }
+        }))
+    }
+
     const modifiersModal = createModifierModal(
         "Acceleron Modifiers",
         () => [
@@ -541,6 +558,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         upgrades,
         achievements,
         tabs,
+        hotkeys,
         display: jsx(() => (
             <>
                 {unref(upgrades.expansion.bought)
