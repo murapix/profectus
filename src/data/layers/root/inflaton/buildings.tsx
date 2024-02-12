@@ -46,13 +46,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             }
         })) as GenericBuilding;
         const lab = createBuilding(() => ({
-            effect(amount) {
-                return (unref(core.research.researchBoost.researched)
-                        ? Decimal.times(unref(core.research.researchBoost.effect), 0.9)
-                        : Decimal.dOne)
-                        .times(amount)
-                        .times(unref(skyrmion.pion.upgrades.nu.effect))
-            },
+            effect: amount => amount,
             cost: {
                 resource: noPersist(fome[FomeTypes.subspatial].amount),
                 base: computed(() => unref(core.research.cheaperLabs.researched) ? 1.5 : 15),

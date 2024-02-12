@@ -1,7 +1,7 @@
 import { CoercableComponent, OptionsFunc, Replace, jsx } from "features/feature";
 import { createResource } from "features/resources/resource";
 import { createLayer, BaseLayer } from "game/layers";
-import { Modifier, createAdditiveModifier, createMultiplicativeModifier, createSequentialModifier } from "game/modifiers";
+import { createAdditiveModifier, createMultiplicativeModifier, createSequentialModifier } from "game/modifiers";
 import Decimal, { DecimalSource } from "lib/break_eternity";
 import loops from "./loops";
 import acceleron from "./acceleron";
@@ -10,7 +10,7 @@ import { ComputedRef, computed, unref, watch } from "vue";
 import { Computable, GetComputableType, GetComputableTypeWithDefault, ProcessedComputable, processComputable } from "util/computed";
 import { effectDecorator } from "features/decorators/common";
 import { EffectUpgrade, EffectUpgradeOptions, GenericUpgrade, createUpgrade, getUpgradeEffect } from "features/upgrades/upgrade";
-import { format, formatWhole } from "util/break_eternity";
+import { format, formatSmall, formatWhole } from "util/break_eternity";
 import { createBooleanRequirement, createCostRequirement } from "game/requirements";
 import { noPersist } from "game/persistence";
 import { addTooltip } from "features/tooltips/tooltip";
@@ -20,6 +20,7 @@ import { createClickable } from "features/clickables/clickable";
 import Spacer from "components/layout/Spacer.vue";
 import Enhancements from "../acceleron/Enhancements.vue";
 import { Sides } from "../timecube/timesquares";
+import { createModifierModal } from "util/util";
 
 const id = "entropy";
 const layer = createLayer(id, function (this: BaseLayer) {
@@ -27,18 +28,19 @@ const layer = createLayer(id, function (this: BaseLayer) {
 
     const entropy = createResource<DecimalSource>(0, name);
     
-    const maxEntropyModifiers: Modifier = createSequentialModifier(() => [
-        createAdditiveModifier(() => ({
-            addend: loops.numBuiltLoops,
-            description: jsx(() => <>[{acceleron.name}] Entropic Loops</>)
-        })),
+    const maxEntropyModifiers = createSequentialModifier(() => [
         createMultiplicativeModifier(() => ({
-            multiplier: timecube.upgrades.twice.effect,
+            multiplier: 2,
             enabled: noPersist(timecube.upgrades.twice.bought),
             description: jsx(() => <>[{timecube.name}] Twice</>)
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: 1.5,
+            enabled: noPersist(timecube.upgrades.triple.bought),
+            description: jsx(() => <>[{timecube.name}] Triple</>)
         }))
     ]);
-    const maxEntropy = computed(() => maxEntropyModifiers.apply(0));
+    const maxEntropy: ComputedRef<DecimalSource> = computed(() => maxEntropyModifiers.apply(unref(loops.numBuiltLoops)));
     watch(maxEntropy, maxEntropy => {
         const boughtUpgrades = Object.values(enhancements).filter(enhancement => unref(enhancement.bought));
         for (const upgrade of boughtUpgrades) { upgrade.bought.value = false; }
@@ -119,7 +121,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
             visibility: loops.loops.instantProd.built,
             display: {
                 title: 'Entropic Development',
-                description: 'Decrease Entropic Loop construction cost based on purchased Entropic Enhancements'
+                description: 'Decrease Entropic Loop construction cost based on purchased Entropic Enhancements',
+                effect: effect => `${formatSmall(effect)}x`
             },
             effect: () => unref(fibonacciEnhancements).pow_base(0.7)
         }));
@@ -238,8 +241,18 @@ const layer = createLayer(id, function (this: BaseLayer) {
             width: '100px'
         }
     }));
+
+    const maxEntropyModal = createModifierModal("Entropy Modifiers", () => [
+        {
+            title: "Maximum Entropy",
+            modifier: maxEntropyModifiers,
+            base: loops.numBuiltLoops,
+            baseText: jsx(() => <>[{acceleron.name}] Entropic Loops</>)
+        }
+    ]);
     
     return {
+        name,
         entropy,
         maxEntropy,
         enhancements,
@@ -248,7 +261,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         display: jsx(() => (
             <>
                 <Spacer />
-                Entropy: {formatWhole(unref(entropy))} / {formatWhole(unref(maxEntropy))}
+                Entropy: {formatWhole(unref(entropy))} / {formatWhole(unref(maxEntropy))}{render(maxEntropyModal)}
                 <br />
                 Next Enhancement: {formatWhole(unref(enhancementCost))} {entropy.displayName}
                 <Spacer />

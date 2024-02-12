@@ -112,11 +112,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
         createMultiplicativeModifier(() => ({
             multiplier: (acceleron.upgrades.acceleration as EffectUpgrade<DecimalSource>).effect,
             enabled: noPersist(acceleron.upgrades.acceleration.bought),
-            description: jsx(() => (<>[{acceleron.name}] Acceleration</>))
+            description: jsx(() => (<>[{acceleron.name}] Minute Acceleration</>))
         })),
         createMultiplicativeModifier(() => ({
-            multiplier: acceleron.loops.loops.tempFome.value,
-            enabled: acceleron.loops.loops.tempFome.built,
+            multiplier: acceleron.loops.averageLoopValues[acceleron.loops.loops.tempFome.id],
+            enabled: noPersist(acceleron.loops.loops.tempFome.built),
             description: jsx(() => (<>[{acceleron.name}] Acceleron Loop #4</>))
         })),
         createMultiplicativeModifier(() => ({

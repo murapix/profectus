@@ -28,6 +28,7 @@ import { createReset } from "features/reset";
 import skyrmion from "../skyrmion/skyrmion";
 import { Sides } from "../timecube/timesquares";
 import { addTooltip } from "features/tooltips/tooltip";
+import { createModifierModal } from "util/util";
 
 export const id = "acceleron";
 const layer = createLayer(id, function (this: BaseLayer) {
@@ -45,13 +46,52 @@ const layer = createLayer(id, function (this: BaseLayer) {
     const bestAccelerons = trackBest(accelerons);
     const totalAccelerons = trackTotal(accelerons);
 
+    const acceleronCostModifiers = createSequentialModifier(() => [
+        createMultiplicativeModifier(() => ({
+            multiplier: 1e71,
+            enabled: () => !entangled.isFirstBranch(id),
+            description: jsx(() => <>[{inflaton.name}] Inflational Interference</>),
+            smallerIsBetter: true
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: () => unref(upgrades.translation.effect).reciprocate(),
+            enabled: noPersist(upgrades.translation.bought),
+            description: jsx(() => <>[{name}] Quantum Translation</>),
+            smallerIsBetter: true
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: () => 1/unref(upgrades.fluctuation.effect),
+            enabled: noPersist(upgrades.fluctuation.bought),
+            description: jsx(() => <>[{name}] Temporal Fluctuation</>),
+            smallerIsBetter: true
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: () => unref(loops.averageLoopValues[loops.loops.tempAcceleron.id]).reciprocate(),
+            enabled: noPersist(loops.loops.tempAcceleron.built),
+            description: jsx(() => <>[{name}] Entropic Loop #5</>),
+            smallerIsBetter: true
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: () => unref(entropy.enhancements.contraction.effect).reciprocate(),
+            enabled: noPersist(entropy.enhancements.contraction.bought),
+            description: jsx(() => <>[{entropy.name}] Entropic Contraction</>),
+            smallerIsBetter: true
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: () => unref(entropy.enhancements.inversion.effect).reciprocate(),
+            enabled: noPersist(entropy.enhancements.inversion.bought),
+            description: jsx(() => <>[{entropy.name}] Entropic Inversion</>),
+            smallerIsBetter: true
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: () => unref(entropy.enhancements.rotation.effect).reciprocate(),
+            enabled: noPersist(entropy.enhancements.rotation.bought),
+            description: jsx(() => <>[{entropy.name}] Entropic Rotation</>),
+            smallerIsBetter: true
+        }))
+    ]);
     const conversion = createCumulativeConversion(() => ({
-        formula: fome => fome.times(getUpgradeEffect(upgrades.translation))
-                             .times(getUpgradeEffect(upgrades.fluctuation))
-                             .times(getUpgradeEffect(entropy.enhancements.contraction))
-                             .times(getUpgradeEffect(entropy.enhancements.inversion))
-                             .times(getUpgradeEffect(entropy.enhancements.rotation))
-                             .dividedBy(computed(() => entangled.isFirstBranch(id) ? 1e9 : 1e80))
+        formula: fome => fome.dividedBy(acceleronCostModifiers.getFormula!(1e9))
                              .pow(computed(() => entangled.isFirstBranch(id) ? 0.1 : 0.05)),
         baseResource: noPersist(fome[FomeTypes.quantum].amount),
         gainResource: noPersist(accelerons),
@@ -129,7 +169,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         createMultiplicativeModifier(() => ({
             multiplier: timecube.getTimesquareEffect(Sides.BACK),
             enabled: () => Decimal.gt(unref(timecube.timesquares.squares[Sides.BACK].square.amount), 0),
-            description: jsx(() => <>[{timecube.name}] Back Time Squares ({formatWhole(Decimal.dZero)})</>)
+            description: jsx(() => <>[{timecube.name}] Back Time Squares ({formatWhole(unref(timecube.timesquares.squares[Sides.BACK].square.amount))})</>)
         })),
         createMultiplicativeModifier(() => ({
             multiplier: 2,
@@ -276,7 +316,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 <>
                     <h3>Quantum Translation</h3><br /><br />
                     Acceleron cost is divided by the number of Foam re-formations<br /><br />
-                    Currently: /{formatWhole(getUpgradeEffect(upgrade as EffectUpgrade, undefined, true))}x<br />
+                    Currently: /{formatWhole(getUpgradeEffect(upgrade as EffectUpgrade, undefined, true))}<br />
                     {displayRequirements((upgrade as GenericUpgrade).requirements)}
                 </>
             )),
@@ -323,7 +363,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 <>
                     <h3>Temporal Fluctuation</h3><br /><br />
                     Acceleron cost is divided by the number of completed Entropic Loops<br /><br />
-                    Currently: /{formatWhole(getUpgradeEffect(upgrade as EffectUpgrade, undefined, true))}x<br />
+                    Currently: /{formatWhole(getUpgradeEffect(upgrade as EffectUpgrade, undefined, true))}<br />
                     {displayRequirements((upgrade as GenericUpgrade).requirements)}
                 </>
             )),
@@ -432,9 +472,28 @@ const layer = createLayer(id, function (this: BaseLayer) {
         upgrades.superstructures
     ];
 
+    const modifiersModal = createModifierModal(
+        "Acceleron Modifiers",
+        () => [
+            {
+                title: "Acceleron Cost",
+                modifier: acceleronCostModifiers,
+                base: 1e9,
+                baseText: jsx(() => <>[{fome.name}] Base Amount</>),
+                smallerIsBetter: true
+            },
+            {
+                title: "Time Speed",
+                modifier: timeModifiers,
+                base: timeInput,
+                baseText: jsx(() => <>[{name}] Best Accelerons ({formatWhole(unref(bestAccelerons))})</>)
+            }
+        ]
+    );
+
     const header = jsx(() => (
         <>
-            <MainDisplay resource={accelerons} color={color} effect={jsx(() => <>which are causing time to go {format(unref(timeMult))}x faster<br />
+            <MainDisplay resource={accelerons} color={color} effect={jsx(() => <>which are causing time to go {format(unref(timeMult))}x faster{render(modifiersModal)}<br />
             For every second in real time, <pre style={{display: 'inline'}}>{formatTime(unref(timeMult))}</pre> passes</>)} />
         </>
     ));

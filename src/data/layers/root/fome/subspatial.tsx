@@ -20,6 +20,7 @@ import entropy from "../acceleron/entropy";
 import { createReformRequirement } from "./ReformRequirement";
 import entangled from "../entangled/entangled";
 import inflaton from "../inflaton/inflaton";
+import { createModifierModal } from "util/util";
 
 const id = "subspatial";
 const layer = createLayer(id, function (this: BaseLayer) {
@@ -202,11 +203,21 @@ const layer = createLayer(id, function (this: BaseLayer) {
         }))
     }
 
+    const modifierModal = createModifierModal(`${amount.displayName} Modifiers`, () => [
+        {
+            title: amount.displayName,
+            modifier: productionModifiers,
+            base: () => unref(skyrmion.totalSkyrmions).times(0.01),
+            baseText: jsx(() => <>[{skyrmion.name}] Total {skyrmion.skyrmions.displayName}</>)
+        }
+    ]);
+
     return {
         amount,
         upgrades,
         boosts,
         production,
+        modifierModal,
         display: "This page intentionally left blank"
     }
 });

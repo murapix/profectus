@@ -11,9 +11,11 @@ import { render, renderRow } from "util/vue";
 import { Sides } from "./timesquares";
 import Decimal, { DecimalSource } from "lib/break_eternity";
 import Spacer from "components/layout/Spacer.vue";
-import { computed, unref } from "vue";
+import { ComputedRef, computed, unref } from "vue";
 import { createExponentialModifier, createMultiplicativeModifier, createSequentialModifier } from "game/modifiers";
 import { GenericTimeline, createTimeline } from "./timeline";
+import { createModifierModal } from "util/util";
+import { format } from "util/break_eternity";
 
 const id = "timeline";
 const layer = createLayer(id, function (this: BaseLayer) {
@@ -136,7 +138,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             description: jsx(() => <>Number of active Timelines</>)
         }))
     ]);
-    const currentScore = computed(() => currentScoreModifiers.apply(1e-4));
+    const currentScore: ComputedRef<DecimalSource> = computed(() => currentScoreModifiers.apply(1e-4));
 
     const enterTimeline = createClickable(() => ({
         display() {
@@ -195,6 +197,14 @@ const layer = createLayer(id, function (this: BaseLayer) {
         }
     }));
 
+    const modifiersModal = createModifierModal("Timeline Score", () => [
+        {
+            title: "Timeline Score",
+            modifier: currentScoreModifiers,
+            base: 1e-4
+        }
+    ]);
+
     return {
         timelines,
         scores,
@@ -210,6 +220,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 {renderRow(timelines.topLeft, timelines.topFront, timelines.topBack, timelines.topRight)}
                 {renderRow(timelines.frontLeft, timelines.frontRight, timelines.backLeft, timelines.backRight)}
                 {renderRow(timelines.bottomLeft, timelines.bottomFront, timelines.bottomBack, timelines.bottomRight)}
+                <Spacer />
+                Current Score: {format(unref(currentScore))}{render(modifiersModal)}
             </>
         ))
     }

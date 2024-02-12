@@ -20,6 +20,7 @@ import entropy from "../acceleron/entropy";
 import { createReformRequirement } from "./ReformRequirement";
 import entangled from "../entangled/entangled";
 import inflaton from "../inflaton/inflaton";
+import { createModifierModal } from "util/util";
 
 const id = "infinitesimal";
 const layer = createLayer(id, function (this: BaseLayer) {
@@ -187,27 +188,37 @@ const layer = createLayer(id, function (this: BaseLayer) {
             bonus: boostBonus
         })),
         3: createBoost(feature => ({
-            display: () => `Reduce Pion and Spinor α costs by ${format(Decimal.sub(1, getFomeBoost(FomeTypes.infinitesimal, 3)).times(100))}%`,
+            display: () => `Reduce Pion and Spinor Upgrade α costs to 1/${format(Decimal.times(getFomeBoost(FomeTypes.infinitesimal, 3), 100).reciprocate())}%`,
             effect: () => Decimal.pow(0.8, unref(feature.total)),
             bonus: boostBonus
         })),
         4: createBoost(feature => ({
-            display: () => `Increase Skyrmion gain by ${format(Decimal.minus(getFomeBoost(FomeTypes.infinitesimal, 4), 1).times(100))}%`,
+            display: () => `Reduce Skyrmion costs to 1/${format(Decimal.minus(getFomeBoost(FomeTypes.infinitesimal, 4), 1))}x`,
             effect: () => Decimal.times(unref(feature.total), 0.5).plus(1),
             bonus: boostBonus
         })),
         5: createBoost(feature => ({
-            display: () => `Reduce Pion and Spinor Upgrade γ costs by ${format(Decimal.sub(1, getFomeBoost(FomeTypes.infinitesimal, 5)).times(100))}%`,
+            display: () => `Reduce Pion and Spinor Upgrade γ costs to 1/${format(Decimal.times(getFomeBoost(FomeTypes.infinitesimal, 5), 100).reciprocate())}%`,
             effect: () => Decimal.pow(0.8, unref(feature.total)),
             bonus: boostBonus
         }))
     }
+
+    const modifierModal = createModifierModal(`${amount.displayName} Modifiers`, () => [
+        {
+            title: amount.displayName,
+            modifier: productionModifiers,
+            base: () => unref(skyrmion.totalSkyrmions).times(0.01),
+            baseText: jsx(() => <>[{skyrmion.name}] Total {skyrmion.skyrmions.displayName}</>)
+        }
+    ]);
 
     return {
         amount,
         upgrades,
         boosts,
         production,
+        modifierModal,
         display: "This page intentionally left blank"
     }
 });

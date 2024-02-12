@@ -22,6 +22,8 @@ import abyss from "./abyss";
 import { getFomeBoost } from "../fome/boost";
 import { displayResource } from "features/resources/resource";
 import inflaton from "../inflaton/inflaton";
+import { createModifierModal } from "util/util";
+import { render } from "util/vue";
 
 const id = "pion";
 const layer = createLayer(id, function (this: BaseLayer) {
@@ -292,6 +294,15 @@ const layer = createLayer(id, function (this: BaseLayer) {
         }
     })();
 
+    const modifierModal = createModifierModal("Pion Modifiers", () => [
+        {
+            title: pions.displayName,
+            modifier: productionModifiers,
+            base: () => unref(skyrmion.totalSkyrmions).times(0.01),
+            baseText: jsx(() => <>[{skyrmion.name}] Total {skyrmion.skyrmions.displayName}</>)
+        }
+    ]);
+
     return {
         name,
         pions,
@@ -300,7 +311,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         display: jsx(() => (
             <div class="table" style="width: 530px; align-items: flex-end">
                 <div class="col" style="align-items: flex-end">
-                    <div>You have <Resource resource={pions} color={unref(abyss.challenge.active) ? abyss.color : skyrmion.color} tag="h3" /> {pions.displayName} (+{displayResource(pions, production.value)}/s)</div>
+                    <div>You have <Resource resource={pions} color={unref(abyss.challenge.active) ? abyss.color : skyrmion.color} tag="h3" /> {pions.displayName} (+{displayResource(pions, production.value)}/s){render(modifierModal)}</div>
                     <div style="font-size: 12px">Your Spinor upgrades are increasing Pion upgrade costs by {formatSmall(unref(costNerf).minus(1).times(100))}%</div>
                     <Spacer />
                     <Pion />

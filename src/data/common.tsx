@@ -315,7 +315,7 @@ export function createCollapsibleModifierSections(
                             {renderJSX(unref(processed.baseText[i]) ?? "Base")}
                         </span>
                         <span class="modifier-amount">
-                            {format(unref(processed.base[i]) ?? 1)}
+                            {formatSmall(unref(processed.base[i]) ?? 1)}
                             {s.unit}
                         </span>
                     </div>

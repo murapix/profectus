@@ -19,6 +19,7 @@ import timecube from "../timecube/timecube";
 import { createReformRequirement } from "./ReformRequirement";
 import entangled from "../entangled/entangled";
 import inflaton from "../inflaton/inflaton";
+import { createModifierModal } from "util/util";
 
 const id = "quantum";
 const layer = createLayer(id, function (this: BaseLayer) {
@@ -154,7 +155,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             bonus: boostBonus
         })),
         2: createBoost(feature => ({
-            display: () => `Reduce the Pion and Spinor cost nerf exponent by ${format(Decimal.sub(1, getFomeBoost(FomeTypes.quantum, 2)).times(100))}%`,
+            display: () => `Reduce the Pion and Spinor cost nerf exponent to 1/${format(Decimal.times(getFomeBoost(FomeTypes.quantum, 2), 100).reciprocate())}%`,
             effect: () => {
                 let total = unref(feature.total);
                 if (Decimal.gt(total, 16)) total = Decimal.ln(2).recip().times(4).times(total);
@@ -183,11 +184,21 @@ const layer = createLayer(id, function (this: BaseLayer) {
         }))
     }
 
+    const modifierModal = createModifierModal(`${amount.displayName} Modifiers`, () => [
+        {
+            title: amount.displayName,
+            modifier: productionModifiers,
+            base: () => unref(skyrmion.totalSkyrmions).times(0.01),
+            baseText: jsx(() => <>[{skyrmion.name}] Total {skyrmion.skyrmions.displayName}</>)
+        }
+    ]);
+
     return {
         amount,
         upgrades,
         boosts,
         production,
+        modifierModal,
         display: "This page intentionally left blank"
     }
 });

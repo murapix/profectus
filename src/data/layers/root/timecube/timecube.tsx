@@ -7,7 +7,7 @@ import { BaseLayer, createLayer } from "game/layers";
 import { createCostRequirement } from "game/requirements";
 import Decimal, { DecimalSource } from "lib/break_eternity";
 import { format, formatWhole } from "util/break_eternity";
-import { Ref, computed, unref } from "vue";
+import { ComputedRef, Ref, computed, unref } from "vue";
 import acceleron from "../acceleron/acceleron";
 import TimecubeUpgrades from "./TimecubeUpgrades.vue";
 import { noPersist } from "game/persistence"
@@ -18,6 +18,10 @@ import timelines from "./timelines";
 import { render } from "util/vue";
 import { createTabFamily } from "features/tabs/tabFamily";
 import { createTab } from "features/tabs/tab";
+import { createModifierModal } from "util/util";
+import { createMultiplicativeModifier, createSequentialModifier } from "game/modifiers";
+import entropy from "../acceleron/entropy";
+import Row from "components/layout/Row.vue";
 
 const id = "timecube";
 const layer = createLayer(id, function (this: BaseLayer) {
@@ -28,6 +32,40 @@ const layer = createLayer(id, function (this: BaseLayer) {
     
     const timecubes = createResource<DecimalSource>(0, "Time Cubes");
     const bestTimecubes = trackBest(timecubes);
+
+    const productionModifiers = createSequentialModifier(() => [
+        createMultiplicativeModifier(() => ({
+            multiplier: acceleron.upgrades.conversion.effect,
+            enabled: noPersist(acceleron.upgrades.conversion.bought),
+            description: jsx(() => <>[{acceleron.name}] Stability Conversion</>)
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: entropy.enhancements.tesselation.effect,
+            enabled: noPersist(entropy.enhancements.tesselation.bought),
+            description: jsx(() => <>[{entropy.name}] Entropic Tesselation</>)
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: upgrades.tile.effect,
+            enabled: noPersist(upgrades.tile.bought),
+            description: jsx(() => <>[{name}] Tile</>)
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: layer.getTimesquareEffect(Sides.FRONT),
+            enabled: () => Decimal.gt(unref(timesquares.squares[Sides.FRONT].square.amount), 0),
+            description: jsx(() => <>[{name}] Front Time Squares ({formatWhole(unref(timesquares.squares[Sides.FRONT].square.amount))})</>)
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: () => Decimal.reciprocate(unref(timelines.nerfs[Sides.FRONT])),
+            enabled: () => unref(timelines.depths[Sides.FRONT]) > 0,
+            description: jsx(() => <>[{name}] Active Front Timeline Effect</>)
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: timelines.buffs[Sides.FRONT],
+            enabled: () => unref(timelines.scores[Sides.FRONT]).gt(0),
+            description: jsx(() => <>[{name}] Passive Front Timeline Effect</>)
+        }))
+    ]);
+    const production: ComputedRef<DecimalSource> = computed(() => productionModifiers.apply(1));
 
     const upgrades = (() => {
         const tile = createUpgrade<EffectUpgradeOptions<Decimal>>(upgrade => ({
@@ -333,13 +371,26 @@ const layer = createLayer(id, function (this: BaseLayer) {
         }
     })();
 
+    const modifierModal = createModifierModal("Time Cube Modifiers", () => [
+        {
+            title: timecubes.displayName,
+            modifier: productionModifiers,
+            base: 1,
+            baseText: jsx(() => <>[{acceleron.name}] Gain per Loop</>)
+        }
+    ]);
+
+    const header = jsx(() => (
+        <MainDisplay resource={timecubes} color={color} modal={modifierModal}/>
+    ));
+
     const tabs = createTabFamily(({
         cubes: () => ({
             display: "Time Cubes",
             tab: createTab(() => ({
                 display: jsx(() => (
                     <>
-                        <MainDisplay resource={timecubes} color={color} />
+                        {render(header)}
                         <TimecubeUpgrades upgrades={Object.values(upgrades)} />
                     </>
                 ))
@@ -350,7 +401,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             tab: createTab(() => ({
                 display: jsx(() => (
                     <>
-                        <MainDisplay resource={timecubes} color={color} />
+                        {render(header)}
                         {render(unref(timesquares.display))}
                     </>
                 ))
@@ -362,7 +413,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             tab: createTab(() => ({
                 display: jsx(() => (
                     <>
-                        <MainDisplay resource={timecubes} color={color} />
+                        {render(header)}
                         {render(unref(timelines.display))}
                     </>
                 ))
@@ -376,6 +427,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         unlocked,
         timecubes,
         bestTimecubes,
+        production,
         upgrades,
         tabs,
         display: jsx(() => (

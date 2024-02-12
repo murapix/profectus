@@ -1,7 +1,7 @@
 import { Visibility, jsx } from "features/feature";
 import { createResource } from "features/resources/resource";
 import { createLayer, BaseLayer } from "game/layers";
-import { createMultiplicativeModifier } from "game/modifiers";
+import { createMultiplicativeModifier, createSequentialModifier } from "game/modifiers";
 import Decimal, { DecimalSource } from "lib/break_eternity";
 import { computed, unref } from "vue";
 import { createSkyrmionUpgrade } from "./upgrade";
@@ -26,19 +26,39 @@ import { noPersist } from "game/persistence"
 import entangled from "../entangled/entangled";
 import { createReformRequirement } from "../fome/ReformRequirement";
 import entropy from "../acceleron/entropy";
+import acceleron from "../acceleron/acceleron";
+import { createModifierModal } from "util/util";
 
 const id = "skyrmion";
 const layer = createLayer(id, function (this: BaseLayer) {
     const name = "Skyrmions";
     const color = "#37d7ff";
 
+    const skyrmionCostModifiers = createSequentialModifier(() => [
+        createMultiplicativeModifier(() => ({
+            multiplier: () => Decimal.reciprocate(unref(spinor.upgrades.alpha.effect)),
+            enabled: () => Decimal.gt(unref(spinor.upgrades.alpha.totalAmount), 0),
+            description: jsx(() => <>[{name}] Spinor Upgrade α ({formatWhole(unref(spinor.upgrades.alpha.totalAmount))})</>),
+            smallerIsBetter: true
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: () => Decimal.reciprocate(unref(fome.infinitesimal.boosts[4].effect)),
+            enabled: () => Decimal.gt(unref(fome.infinitesimal.boosts[4].total), 0),
+            description: jsx(() => <>[{fome.name}] Infinitesimal Boost 4 ({formatWhole(unref(fome.infinitesimal.boosts[4].total))})</>),
+            smallerIsBetter: true
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: () => unref(entropy.enhancements.amplification.effect).reciprocate(),
+            enabled: noPersist(entropy.enhancements.amplification.bought),
+            description: jsx(() => <>[{entropy.name}] Entropic Amplification</>),
+            smallerIsBetter: true
+        }))
+    ]);
     const costFunc = (
         amount: ProcessedComputable<DecimalSource>
     ) => Formula.variable(amount)
                 .pow10()
-                .dividedBy(fome.infinitesimal.boosts[4].effect)
-                .dividedBy(spinor.upgrades.alpha.effect)
-                .dividedBy(entropy.enhancements.amplification.effect);
+                .times(skyrmionCostModifiers.getFormula!(1));
     const skyrmions: GenericRepeatable = createRepeatable(feature => {
         return {
             initialAmount: 1,
@@ -113,6 +133,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
             multiplier: fome[FomeTypes.infinitesimal].boosts[2].effect,
             enabled: () => Decimal.gt(unref(fome[FomeTypes.infinitesimal].boosts[2].total), 0),
             description: jsx(() => (<>[{fome.name}] Infinitesimal Boost 2 ({formatWhole(unref(fome[FomeTypes.infinitesimal].boosts[2].total))})</>))
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: acceleron.loops.averageLoopValues[acceleron.loops.loops.tempSkyrmion.id],
+            enabled: noPersist(acceleron.loops.loops.tempSkyrmion.built),
+            description: jsx(() => (<>[{acceleron.name}] Entropic Loop #6</>))
         }))
     ];
 
@@ -306,6 +331,16 @@ const layer = createLayer(id, function (this: BaseLayer) {
         })
     }
 
+    const modifierModal = createModifierModal("Skyrmion Modifiers", () => [
+        {
+            title: "Skyrmion Cost",
+            modifier: skyrmionCostModifiers,
+            base: () => Decimal.pow10(unref(skyrmions.amount)),
+            baseText: jsx(() => <>[{name}] Pions and Spinors</>),
+            smallerIsBetter: true
+        }
+    ]);
+
     return {
         name,
         color,
@@ -316,7 +351,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         upgrades,
         display: jsx(() => (
             <>
-                You have <Resource resource={resource} color={color} tag="h2" /> {resource.displayName}
+                You have <Resource resource={resource} color={color} tag="h2" /> {resource.displayName}{render(modifierModal)}
                 {Decimal.gt(getFomeBoost(FomeTypes.subspatial, 4), 0)
                 ?   <><br />Your {fome.subspatial.amount.displayName} is granting an additional <h3 style={{ color, textShadow: `0px 0px 10px ${color}` }}>
                         {format(getFomeBoost(FomeTypes.subspatial, 4))}

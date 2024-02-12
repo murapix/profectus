@@ -5,7 +5,7 @@ import { noPersist, persistent } from "game/persistence";
 import Decimal, { DecimalSource } from "lib/break_eternity";
 import { formatSmall, format, formatWhole } from "util/break_eternity";
 import { ProcessedComputable } from "util/computed";
-import { ComputedRef, computed, unref } from "vue";
+import { ComputedRef, computed, ref, unref } from "vue";
 import entropy from "./entropy";
 import fome, { FomeTypes } from "../fome/fome";
 import skyrmion from "../skyrmion/skyrmion";
@@ -21,6 +21,8 @@ import LoopDescriptions from "./LoopDescriptions.vue";
 import { Sides } from "../timecube/timesquares";
 import timelines from "../timecube/timelines";
 import abyss from "../skyrmion/abyss";
+import { createModifierModal } from "util/util";
+import { render } from "util/vue";
 
 const id = "loops";
 const layer = createLayer(id, function (this: BaseLayer) {
@@ -61,7 +63,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         createMultiplicativeModifier(() => ({
             multiplier: timecubeLayer.getTimesquareEffect(Sides.RIGHT),
             enabled: () => Decimal.gt(unref(timecubeLayer.timesquares.squares[Sides.RIGHT].square.amount), 0),
-            description: jsx(() => <>[{timecubeLayer.name}] Right Time Squares</>)
+            description: jsx(() => <>[{timecubeLayer.name}] Right Time Squares ({formatWhole(unref(timecubeLayer.timesquares.squares[Sides.RIGHT].square.amount))})</>)
         }))
     ]);
     const buildSpeed = computed(() => buildSpeedModifiers.apply(unref(acceleronLayer.timeMult)));
@@ -190,14 +192,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
                     </>
                 ))
             },
-            effect() { return new Decimal(getUpgradeEffect(timecubeLayer.upgrades.tile))
-                                .times(getUpgradeEffect(acceleronLayer.upgrades.conversion))
-                                .times(getUpgradeEffect(entropy.enhancements.tesselation))
-                                .times(unref(timecubeLayer.getTimesquareEffect(Sides.FRONT)))
+            effect() { return new Decimal(unref(timecubeLayer.production))
                                 .div(unref(timelines.nerfs[Sides.RIGHT]))
                                 .times(unref(timelines.buffs[Sides.RIGHT]))
-                                .div(unref(timelines.nerfs[Sides.FRONT]))
-                                .times(unref(timelines.buffs[Sides.FRONT]))
             },
             trigger(intervals) {
                 timecubeLayer.timecubes.value = unref((loop as GenericLoop<Decimal>).effect).times(intervals).plus(unref(timecubeLayer.timecubes))
@@ -213,7 +210,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 description: jsx(() => (
                     <>
                         Every day, gain a decaying boost to Foam production. Currently: <span style={{color: unref(unref((loop as GenericLoop<Decimal>).display).color)}}>
-                            {format(unref((loop as GenericPersistentLoop<Decimal>).value))}
+                            {format(Decimal.gte(unref(acceleronLayer.timeMult), unref(loop.triggerRequirement as ProcessedComputable<DecimalSource>))
+                                ? unref(averageLoopValues[loop.id])
+                                : unref((loop as GenericPersistentLoop<Decimal>).value))}
                         </span>x
                     </>
                 ))
@@ -235,8 +234,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 width: 10,
                 description: jsx(() => (
                     <>
-                        Every year, gain a decaying boost to Acceleron production. Currently: <span style={{color: unref(unref((loop as GenericLoop<Decimal>).display).color)}}>
-                            {format(unref((loop as GenericPersistentLoop<Decimal>).value))}
+                        Every year, gain a decaying divider to Acceleron cost. Currently: <span style={{color: unref(unref((loop as GenericLoop<Decimal>).display).color)}}>
+                            /{format(Decimal.gte(unref(acceleronLayer.timeMult), unref(loop.triggerRequirement as ProcessedComputable<DecimalSource>))
+                                ? unref(averageLoopValues[loop.id])
+                                : unref((loop as GenericPersistentLoop<Decimal>).value))}
                         </span>x
                     </>
                 ))
@@ -256,7 +257,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 description: jsx(() => (
                     <>
                         Every decade, gain a decaying boost to Pion and Spinor production. Currently: <span style={{color: unref(unref((loop as GenericLoop<Decimal>).display).color)}}>
-                            {format(unref((loop as GenericPersistentLoop<Decimal>).value))}
+                            {format(Decimal.gte(unref(acceleronLayer.timeMult), unref(loop.triggerRequirement as ProcessedComputable<DecimalSource>))
+                                ? unref(averageLoopValues[loop.id])
+                                : unref((loop as GenericPersistentLoop<Decimal>).value))}
                         </span>x
                     </>
                 ))
@@ -272,18 +275,49 @@ const layer = createLayer(id, function (this: BaseLayer) {
 
     const numBuiltLoops = computed(() => Object.values(loops).filter(loop => unref(loop.built)).length);
     const nextLoop = computed(() => Object.values(loops).find(loop => isVisible(loop.visibility) && !unref(loop.built)));
+
+    const priorLoopValues = {
+        [loops.tempFome.id]: ref<DecimalSource[]>([]),
+        [loops.tempAcceleron.id]: ref<DecimalSource[]>([]),
+        [loops.tempSkyrmion.id]: ref<DecimalSource[]>([])
+    };
+    const averageLoopValues = Object.fromEntries(
+        Object.entries(priorLoopValues)
+            .map(([id, values]) => [id,
+                computed(() => unref(values).reduce((sum: Decimal, value) => sum.plus(value), Decimal.dZero).dividedBy(unref(values).length || 1).plus(1))
+            ])
+    );
+
     acceleronLayer.on("postUpdate", diff => {
+        const timePerSecond = unref(acceleronLayer.timeMult);
         const power = Decimal.pow(0.2, diff);
         for (const loop of [ loops.tempFome, loops.tempAcceleron, loops.tempSkyrmion ]) {
-            if (Decimal.lte(unref(loop.value), unref(loop.effect))) {
-                loop.value.value = power.times(unref(loop.value)).clampMin(1);
-            }
+            priorLoopValues[loop.id].value = [...unref(priorLoopValues[loop.id]).slice(-9), loop.value.value];
+            if (Decimal.gte(timePerSecond, unref(loop.triggerRequirement))) continue;
+            loop.value.value = power.times(unref(loop.value)).clampMin(1);
         }
-    })
+    });
+
+    const modifiersModal = createModifierModal("Entropic Loop Modifiers", () => [
+        {
+            title: "Build Speed",
+            modifier: buildSpeedModifiers,
+            base: acceleronLayer.timeMult,
+            baseText: jsx(() => <>[{acceleronLayer.name}] Time Speed</>)
+        },
+        {
+            title: "Build Cost",
+            modifier: buildCostModifiers,
+            base: 1,
+            baseText: jsx(() => <>[{acceleronLayer.name}] {acceleronLayer.accelerons.displayName}/sec</>),
+            smallerIsBetter: true
+        }
+    ]);
 
     return {
         isBuilding,
         loops,
+        averageLoopValues,
         numBuiltLoops,
         upperDisplay: jsx(() => (
             <>
@@ -292,7 +326,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                     : (<>
                         <Spacer height="18px" />
                         <div style={{fontSize: '12px', color: 'var(--link)'}}>
-                            Construction Progress: {formatWhole(unref(unref(nextLoop)?.buildProgress ?? 0))} / {formatWhole(unref(unref(nextLoop)?.buildRequirement ?? 0))}<br />
+                            Construction Progress: {formatWhole(unref(unref(nextLoop)?.buildProgress ?? 0))} / {formatWhole(unref(unref(nextLoop)?.buildRequirement ?? 0))}{render(modifiersModal)}<br />
                             Construction will consume {formatWhole(unref(remainingBuildCost))} {acceleronLayer.accelerons.displayName}
                         </div>
                     </>)

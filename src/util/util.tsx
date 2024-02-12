@@ -1,7 +1,10 @@
 import Formula from "game/formulas/formulas";
-import { DefaultValue, NonPersistent, SkipPersistence, persistent } from "game/persistence";
-import { isRef } from "vue";
+import { DefaultValue, NonPersistent, SkipPersistence, deletePersistent, persistent } from "game/persistence";
+import { isRef, ref } from "vue";
 import Decimal from "./break_eternity";
+import { Section, createCollapsibleModifierSections } from "data/common";
+import { jsx } from "features/feature";
+import Modal from "components/Modal.vue";
 
 export function clonePersistentData(object: unknown) {
     if (object == undefined) return;
@@ -50,4 +53,35 @@ export function swapPersistentData(object: unknown, clone: unknown) {
     for (const key in clone) {
         swapPersistentData((object as Record<string, unknown>)[key], (clone as Record<string, unknown>)[key]);
     }
+}
+
+export function createModifierModal(
+    title: string,
+    sectionsFunc: () => Section[],
+    fontSize?: string
+) {
+    const [modifiers, collapsed] = createCollapsibleModifierSections(sectionsFunc);
+    deletePersistent(collapsed);
+
+    const showModifiers = ref(false);
+
+    return jsx(() => (
+        <>
+            <button class="button"
+                    style={{
+                        display: "inline-block",
+                        fontSize: fontSize ?? "20px"
+                    }}
+                    onClick={() => showModifiers.value = true}
+            >🛈</button>
+            <Modal
+                modelValue={showModifiers.value}
+                onUpdate:modelValue={value => showModifiers.value = value}
+                v-slots={{
+                    header: () => <h2>{title}</h2>,
+                    body: modifiers
+                }}
+            />
+        </>
+    ))
 }

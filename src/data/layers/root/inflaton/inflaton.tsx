@@ -9,14 +9,14 @@ import entangled from "../entangled/entangled";
 import { createCostRequirement, displayRequirements, requirementsMet } from "game/requirements";
 import { persistent } from "game/persistence";
 import { createMultiplicativeModifier, createSequentialModifier } from "game/modifiers";
-import { format, formatWhole } from "util/break_eternity";
+import { formatWhole } from "util/break_eternity";
 import buildings from "./buildings";
 import MainDisplay from "features/resources/MainDisplay.vue";
 import { render, renderRow } from "util/vue";
 import Spacer from "components/layout/Spacer.vue";
 import { createTabFamily } from "features/tabs/tabFamily";
 import { createTab } from "features/tabs/tab";
-import { EffectUpgrade, EffectUpgradeOptions, createUpgrade, getUpgradeEffect } from "features/upgrades/upgrade";
+import { EffectUpgrade, EffectUpgradeOptions, createUpgrade } from "features/upgrades/upgrade";
 import core from "./coreResearch";
 import timecube from "../timecube/timecube";
 import { getResearchEffect } from "./research";
@@ -25,6 +25,8 @@ import acceleron from "../acceleron/acceleron";
 import { formatLength } from "./building";
 import { noPersist } from "game/persistence"
 import { effectDecorator } from "features/decorators/common";
+import { createModifierModal } from "util/util";
+import { formatRoman } from "./repeatableDecorator"
 
 export const id = "inflaton";
 const layer = createLayer(id, function (this: BaseLayer) {
@@ -128,22 +130,22 @@ const layer = createLayer(id, function (this: BaseLayer) {
         createMultiplicativeModifier(() => ({
             multiplier: core.research.fomeGain.effect,
             enabled: core.research.fomeGain.researched,
-            description: jsx(() => <>[{name}] research.fomeGain</>)
+            description: jsx(() => <>[{name}] Counter-Inflational Cycles</>)
         })),
         createMultiplicativeModifier(() => ({
             multiplier: core.research.moreFomeGain.effect,
             enabled: core.research.moreFomeGain.researched,
-            description: jsx(() => <>[{name}] research.moreFomeGain</>)
+            description: jsx(() => <>[{name}] Scatter-Field Repulsion</>)
         })),
         createMultiplicativeModifier(() => ({
             multiplier: core.research.evenMoreFomeGain.effect,
             enabled: core.research.evenMoreFomeGain.researched,
-            description: jsx(() => <>[{name}] research.evenMoreFomeGain</>)
+            description: jsx(() => <>[{name}] Scalar Flux Reduction</>)
         })),
         createMultiplicativeModifier(() => ({
             multiplier: core.repeatables.fome.effect,
             enabled: () => Decimal.gt(unref(core.repeatables.fome.amount), 0),
-            description: jsx(() => <>[{name}] repeatables.fome ({format(unref(core.repeatables.fome.amount))})</>)
+            description: jsx(() => <>[{name}] Repeatable: Inflational Dynamics {formatRoman(unref(core.repeatables.fome.amount))}</>)
         }))
     ]);
     const fomeBonus = computed(() => {
@@ -264,6 +266,13 @@ const layer = createLayer(id, function (this: BaseLayer) {
         }
     });
 
+    const fomeModifierModal = createModifierModal("Inflaton Resonance", () => [
+        {
+            title: "Maximum Potential Foam Gain",
+            modifier: fomeModifiers
+        }
+    ], "12px");
+
     const header = jsx(() => (<>
         <MainDisplay resource={inflatons} color={color} stickyStyle={{background: 'unset'}} />
         <div style={{marginTop: '-20px', fontSize: '12px'}}>
@@ -274,6 +283,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                     : undefined
                 }</>
             }
+            {unref(core.research.fomeGain.researched) ? render(fomeModifierModal) : undefined}
         </div>
         {render(inflate)}
         {render(conversion)}

@@ -24,6 +24,9 @@ import Column from "components/layout/Column.vue";
 import timecube from "../timecube/timecube";
 import { Sides } from "../timecube/timesquares";
 import skyrmion from "../skyrmion/skyrmion";
+import { createAdditiveModifier, createMultiplicativeModifier, createSequentialModifier } from "game/modifiers";
+import { formatRoman } from "./repeatableDecorator"
+import { createModifierModal } from "util/util";
 
 const id = "coreResearch";
 const layer = createLayer(id, function (this: BaseLayer) {
@@ -350,8 +353,41 @@ const layer = createLayer(id, function (this: BaseLayer) {
     const parallelResearchCount = computed<number>(() => 1);
     const researchQueue = persistent<string[]>([]);
 
-    const baseResearchGain: ComputedRef<Decimal> = computed(() => Decimal.times(unref(buildings.buildings.lab.effect), getResearchEffect(research.researchBoost, 1)).times(unref(skyrmion.spinor.upgrades.nu.effect)));
-    const finalResearchGain: ComputedRef<Decimal> = computed(() => unref(baseResearchGain).minus(unref(buildings.buildings.tuner.effect).cost).clampMin(0));
+    const researchBoostLimitModifiers = createSequentialModifier(() => [
+        createMultiplicativeModifier(() => ({
+            multiplier: repeatables.analysis.effect,
+            enabled: () => Decimal.gt(unref(repeatables.analysis.amount), 0),
+            description: jsx(() => <>[{inflaton.name}] Repeatable: Perpetual Testing {formatRoman(unref(repeatables.analysis.amount))}</>)
+        }))
+    ]);
+
+    const baseResearchGainModifiers = createSequentialModifier(() => [
+        createMultiplicativeModifier(() => ({
+            multiplier: 0.9,
+            enabled: noPersist(research.researchBoost.researched),
+            description: jsx(() => <>[{inflaton.name}] Reserved for Networking Nodes</>)
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: research.researchBoost.effect,
+            enabled: noPersist(research.researchBoost.researched),
+            description: jsx(() => <>[{inflaton.name}] Distributed Analysis Framework</>)
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: skyrmion.pion.upgrades.nu.effect,
+            enabled: () => Decimal.gt(unref(skyrmion.pion.upgrades.nu.totalAmount), 0),
+            description: jsx(() => <>[{skyrmion.name}] Pion Upgrade ν ({formatWhole(unref(skyrmion.pion.upgrades.nu.totalAmount))})</>)
+        }))
+    ]);
+    const finalResearchGainModifiers = createSequentialModifier(() => [
+        baseResearchGainModifiers,
+        createAdditiveModifier(() => ({
+            addend: () => Decimal.negate(unref(buildings.buildings.tuner.effect).cost),
+            enabled: () => Decimal.gt(unref(buildings.buildings.tuner.totalAmount), 0),
+            description: jsx(() => <>[{inflaton.name}] Active Redistribution Centers</>)
+        }))
+    ]);
+    const baseResearchGain: ComputedRef<DecimalSource> = computed(() => baseResearchGainModifiers.apply(unref(buildings.buildings.lab.effect)));
+    const finalResearchGain: ComputedRef<DecimalSource> = computed(() => Decimal.clampMin(finalResearchGainModifiers.apply(unref(buildings.buildings.lab.effect)), 0));
     
     const autoResearching = persistent<boolean>(false);
     inflaton.on("preUpdate", diff => {
@@ -402,6 +438,22 @@ const layer = createLayer(id, function (this: BaseLayer) {
         });
     });
 
+    const modifiersModal = createModifierModal("Research Modifiers", () => [
+        {
+            title: "Maximum Distributed Analysis Framework Bonus",
+            modifier: researchBoostLimitModifiers,
+            visible: noPersist(research.researchBoost.researched),
+            base: 1.8,
+            baseText: jsx(() => <>[{inflaton.name}] Distributed Analysis Framework</>)
+        },
+        {
+            title: "Research Point Production",
+            modifier: finalResearchGainModifiers,
+            base: buildings.buildings.lab.effect,
+            baseText: jsx(() => <>[{inflaton.name}] Quantum Flux Analyzers</>)
+        }
+    ]);
+
     return {
         research,
         repeatables,
@@ -415,7 +467,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         autoResearching,
         display: jsx(() => (
             <>
-                <div>Your buildings are producing {formatWhole(unref(finalResearchGain))} Research Points</div>
+                <div>Your buildings are producing {formatWhole(unref(finalResearchGain))} Research Points{render(modifiersModal)}</div>
                 <div class='row' style={{flexFlow: 'row-reverse nowrap', alignItems: 'flex-start', justifyContent: 'space-evenly'}}>
                     <Column>
                         <ResearchQueue parallel={parallelResearchCount} queue={computed(() => Array.from({...unref(researchQueue), length: Math.max(unref(researchQueue).length, unref(queueLength))}))} />
