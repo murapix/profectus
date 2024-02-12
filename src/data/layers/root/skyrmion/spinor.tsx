@@ -263,7 +263,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 description: <>Decrease the magnitude of the Entangled String Inflaton requirement by 5%</>,
                 effect: effect => `${formatSmall(effect)}x`
             },
-            effect: amount => Decimal.pow_base(0.95, amount)
+            effect: amount => Decimal.pow(0.95, amount)
         });
         const pi = createUpgrade({
             visibility: () => unref(abyss.challenge.active) || unref(skyrmion.upgrades.pi.bought),

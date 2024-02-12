@@ -173,18 +173,18 @@ const layer = createLayer("entangled", () => {
             resource: noPersist(inflaton.inflatons),
             cost() {
                 const cost = (() => {
-                    if (Decimal.eq(unref(strings), 0)) return Decimal.pow10(8000);
+                    if (Decimal.eq(unref(strings), 0)) return 8000;
                     return [
-                        Decimal.pow10(1.8e4),  // 
-                        Decimal.pow10(8.5e12), // Skyrmion
+                        1.8e4,                 // 
+                        8.5e12,                // Skyrmion
                         Decimal.dInf,          //          Fome
                         Decimal.dInf,          // Skyrmion Fome
                         Decimal.dInf,          //               Acceleron
                         Decimal.dInf,          // Skyrmion      Acceleron
                         Decimal.dInf,          //          Fome Acceleron
                         Decimal.dInf,          // Skyrmion Fome Acceleron
-                        Decimal.pow10(3.7e5),  //                         Timecube
-                        Decimal.pow10(4.5e17), // Skyrmion                Timecube
+                        3.7e5,                 //                         Timecube
+                        4.5e17,                // Skyrmion                Timecube
                         Decimal.dInf,          //          Fome           Timecube
                         Decimal.dInf,          // Skyrmion Fome           Timecube
                         Decimal.dInf,          //               Acceleron Timecube
@@ -209,7 +209,7 @@ const layer = createLayer("entangled", () => {
                         Decimal.dInf           // Skyrmion Fome Acceleron Timecube Inflaton
                     ][unref(expansionScore)];
                 })();
-                return Decimal.times(cost, unref(skyrmion.spinor.upgrades.xi.effect));
+                return Decimal.times(cost, unref(skyrmion.spinor.upgrades.xi.effect)).pow10();
             }
         })),
         timecube: createCostRequirement(() => ({
