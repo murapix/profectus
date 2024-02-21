@@ -26,31 +26,33 @@ defineProps<{
     display: flex;
     flex-flow: row nowrap;
     margin: var(--feature-margin);
-    > button {
-        width: 187px;
-        min-height: 225px;
-        margin: 0px;
-        border-radius: 25px 0px 0px 25px;
-    }
+}
+
+.timesquare > button {
+    width: 187px;
+    min-height: 225px;
+    margin: 0px;
+    border-radius: 25px 0px 0px 25px;
 }
 
 .timesquare-buy-buttons {
     display: flex;
     flex-flow: column nowrap;
-    > button {
-        width: 125px;
-        min-height: 75px;
-        margin: 0px;
-        border-radius: 0px;
-        transform-origin: center left;
-    }
-    :first-child {
-        border-top-right-radius: 25px;
-        transform-origin: bottom left;
-    }
-    :last-child {
-        border-bottom-right-radius: 25px;
-        transform-origin: top left;
-    }
+}
+
+.timesquare-buy-buttons > button {
+    width: 125px;
+    min-height: 75px;
+    margin: 0px;
+    border-radius: 0px;
+    transform-origin: center left;
+}
+.timesquare-buy-buttons:first-child {
+    border-top-right-radius: 25px;
+    transform-origin: bottom left;
+}
+.timesquare-buy-buttons:last-child {
+    border-bottom-right-radius: 25px;
+    transform-origin: top left;
 }
 </style>

@@ -15,7 +15,6 @@ import { createExponentialModifier, createMultiplicativeModifier, createSequenti
 import { GenericTimeline, createTimeline } from "./timeline";
 import { createModifierModal } from "util/util";
 import { format } from "util/break_eternity";
-import Row from "components/layout/Row.vue";
 import Column from "components/layout/Column.vue";
 import TimelineNerfs from "./TimelineNerfs.vue";
 import Spacer from "components/layout/Spacer.vue";

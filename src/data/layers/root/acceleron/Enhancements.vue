@@ -36,49 +36,50 @@ const processedRows = ([1, 2, 3, 4] as EnhancementRow[]).map(row => ({
 .enhancementRow {
     width: fit-content;
     margin: var(--feature-margin) auto;
-    .row {
-        margin: 0;
-        border-radius: 0;
-        border-left: 0;
-        border-right: 0;
-    }
-    
-    :deep(button), .row > div:first-child {
-        width: 120px;
-        margin: 0 -1px;
+}
 
-        border-radius: 0;
-        border: solid var(--layer-color) 2px;
+.enhancementRow .row {
+    margin: 0;
+    border-radius: 0;
+    border-left: 0;
+    border-right: 0;
+}
 
-        background: #0000002F;
-        color: var(--layer-color);
-        z-index: 2;
-    }
+.enhancementRow :deep(button), .row > div:first-child {
+    width: 120px;
+    margin: 0 -1px;
 
-    :deep(button.locked) {
-        border-color: var(--locked);
-        color: var(--locked);
-        z-index: -1;
-    }
+    border-radius: 0;
+    border: solid var(--layer-color) 2px;
 
-    :deep(button.bought), .row > div.bought {
-        border-color: var(--bought);
-        color: var(--bought);
-        z-index: 1;
-    }
+    background: #0000002F;
+    color: var(--layer-color);
+    z-index: 2;
+}
 
-    :deep(button:hover:not(.locked):not(.bought)) {
-        transform: none;
-        box-shadow: inset 0 0 20px var(--layer-color);
-    }
+.enhancementRow :deep(button.locked) {
+    border-color: var(--locked);
+    color: var(--locked);
+    z-index: -1;
+}
 
-    .row > div:first-child {
-        background: linear-gradient(to left, #0000002F, #0000);
-        border-left: 0;
-    }
-    :deep(.tooltip-container:last-child button) {
-        background: linear-gradient(to right, #0000002F, #0000);
-        border-right: 0;
-    }
+.enhancementRow :deep(button.bought), .enhancementRow .row > div.bought {
+    border-color: var(--bought);
+    color: var(--bought);
+    z-index: 1;
+}
+
+.enhancementRow :deep(button:hover:not(.locked):not(.bought)) {
+    transform: none;
+    box-shadow: inset 0 0 20px var(--layer-color);
+}
+
+.enhancementRow .row > div:first-child {
+    background: linear-gradient(to left, #0000002F, #0000);
+    border-left: 0;
+}
+.enhancementRow :deep(.tooltip-container:last-child button) {
+    background: linear-gradient(to right, #0000002F, #0000);
+    border-right: 0;
 }
 </style>

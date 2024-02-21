@@ -531,10 +531,11 @@ export default defineComponent({
     position: absolute;
     top: 0;
     left: 0;
-    > :deep(.can) {
-        transform: none;
-        filter: var(--shadow-id);
-    }
+}
+
+.ring-segment > :deep(.can) {
+    transform: none;
+    filter: var(--shadow-id);
 }
 
 .ring-line {
