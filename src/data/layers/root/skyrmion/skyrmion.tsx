@@ -50,7 +50,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             smallerIsBetter: true
         })),
         createMultiplicativeModifier(() => ({
-            multiplier: () => unref(entropy.enhancements.amplification.effect).reciprocate(),
+            multiplier: entropy.enhancements.amplification.effect,
             enabled: noPersist(entropy.enhancements.amplification.bought),
             description: jsx(() => <>[{entropy.name}] Entropic Amplification</>),
             smallerIsBetter: true
