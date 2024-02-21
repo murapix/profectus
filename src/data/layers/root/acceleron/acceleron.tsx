@@ -179,7 +179,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             description: jsx(() => <>[{timecube.name}] Tour</>)
         })),
         createMultiplicativeModifier(() => ({
-            multiplier: timecube.timelines.nerfs[Sides.BACK],
+            multiplier: () => Decimal.reciprocate(unref(timecube.timelines.nerfs[Sides.BACK])),
             enabled: () => unref(timecube.timelines.depths[Sides.BACK]) > 0,
             description: jsx(() => <>[{timecube.name}] Active Back Timeline Effect</>)
         })),

@@ -221,7 +221,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 cost: 1e12
             })),
             effect: 1.5
-        }));
+        }), effectDecorator) as EffectUpgrade<number>;
         const tall = createUpgrade(() => ({
             visibility() { return unref(this.bought) || (unref(triple.bought) && unref(turn.bought)) },
             display: {
@@ -233,7 +233,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 cost: 2e12
             })),
             effect: 1.5
-        }));
+        }), effectDecorator) as EffectUpgrade<number>;
         const tour = createUpgrade(() => ({
             visibility() { return unref(this.bought) || (unref(triple.bought) && unref(turn.bought)) },
             display: {
@@ -245,7 +245,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 cost: 5e12
             })),
             effect: 2
-        }));
+        }), effectDecorator) as EffectUpgrade<number>;
         const tactics = createUpgrade(() => ({
             visibility() { return unref(this.bought) || unref(tour.bought) },
             display: {
@@ -312,7 +312,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                     Decimal.minus(Math.E/Math.PI, Decimal.div(unref(fome[type].amount), limit)).pow10().times(15).plus(1)
                 ])) as Record<FomeTypes, Decimal>;
             }
-        }));
+        }), effectDecorator) as EffectUpgrade<Record<FomeTypes, Decimal>>;
         const a = createUpgrade(upgrade => ({
             visibility() { return false },
             display: {

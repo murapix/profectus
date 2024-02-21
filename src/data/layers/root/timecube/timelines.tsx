@@ -10,12 +10,17 @@ import { createClickable } from "features/clickables/clickable";
 import { render, renderRow } from "util/vue";
 import { Sides } from "./timesquares";
 import Decimal, { DecimalSource } from "lib/break_eternity";
-import Spacer from "components/layout/Spacer.vue";
-import { ComputedRef, computed, unref } from "vue";
+import { ComputedRef, computed, ref, unref } from "vue";
 import { createExponentialModifier, createMultiplicativeModifier, createSequentialModifier } from "game/modifiers";
 import { GenericTimeline, createTimeline } from "./timeline";
 import { createModifierModal } from "util/util";
 import { format } from "util/break_eternity";
+import Row from "components/layout/Row.vue";
+import Column from "components/layout/Column.vue";
+import TimelineNerfs from "./TimelineNerfs.vue";
+import Spacer from "components/layout/Spacer.vue";
+import TimelineBuffs from "./TimelineBuffs.vue";
+import Modal from "components/Modal.vue";
 
 const id = "timeline";
 const layer = createLayer(id, function (this: BaseLayer) {
@@ -50,14 +55,14 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 timeline => unref(timeline.active)
             ).length)]
         )
-    );
+    ) as Record<Sides, ComputedRef<number>>;
     const nextDepths = Object.fromEntries(
         Object.entries(timelineSides).map(
             ([side, timelines]) => [side, computed(() => (timelines as GenericTimeline[]).filter(
                 timeline => unref(timeline.next)
             ).length)]
         )
-    );
+    ) as Record<Sides, ComputedRef<number>>;
     const inTimeline = computed(() => Object.values(activeDepths).some(depth => unref(depth) > 0));
 
     const sidedScoreMulti: Record<Sides, DecimalSource> = {
@@ -74,12 +79,12 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 (sum, timeline) => sum.plus(unref(timeline.score)), Decimal.dZero)
             )]
         )
-    );
+    ) as Record<Sides, ComputedRef<Decimal>>;
     const passiveBuffs = Object.fromEntries(
         Object.entries(scores).map(
             ([side, score]) => [side, computed(() => unref(score).times(sidedScoreMulti[side as Sides]).plus(1))]
         )
-    );
+    ) as Record<Sides, ComputedRef<Decimal>>;
 
     const depthNerfs: Record<Sides, DecimalSource[]> = {
         [Sides.FRONT]: [1, 1e8, 1e80, '1e800', '1e8000'],
@@ -95,14 +100,14 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 unref(depthNerfs[side as Sides])[unref(depth)]
             )]
         )
-    );
+    ) as Record<Sides, ComputedRef<DecimalSource>>;
     const nextDepthNerfs = Object.fromEntries(
         Object.entries(nextDepths).map(
             ([side, depth]) => [side, computed(() => 
                 unref(depthNerfs[side as Sides])[unref(depth)]
             )]
         )
-    );
+    ) as Record<Sides, ComputedRef<DecimalSource>>;
     
     const currentScoreModifiers = createSequentialModifier(() => [
         createMultiplicativeModifier(() => ({
@@ -205,6 +210,28 @@ const layer = createLayer(id, function (this: BaseLayer) {
         }
     ]);
 
+    const showInfo = ref(false);
+    const infoModal = jsx(() => (
+        <>
+            <button class="button"
+                    onClick={() => showInfo.value = true}
+            >What are Timelines?</button>
+            <Modal
+                modelValue={showInfo.value}
+                onUpdate:modelValue={value => showInfo.value = value}
+                v-slots={{
+                    header: () => <h2>Timeline Information</h2>,
+                    body: () => (<><span style={{fontWeight: 'normal'}}>
+                                  Timelines are extra difficulty modes on top of normal play, which will provide passive bonuses depending on how much progress you are able to make while in them.
+                        <br/><br/>The grid of selectors below allows you to choose the level of difficulty that the next timeline will bring, with more active selectors providing an exponentially harder challenge, in return for a higher score - assuming you can handle their strength.
+                        <br/><br/>Each selector increases the depth in two different directions, providing two different and stacking production penalties. The penalty grows massively the deeper in a direction you go, so it is highly suggested to <b>start with a single active selector, and increase only when you feel comfortable with your current progress</b>.
+                        <br/><br/>When you have decided on a desired difficulty, simply <b>Enter Timeline</b>. All resources aside from Entangled Strings will be reset, as well as any Acceleron and Inflaton upgrades to production - you will need to buy them again. Additionally, <code>Repeatable Research: Subspatial Construction</code> will also be reset to its initial level.
+                    </span></>)
+                }}
+            />
+        </>
+    ));
+
     return {
         timelines,
         scores,
@@ -216,10 +243,18 @@ const layer = createLayer(id, function (this: BaseLayer) {
         display: jsx(() => (
             <>
                 {render(enterTimeline)}
-                <Spacer />
-                {renderRow(timelines.topLeft, timelines.topFront, timelines.topBack, timelines.topRight)}
-                {renderRow(timelines.frontLeft, timelines.frontRight, timelines.backLeft, timelines.backRight)}
-                {renderRow(timelines.bottomLeft, timelines.bottomFront, timelines.bottomBack, timelines.bottomRight)}
+                {render(infoModal)}
+                <div style={{display: 'grid', gridTemplateColumns: '1fr auto auto auto 1fr', width: 'fit-content'}}>
+                    <TimelineNerfs activeNerfs={activeDepthNerfs} nextNerfs={nextDepthNerfs} />
+                    <Spacer />
+                    <Column>
+                        {renderRow(timelines.topLeft, timelines.topFront, timelines.topBack, timelines.topRight)}
+                        {renderRow(timelines.frontLeft, timelines.frontRight, timelines.backLeft, timelines.backRight)}
+                        {renderRow(timelines.bottomLeft, timelines.bottomFront, timelines.bottomBack, timelines.bottomRight)}
+                    </Column>
+                    <Spacer />
+                    <TimelineBuffs scores={scores} buffs={passiveBuffs} />
+                </div>
                 <Spacer />
                 Current Score: {format(unref(currentScore))}{render(modifiersModal)}
             </>

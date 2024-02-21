@@ -30,6 +30,8 @@ import acceleron from "../acceleron/acceleron";
 import { createModifierModal } from "util/util";
 import { createHotkey } from "features/hotkey";
 import { root } from "data/projEntry";
+import timecube from "../timecube/timecube";
+import { Sides } from "../timecube/timesquares";
 
 const id = "skyrmion";
 const layer = createLayer(id, function (this: BaseLayer) {
@@ -138,6 +140,16 @@ const layer = createLayer(id, function (this: BaseLayer) {
             multiplier: acceleron.loops.averageLoopValues[acceleron.loops.loops.tempSkyrmion.id],
             enabled: noPersist(acceleron.loops.loops.tempSkyrmion.built),
             description: jsx(() => (<>[{acceleron.name}] Entropic Loop #6</>))
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: () => Decimal.reciprocate(unref(timecube.timelines.nerfs[Sides.BOTTOM])),
+            enabled: () => unref(timecube.timelines.depths[Sides.BOTTOM]) > 0,
+            description: jsx(() => <>[{timecube.name}] Active Bottom Timeline Effect</>)
+        })),
+        createMultiplicativeModifier(() => ({
+            multiplier: timecube.timelines.buffs[Sides.BOTTOM],
+            enabled: () => unref(timecube.timelines.scores[Sides.BOTTOM]).gt(0),
+            description: jsx(() => <>[{timecube.name}] Passive Bottom Timeline Bonus</>)
         }))
     ];
 
