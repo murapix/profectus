@@ -5,7 +5,7 @@
             <Text
                 :autofocus="false"
                 :model-value="newName"
-                @update:modelValue="value => { newName = value; tryImport = tryImportPreset(value) }"
+                @update:modelValue="(value: string) => { newName = value; tryImport = tryImportPreset(value) }"
                 placeholder="New Preset Name"
             />
             <button
