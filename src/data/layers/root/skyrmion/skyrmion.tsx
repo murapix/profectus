@@ -371,7 +371,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 if (!unref(fome.unlocked)) return false;
                 return Object.keys(upgrades)
                              .filter(key => !unref(upgrades[key as keyof typeof upgrades].bought))
-                             .filter(key => key !== 'autogain')
+                             .filter(key => key !== 'autoGain')
                              .filter(key => isVisible(pion.upgrades[key as keyof typeof pion.upgrades].visibility))
                              .filter(key => isVisible(spinor.upgrades[key as keyof typeof spinor.upgrades].visibility))
                              .length > 0;

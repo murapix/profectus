@@ -193,7 +193,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             bonus: boostBonus
         })),
         4: createBoost(feature => ({
-            display: () => `Reduce Skyrmion costs to 1/${format(Decimal.minus(getFomeBoost(FomeTypes.infinitesimal, 4), 1))}×`,
+            display: () => `Reduce Skyrmion costs to 1/${format(getFomeBoost(FomeTypes.infinitesimal, 4))}×`,
             effect: () => Decimal.times(unref(feature.total), 0.5).plus(1),
             bonus: boostBonus
         })),
