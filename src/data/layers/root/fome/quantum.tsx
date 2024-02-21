@@ -164,7 +164,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             bonus: boostBonus
         })),
         3: createBoost(feature => ({
-            display: () => `Multiply the generation of all Foam types again by ${format(getFomeBoost(FomeTypes.quantum, 3))}x`,
+            display: () => `Multiply the generation of all Foam types again by ${format(getFomeBoost(FomeTypes.quantum, 3))}×`,
             effect: () => {
                 let total = unref(feature.total);
                 if (Decimal.gt(total, 16)) total = Decimal.sqrt(total).times(4);

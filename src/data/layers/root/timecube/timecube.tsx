@@ -74,7 +74,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             display: {
                 title: 'Tile',
                 description: 'log10(Accelerons) increases Time Cube gain',
-                effect: jsx(() => <>{format(unref((upgrade as EffectUpgrade<Decimal>).effect))}x</>)
+                effect: jsx(() => <>{format(unref((upgrade as EffectUpgrade<Decimal>).effect))}×</>)
             },
             requirements: createCostRequirement(() => ({
                 resource: noPersist(timecubes),
@@ -87,7 +87,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             display: {
                 title: 'Time',
                 description: 'log10(Best Time Cubes) increases Acceleron effect',
-                effect: jsx(() => <>{format(unref((upgrade as EffectUpgrade<DecimalSource>).effect))}x</>)
+                effect: jsx(() => <>{format(unref((upgrade as EffectUpgrade<DecimalSource>).effect))}×</>)
             },
             requirements: createCostRequirement(() => ({
                 resource: noPersist(timecubes),

@@ -144,7 +144,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             cost: 1500,
             display: {
                 title: 'Distributed Analysis Framework',
-                description: jsx(() => <span>Transform 10% of your Quantum Flux Analyzers into networking nodes, increasing Research Point gain by up to {format(unref(researchBoostLimit))}x</span>),
+                description: jsx(() => <span>Transform 10% of your Quantum Flux Analyzers into networking nodes, increasing Research Point gain by up to {format(unref(researchBoostLimit))}×</span>),
                 effect: jsx(() => <>{format(unref((research as GenericResearch & GenericEffectFeature<DecimalSource>).effect))}</>)
             },
             effect() {
@@ -282,7 +282,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             display: {
                 title: 'Eternal Inflation',
                 description: 'Double the size of your universe',
-                effect: jsx(() => <>{formatWhole(unref(feature.effect as ProcessedComputable<Decimal>))}x</>)
+                effect: jsx(() => <>{formatWhole(unref(feature.effect as ProcessedComputable<Decimal>))}×</>)
             },
             cost() { return Decimal.pow(4, unref(feature.amount)).times(12000).dividedBy(unref(skyrmion.spinor.upgrades.nu.effect)); },
             effect() { return Decimal.pow(2, unref(feature.amount)); }
@@ -292,7 +292,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             display: {
                 title: 'Perpetual Testing',
                 description: 'Increase Distributed Analysis Framework\'s maximum bonus by 80%',
-                effect: jsx(() => <>{formatWhole(unref(feature.effect as ProcessedComputable<Decimal>))}x</>)
+                effect: jsx(() => <>{formatWhole(unref(feature.effect as ProcessedComputable<Decimal>))}×</>)
             },
             cost() { return Decimal.pow(8, unref(feature.amount)).times(15000).dividedBy(unref(skyrmion.spinor.upgrades.nu.effect)); },
             effect() { return Decimal.pow(1.8, unref(feature.amount)); }
@@ -303,7 +303,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             display: {
                 title: 'Subspatial Construction',
                 description: 'Increase Subspace building size tenfold, and their potency by twice as much',
-                effect: jsx(() => <>{formatWhole(unref(feature.effect as ProcessedComputable<BuildingSizeEffect>).size)}x, {formatWhole(Decimal.times(unref(feature.effect as ProcessedComputable<BuildingSizeEffect>).size, unref(feature.effect as ProcessedComputable<BuildingSizeEffect>).effect))}x</>)
+                effect: jsx(() => <>{formatWhole(unref(feature.effect as ProcessedComputable<BuildingSizeEffect>).size)}×, {formatWhole(Decimal.times(unref(feature.effect as ProcessedComputable<BuildingSizeEffect>).size, unref(feature.effect as ProcessedComputable<BuildingSizeEffect>).effect))}×</>)
             },
             cost() { return Decimal.pow(200, unref(feature.amount)).times(150000).dividedBy(unref(skyrmion.spinor.upgrades.nu.effect)).div(unref(timecube.getTimesquareEffect(Sides.LEFT))); },
             effect() { return {
@@ -330,7 +330,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             display: {
                 title: 'Efficient Design',
                 description: 'Decrease Subspace building cost scaling by 1.5x',
-                effect: jsx(() => <>1/{format(unref(feature.effect as ProcessedComputable<Decimal>))}x</>)
+                effect: jsx(() => <>/{format(unref(feature.effect as ProcessedComputable<Decimal>))}</>)
             },
             cost() { return Decimal.pow(3, unref(feature.amount)).times(120000).dividedBy(unref(skyrmion.spinor.upgrades.nu.effect)); },
             effect() { return Decimal.pow(1.5, unref(feature.amount)); }
@@ -340,7 +340,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             display: {
                 title: 'Inflational Dynamics',
                 description: 'Retain up to 1e6x more Foam',
-                effect: jsx(() => <>{formatWhole(unref(feature.effect as ProcessedComputable<Decimal>))}x</>)
+                effect: jsx(() => <>{formatWhole(unref(feature.effect as ProcessedComputable<Decimal>))}×</>)
             },
             cost() { return Decimal.pow(5, unref(feature.amount)).times(160000).dividedBy(unref(skyrmion.spinor.upgrades.nu.effect)); },
             effect() { return Decimal.pow(1e6, unref(feature.amount)); }

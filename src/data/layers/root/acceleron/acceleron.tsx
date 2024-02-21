@@ -302,7 +302,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 <>
                     <h3>Minute Acceleration</h3><br /><br />
                     Time speed massively multiplies Foam generation<br /><br />
-                    Currently: {format(getUpgradeEffect(upgrade as EffectUpgrade, undefined, true))}x<br />
+                    Currently: {format(getUpgradeEffect(upgrade as EffectUpgrade, undefined, true))}×<br />
                     {displayRequirements((upgrade as GenericUpgrade).requirements)}
                 </>
             )),
@@ -396,7 +396,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 <>
                     <h3>Stability Conversion</h3><br /><br />
                     Each Entropic Loop multiplies Time Cube gain<br /><br />
-                    Currently: {formatWhole(getUpgradeEffect(upgrade as EffectUpgrade, undefined, true))}x<br />
+                    Currently: {formatWhole(getUpgradeEffect(upgrade as EffectUpgrade, undefined, true))}×<br />
                     {displayRequirements((upgrade as GenericUpgrade).requirements)}
                 </>
             )),
@@ -411,7 +411,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             display: jsx(() => (
                 <>
                     <h3>Subspatial Alacrity</h3><br /><br />
-                    Increase Subspatial Foam gain by {formatWhole(getUpgradeEffect(upgrade as EffectUpgrade, undefined, true))}x<br /><br />
+                    Increase Subspatial Foam gain by {formatWhole(getUpgradeEffect(upgrade as EffectUpgrade, undefined, true))}×<br /><br />
                     <br />
                     {displayRequirements((upgrade as GenericUpgrade).requirements)}
                 </>
@@ -510,7 +510,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
 
     const header = jsx(() => (
         <>
-            <MainDisplay resource={accelerons} color={color} effect={jsx(() => <>which are causing time to go {format(unref(timeMult))}x faster{render(modifiersModal)}<br />
+            <MainDisplay resource={accelerons} color={color} effect={jsx(() => <>which are causing time to go {format(unref(timeMult))}× faster{render(modifiersModal)}<br />
             For every second in real time, <pre style={{display: 'inline'}}>{formatTime(unref(timeMult))}</pre> passes</>)} />
         </>
     ));

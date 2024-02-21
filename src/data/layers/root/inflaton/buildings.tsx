@@ -96,7 +96,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 visibility: core.research.inflationResearch.researched,
                 title: 'Active Redistribution Center',
                 description: 'Tune your M-field Condensers with continuous analysis of inflation patterns',
-                effect: jsx(() => <>{format(unref((building as BaseRepeatable & GenericEffectFeature<{gain: DecimalSource}>).effect).gain)}x<br/><b>Consumes:</b> {format(unref((building as BaseRepeatable & GenericEffectFeature<{cost: DecimalSource}>).effect).cost)} Research/s</>)
+                effect: jsx(() => <>{format(unref((building as BaseRepeatable & GenericEffectFeature<{gain: DecimalSource}>).effect).gain)}×<br/><b>Consumes:</b> {format(unref((building as BaseRepeatable & GenericEffectFeature<{cost: DecimalSource}>).effect).cost)} Research/s</>)
             }
         })) as GenericBuilding<{gain: DecimalSource, cost: DecimalSource}>;
 

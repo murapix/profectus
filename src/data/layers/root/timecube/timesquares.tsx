@@ -72,7 +72,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         [Sides.RIGHT]: createTimesquare(Sides.RIGHT, square => ({
             display: {
                 title: jsx(() => <>Right</>),
-                effect: jsx(() => <>+{format(unref(square.square.effect))}x Entropic Loop build speed</>)
+                effect: jsx(() => <>+{format(unref(square.square.effect))}× Entropic Loop build speed</>)
             },
             effect() { return Decimal.pow(unref(square.square.amount), 0.7).plus(1) },
             resource: noPersist(timecube.timecubes),
@@ -102,7 +102,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         [Sides.LEFT]: createTimesquare(Sides.LEFT, square => ({
             display: {
                 title: jsx(() => <>Left</>),
-                effect: jsx(() => <>1/{format(unref(square.square.effect))}x Subspatial Construction cost</>)
+                effect: jsx(() => <>1/{format(unref(square.square.effect))}× Subspatial Construction cost</>)
             },
             effect() { return Decimal.pow(unref(square.square.amount), 0.5).plus(1) },
             resource: noPersist(timecube.timecubes),

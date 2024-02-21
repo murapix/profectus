@@ -34,7 +34,7 @@ export function createSkyrmionRepeatable(
         data.effect = amount => amount;
     }
     if (data.display.effect === undefined) {
-        data.display.effect = (effect: DecimalSource) => `${formatSmall(effect)}x`;
+        data.display.effect = (effect: DecimalSource) => `${formatSmall(effect)}×`;
     }
     const repeatable = createRepeatable<SkyrmionRepeatableOptions>(feature => ({
         visibility: data.visibility,

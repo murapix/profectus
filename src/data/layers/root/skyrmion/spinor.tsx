@@ -248,7 +248,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             display: {
                 name: "ν",
                 description: <>Add {formatSmall(0.00025)} to a repeatable research cost divider per order of magnitude of Spinors</>,
-                effect: effect => `/${formatSmall(effect)}x`
+                effect: effect => `/${formatSmall(effect)}×`
             },
             effect: amount => Decimal.clampMin(unref(spinors), 0).plus(1).log10().times(amount).times(0.00025).plus(1)
         });
@@ -261,7 +261,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             display: {
                 name: "ξ",
                 description: <>Decrease the magnitude of the Entangled String Inflaton requirement by 5%</>,
-                effect: effect => `${formatSmall(effect)}x`
+                effect: effect => `${formatSmall(effect)}×`
             },
             effect: amount => Decimal.pow(0.95, amount)
         });

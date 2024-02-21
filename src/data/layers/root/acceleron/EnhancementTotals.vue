@@ -22,16 +22,16 @@
             <tr class="break" v-if="breaks.counts.value"><td /><td /></tr>
             <tr v-if="Decimal.neq(effects.time.value, defaults.time)">
                 <td>Time Speed</td>
-                <td>x{{ format(effects.time.value) }}</td>
+                <td>×{{ format(effects.time.value) }}</td>
             </tr>
             <tr class="break" v-if="breaks.time.value"><td /><td /></tr>
             <tr v-if="Decimal.neq(effects.loops.buildSpeed.value, defaults.loops.buildSpeed)">
                 <td>Loop Build Speed</td>
-                <td>x{{ format(effects.loops.buildSpeed.value) }}</td>
+                <td>×{{ format(effects.loops.buildSpeed.value) }}</td>
             </tr>
             <tr v-if="Decimal.neq(effects.loops.buildCost.value, defaults.loops.buildCost)">
                 <td>Loop Build Cost</td>
-                <td>x{{ formatSmall(effects.loops.buildCost.value) }}</td>
+                <td>×{{ formatSmall(effects.loops.buildCost.value) }}</td>
             </tr>
             <tr class="break" v-if="breaks.loops.value"><td /><td /></tr>
             <tr v-if="Decimal.neq(effects.skyrmion.value, defaults.skyrmion)">
@@ -45,19 +45,19 @@
             </tr>
             <tr v-if="Decimal.neq(effects.fome.all.value, defaults.fome.all)">
                 <td>All Foam Gain</td>
-                <td>x{{ format(effects.fome.all.value) }}</td>
+                <td>×{{ format(effects.fome.all.value) }}</td>
             </tr>
             <tr v-if="Decimal.neq(effects.fome[FomeTypes.infinitesimal].value, defaults.fome[FomeTypes.infinitesimal])">
                 <td>Infinitesimal Foam Gain</td>
-                <td>x{{ format(effects.fome[FomeTypes.infinitesimal].value) }}</td>
+                <td>×{{ format(effects.fome[FomeTypes.infinitesimal].value) }}</td>
             </tr>
             <tr v-if="Decimal.neq(effects.fome[FomeTypes.subspatial].value, defaults.fome[FomeTypes.subspatial])">
                 <td>Subspatial Foam Gain</td>
-                <td>x{{ format(effects.fome[FomeTypes.subspatial].value) }}</td>
+                <td>×{{ format(effects.fome[FomeTypes.subspatial].value) }}</td>
             </tr>
             <tr v-if="Decimal.neq(effects.fome[FomeTypes.subplanck].value, defaults.fome[FomeTypes.subplanck])">
                 <td>Subplanck Foam Gain</td>
-                <td>x{{ format(effects.fome[FomeTypes.subplanck].value) }}</td>
+                <td>×{{ format(effects.fome[FomeTypes.subplanck].value) }}</td>
             </tr>
             <tr v-if="Decimal.neq(effects.fome.boosts.value, defaults.fome.boosts)">
                 <td>Free Foam Boosts</td>
@@ -75,7 +75,7 @@
             <tr class="break" v-if="breaks.acceleron.value"><td /><td /></tr>
             <tr v-if="Decimal.neq(effects.timecube.value, defaults.timecube)">
                 <td>Timecube Gain</td>
-                <td>x{{ format(effects.timecube.value) }}</td>
+                <td>×{{ format(effects.timecube.value) }}</td>
             </tr>
         </table>
     </div>

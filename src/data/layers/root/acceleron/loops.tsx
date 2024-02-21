@@ -213,7 +213,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                             {format(Decimal.gte(unref(acceleronLayer.timeMult), unref(loop.triggerRequirement as ProcessedComputable<DecimalSource>))
                                 ? unref(averageLoopValues[loop.id])
                                 : unref((loop as GenericPersistentLoop<Decimal>).value))}
-                        </span>x
+                        </span>×
                     </>
                 ))
             },
@@ -238,7 +238,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                             /{format(Decimal.gte(unref(acceleronLayer.timeMult), unref(loop.triggerRequirement as ProcessedComputable<DecimalSource>))
                                 ? unref(averageLoopValues[loop.id])
                                 : unref((loop as GenericPersistentLoop<Decimal>).value))}
-                        </span>x
+                        </span>×
                     </>
                 ))
             },
@@ -260,7 +260,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                             {format(Decimal.gte(unref(acceleronLayer.timeMult), unref(loop.triggerRequirement as ProcessedComputable<DecimalSource>))
                                 ? unref(averageLoopValues[loop.id])
                                 : unref((loop as GenericPersistentLoop<Decimal>).value))}
-                        </span>x
+                        </span>×
                     </>
                 ))
             },

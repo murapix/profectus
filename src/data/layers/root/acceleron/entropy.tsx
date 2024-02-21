@@ -126,7 +126,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             display: {
                 title: 'Entropic Development',
                 description: 'Decrease Entropic Loop construction cost based on purchased Entropic Enhancements',
-                effect: effect => `${formatSmall(effect)}x`
+                effect: effect => `${formatSmall(effect)}×`
             },
             effect: () => unref(fibonacciEnhancements).pow_base(0.7)
         }));
@@ -311,7 +311,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         processComputable(enhancement as U, "visibility");
         processComputable(enhancement as U, "effect");
     
-        const displayFunc = enhancement.display.effect ?? ((effect: T) => `${format(effect as DecimalSource)}x`);
+        const displayFunc = enhancement.display.effect ?? ((effect: T) => `${format(effect as DecimalSource)}×`);
     
         const upgrade = createUpgrade<EffectUpgradeOptions<T>>(() => ({
             requirements: (() => {

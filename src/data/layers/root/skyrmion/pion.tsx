@@ -246,8 +246,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
             shouldAutobuy: noPersist(skyrmion.upgrades.nu.bought),
             display: {
                 name: "ν",
-                description: <>Increase research speed by {formatSmall(0.00025)}x per order of magnitude of Pions</>,
-                effect: effect => `${formatSmall(effect)}x`
+                description: <>Increase research speed by {formatSmall(0.00025)}× per order of magnitude of Pions</>,
+                effect: effect => `${formatSmall(effect)}×`
             },
             effect: amount => Decimal.clampMin(unref(pions), 0).plus(1).log10().times(amount).times(0.00025).plus(1)
         });
@@ -260,7 +260,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             display: {
                 name: "ξ",
                 description: <>Decrease the Entangled String Acceleron requirement by 5%</>,
-                effect: effect => `${formatSmall(effect)}x`
+                effect: effect => `${formatSmall(effect)}×`
             },
             effect: amount => Decimal.pow(0.95, amount)
         });
