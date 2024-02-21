@@ -1,7 +1,7 @@
 import { CoercableComponent, OptionsFunc, Replace, jsx } from "features/feature";
 import { createResource } from "features/resources/resource";
 import { createLayer, BaseLayer } from "game/layers";
-import { createAdditiveModifier, createMultiplicativeModifier, createSequentialModifier } from "game/modifiers";
+import { createMultiplicativeModifier, createSequentialModifier } from "game/modifiers";
 import Decimal, { DecimalSource } from "lib/break_eternity";
 import loops from "./loops";
 import acceleron from "./acceleron";
@@ -11,16 +11,20 @@ import { Computable, GetComputableType, GetComputableTypeWithDefault, ProcessedC
 import { effectDecorator } from "features/decorators/common";
 import { EffectUpgrade, EffectUpgradeOptions, GenericUpgrade, createUpgrade, getUpgradeEffect } from "features/upgrades/upgrade";
 import { format, formatSmall, formatWhole } from "util/break_eternity";
-import { createBooleanRequirement, createCostRequirement } from "game/requirements";
-import { noPersist } from "game/persistence";
+import { Requirement, createBooleanRequirement, createCostRequirement } from "game/requirements";
+import { Persistent, noPersist, persistent } from "game/persistence";
 import { addTooltip } from "features/tooltips/tooltip";
 import { coerceComponent, render } from "util/vue";
 import fome, { FomeTypes } from "../fome/fome";
 import { createClickable } from "features/clickables/clickable";
 import Spacer from "components/layout/Spacer.vue";
-import Enhancements from "../acceleron/Enhancements.vue";
+import Enhancements from "./Enhancements.vue";
 import { Sides } from "../timecube/timesquares";
 import { createModifierModal } from "util/util";
+import Row from "components/layout/Row.vue";
+import Presets from "./Presets.vue";
+import Column from "components/layout/Column.vue";
+import EnhancementTotals from "./EnhancementTotals.vue";
 
 const id = "entropy";
 const layer = createLayer(id, function (this: BaseLayer) {
@@ -142,7 +146,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
             display: {
                 title: 'Entropic Entrenchment',
                 description: 'You may select an additional second row Entropic Enhancement'
-            }
+            },
+            ignoreRowLimit: true
         }));
         const extension = createEnhancement<Decimal>(() => ({
             row: 3,
@@ -229,6 +234,14 @@ const layer = createLayer(id, function (this: BaseLayer) {
         };
     })();
 
+    type Preset = {
+        id: number;
+        name: string;
+        purchased: string[];
+    };
+    const nextPresetID = computed(() => unref(presets).reduce((id, preset) => preset.id > id ? preset.id : id, -1) + 1);
+    const presets: Persistent<Preset[]> = persistent([]);
+
     const respec = createClickable(() => ({
         canClick() { return unref(totalEnhancements) > 0 },
         onClick() {
@@ -258,6 +271,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         enhancements,
         enhancementCounts,
         enhancementLimits,
+        presets,
         display: jsx(() => (
             <>
                 <Spacer />
@@ -267,10 +281,24 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 <Spacer />
                 {render(respec)}
                 <Spacer />
-                <Enhancements rows={(Object.keys(enhancementRows) as unknown as EnhancementRow[]).reduce((result, key) => {
-                    result[key] = enhancementRows[key].map(upgrade => enhancements[upgrade]);
-                    return result;
-                }, {} as Record<EnhancementRow, GenericUpgrade[]>)}/>
+                <Row>
+                    <Presets
+                        enhancements={(Object.keys(enhancementRows) as unknown as EnhancementRow[]).reduce((result, key) => {
+                            result[key] = enhancementRows[key].map(upgrade => enhancements[upgrade]);
+                            return result;
+                        }, {} as Record<EnhancementRow, GenericUpgrade[]>)}
+                        presets={unref(presets)}
+                        nextID={nextPresetID}
+                    />
+                    <Spacer width="17px" />
+                    <Column><Enhancements rows={(Object.keys(enhancementRows) as unknown as EnhancementRow[]).reduce((result, key) => {
+                        result[key] = enhancementRows[key].map(upgrade => enhancements[upgrade]);
+                        return result;
+                    }, {} as Record<EnhancementRow, GenericUpgrade[]>)}/>
+                    </Column>
+                    <Spacer width="17px" />
+                    <EnhancementTotals />
+                </Row>
             </>
         ))
     }
@@ -286,13 +314,18 @@ const layer = createLayer(id, function (this: BaseLayer) {
         const displayFunc = enhancement.display.effect ?? ((effect: T) => `${format(effect as DecimalSource)}x`);
     
         const upgrade = createUpgrade<EffectUpgradeOptions<T>>(() => ({
-            requirements: [
-                createCostRequirement(() => ({
-                    cost: enhancementCost,
-                    resource: noPersist(entropy)
-                })),
-                createBooleanRequirement(() => unref(enhancementCounts[enhancement.row]) < unref(enhancementLimits[enhancement.row]))
-            ],
+            requirements: (() => {
+                const requirements = [
+                    createCostRequirement(() => ({
+                        cost: enhancementCost,
+                        resource: noPersist(entropy)
+                    }))
+                ] as Requirement[];
+                if (enhancement.ignoreRowLimit !== true) {
+                    requirements.push(createBooleanRequirement(() => unref(enhancementCounts[enhancement.row]) < unref(enhancementLimits[enhancement.row])));
+                }
+                return requirements;
+            })(),
             visibility() { return unref(this.bought) || unref(enhancement.visibility as ProcessedComputable<boolean> ?? true); },
             display: enhancement.display.title,
             effect: enhancement.effect!
@@ -327,7 +360,8 @@ export interface EnhancementOptions<T> {
         description: CoercableComponent;
         effect?: (effect: T) => CoercableComponent;
     };
-    effect?: Computable<T>
+    effect?: Computable<T>,
+    ignoreRowLimit?: boolean;
 }
 
 export type Enhancement<T extends EnhancementOptions<U>, U = unknown> = Replace<
