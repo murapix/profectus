@@ -14,12 +14,12 @@
 </template>
 
 <script setup lang="ts">
+import Row from 'components/layout/Row.vue';
+import { isVisible } from 'features/feature';
 import { GenericUpgrade } from 'features/upgrades/upgrade';
 import { render } from 'util/vue';
 import { unref } from 'vue';
 import entropy, { EnhancementRow } from './entropy';
-import Row from 'components/layout/Row.vue';
-import { isVisible } from 'features/feature';
 
 const props = defineProps<{
     rows: Record<EnhancementRow, GenericUpgrade[]>;

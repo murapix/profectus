@@ -10,8 +10,8 @@
 </template>
 
 <script setup lang="tsx">
-import { Timesquare } from './timesquare';
 import { render } from 'util/vue';
+import { Timesquare } from './timesquare';
 
 defineProps<{
     square: Timesquare["square"];

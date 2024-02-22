@@ -5,12 +5,12 @@
 </template>
 
 <script setup lang="tsx" generic="T">
+import { jsx } from "features/feature";
+import Tooltip from "features/tooltips/Tooltip.vue";
+import { Direction } from "util/common";
 import { joinJSX, renderJSX } from "util/vue";
 import { computed, unref } from "vue";
 import { GenericLoop } from "./loop";
-import { Direction } from "util/common";
-import { jsx } from "features/feature";
-import Tooltip from "features/tooltips/Tooltip.vue";
 
 const props = defineProps<{
     // @ts-ignore

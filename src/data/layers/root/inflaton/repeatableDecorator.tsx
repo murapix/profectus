@@ -1,14 +1,14 @@
+import { Decorator, EffectFeatureOptions } from "features/decorators/common";
 import { Component, GenericComponent, Replace, Visibility, jsx, setDefault } from "features/feature";
 import { Persistent, persistent } from "game/persistence";
 import Decimal, { DecimalSource } from "lib/break_eternity";
-import { Computable, GetComputableType, GetComputableTypeWithDefault, ProcessedComputable, processComputable } from "util/computed";
-import { Ref, computed, isRef, unref } from "vue";
-import { Decorator, EffectFeatureOptions } from "features/decorators/common";
-import RepeatableResearchComponent from "../inflaton/RepeatableResearch.vue";
-import { coerceComponent, isCoercableComponent } from "util/vue";
-import { BaseResearch, ResearchOptions } from "./research";
-import { isFunction } from "util/common";
 import { format } from "util/break_eternity";
+import { isFunction } from "util/common";
+import { Computable, GetComputableType, GetComputableTypeWithDefault, ProcessedComputable, processComputable } from "util/computed";
+import { coerceComponent, isCoercableComponent } from "util/vue";
+import { Ref, computed, isRef, unref } from "vue";
+import RepeatableResearchComponent from "../inflaton/RepeatableResearch.vue";
+import { BaseResearch, ResearchOptions } from "./research";
 
 export interface RepeatableResearchOptions<T = unknown> extends ResearchOptions, EffectFeatureOptions<T> {
     limit?: Computable<DecimalSource>;

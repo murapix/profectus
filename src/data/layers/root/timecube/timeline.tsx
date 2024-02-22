@@ -1,9 +1,9 @@
 import { Component, GatherProps, GenericComponent, OptionsObject, getUniqueID } from "features/feature";
-import { Sides } from "./timesquares";
 import { Persistent, persistent } from "game/persistence";
-import { createLazyProxy } from "util/proxies";
 import { DecimalSource } from "lib/break_eternity";
-import TimelineComponent from "./TimelineComponent.vue"
+import { createLazyProxy } from "util/proxies";
+import TimelineComponent from "./TimelineComponent.vue";
+import { Sides } from "./timesquares";
 
 export const TimelineType = Symbol("Timeline");
 

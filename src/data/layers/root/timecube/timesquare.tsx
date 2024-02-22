@@ -1,19 +1,19 @@
+import { GenericClickable, createClickable } from "features/clickables/clickable";
 import { EffectFeatureOptions, GenericEffectFeature, effectDecorator } from "features/decorators/common";
-import { Computable, ProcessedComputable, convertComputable } from "util/computed";
 import { CoercableComponent, Component, GatherProps, GenericComponent, OptionsFunc, jsx } from "features/feature";
-import Decimal, { DecimalSource } from "lib/break_eternity";
-import { createLazyProxy } from "util/proxies";
-import { createClickable, GenericClickable } from "features/clickables/clickable"
 import { GenericRepeatable, RepeatableOptions, createRepeatable } from "features/repeatable";
-import { computed, unref } from "vue";
-import { CostRequirement, createBooleanRequirement, createCostRequirement, requirementsMet, payRequirements } from "game/requirements";
-import { Resource } from "features/resources/resource";
-import { format, formatWhole } from "util/break_eternity";
-import TimesquareComponent from "./TimesquareComponent.vue";
-import { Sides } from "./timesquares";
-import timelines from "./timelines";
-import timecube from "./timecube";
 import NamedResource from "features/resources/NamedResource.vue";
+import { Resource } from "features/resources/resource";
+import { CostRequirement, createBooleanRequirement, createCostRequirement, payRequirements, requirementsMet } from "game/requirements";
+import Decimal, { DecimalSource } from "lib/break_eternity";
+import { format } from "util/break_eternity";
+import { Computable, ProcessedComputable, convertComputable } from "util/computed";
+import { createLazyProxy } from "util/proxies";
+import { computed, unref } from "vue";
+import TimesquareComponent from "./TimesquareComponent.vue";
+import timecube from "./timecube";
+import timelines from "./timelines";
+import { Sides } from "./timesquares";
 
 export const TimesquareType = Symbol("Timesquare");
 

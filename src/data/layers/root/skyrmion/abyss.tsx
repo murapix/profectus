@@ -1,20 +1,20 @@
 import { createChallenge } from "features/challenges/challenge";
 import { jsx } from "features/feature";
 import { Resource, createResource } from "features/resources/resource";
-import { createLayer, BaseLayer, layers } from "game/layers";
-import { createCostRequirement } from "game/requirements";
-import { computed, unref, watch } from "vue";
-import skyrmion from "./skyrmion";
-import Decimal, { DecimalSource } from "lib/break_eternity";
-import pion from "./pion";
-import spinor from "./spinor"
-import { clonePersistentData, swapPersistentData } from "util/util";
-import fome from "../fome/fome";
-import acceleron from "../acceleron/acceleron";
-import timecube from "../timecube/timecube";
-import inflaton from "../inflaton/inflaton";
+import { BaseLayer, createLayer, layers } from "game/layers";
 import { persistent } from "game/persistence";
+import { createCostRequirement } from "game/requirements";
+import Decimal, { DecimalSource } from "lib/break_eternity";
+import { clonePersistentData, swapPersistentData } from "util/util";
+import { computed, unref, watch } from "vue";
+import acceleron from "../acceleron/acceleron";
+import fome from "../fome/fome";
+import inflaton from "../inflaton/inflaton";
+import timecube from "../timecube/timecube";
 import AbyssChallenge from "./AbyssChallenge.vue";
+import pion from "./pion";
+import skyrmion from "./skyrmion";
+import spinor from "./spinor";
 
 const id = "abyss";
 const layer = createLayer(id, function (this: BaseLayer) {

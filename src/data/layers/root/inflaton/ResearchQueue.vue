@@ -15,13 +15,13 @@
 </template>
 
 <script setup lang="ts">
-import { computed, isRef, unref } from 'vue';
-import ResearchQueueSlot from './ResearchQueueSlot.vue';
 import Column from 'components/layout/Column.vue';
-import core from './coreResearch';
+import { isFunction } from 'util/common';
 import { ProcessedComputable } from 'util/computed';
 import { isCoercableComponent } from 'util/vue';
-import { isFunction } from 'util/common';
+import { computed, isRef, unref } from 'vue';
+import ResearchQueueSlot from './ResearchQueueSlot.vue';
+import core from './coreResearch';
 
 const props = withDefaults(defineProps<{
     queue: ProcessedComputable<string[]>;

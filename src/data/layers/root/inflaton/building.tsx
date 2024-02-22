@@ -3,17 +3,17 @@ import { EffectFeatureOptions, GenericEffectFeature, effectDecorator } from "fea
 import { CoercableComponent, OptionsFunc, Visibility, jsx } from "features/feature";
 import { BaseRepeatable, GenericRepeatable, RepeatableOptions, createRepeatable } from "features/repeatable";
 import { Resource } from "features/resources/resource";
+import { noPersist } from "game/persistence";
 import { createBooleanRequirement, createCostRequirement, displayRequirements } from "game/requirements";
 import Decimal, { DecimalSource } from "lib/break_eternity";
+import { format } from "util/break_eternity";
 import { Computable, ProcessedComputable } from "util/computed";
+import { coerceComponent } from "util/vue";
 import { computed, unref } from "vue";
 import { getResearchEffect } from "../inflaton/research";
+import skyrmion from "../skyrmion/skyrmion";
 import buildings from "./buildings";
 import core from "./coreResearch";
-import { coerceComponent } from "util/vue";
-import { format } from "util/break_eternity";
-import { noPersist } from "game/persistence";
-import skyrmion from "../skyrmion/skyrmion";
 
 export interface BuildingData<T = DecimalSource> {
     effect: (amount: DecimalSource) => T;

@@ -1,28 +1,28 @@
+import { root } from "data/projEntry";
 import { effectDecorator } from "features/decorators/common";
 import { jsx } from "features/feature";
+import { createHotkey } from "features/hotkey";
 import MainDisplay from "features/resources/MainDisplay.vue";
 import { createResource, trackBest } from "features/resources/resource";
-import { createUpgrade, EffectUpgrade, EffectUpgradeOptions } from "features/upgrades/upgrade";
+import { createTab } from "features/tabs/tab";
+import { createTabFamily } from "features/tabs/tabFamily";
+import { EffectUpgrade, EffectUpgradeOptions, createUpgrade } from "features/upgrades/upgrade";
 import { BaseLayer, createLayer } from "game/layers";
+import { createMultiplicativeModifier, createSequentialModifier } from "game/modifiers";
+import { noPersist } from "game/persistence";
 import { createCostRequirement } from "game/requirements";
 import Decimal, { DecimalSource } from "lib/break_eternity";
 import { format, formatWhole } from "util/break_eternity";
+import { createModifierModal } from "util/util";
+import { render } from "util/vue";
 import { ComputedRef, Ref, computed, unref } from "vue";
 import acceleron from "../acceleron/acceleron";
-import TimecubeUpgrades from "./TimecubeUpgrades.vue";
-import { noPersist } from "game/persistence"
+import entropy from "../acceleron/entropy";
 import entangled from "../entangled/entangled";
 import fome, { FomeTypes } from "../fome/fome";
-import timesquares, { Sides } from "./timesquares";
+import TimecubeUpgrades from "./TimecubeUpgrades.vue";
 import timelines from "./timelines";
-import { render } from "util/vue";
-import { createTabFamily } from "features/tabs/tabFamily";
-import { createTab } from "features/tabs/tab";
-import { createModifierModal } from "util/util";
-import { createMultiplicativeModifier, createSequentialModifier } from "game/modifiers";
-import entropy from "../acceleron/entropy";
-import { createHotkey } from "features/hotkey";
-import { root } from "data/projEntry";
+import timesquares, { Sides } from "./timesquares";
 
 const id = "timecube";
 const layer = createLayer(id, function (this: BaseLayer) {

@@ -1,16 +1,16 @@
+import { GenericDecorator, GenericEffectFeature } from "features/decorators/common";
 import { CoercableComponent, Component, GatherProps, GenericComponent, OptionsFunc, Replace, Visibility, getUniqueID } from "features/feature";
+import { Resource } from "features/resources/resource";
+import Formula, { calculateCost } from "game/formulas/formulas";
+import { FormulaSource } from "game/formulas/types";
 import { Persistent, persistent } from "game/persistence";
 import { Requirements, requirementsMet } from "game/requirements";
 import Decimal, { DecimalSource } from "lib/break_eternity";
 import { Computable, GetComputableType, GetComputableTypeWithDefault, ProcessedComputable, processComputable } from "util/computed";
-import { Ref, computed, unref } from "vue";
-import { GenericDecorator, GenericEffectFeature } from "features/decorators/common";
 import { createLazyProxy } from "util/proxies";
+import { Ref, computed, unref } from "vue";
 import ResearchComponent from "../inflaton/Research.vue";
 import { GenericRepeatableResearch } from "./repeatableDecorator";
-import Formula, { calculateCost } from "game/formulas/formulas";
-import { FormulaSource } from "game/formulas/types";
-import { Resource } from "features/resources/resource";
 
 export const ResearchType = Symbol("Research");
 

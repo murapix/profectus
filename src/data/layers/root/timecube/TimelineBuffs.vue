@@ -18,9 +18,9 @@
 </template>
 
 <script setup lang="tsx">
-import { unref, ComputedRef } from 'vue';
-import { Sides } from './timesquares';
 import Decimal, { format } from 'util/break_eternity';
+import { ComputedRef, unref } from 'vue';
+import { Sides } from './timesquares';
 
 defineProps<{
     scores: Record<Sides, ComputedRef<Decimal>>;

@@ -14,12 +14,12 @@
 
 <script setup lang="ts">
 import Decimal, { format, formatWhole } from "util/break_eternity";
-import { unref } from "vue";
-import fome, { FomeDims, FomeTypes } from "./fome";
-import acceleron from "../acceleron/acceleron";
-import inflaton from "../inflaton/inflaton";
-import entangled from "../entangled/entangled";
 import { render } from "util/vue";
+import { unref } from "vue";
+import acceleron from "../acceleron/acceleron";
+import entangled from "../entangled/entangled";
+import inflaton from "../inflaton/inflaton";
+import fome, { FomeDims, FomeTypes } from "./fome";
 
 function getFomeDisplay(fomeType: FomeTypes) {
     return `You have ${format(unref(fome[fomeType].amount))} ${

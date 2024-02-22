@@ -19,9 +19,9 @@
 </template>
 
 <script setup lang="ts">
+import { StyleValue, Visibility } from "features/feature";
 import { render } from "util/vue";
 import { unref } from "vue";
-import { StyleValue, Visibility } from "features/feature";
 import skyrmion from "./skyrmion";
 
 const upgrades = skyrmion.upgrades;

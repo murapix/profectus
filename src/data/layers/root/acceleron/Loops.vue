@@ -21,13 +21,13 @@
 
 <script setup lang="ts" generic="T">
 import { GenericClickable } from "features/clickables/clickable";
-import { isVisible, isHidden } from "features/feature";
+import { isHidden, isVisible } from "features/feature";
 import Decimal from "lib/break_eternity";
 import { render } from "util/vue";
-import { computed, ComputedRef, unref } from "vue";
+import { ComputedRef, computed, unref } from "vue";
+import Loop from "./Loop.vue";
 import acceleron from "./acceleron";
 import { GenericLoop } from "./loop";
-import Loop from "./Loop.vue";
 
 const props = defineProps<{
     radius: number;

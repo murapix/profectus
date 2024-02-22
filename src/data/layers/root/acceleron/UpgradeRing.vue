@@ -48,10 +48,10 @@
 </template>
 
 <script lang="ts">
-import { render, processedPropType, unwrapRef } from "util/vue";
-import { computed, ComputedRef, DefineComponent, defineComponent, toRefs, unref } from "vue";
-import { GenericUpgrade } from "features/upgrades/upgrade";
 import { isVisible } from "features/feature";
+import { GenericUpgrade } from "features/upgrades/upgrade";
+import { processedPropType, render, unwrapRef } from "util/vue";
+import { ComputedRef, DefineComponent, computed, defineComponent, toRefs, unref } from "vue";
 
 export default defineComponent({
     props: {

@@ -24,15 +24,14 @@
 </template>
 
 <script setup lang="tsx">
+import Node from 'components/Node.vue';
 import { isHidden, isVisible, jsx } from 'features/feature';
+import { displayRequirements } from 'game/requirements';
 import Decimal from 'lib/break_eternity';
 import { format } from 'util/break_eternity';
 import { coerceComponent, isCoercableComponent } from 'util/vue';
-import { DefineComponent, computed } from 'vue';
-import { unref, shallowRef, watchEffect } from 'vue';
-import { GenericResearch } from './research'
-import Node from 'components/Node.vue';
-import { displayRequirements } from 'game/requirements';
+import { DefineComponent, computed, shallowRef, unref, watchEffect } from 'vue';
+import { GenericResearch } from './research';
 
 const props = defineProps<{
     visibility: GenericResearch["visibility"];

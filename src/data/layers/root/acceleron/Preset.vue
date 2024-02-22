@@ -66,15 +66,15 @@
 </template>
 
 <script setup lang="tsx">
-import { GenericUpgrade } from 'features/upgrades/upgrade';
-import { Direction } from 'util/common';
-import Row from 'components/layout/Row.vue';
-import Column from 'components/layout/Column.vue';
 import DangerButton from 'components/fields/DangerButton.vue';
-import { ref, unref, watch } from 'vue';
 import FeedbackButton from 'components/fields/FeedbackButton.vue';
 import Text from 'components/fields/Text.vue';
+import Column from 'components/layout/Column.vue';
+import Row from 'components/layout/Row.vue';
 import Tooltip from 'features/tooltips/Tooltip.vue';
+import { GenericUpgrade } from 'features/upgrades/upgrade';
+import { Direction } from 'util/common';
+import { ref, unref, watch } from 'vue';
 
 type PresetType = {
     name: string;

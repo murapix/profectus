@@ -16,10 +16,10 @@
 </template>
 
 <script setup lang="ts">
+import { StyleValue, Visibility } from "features/feature";
 import { render } from "util/vue";
 import { unref } from "vue";
-import { StyleValue, Visibility } from "features/feature";
-import spinor from "./spinor"
+import spinor from "./spinor";
 
 const upgrades = spinor.upgrades;
 const positions: Record<keyof typeof upgrades, { row: number; col: number }> = {

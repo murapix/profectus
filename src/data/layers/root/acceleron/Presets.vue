@@ -39,12 +39,12 @@
 </template>
 
 <script setup lang="tsx">
-import { GenericUpgrade } from 'features/upgrades/upgrade';
 import Text from 'components/fields/Text.vue';
-import { ComputedRef, ref, unref } from 'vue';
 import Row from 'components/layout/Row.vue';
-import Preset from '../acceleron/Preset.vue';
 import Spacer from 'components/layout/Spacer.vue';
+import { GenericUpgrade } from 'features/upgrades/upgrade';
+import { ComputedRef, ref, unref } from 'vue';
+import Preset from '../acceleron/Preset.vue';
 import entropy from './entropy';
 
 type PresetType = {

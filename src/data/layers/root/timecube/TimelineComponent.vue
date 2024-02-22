@@ -17,9 +17,9 @@
 
 <script setup lang="tsx">
 import Decimal, { format } from 'util/break_eternity';
-import { GenericTimeline } from './timeline';
 import { computed, unref } from 'vue';
-import timelines from './timelines'
+import { GenericTimeline } from './timeline';
+import timelines from './timelines';
 
 const props = defineProps<{
     id: GenericTimeline["id"];

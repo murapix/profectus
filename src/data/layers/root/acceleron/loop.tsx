@@ -1,11 +1,11 @@
-import { Visibility, CoercableComponent, GatherProps, Replace, OptionsFunc, getUniqueID, Component } from "features/feature";
+import { GenericDecorator } from "features/decorators/common";
+import { CoercableComponent, Component, GatherProps, OptionsFunc, Replace, Visibility, getUniqueID } from "features/feature";
 import { Persistent, persistent } from "game/persistence";
 import Decimal, { DecimalSource } from "lib/break_eternity";
-import { Computable, GetComputableTypeWithDefault, GetComputableType, processComputable, ProcessedComputable } from "util/computed";
+import { Computable, GetComputableType, GetComputableTypeWithDefault, ProcessedComputable, processComputable } from "util/computed";
 import { createLazyProxy } from "util/proxies";
 import { unref, watch } from "vue";
 import Loop from "./Loop.vue";
-import { GenericDecorator } from "features/decorators/common";
 
 export const LoopType = Symbol("Loop");
 

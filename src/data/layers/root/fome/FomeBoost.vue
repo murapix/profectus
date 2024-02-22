@@ -28,10 +28,10 @@
 
 <script setup lang="ts">
 import Spacer from "components/layout/Spacer.vue";
-import { unref } from "vue";
-import fome, { FomeTypes } from "./fome";
 import { CoercableComponent } from "features/feature";
 import Decimal, { format, formatWhole } from "util/break_eternity";
+import { unref } from "vue";
+import fome, { FomeTypes } from "./fome";
 
 const boosts = Object.fromEntries(Object.values(FomeTypes).map(fomeType => 
     [fomeType, Object.fromEntries(

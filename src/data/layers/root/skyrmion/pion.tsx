@@ -1,27 +1,26 @@
-import { CoercableComponent, Visibility, jsx } from "features/feature";
-import { createResource } from "features/resources/resource";
-import { createLayer, BaseLayer } from "game/layers";
-import { createMultiplicativeModifier, createSequentialModifier } from "game/modifiers";
-import Decimal, { DecimalSource } from "lib/break_eternity";
-import skyrmion from "./skyrmion";
-import acceleron from "../acceleron/acceleron";
-import { ComputedRef, computed, unref } from "vue";
-import spinor from "./spinor";
-import { Computable } from "util/computed";
-import { SkyrmionRepeatable, createSkyrmionRepeatable } from "./repeatable"
-import { createCostRequirement, requirementsMet } from "game/requirements";
-import { noPersist } from "game/persistence";
-import fome, { FomeTypes } from "../fome/fome";
-import Resource from "features/resources/Resource.vue";
-import { format, formatSmall } from "util/break_eternity";
 import Spacer from "components/layout/Spacer.vue";
-import Pion from "./Pion.vue";
-import abyss from "./abyss";
-import { getFomeBoost } from "../fome/boost";
-import { displayResource } from "features/resources/resource";
-import inflaton from "../inflaton/inflaton";
+import { CoercableComponent, Visibility, jsx } from "features/feature";
+import Resource from "features/resources/Resource.vue";
+import { createResource, displayResource } from "features/resources/resource";
+import { BaseLayer, createLayer } from "game/layers";
+import { createMultiplicativeModifier, createSequentialModifier } from "game/modifiers";
+import { noPersist } from "game/persistence";
+import { createCostRequirement, requirementsMet } from "game/requirements";
+import Decimal, { DecimalSource } from "lib/break_eternity";
+import { format, formatSmall } from "util/break_eternity";
+import { Computable } from "util/computed";
 import { createModifierModal } from "util/util";
 import { render } from "util/vue";
+import { ComputedRef, computed, unref } from "vue";
+import acceleron from "../acceleron/acceleron";
+import { getFomeBoost } from "../fome/boost";
+import fome, { FomeTypes } from "../fome/fome";
+import inflaton from "../inflaton/inflaton";
+import Pion from "./Pion.vue";
+import abyss from "./abyss";
+import { SkyrmionRepeatable, createSkyrmionRepeatable } from "./repeatable";
+import skyrmion from "./skyrmion";
+import spinor from "./spinor";
 
 const id = "pion";
 const layer = createLayer(id, function (this: BaseLayer) {

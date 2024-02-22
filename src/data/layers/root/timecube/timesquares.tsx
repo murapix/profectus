@@ -1,19 +1,18 @@
+import Text from "components/fields/Text.vue";
+import Row from "components/layout/Row.vue";
+import Spacer from "components/layout/Spacer.vue";
 import { createClickable } from "features/clickables/clickable";
 import { jsx } from "features/feature";
+import { getUpgradeEffect } from "features/upgrades/upgrade";
 import { BaseLayer, createLayer } from "game/layers";
-import { persistent } from "game/persistence";
+import { noPersist, persistent } from "game/persistence";
 import Decimal, { DecimalSource } from "lib/break_eternity";
 import { format, formatWhole } from "util/break_eternity";
-import { computed, ref, unref, watch } from "vue";
-import timecube from "./timecube";
-import { createTimesquare, Timesquare } from "./timesquare";
-import Row from "components/layout/Row.vue";
 import { render, renderRow } from "util/vue";
-import Spacer from "components/layout/Spacer.vue";
-import Text from "components/fields/Text.vue";
-import { noPersist } from "game/persistence"
-import { getUpgradeEffect } from "features/upgrades/upgrade";
+import { computed, ref, unref, watch } from "vue";
 import acceleron from "../acceleron/acceleron";
+import timecube from "./timecube";
+import { Timesquare, createTimesquare } from "./timesquare";
 
 const id = "timesquare";
 const layer = createLayer(id, function (this: BaseLayer) {

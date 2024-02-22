@@ -18,7 +18,7 @@ import { CoercableComponent } from 'features/feature';
 import Decimal from 'lib/break_eternity';
 import { format } from 'util/break_eternity';
 import { coerceComponent } from 'util/vue';
-import { unref, computed } from 'vue';
+import { computed, unref } from 'vue';
 import { removeResearchFromQueue } from './coreResearch';
 import { GenericResearch } from './research';
 

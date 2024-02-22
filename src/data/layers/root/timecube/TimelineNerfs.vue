@@ -17,10 +17,10 @@
 </template>
 
 <script setup lang="tsx">
-import { unref, ComputedRef } from 'vue';
-import { Sides } from './timesquares';
 import { DecimalSource } from 'util/bignum';
 import { formatWhole } from 'util/break_eternity';
+import { ComputedRef, unref } from 'vue';
+import { Sides } from './timesquares';
 
 defineProps<{
     activeNerfs: Record<Sides, ComputedRef<DecimalSource>>;

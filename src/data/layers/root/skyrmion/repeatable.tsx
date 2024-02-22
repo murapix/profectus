@@ -1,9 +1,7 @@
 import { BonusAmountFeatureOptions, GenericBonusAmountFeature, bonusAmountDecorator } from "features/decorators/bonusDecorator";
 import { EffectFeatureOptions, GenericEffectFeature, effectDecorator } from "features/decorators/common";
 import { CoercableComponent, Visibility, jsx } from "features/feature";
-import { RepeatableOptions } from "features/repeatable";
-import { createRepeatable } from "features/repeatable";
-import { GenericRepeatable } from "features/repeatable";
+import { GenericRepeatable, RepeatableOptions, createRepeatable } from "features/repeatable";
 import { addTooltip } from "features/tooltips/tooltip";
 import { Requirements, displayRequirements } from "game/requirements";
 import Decimal, { DecimalSource } from "lib/break_eternity";

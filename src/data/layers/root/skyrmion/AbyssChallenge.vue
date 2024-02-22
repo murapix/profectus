@@ -48,20 +48,18 @@
 </template>
 
 <script setup lang="tsx">
-import { GenericChallenge } from 'features/challenges/challenge';
-import { isVisible, isHidden } from 'features/feature';
-import { getHighNotifyStyle, getNotifyStyle } from 'game/notifications';
-import { unwrapRef, coerceComponent } from 'util/vue';
-import { computed, ref, shallowRef, unref, watchEffect } from 'vue';
-import type { Component } from 'vue';
-import type { CostRequirement } from 'game/requirements';
 import Modal from 'components/Modal.vue';
 import Node from 'components/Node.vue';
-import { jsx } from 'features/feature';
-import { displayResource } from 'features/resources/resource';
-import { ProcessedComputable } from 'util/computed';
-import { DecimalSource } from 'util/bignum';
+import { GenericChallenge } from 'features/challenges/challenge';
+import { isHidden, isVisible, jsx } from 'features/feature';
 import NamedResource from 'features/resources/NamedResource.vue';
+import { getHighNotifyStyle, getNotifyStyle } from 'game/notifications';
+import type { CostRequirement } from 'game/requirements';
+import { DecimalSource } from 'util/bignum';
+import { ProcessedComputable } from 'util/computed';
+import { coerceComponent, unwrapRef } from 'util/vue';
+import type { Component } from 'vue';
+import { computed, ref, shallowRef, unref, watchEffect } from 'vue';
 
 const props = defineProps<{
     challenge: GenericChallenge;

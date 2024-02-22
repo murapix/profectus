@@ -1,32 +1,31 @@
-import { CoercableComponent, OptionsFunc, Visibility, jsx } from "features/feature";
-import { createLayer, BaseLayer } from "game/layers";
-import { BaseResearch, EffectResearch, GenericResearch, createResearch as actualCreateResearch, getResearchEffect } from "./research";
-import { BaseRepeatableResearch, GenericRepeatableResearch, RepeatableResearchOptions, repeatableDecorator } from "./repeatableDecorator"
-import { CostRequirement, createCostRequirement } from "game/requirements";
-import { createResource } from "features/resources/resource";
-import { Computable, ProcessedComputable } from "util/computed";
-import Decimal, { DecimalSource } from "lib/break_eternity";
+import Toggle from "components/fields/Toggle.vue";
+import Column from "components/layout/Column.vue";
+import Spacer from "components/layout/Spacer.vue";
 import { EffectFeatureOptions, GenericEffectFeature, effectDecorator } from "features/decorators/common";
-import { buildingSize as currentBuildingSize } from "./building";
-import buildings from "./buildings";
-import { ComputedRef, computed, unref } from "vue";
+import { CoercableComponent, OptionsFunc, Visibility, jsx } from "features/feature";
+import { createResource } from "features/resources/resource";
+import { BaseLayer, createLayer } from "game/layers";
+import { createAdditiveModifier, createMultiplicativeModifier, createSequentialModifier } from "game/modifiers";
+import { noPersist, persistent } from "game/persistence";
+import { CostRequirement, createCostRequirement } from "game/requirements";
+import Decimal, { DecimalSource } from "lib/break_eternity";
 import { format, formatWhole } from "util/break_eternity";
+import { Computable, ProcessedComputable } from "util/computed";
+import { createModifierModal } from "util/util";
+import { render } from "util/vue";
+import { ComputedRef, computed, unref } from "vue";
 import acceleron from "../acceleron/acceleron";
 import entangled from "../entangled/entangled";
-import inflaton, { id as inflatonId } from "./inflaton";
-import ResearchTree from "./ResearchTree.vue";
-import { noPersist, persistent } from "game/persistence";
-import Toggle from "components/fields/Toggle.vue";
-import Spacer from "components/layout/Spacer.vue";
-import ResearchQueue from "./ResearchQueue.vue";
-import { render } from "util/vue";
-import Column from "components/layout/Column.vue";
+import skyrmion from "../skyrmion/skyrmion";
 import timecube from "../timecube/timecube";
 import { Sides } from "../timecube/timesquares";
-import skyrmion from "../skyrmion/skyrmion";
-import { createAdditiveModifier, createMultiplicativeModifier, createSequentialModifier } from "game/modifiers";
-import { formatRoman } from "./repeatableDecorator"
-import { createModifierModal } from "util/util";
+import ResearchQueue from "./ResearchQueue.vue";
+import ResearchTree from "./ResearchTree.vue";
+import { buildingSize as currentBuildingSize } from "./building";
+import buildings from "./buildings";
+import inflaton, { id as inflatonId } from "./inflaton";
+import { BaseRepeatableResearch, GenericRepeatableResearch, RepeatableResearchOptions, formatRoman, repeatableDecorator } from "./repeatableDecorator";
+import { BaseResearch, EffectResearch, GenericResearch, createResearch as actualCreateResearch, getResearchEffect } from "./research";
 
 const id = "coreResearch";
 const layer = createLayer(id, function (this: BaseLayer) {

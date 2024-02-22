@@ -24,15 +24,14 @@
 </template>
 
 <script setup lang="tsx" generic="T">
+import Node from 'components/Node.vue';
 import { isHidden, isVisible, jsx } from 'features/feature';
+import { displayRequirements } from 'game/requirements';
 import Decimal from 'lib/break_eternity';
 import { format } from 'util/break_eternity';
 import { coerceComponent, isCoercableComponent } from 'util/vue';
-import { computed, DefineComponent } from 'vue';
-import { unref, shallowRef, watchEffect } from 'vue';
-import Node from 'components/Node.vue';
+import { DefineComponent, computed, shallowRef, unref, watchEffect } from 'vue';
 import { GenericRepeatableResearch } from './repeatableDecorator';
-import { displayRequirements } from 'game/requirements';
 
 const props = defineProps<{
     visibility: GenericRepeatableResearch["visibility"];
