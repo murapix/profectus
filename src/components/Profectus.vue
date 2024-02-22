@@ -107,7 +107,7 @@
 
 <style scoped>
 svg {
-    background: #2e3440;
+    background: var(--svg-background;
 }
 
 /***************************************************

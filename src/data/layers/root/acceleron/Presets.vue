@@ -170,7 +170,7 @@ function renamePreset(toRename: PresetType, newName: string) {
     content: "";
     z-index: 1;
     pointer-events: none;
-    background-image: linear-gradient(to bottom, var(--background), #0000 30px, #0000 calc(100% - 30px), var(--background));
+    background-image: linear-gradient(to bottom, var(--background), var(--transparent) 30px, var(--transparent) calc(100% - 30px), var(--background));
     width: calc(100% - var(--scrollbar-width));
     height: 100%;
     position: absolute;

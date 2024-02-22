@@ -256,11 +256,11 @@ function openDiscord() {
 }
 
 .version {
-    color: var(--points);
+    color: var(--box-shadow-color);
 }
 
 .version:hover span {
-    text-shadow: 5px 0 10px var(--points), -3px 0 12px var(--points);
+    text-shadow: 5px 0 10px var(--box-shadow-color), -3px 0 12px var(--box-shadow-color);
 }
 
 .nav > div > a,

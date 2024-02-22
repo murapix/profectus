@@ -1,5 +1,5 @@
 <template>
-    <component :is="tag ?? 'h2'" :style="{ color: color, 'text-shadow': '0px 0px 10px ' + color }">
+    <component :is="tag ?? 'h2'" :style="{ color, 'text-shadow': '0px 0px 10px ' + color }">
         {{ amount }}
     </component>
 </template>

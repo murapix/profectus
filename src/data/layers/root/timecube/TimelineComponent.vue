@@ -59,10 +59,10 @@ const sideEffects = {
 }
 
 .active {
-    background-color: var(--layer-color);
+    background-color: var(--feature-background);
 }
 
 .next {
-    border-color: var(--layer-color);
+    border-color: var(--feature-background);
 }
 </style>

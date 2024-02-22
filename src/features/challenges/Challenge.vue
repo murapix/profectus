@@ -201,6 +201,6 @@ export default defineComponent({
 
 .challenge.canStart button {
     cursor: pointer;
-    background-color: var(--layer-color);
+    background-color: var(--feature-background);
 }
 </style>

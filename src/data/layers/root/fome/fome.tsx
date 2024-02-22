@@ -93,7 +93,10 @@ export function getReformDisplay(fomeType: FomeTypes) {
 const id = "fome";
 const layer = createLayer(id, function (this: BaseLayer) {
     const name = "Quantum Foam";
-    const color = "#ffffff";
+    const theme = {
+        "--feature-background": "#ffffff",
+        "--bought": "#929aa9"
+    };
 
     const unlocked: Ref<boolean> = computed(() => unref(entangled.milestones[1].earned) || unref(skyrmion.upgrades.fome.bought));
 
@@ -257,7 +260,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 display: jsx(() => (
                     <>
                         <div>
-                            You have <Resource resource={layer[unref(highestFome)].amount} color={color} /> {layer[unref(highestFome)].amount.displayName}
+                            You have <Resource resource={layer[unref(highestFome)].amount} color="var(--feature-background)" /> {layer[unref(highestFome)].amount.displayName}
                             {Decimal.gt(unref(layer[unref(highestFome)].upgrades.reform.amount), 1)
                                 ? <sup>{formatWhole(unref(layer[unref(highestFome)].upgrades.reform.amount))}</sup>
                                 : undefined
@@ -279,7 +282,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
 
     return {
         name,
-        color,
+        theme,
         unlocked,
         production: generalProductionModifiers,
         timelineProduction: timelineBonuses,
@@ -294,7 +297,6 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 }
             </>
         )),
-        tabStyle: { "--bought": "#929aa9" },
         tabs,
 
         [FomeTypes.protoversal]: protoversal,

@@ -1,5 +1,4 @@
 import projInfo from "data/projInfo.json";
-import { Themes } from "data/themes";
 import type { CoercableComponent } from "features/feature";
 import { globalBus } from "game/events";
 import LZString from "lz-string";
@@ -15,8 +14,6 @@ export interface Settings {
     saves: string[];
     /** Whether or not to show the current ticks per second in the lower left corner of the page. */
     showTPS: boolean;
-    /** The current theme to display the game in. */
-    theme: Themes;
     /** Whether or not to cap the project at 20 ticks per second. */
     unthrottled: boolean;
     /** Whether to align modifiers to the unit. */
@@ -31,7 +28,6 @@ const state = reactive<Partial<Settings>>({
     active: "",
     saves: [],
     showTPS: true,
-    theme: Themes.Classic,
     unthrottled: false,
     alignUnits: false,
     numberFormat: Notations.scientific,
@@ -67,7 +63,6 @@ export const hardResetSettings = (window.hardResetSettings = () => {
         active: "",
         saves: [],
         showTPS: true,
-        theme: Themes.Classic,
         alignUnits: false,
         numberFormat: Notations.scientific,
         backupNumberFormat: Notations.scientific as Exclude<Notations, Notations.standard>

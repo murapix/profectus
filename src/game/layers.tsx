@@ -1,4 +1,5 @@
 import Modal from "components/Modal.vue";
+import { LayerTheme } from "data/themes";
 import type {
     CoercableComponent,
     JSXFunction,
@@ -87,7 +88,7 @@ window.layers = layers;
 declare module "@vue/runtime-dom" {
     /** Augment CSS Properties to allow for setting the layer color CSS variable. */
     interface CSSProperties {
-        "--layer-color"?: string;
+        "--feature-background"?: string;
     }
 }
 
@@ -105,8 +106,8 @@ export interface Position {
  * All {@link game/persistence.Persistent} refs must be included somewhere within the layer object.
  */
 export interface LayerOptions {
-    /** The color of the layer, used to theme the entire layer's display. */
-    color?: Computable<string>;
+    /** The colors of the layer, used to theme the entire layer's display. */
+    theme?: Computable<Partial<LayerTheme> & Pick<LayerTheme, "--feature-background">>;
     /**
      * The layout of this layer's features.
      * When the layer is open in {@link game/player.PlayerData.tabs}, this is the content that is displayed.
@@ -156,7 +157,7 @@ export interface BaseLayer {
 export type Layer<T extends LayerOptions> = Replace<
     T & BaseLayer,
     {
-        color: GetComputableType<T["color"]>;
+        theme: GetComputableType<T["theme"]>;
         display: GetComputableType<T["display"]>;
         classes: GetComputableType<T["classes"]>;
         style: GetComputableType<T["style"]>;
@@ -215,7 +216,7 @@ export function createLayer<T extends LayerOptions>(
         }
         addingLayers.pop();
 
-        processComputable(layer as T, "color");
+        processComputable(layer as T, "theme");
         processComputable(layer as T, "display");
         processComputable(layer as T, "classes");
         processComputable(layer as T, "style");

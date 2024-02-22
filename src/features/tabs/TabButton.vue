@@ -87,7 +87,7 @@ export default defineComponent({
     border-radius: 5px;
     border: 2px solid;
     flex-shrink: 0;
-    border-color: var(--layer-color);
+    border-color: var(--feature-background);
 }
 
 .tabButton:hover {

@@ -23,10 +23,10 @@ import Column from "components/layout/Column.vue";
 import { Sides } from "../timecube/timesquares";
 import timecube from "../timecube/timecube";
 import timelines from "../timecube/timelines";
-import skyrmion from "../skyrmion/skyrmion";
 
 const id = "buildings";
 const layer = createLayer(id, function (this: BaseLayer) {
+    
     const buildings = (() => {
         const condenser = createBuilding(building => ({
             effect(amount) {

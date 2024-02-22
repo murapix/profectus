@@ -35,13 +35,11 @@
 
 <script lang="ts">
 import Sticky from "components/layout/Sticky.vue";
-import themes from "data/themes";
 import type { CoercableComponent, StyleValue } from "features/feature";
 import { isHidden, isVisible, Visibility } from "features/feature";
 import type { GenericTab } from "features/tabs/tab";
 import TabButton from "features/tabs/TabButton.vue";
 import type { GenericTabButton } from "features/tabs/tabFamily";
-import settings from "game/settings";
 import { coerceComponent, isCoercableComponent, processedPropType, unwrapRef } from "util/vue";
 import type { Component, PropType, Ref } from "vue";
 import { computed, defineComponent, shallowRef, toRefs, unref, watchEffect } from "vue";
@@ -74,10 +72,10 @@ export default defineComponent({
         TabButton
     },
     setup(props) {
-        const { activeTab } = toRefs(props);
+        const { activeTab, buttonContainerClasses } = toRefs(props);
 
         const floating = computed(() => {
-            return themes[settings.theme].floatingTabs;
+            return unwrapRef(buttonContainerClasses)?.floating
         });
 
         const component = shallowRef<Component | string>("");

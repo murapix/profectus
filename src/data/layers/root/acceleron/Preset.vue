@@ -132,7 +132,7 @@ function rename() {
 .preset {
     min-width: 365px;
     height: 100px;
-    background: linear-gradient(to right, #0000, var(--raised-background) 25%);
+    background: linear-gradient(to right, var(--transparent), var(--raised-background) 25%);
     align-items: flex-end;
 }
 

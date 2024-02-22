@@ -35,7 +35,9 @@ import { root } from "data/projEntry";
 export const id = "acceleron";
 const layer = createLayer(id, function (this: BaseLayer) {
     const name = "Accelerons";
-    const color = "#0f52ba";
+    const theme = {
+        "--feature-background": "#0f52ba"
+    };
 
     const unlocked: Ref<boolean> = computed(() => {
         if (unref(entangled.milestones[1].earned)) return true;
@@ -202,10 +204,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
         fontWeight: 'normal'
     } as StyleValue
     const achievementStyle = (feature: BaseAchievement) => computed(() => ({
-        background: '#0000002F',
-        border: `solid ${unref(feature.earned) ? 'var(--bought)' : 'var(--layer-color)'} 2px`,
+        background: 'var(--quarter-transparent)',
+        border: `solid ${unref(feature.earned) ? 'var(--bought)' : 'var(--feature-background)'} 2px`,
         borderRadius: 0,
-        color: unref(feature.earned) ? 'var(--bought)' : 'var(--layer-color)',
+        color: unref(feature.earned) ? 'var(--bought)' : 'var(--feature-foreground)',
     }));
     const achievements = {
         protoversal: createAchievement(feature => ({ // keep protoversal fome upgrades and boosts
@@ -510,7 +512,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
 
     const header = jsx(() => (
         <>
-            <MainDisplay resource={accelerons} color={color} effect={jsx(() => <>which are causing time to go {format(unref(timeMult))}× faster{render(modifiersModal)}<br />
+            <MainDisplay resource={accelerons} effect={jsx(() => <>which are causing time to go {format(unref(timeMult))}× faster{render(modifiersModal)}<br />
             For every second in real time, <pre style={{display: 'inline'}}>{formatTime(unref(timeMult))}</pre> passes</>)} />
         </>
     ));
@@ -548,7 +550,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
 
     return {
         name,
-        color,
+        theme,
         accelerons,
         bestAccelerons,
         totalAccelerons,

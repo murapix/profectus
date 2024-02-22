@@ -47,11 +47,11 @@ defineProps<{
     border-radius: 0px;
     transform-origin: center left;
 }
-.timesquare-buy-buttons:first-child {
+.timesquare-buy-buttons > button:first-child {
     border-top-right-radius: 25px;
     transform-origin: bottom left;
 }
-.timesquare-buy-buttons:last-child {
+.timesquare-buy-buttons > button:last-child {
     border-bottom-right-radius: 25px;
     transform-origin: top left;
 }

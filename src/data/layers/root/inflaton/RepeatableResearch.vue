@@ -83,7 +83,7 @@ const fillPercent = computed(() => Decimal.times(unref(props.progressPercentage)
 
     position: relative;
     color: white;
-    border: solid var(--layer-color) 2px;
+    border: solid var(--feature-background) 2px;
     border-radius: var(--border-radius);
     background-color: var(--background);
 
@@ -102,7 +102,7 @@ const fillPercent = computed(() => Decimal.times(unref(props.progressPercentage)
 }
 
 .research.queued, .research.can {
-    background-image: linear-gradient(to right, var(--layer-color) calc(var(--fill-percent) - 5%), var(--background) calc(var(--fill-percent) + 5%));
+    background-image: linear-gradient(to right, var(--feature-background) calc(var(--fill-percent) - 5%), var(--background) calc(var(--fill-percent) + 5%));
 }
 
 .research.done {

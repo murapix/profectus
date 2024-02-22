@@ -23,6 +23,7 @@ import timelines from "../timecube/timelines";
 import abyss from "../skyrmion/abyss";
 import { createModifierModal } from "util/util";
 import { render } from "util/vue";
+import type { LayerTheme } from "data/themes";
 
 const id = "loops";
 const layer = createLayer(id, function (this: BaseLayer) {
@@ -36,10 +37,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
         style() {
             return {
                 borderRadius: '50%',
-                borderColor: unref(this.canClick) ? 'var(--layer-color)' : 'var(--locked)',
+                borderColor: unref(this.canClick) ? 'var(--feature-background)' : 'var(--locked)',
 
-                backgroundColor: '#0000',
-                color: unref(this.canClick) ? 'var(--layer-color)' : 'var(--locked)'
+                backgroundColor: 'var(--transparent)',
+                color: unref(this.canClick) ? 'var(--feature-background)' : 'var(--locked)'
             }
         }
     }));
@@ -119,7 +120,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             buildRequirement: new Decimal(60),
             triggerRequirement: Decimal.dOne,
             display: {
-                color: computed(() => unref(abyss.challenge.active) ? abyss.color : acceleronLayer.color),
+                color: computed(() => unref(abyss.challenge.active) ? "var(--feature-background)" : acceleronLayer.theme["--feature-background"]),
                 width: 10,
                 description: jsx(() => (
                     <>
@@ -150,7 +151,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             buildRequirement: new Decimal(360),
             triggerRequirement: new Decimal(60),
             display: () => ({
-                color: computed(() => unref(abyss.challenge.active) ? abyss.color : skyrmion.color),
+                color: computed(() => unref(abyss.challenge.active) ? "var(--feature-background)" : skyrmion.theme["--feature-background"]),
                 width: 10,
                 description: jsx(() => (
                     <>
@@ -179,7 +180,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             buildRequirement: new Decimal(600),
             triggerRequirement: new Decimal(3600),
             display: {
-                color: computed(() => unref(abyss.challenge.active) ? abyss.color : timecubeLayer.color),
+                color: computed(() => unref(abyss.challenge.active) ? "var(--feature-background)" : timecubeLayer.theme["--feature-background"]),
                 width: 10,
                 description: jsx(() => (
                     <>
@@ -205,7 +206,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             buildRequirement: new Decimal(250000),
             triggerRequirement: new Decimal(86400),
             display: {
-                color: computed(() => unref(abyss.challenge.active) ? abyss.color : fome.color),
+                color: computed(() => unref(abyss.challenge.active) ? "var(--feature-background)" : fome.theme["--feature-background"]),
                 width: 10,
                 description: jsx(() => (
                     <>
@@ -230,7 +231,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             buildRequirement: new Decimal(1e11),
             triggerRequirement: new Decimal(31536000),
             display: {
-                color: computed(() => unref(abyss.challenge.active) ? abyss.color : acceleronLayer.color),
+                color: computed(() => unref(abyss.challenge.active) ? "var(--feature-background)" : acceleronLayer.theme["--feature-background"]),
                 width: 10,
                 description: jsx(() => (
                     <>
@@ -252,7 +253,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             buildRequirement: new Decimal(4e17),
             triggerRequirement: new Decimal(315360000),
             display: {
-                color: computed(() => unref(abyss.challenge.active) ? abyss.color : skyrmion.color),
+                color: computed(() => unref(abyss.challenge.active) ? "var(--feature-background)" : skyrmion.theme["--feature-background"]),
                 width: 10,
                 description: jsx(() => (
                     <>

@@ -33,7 +33,10 @@ import { root } from "data/projEntry";
 export const id = "inflaton";
 const layer = createLayer(id, function (this: BaseLayer) {
     const name = "Inflatons";
-    const color = "#ff5e13";
+    const theme = {
+        "--feature-background": "#ff5e13",
+        "--bought": "#b14e24"
+    };
 
     const unlocked: Ref<boolean> = computed(() => {
         if (unref(entangled.milestones[1].earned)) return true;
@@ -285,12 +288,12 @@ const layer = createLayer(id, function (this: BaseLayer) {
     ], "12px");
 
     const header = jsx(() => (<>
-        <MainDisplay resource={inflatons} color={color} stickyStyle={{background: 'unset'}} />
+        <MainDisplay resource={inflatons} stickyStyle={{background: 'unset'}} />
         <div style={{marginTop: '-20px', fontSize: '12px'}}>
             {unref(inflating)
-                ? <>Runaway inflation is dividing all other resources by <span style={{color, textShadow: `${color} 0px 0px 10px`}}>{formatWhole(unref(inflatonNerf))}</span></>
+                ? <>Runaway inflation is dividing all other resources by <span style={{color: 'var(--feature-background)', textShadow: 'var(--feature-background) 0px 0px 10px'}}>{formatWhole(unref(inflatonNerf))}</span></>
                 : <>{unref(core.research.fomeGain.researched)
-                    ? <>Inflaton resonance is increasing Foam generation by <span style={{color, textShadow: `${color} 0px 0px 10px`}}>{formatWhole(unref(fomeBonus))}</span></>
+                    ? <>Inflaton resonance is increasing Foam generation by <span style={{color: 'var(--feature-background)', textShadow: 'var(--feature-background) 0px 0px 10px'}}>{formatWhole(unref(fomeBonus))}</span></>
                     : undefined
                 }</>
             }
@@ -342,7 +345,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
     return {
         id,
         name,
-        color,
+        theme,
         unlocked,
         inflatons,
         inflating,
@@ -350,9 +353,6 @@ const layer = createLayer(id, function (this: BaseLayer) {
         upgrades,
         hotkeys,
         tabs,
-        tabStyle: {
-            '--bought': '#b14e24'
-        },
         display: jsx(() => (
             <>
                 {unref(upgrades.research.bought)

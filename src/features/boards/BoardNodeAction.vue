@@ -36,10 +36,8 @@
 </template>
 
 <script setup lang="ts">
-import themes from "data/themes";
 import type { BoardNode, GenericBoardNodeAction, GenericNodeType } from "features/boards/board";
 import { getNodeProperty } from "features/boards/board";
-import settings from "game/settings";
 import { computed, toRefs, unref } from "vue";
 
 const _props = defineProps<{
@@ -59,12 +57,12 @@ const size = computed(() => getNodeProperty(props.nodeType.value.size, unref(pro
 const outlineColor = computed(
     () =>
         getNodeProperty(props.nodeType.value.outlineColor, unref(props.node)) ??
-        themes[settings.theme].variables["--outline"]
+        "var(--outline)"
 );
 const titleColor = computed(
     () =>
         getNodeProperty(props.nodeType.value.titleColor, unref(props.node)) ??
-        themes[settings.theme].variables["--foreground"]
+        "var(--foreground)"
 );
 const actionDistance = computed(() =>
     getNodeProperty(props.nodeType.value.actionDistance, unref(props.node))

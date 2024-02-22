@@ -18,7 +18,9 @@ import AbyssChallenge from "./AbyssChallenge.vue";
 
 const id = "abyss";
 const layer = createLayer(id, function (this: BaseLayer) {
-    const color = "#ff0000";
+    const theme = {
+        "--feature-background": "#ff0000"
+    };
 
     const challenge = createChallenge(feature => ({
         requirements: createCostRequirement(() => ({
@@ -72,7 +74,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
     })();
 
     return {
-        color,
+        theme,
         challenge,
         upgradeCount: challengeUpgradeCount,
         abyssUpgradeCount: upgradeCount,

@@ -18,12 +18,10 @@
 
 <script lang="ts">
 import "components/common/table.css";
-import themes from "data/themes";
 import { isHidden, isVisible, Visibility } from "features/feature";
 import type { GridCell } from "features/grids/grid";
-import settings from "game/settings";
 import { processedPropType } from "util/vue";
-import { computed, defineComponent, unref } from "vue";
+import { defineComponent, unref } from "vue";
 import GridCellVue from "./GridCell.vue";
 
 export default defineComponent({
@@ -47,7 +45,7 @@ export default defineComponent({
     },
     components: { GridCell: GridCellVue },
     setup() {
-        const mergeAdjacent = computed(() => themes[settings.theme].mergeAdjacent);
+        const mergeAdjacent = false;
 
         function gatherCellProps(cell: GridCell) {
             const { visibility, onClick, onHold, display, title, style, canClick, id } = cell;

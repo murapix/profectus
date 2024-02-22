@@ -374,9 +374,9 @@ export function createCollapsibleModifierSections(
 /**
  * Creates an HTML string for a span that writes some given text in a given color.
  * @param textToColor The content to change the color of
- * @param color The color to change the content to look like. Defaults to the current theme's accent 2 variable.
+ * @param color The color to change the content to look like. Defaults to the current layer's feature background variable.
  */
-export function colorText(textToColor: string, color = "var(--accent2)"): JSX.Element {
+export function colorText(textToColor: string, color = "var(--feature-background)"): JSX.Element {
     return <span style={{ color }}>{textToColor}</span>;
 }
 

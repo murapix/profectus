@@ -75,6 +75,6 @@ td:last-child {
 .break {
     margin: 8px 0;
     height: 5px;
-    background: linear-gradient(to right, #0000, var(--raised-background), #0000);
+    background: linear-gradient(to right, var(--transparent), var(--raised-background), var(--transparent));
 }
 </style>

@@ -19,7 +19,7 @@ import Error from "components/Error.vue";
 import { jsx } from "features/feature";
 import state from "game/state";
 import { coerceComponent, render } from "util/vue";
-import { CSSProperties, watch } from "vue";
+import { CSSProperties } from "vue";
 import { computed, toRef, unref } from "vue";
 import Game from "./components/Game.vue";
 import GameOverScreen from "./components/GameOverScreen.vue";
@@ -27,12 +27,12 @@ import NaNScreen from "./components/NaNScreen.vue";
 import Nav from "./components/Nav.vue";
 import TPS from "./components/TPS.vue";
 import projInfo from "./data/projInfo.json";
-import themes from "./data/themes";
+import defaultTheme from "./data/themes";
 import settings, { gameComponents } from "./game/settings";
 import "./main.css";
 
 const useHeader = projInfo.useHeader;
-const theme = computed(() => themes[settings.theme].variables as CSSProperties);
+const theme = defaultTheme as CSSProperties;
 const showTPS = toRef(settings, "showTPS");
 const appErrors = toRef(state, "errors");
 

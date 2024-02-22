@@ -8,9 +8,8 @@
 
 <script setup lang="ts">
 import "components/common/table.css";
-import themes from "data/themes";
-import settings from "game/settings";
-import { computed } from "vue";
 
-const mergeAdjacent = computed(() => themes[settings.theme].mergeAdjacent);
+defineProps<{
+    mergeAdjacent?: boolean;
+}>();
 </script>

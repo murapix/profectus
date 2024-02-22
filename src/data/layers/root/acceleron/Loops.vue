@@ -101,6 +101,6 @@ const processedLoops = props.loops.map((loop, index) => ({
 }
 .loop-cointainer > button.can:hover {
     transform: none;
-    box-shadow: inset 0 0 20px var(--layer-color);
+    box-shadow: inset 0 0 20px var(--feature-background);
 }
 </style>

@@ -50,10 +50,10 @@ const processedRows = ([1, 2, 3, 4] as EnhancementRow[]).map(row => ({
     margin: 0 -1px;
 
     border-radius: 0;
-    border: solid var(--layer-color) 2px;
+    border: solid var(--feature-background) 2px;
 
-    background: #0000002F;
-    color: var(--layer-color);
+    background: var(--quarter-transparent);
+    color: var(--feature-foreground);
     z-index: 2;
 }
 
@@ -71,15 +71,15 @@ const processedRows = ([1, 2, 3, 4] as EnhancementRow[]).map(row => ({
 
 .enhancementRow :deep(button:hover:not(.locked):not(.bought)) {
     transform: none;
-    box-shadow: inset 0 0 20px var(--layer-color);
+    box-shadow: inset 0 0 20px var(--feature-background);
 }
 
 .enhancementRow .row > div:first-child {
-    background: linear-gradient(to left, #0000002F, #0000);
+    background: linear-gradient(to left, var(--quarter-transparent), var(--transparent));
     border-left: 0;
 }
 .enhancementRow :deep(.tooltip-container:last-child button) {
-    background: linear-gradient(to right, #0000002F, #0000);
+    background: linear-gradient(to right, var(--quarter-transparent), var(--transparent));
     border-right: 0;
 }
 </style>

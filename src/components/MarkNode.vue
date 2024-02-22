@@ -35,7 +35,7 @@ defineProps<{ mark?: boolean | string }>();
     margin-right: 0.9em;
     margin-bottom: 1.2em;
     border-right: 0.3em solid transparent;
-    border-bottom: 0.7em solid #ffcc00;
+    border-bottom: 0.7em solid var(--star);
     border-left: 0.3em solid transparent;
     font-size: 10px;
     pointer-events: none;
@@ -50,7 +50,7 @@ defineProps<{ mark?: boolean | string }>();
     top: 0.6em;
     left: -1em;
     border-right: 1em solid transparent;
-    border-bottom: 0.7em solid #ffcc00;
+    border-bottom: 0.7em solid var(--star);
     border-left: 1em solid transparent;
     transform: rotate(-35deg);
 }

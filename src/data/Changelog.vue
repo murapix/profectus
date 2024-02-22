@@ -63,17 +63,17 @@ li::before {
 
 .feature::before {
     content: "Feature";
-    background: var(--accent1);
+    background: var(--changelog-feature);
 }
 
 .fix::before {
     content: "Fix";
-    background: var(--accent2);
+    background: var(--changelog-fix);
 }
 
 .balancing::before {
     content: "Balancing";
-    background: var(--accent3);
+    background: var(--changelog-balance);
 }
 
 .breaking::before {

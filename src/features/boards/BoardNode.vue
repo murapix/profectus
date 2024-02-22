@@ -140,11 +140,9 @@
 </template>
 
 <script setup lang="ts">
-import themes from "data/themes";
 import type { BoardNode, GenericBoardNodeAction, GenericNodeType } from "features/boards/board";
 import { ProgressDisplay, Shape, getNodeProperty } from "features/boards/board";
 import { isVisible } from "features/feature";
-import settings from "game/settings";
 import { CSSProperties, computed, toRefs, unref, watch } from "vue";
 import BoardNodeAction from "./BoardNodeAction.vue";
 
@@ -228,16 +226,16 @@ const size = computed(() => getNodeProperty(props.nodeType.value.size, unref(pro
 const progress = computed(
     () => getNodeProperty(props.nodeType.value.progress, unref(props.node)) ?? 0
 );
-const backgroundColor = computed(() => themes[settings.theme].variables["--background"]);
+const backgroundColor = "var(--background)";
 const outlineColor = computed(
     () =>
         getNodeProperty(props.nodeType.value.outlineColor, unref(props.node)) ??
-        themes[settings.theme].variables["--outline"]
+        "var(--outline)"
 );
 const fillColor = computed(
     () =>
         getNodeProperty(props.nodeType.value.fillColor, unref(props.node)) ??
-        themes[settings.theme].variables["--raised-background"]
+        "var(--raised-background)"
 );
 const progressColor = computed(() =>
     getNodeProperty(props.nodeType.value.progressColor, unref(props.node))
@@ -245,7 +243,7 @@ const progressColor = computed(() =>
 const titleColor = computed(
     () =>
         getNodeProperty(props.nodeType.value.titleColor, unref(props.node)) ??
-        themes[settings.theme].variables["--foreground"]
+        "var(--foreground)"
 );
 const progressDisplay = computed(() =>
     getNodeProperty(props.nodeType.value.progressDisplay, unref(props.node))
@@ -283,7 +281,7 @@ function mouseUp(e: MouseEvent | TouchEvent) {
 }
 
 .boardnode.isSelected .body {
-    fill: var(--accent1) !important;
+    fill: var(--changelog-feature) !important;
 }
 
 .boardnode:not(.isDraggable) .body {

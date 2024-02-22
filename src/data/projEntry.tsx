@@ -1,4 +1,4 @@
-import { isVisible, jsx } from "features/feature";
+import { isVisible, jsx, StyleValue } from "features/feature";
 import { createTab, GenericTab } from "features/tabs/tab";
 import { GenericTabFamily, createTabFamily } from "features/tabs/tabFamily";
 import { GenericLayer, layers } from "game/layers";
@@ -23,7 +23,7 @@ import abyss from "./layers/root/skyrmion/abyss";
  * @hidden
  */
 const id = "root";
-type layer = GenericLayer & { unlocked?: Ref<boolean>, tabStyle?: Record<string, unknown> }
+type layer = GenericLayer & { unlocked?: Ref<boolean> }
 const rootLayers = [skyrmion, fome, acceleron, timecube, inflaton, entangled] as layer[];
     
 export const root = createLayer(id, () => {
@@ -31,10 +31,7 @@ export const root = createLayer(id, () => {
         [layer.name, () => ({
             display: layer.name,
             tab: createTab(() => ({
-                style: computed(() => ({
-                    "--layer-color": unref(abyss.challenge.active) ? unref(abyss.color) : unref(layer.color),
-                    ...(unref(layer.tabStyle))
-                })),
+                style: computed(() => ((unref(abyss.challenge.active) ? abyss.theme : layer.theme) ?? {}) as StyleValue),
                 display: jsx(() => (<><div>{render(unref(layer.display))}</div></>))
             })),
             visibility: 'unlocked' in layer ? () => unref(layer.unlocked ?? true) : true
@@ -145,7 +142,7 @@ export const root = createLayer(id, () => {
         minWidth: 300,
         display: jsx(() => unref(fome.unlocked)
             ? <>{render(tabs)}</>
-            : <div style={{"--layer-color": unref(skyrmion.color)}}>{render(unref(tabs.tabs[skyrmion.name].tab))}</div>
+            : <div style={skyrmion.theme as StyleValue}>{render(unref(tabs.tabs[skyrmion.name].tab))}</div>
         ),
         hotkeys,
         tabs

@@ -124,7 +124,7 @@ watchEffect(() => {
 
     padding: 0 15px;
     border-radius: var(--border-radius);
-    background: var(--layer-color);
+    background: var(--feature-background);
 
     color: var(--feature-foreground);
     cursor: pointer;

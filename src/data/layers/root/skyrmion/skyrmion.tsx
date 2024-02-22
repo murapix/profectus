@@ -36,7 +36,9 @@ import { Sides } from "../timecube/timesquares";
 const id = "skyrmion";
 const layer = createLayer(id, function (this: BaseLayer) {
     const name = "Skyrmions";
-    const color = "#37d7ff";
+    const theme = {
+        "--feature-background": "#37d7ff"
+    };
 
     const skyrmionCostModifiers = createSequentialModifier(() => [
         createMultiplicativeModifier(() => ({
@@ -398,7 +400,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
 
     return {
         name,
-        color,
+        theme,
         conversion: skyrmions,
         skyrmions: resource,
         totalSkyrmions,
@@ -407,9 +409,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
         hotkeys,
         display: jsx(() => (
             <>
-                You have <Resource resource={resource} color={color} tag="h2" /> {resource.displayName}{render(modifierModal)}
+                You have <Resource resource={resource} color="var(--feature-background)" tag="h2" /> {resource.displayName}{render(modifierModal)}
                 {Decimal.gt(getFomeBoost(FomeTypes.subspatial, 4), 0)
-                ?   <><br />Your {fome.subspatial.amount.displayName} is granting an additional <h3 style={{ color, textShadow: `0px 0px 10px ${color}` }}>
+                ?   <><br />Your {fome.subspatial.amount.displayName} is granting an additional <h3 style={{ color: 'var(--feature-background)', textShadow: '0px 0px 10px var(--feature-background)' }}>
                         {format(getFomeBoost(FomeTypes.subspatial, 4))}
                     </h3> {resource.displayName}</>
                 : <Spacer height="25px" /> }

@@ -21,14 +21,15 @@ import { createTab } from "features/tabs/tab";
 import { createModifierModal } from "util/util";
 import { createMultiplicativeModifier, createSequentialModifier } from "game/modifiers";
 import entropy from "../acceleron/entropy";
-import Row from "components/layout/Row.vue";
 import { createHotkey } from "features/hotkey";
 import { root } from "data/projEntry";
 
 const id = "timecube";
 const layer = createLayer(id, function (this: BaseLayer) {
     const name = "Time Cubes";
-    const color = "#f037ea";
+    const theme = {
+        "--feature-background": "#f037ea"
+    };
 
     const unlocked: Ref<boolean> = computed(() => unref(entangled.milestones[1].earned) || unref(acceleron.loops.loops.timecube.built));
     
@@ -392,7 +393,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
     ]);
 
     const header = jsx(() => (
-        <MainDisplay resource={timecubes} color={color} modal={modifierModal}/>
+        <MainDisplay resource={timecubes} modal={modifierModal}/>
     ));
 
     const tabs = createTabFamily(({
@@ -434,7 +435,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
 
     return {
         name,
-        color,
+        theme,
         unlocked,
         timecubes,
         bestTimecubes,

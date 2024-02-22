@@ -89,7 +89,7 @@ export default defineComponent({
     min-height: 80px;
     width: 80px;
     font-size: 10px;
-    background-color: var(--layer-color);
+    background-color: var(--feature-background);
 }
 
 .tile > * {

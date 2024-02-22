@@ -31,13 +31,11 @@
 <script lang="ts">
 import CollapseTransition from "@ivanv/vue-collapse-transition/src/CollapseTransition.vue";
 import Node from "components/Node.vue";
-import themes from "data/themes";
 import type { CoercableComponent } from "features/feature";
 import { isHidden, isVisible, Visibility } from "features/feature";
-import settings from "game/settings";
 import { computeComponent, processedPropType } from "util/vue";
 import type { PropType, Ref, StyleValue } from "vue";
-import { computed, defineComponent, toRefs, unref } from "vue";
+import { defineComponent, toRefs, unref } from "vue";
 
 export default defineComponent({
     props: {
@@ -76,7 +74,7 @@ export default defineComponent({
 
         const titleComponent = computeComponent(title);
         const bodyComponent = computeComponent(display);
-        const stacked = computed(() => themes[settings.theme].mergeAdjacent);
+        const stacked = false;
 
         return {
             titleComponent,

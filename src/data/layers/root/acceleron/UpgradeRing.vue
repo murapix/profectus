@@ -232,7 +232,7 @@ export default defineComponent({
                     id: upgrade.id,
                     color: computed(() => {
                         if (unref(upgrade.bought)) return 'var(--bought)';
-                        else if (unref(upgrade.canPurchase)) return 'var(--layer-color)';
+                        else if (unref(upgrade.canPurchase)) return 'var(--feature-background)';
                         else return 'var(--locked)';
                     }),
                     distance: computed(() => {
@@ -396,7 +396,7 @@ export default defineComponent({
                     id: upgrade.id,
                     color: computed(() => {
                         if (unref(upgrade.bought)) return 'var(--bought)';
-                        else if (unref(upgrade.canPurchase)) return 'var(--layer-color)';
+                        else if (unref(upgrade.canPurchase)) return 'var(--feature-background)';
                         else return 'var(--locked)';
                     }),
                     distance: computed(() => {
@@ -563,13 +563,13 @@ export default defineComponent({
 :deep(.ring-upgrade.left) {
     text-align: left;
     border-style: solid solid solid none;
-    background: linear-gradient(to right, #0000, #0000002F);
+    background: linear-gradient(to right, var(--transparent), var(--quarter-transparent));
 }
 
 :deep(.ring-upgrade.right) {
     text-align: right;
     border-style: solid none solid solid;
-    background: linear-gradient(to left, #0000, #0000002F);
+    background: linear-gradient(to left, var(--transparent), var(--quarter-transparent));
 }
 
 :deep(.ring-upgrade.locked) {
@@ -578,8 +578,8 @@ export default defineComponent({
 }
 
 :deep(.ring-upgrade.can) {
-    border-color: var(--layer-color);
-    color: var(--layer-color);
+    border-color: var(--feature-background);
+    color: var(--feature-foreground);
 }
 
 :deep(.ring-upgrade.bought) {
@@ -589,7 +589,7 @@ export default defineComponent({
 
 :deep(.ring-upgrade.can:hover), :deep(.ring-upgrade.can.hover) {
     transform: none;
-    box-shadow: inset 0 0 20px var(--layer-color);
+    box-shadow: inset 0 0 20px var(--feature-background);
 }
 
 </style>

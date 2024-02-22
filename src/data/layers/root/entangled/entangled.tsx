@@ -26,7 +26,9 @@ import { root } from "data/projEntry";
 
 const layer = createLayer("entangled", () => {
     const name = "Entangled Strings";
-    const color = "#9a4500";
+    const theme = {
+        "--feature-background": "#9a4500"
+    };
 
     const unlocked: Ref<boolean> = computed(() => unref(milestones[1].earned) || (unref(acceleron.upgrades.mastery.bought) && unref(inflaton.coreResearch.research.mastery.researched)));
 
@@ -377,7 +379,7 @@ const layer = createLayer("entangled", () => {
 
     return {
         name,
-        color,
+        theme,
         unlocked,
         strings,
         expansions,
@@ -385,7 +387,7 @@ const layer = createLayer("entangled", () => {
         hotkeys,
         display: jsx(() => (
             <>
-                <MainDisplay resource={strings} color={color} />
+                <MainDisplay resource={strings} />
                 <Row>
                     {renderCol(expansions.skyrmion, expansions.fome)}
                     <Column>
@@ -398,14 +400,14 @@ const layer = createLayer("entangled", () => {
                 <Spacer />
                 <div>The next {strings.displayName} requires:</div>
                 <Spacer />
-                <div style={{ color: acceleron.color }}>
+                <div style={{ color: acceleron.theme["--feature-background"] }}>
                     {acceleron.accelerons.displayName}: {format(unref(requirements.acceleron.resource))} / {format(unref(requirements.acceleron.cost as ProcessedComputable<DecimalSource>))}
                 </div>
-                <div style={{ color: inflaton.color }}>
+                <div style={{ color: inflaton.theme["--feature-background"] }}>
                     Stored {inflaton.inflatons.displayName}: {format(unref(requirements.inflaton.resource))} / {format(unref(requirements.inflaton.cost as ProcessedComputable<DecimalSource>))}
                 </div>
                 {isVisible(requirements.timecube.visibility)
-                    ? <div style={{ color: timecube.color }}>
+                    ? <div style={{ color: timecube.theme["--feature-background"] }}>
                         Total Timeline Score: {format(unref(requirements.timecube.resource))} / {format(unref(requirements.timecube.cost as ProcessedComputable<DecimalSource>))}
                     </div>
                     : undefined

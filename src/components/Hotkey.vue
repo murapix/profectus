@@ -54,9 +54,9 @@ watchEffect(() => {
 
     background: var(--foreground);
     color: var(--feature-foreground);
-    border: 1px solid #0007;
+    border: 1px solid var(--hotkey);
     border-radius: 0.3em;
-    box-shadow: 0 0.1em #0007, 0 0.1em var(--foreground);
+    box-shadow: 0 0.1em var(--hotkey), 0 0.1em var(--foreground);
 
     font-size: smaller;
     text-align: center;

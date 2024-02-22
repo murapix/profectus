@@ -12,7 +12,7 @@
     z-index: 10;
     pointer-events: none;
     user-select: none;
-    color: var(--accent3);
+    color: var(--changelog-balance);
     font-size: x-large;
     animation: 1s linear infinite bounce;
     border-radius: var(--border-radius);

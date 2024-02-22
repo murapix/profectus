@@ -1,41 +1,44 @@
-/** A object of all CSS variables determined by the current theme. */
-export interface ThemeVars {
-    "--foreground": string;
-    "--background": string;
-    "--feature-foreground": string;
-    "--tooltip-background": string;
-    "--raised-background": string;
-    "--points": string;
-    "--locked": string;
-    "--highlighted": string;
-    "--bought": string;
-    "--danger": string;
-    "--link": string;
-    "--outline": string;
-    "--accent1": string;
-    "--accent2": string;
-    "--accent3": string;
-    "--border-radius": string;
-    "--modal-border": string;
-    "--feature-margin": string;
+/** An object of the main CSS variables that a layer would want to customize */
+export interface LayerTheme {
+    "--feature-foreground": string; // feature text
+    "--feature-background": string; // feature background
+    "--bought": string; // feature background (complete)
+
+    "--border-radius": string; // feature border radius
+    "--feature-margin": string; // margin between features
 }
 
-/** An object representing a theme the player can use to change the look of the game. */
-export interface Theme {
-    /** The values of the theme's CSS variables. */
-    variables: ThemeVars;
-    /** Whether or not tabs should "float" in the center of their container. */
-    floatingTabs: boolean;
-    /** Whether or not adjacent features should merge together - removing the margin between them, and only applying the border radius to the first and last elements in the row or column. */
-    mergeAdjacent: boolean;
-    /** Whether or not to show a pin icon on pinned tooltips. */
-    showPin: boolean;
+/** A object of all CSS variables determined by the current theme. */
+export interface Theme extends LayerTheme {
+    // Main Layout Colors
+    "--foreground": string; // main text
+    "--background": string; // main background
+    "--raised-background": string; // header background
+    "--tooltip-foreground": string; // tooltip text
+    "--tooltip-background": string; // tooltip background
+    "--locked": string; // feature background (not yet available)
+    "--hotkey": string; // hotkey border
+    "--star": string; // mark star border
+    "--svg-background": string; // svg background
+
+    "--box-shadow-color": string; // feature hover shadow, changelog button text
+    "--highlighted": string; // currently hovered (but not selected) options dropdown background
+    "--outline": string; // borders between major screen elements
+    "--danger": string; // warning
+    "--link": string; // links, general button text, active toggle
+    "--modal-border": string; // modal border
+    "--quarter-transparent": string;
+    "--transparent": string;
+    
+    "--changelog-feature": string; // changelog "feature" background
+    "--changelog-fix": string; // changelog "fix" background
+    "--changelog-balance": string; // changelog "balance" background
 }
 
 declare module "@vue/runtime-dom" {
     /** Make CSS properties accept any CSS variables usually controlled by a theme. */
     // eslint-disable-next-line @typescript-eslint/no-empty-interface
-    interface CSSProperties extends Partial<ThemeVars> {}
+    interface CSSProperties extends Partial<Theme> {}
 
     interface HTMLAttributes {
         style?: StyleValue;
@@ -43,38 +46,35 @@ declare module "@vue/runtime-dom" {
 }
 
 const defaultTheme: Theme = {
-    variables: {
-        "--foreground": "#D8DEE9",
-        "--background": "#2E3440",
-        "--feature-foreground": "#000",
-        "--tooltip-background": "rgba(0, 0, 0, 0.75)",
-        "--raised-background": "#3B4252",
-        "--points": "#E5E9F0",
-        "--locked": "#4c566a",
-        "--highlighted": "#434c5e",
-        "--bought": "#8FBCBB",
-        "--danger": "#D08770",
-        "--link": "#88C0D0",
-        "--outline": "#3B4252",
-        "--accent1": "#B48EAD",
-        "--accent2": "#A3BE8C",
-        "--accent3": "#EBCB8B",
+    "--foreground": "#D8DEE9",
+    "--background": "#2E3440",
+    "--raised-background": "#3B4252",
+    "--tooltip-foreground": "#E5E9F0",
+    "--tooltip-background": "rgba(0, 0, 0, 0.75)",
+    "--locked": "#4c566a",
+    "--hotkey": "rgba(0, 0, 0, 0.5)",
+    "--star": "#fc0",
+    "--svg-background": "#2e3440",
+    
+    "--box-shadow-color": "#E5E9F0",
+    "--highlighted": "#434c5e",
+    "--outline": "#3B4252",
+    "--danger": "#D08770",
+    "--link": "#88C0D0",
+    "--modal-border": "solid 2px #3B4252",
+    "--quarter-transparent": "rgba(0, 0, 0, 0.25)",
+    "--transparent": "#0000",
+    
+    "--changelog-feature": "#B48EAD",
+    "--changelog-fix": "#A3BE8C",
+    "--changelog-balance": "#EBCB8B",
 
-        "--border-radius": "15px",
-        "--modal-border": "solid 2px #3B4252",
-        "--feature-margin": "5px"
-    },
-    floatingTabs: false,
-    mergeAdjacent: false,
-    showPin: true
+    "--feature-foreground": "#000",
+    "--feature-background": "#4c566a",
+    "--bought": "#8FBCBB",
+    
+    "--border-radius": "15px",
+    "--feature-margin": "5px"
 };
 
-/** An enum of all available themes and their internal IDs. The keys are their display names. */
-export enum Themes {
-    Classic = "classic"
-}
-
-/** A dictionary of all available themes. */
-export default {
-    classic: defaultTheme
-} as Record<Themes, Theme>;
+export default defaultTheme;

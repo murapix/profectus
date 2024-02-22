@@ -27,7 +27,7 @@
                     unref(style) ?? {}
                 ]"
             >
-                <span v-if="showPin" class="material-icons pinned">push_pin</span>
+                <span v-if="pinned" class="material-icons pinned">push_pin</span>
                 <component v-if="comp" :is="comp" />
             </div>
         </transition>
@@ -35,11 +35,9 @@
 </template>
 
 <script lang="tsx">
-import themes from "data/themes";
 import type { CoercableComponent } from "features/feature";
 import { jsx, StyleValue } from "features/feature";
 import type { Persistent } from "game/persistence";
-import settings from "game/settings";
 import { Direction } from "util/common";
 import type { VueFeature } from "util/vue";
 import {
@@ -91,8 +89,6 @@ export default defineComponent({
             }
         }
 
-        const showPin = computed(() => unwrapRef(pinned) && themes[settings.theme].showPin);
-
         return {
             Direction,
             isHovered,
@@ -100,8 +96,7 @@ export default defineComponent({
             comp,
             elementComp,
             unref,
-            togglePinned,
-            showPin
+            togglePinned
         };
     }
 });
@@ -134,7 +129,7 @@ export default defineComponent({
     padding: 7px;
     border-radius: 3px;
     background-color: var(--tooltip-background);
-    color: var(--points);
+    color: var(--tooltip-foreground);
     z-index: 100 !important;
     word-break: break-word;
 }

@@ -17,7 +17,6 @@
                 <FeedbackButton v-if="!autosave" class="button save-button" @click="save()">Manually save</FeedbackButton>
             </div>
             <div v-if="isTab('appearance')">
-                <Select :title="themeTitle" :options="themes" v-model="theme" />
                 <Select :title="notationTitle" :options="notations" v-model="numberFormat" />
                 <Select v-if="numberFormat === Notations.standard" :title="backupNotationTitle" :options="backupNotations" v-model="backupNumberFormat" />
                 <component :is="settingFieldsComponent" />
@@ -32,7 +31,6 @@
 import Modal from "components/Modal.vue";
 import projInfo from "data/projInfo.json";
 import { save } from "util/save";
-import rawThemes from "data/themes";
 import { jsx } from "features/feature";
 import Tooltip from "features/tooltips/Tooltip.vue";
 import player from "game/player";
@@ -65,11 +63,6 @@ defineExpose({
     }
 });
 
-const themes = Object.keys(rawThemes).map(theme => ({
-    label: camelToTitle(theme),
-    value: theme
-}));
-
 const notations = [
     { label: "Standard", value: Notations.standard },
     { label: "Thousands", value: Notations.thousands },
@@ -82,7 +75,7 @@ const settingFieldsComponent = computed(() => {
     return coerceComponent(jsx(() => (<>{settingFields.map(render)}</>)));
 });
 
-const { showTPS, theme, unthrottled, alignUnits, numberFormat, backupNumberFormat } = toRefs(settings);
+const { showTPS, unthrottled, alignUnits, numberFormat, backupNumberFormat } = toRefs(settings);
 const { autosave } = toRefs(player);
 const isPaused = computed({
     get() {
@@ -109,12 +102,6 @@ const isPausedTitle = jsx(() => (
     <span class="option-title">
         Pause game<Tooltip display="Save-specific" direction={Direction.Right}>*</Tooltip>
         <desc>Stop everything from moving.</desc>
-    </span>
-));
-const themeTitle = jsx(() => (
-    <span class="option-title">
-        Theme
-        <desc>How the game looks.</desc>
     </span>
 ));
 const showTPSTitle = jsx(() => (

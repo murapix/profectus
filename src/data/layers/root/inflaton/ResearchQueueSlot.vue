@@ -53,8 +53,8 @@ const removeFromQueue = () => unref(isResearch) ? removeResearchFromQueue(props.
 
 .can {
     color: white;
-    border-color: var(--layer-color);
-    background-image: linear-gradient(to right, var(--layer-color) calc(var(--fill-percent) - 5%), var(--background) calc(var(--fill-percent) + 5%));
+    border-color: var(--feature-background);
+    background-image: linear-gradient(to right, var(--feature-background) calc(var(--fill-percent) - 5%), var(--background) calc(var(--fill-percent) + 5%));
     pointer-events: all;
 }
 

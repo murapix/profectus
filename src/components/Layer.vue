@@ -1,6 +1,6 @@
 <template>
     <ErrorVue v-if="errors.length > 0" :errors="errors" />
-    <div class="layer-container" :style="{ '--layer-color': unref(color) }" v-bind="$attrs" v-else>
+    <div class="layer-container" :style="theme" v-bind="$attrs" v-else>
         <button v-if="showGoBack" class="goBack" @click="goBack">❌</button>
 
         <div class="layer-tab" :class="{ showGoBack }" v-else>
@@ -16,10 +16,11 @@ import projInfo from "data/projInfo.json";
 import type { CoercableComponent } from "features/feature";
 import type { FeatureNode } from "game/layers";
 import player from "game/player";
-import { computeComponent, computeOptionalComponent, processedPropType, unwrapRef } from "util/vue";
+import { computeComponent, processedPropType } from "util/vue";
 import { PropType, Ref, computed, defineComponent, onErrorCaptured, ref, toRefs, unref } from "vue";
 import Context from "./Context.vue";
 import ErrorVue from "./Error.vue";
+import { LayerTheme } from "data/themes";
 
 export default defineComponent({
     components: { Context, ErrorVue },
@@ -36,7 +37,7 @@ export default defineComponent({
             type: processedPropType<string>(String),
             required: true
         },
-        color: processedPropType<string>(String),
+        theme: processedPropType<LayerTheme>(Object),
         nodes: {
             type: Object as PropType<Ref<Record<string, FeatureNode | undefined>>>,
             required: true
