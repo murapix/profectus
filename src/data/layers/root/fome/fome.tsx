@@ -33,6 +33,7 @@ import { Sides } from "../timecube/timesquares";
 import timelines from "../timecube/timelines";
 import { GenericHotkey, createHotkey } from "features/hotkey";
 import { root } from "data/projEntry";
+import { WithRequired } from "util/common";
 
 export enum FomeTypes {
     protoversal = "protoversal",
@@ -108,7 +109,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         else return FomeTypes.protoversal;
     });
 
-    const generalProductionModifiers: Modifier[] = [
+    const generalProductionModifiers: WithRequired<Modifier, "description">[] = [
         createMultiplicativeModifier(() => ({
             multiplier: skyrmion.spinor.upgrades.eta.effect,
             enabled: () => Decimal.gt(unref(skyrmion.spinor.upgrades.eta.totalAmount), 0),
@@ -151,7 +152,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         }))
     ];
 
-    const timelineBonuses: Modifier[] = [
+    const timelineBonuses: WithRequired<Modifier, "description">[] = [
         createMultiplicativeModifier(() => ({
             multiplier: timelines.buffs[Sides.LEFT],
             enabled: noPersist(timecube.upgrades.tactics.bought),
