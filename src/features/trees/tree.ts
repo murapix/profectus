@@ -224,7 +224,7 @@ export interface BaseTree {
     id: string;
     /** The link objects for each of the branches of the tree.  */
     links: Ref<Link[]>;
-    /** Cause a reset on this node and propagate it through the tree according to {@link resetPropagation}. */
+    /** Cause a reset on this node and propagate it through the tree according to {@link TreeOptions.resetPropagation}. */
     reset: (node: GenericTreeNode) => void;
     /** A flag that is true while the reset is still propagating through the tree. */
     isResetting: Ref<boolean>;
@@ -338,34 +338,21 @@ export const branchedResetPropagation = function (
     tree: GenericTree,
     resettingNode: GenericTreeNode
 ): void {
-    const visitedNodes = [resettingNode];
-    let currentNodes = [resettingNode];
-    if (tree.branches != null) {
-        const branches = unref(tree.branches);
-        while (currentNodes.length > 0) {
-            const nextNodes: GenericTreeNode[] = [];
-            currentNodes.forEach(node => {
-                branches
-                    .filter(branch => branch.startNode === node || branch.endNode === node)
-                    .map(branch => {
-                        if (branch.startNode === node) {
-                            return branch.endNode;
-                        }
-                        return branch.startNode;
-                    })
-                    .filter(node => !visitedNodes.includes(node))
-                    .forEach(node => {
-                        // Check here instead of in the filter because this check's results may
-                        // change as we go through each node
-                        if (!nextNodes.includes(node)) {
-                            nextNodes.push(node);
-                            node.reset?.reset();
-                        }
-                    });
-            });
-            currentNodes = nextNodes;
-            visitedNodes.push(...currentNodes);
-        }
+    const links = unref(tree.branches);
+    if (links == null) return;
+    const reset: GenericTreeNode[] = [];
+    let current = [resettingNode];
+    while (current.length != 0) {
+        const next: GenericTreeNode[] = [];
+        for (const node of current) {
+            for (const link of links.filter(link => link.startNode === node)) {
+                if ([...reset, ...current].includes(link.endNode)) continue
+                next.push(link.endNode);
+                link.endNode.reset?.reset();
+            }
+        };
+        reset.push(...current);
+        current = next;
     }
 };
 
