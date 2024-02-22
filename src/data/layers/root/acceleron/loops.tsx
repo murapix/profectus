@@ -24,6 +24,7 @@ import abyss from "../skyrmion/abyss";
 import { createModifierModal } from "util/util";
 import { render } from "util/vue";
 import type { LayerTheme } from "data/themes";
+import NamedResource from "features/resources/NamedResource.vue";
 
 const id = "loops";
 const layer = createLayer(id, function (this: BaseLayer) {
@@ -328,7 +329,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                         <Spacer height="18px" />
                         <div style={{fontSize: '12px', color: 'var(--link)'}}>
                             Construction Progress: {formatWhole(unref(unref(nextLoop)?.buildProgress ?? 0))} / {formatWhole(unref(unref(nextLoop)?.buildRequirement ?? 0))}{render(modifiersModal)}<br />
-                            Construction will consume {formatWhole(unref(remainingBuildCost))} {acceleronLayer.accelerons.displayName}
+                            Construction will consume <NamedResource resource={acceleronLayer.accelerons} override={unref(remainingBuildCost)} />
                         </div>
                     </>)
                 }

@@ -30,7 +30,7 @@ const id = "entropy";
 const layer = createLayer(id, function (this: BaseLayer) {
     const name = "Entropy";
 
-    const entropy = createResource<DecimalSource>(0, name);
+    const entropy = createResource<DecimalSource>(0, { displayName: name });
     
     const maxEntropyModifiers = createSequentialModifier(() => [
         createMultiplicativeModifier(() => ({

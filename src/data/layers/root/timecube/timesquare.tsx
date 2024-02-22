@@ -13,6 +13,7 @@ import TimesquareComponent from "./TimesquareComponent.vue";
 import { Sides } from "./timesquares";
 import timelines from "./timelines";
 import timecube from "./timecube";
+import NamedResource from "features/resources/NamedResource.vue";
 
 export const TimesquareType = Symbol("Timesquare");
 
@@ -97,7 +98,7 @@ export function createTimesquare<T = Decimal>(
             canClick: () => requirementsMet(requirements.buy.cost),
             display: {
                 title: 'Buy',
-                description: jsx(() => <>+{format(unref(requirements.buy.buyAmount))}: {formatWhole(unref(requirements.buy.cost.cost) as DecimalSource)} {resource.displayName}</>)
+                description: jsx(() => <>+{format(unref(requirements.buy.buyAmount))}: <NamedResource resource={resource} override={unref(requirements.buy.cost.cost) as DecimalSource} /></>)
             },
             onClick() {
                 const boughtAmount = unref(requirements.buy.buyAmount);
@@ -109,7 +110,7 @@ export function createTimesquare<T = Decimal>(
             canClick: () => requirementsMet(requirements.buyNext.cost),
             display: {
                 title: 'Buy Next',
-                description: jsx(() => <>+{format(unref(requirements.buyNext.buyAmount))}: {formatWhole(unref(requirements.buyNext.cost.cost) as DecimalSource)} {resource.displayName}</>)
+                description: jsx(() => <>+{format(unref(requirements.buyNext.buyAmount))}: <NamedResource resource={resource} override={unref(requirements.buyNext.cost.cost) as DecimalSource} /></>)
             },
             onClick() {
                 const boughtAmount = unref(requirements.buyNext.buyAmount);
@@ -121,7 +122,7 @@ export function createTimesquare<T = Decimal>(
             canClick: () => requirementsMet(requirements.buyMax.cost),
             display: {
                 title: 'Buy Max',
-                description: jsx(() => <>+{format(unref(requirements.buyMax.buyAmount))}: {formatWhole(unref(requirements.buyMax.cost.cost) as DecimalSource)} {resource.displayName}</>)
+                description: jsx(() => <>+{format(unref(requirements.buyMax.buyAmount))}: <NamedResource resource={resource} override={unref(requirements.buyMax.cost.cost) as DecimalSource} /></>)
             },
             onClick() {
                 const boughtAmount = unref(requirements.buyMax.buyAmount);

@@ -29,6 +29,7 @@ import { getFirstFeature, renderColJSX, renderJSX } from "util/vue";
 import type { ComputedRef, Ref } from "vue";
 import { computed, unref } from "vue";
 import "./common.css";
+import NamedResource from "features/resources/NamedResource.vue";
 
 /** An object that configures a {@link ResetButton} */
 export interface ResetButtonOptions extends ClickableOptions {
@@ -119,28 +120,25 @@ export function createResetButton<T extends ClickableOptions & ResetButtonOption
             resetButton.display = jsx(() => (
                 <span>
                     {unref(resetButton.resetDescription as ProcessedComputable<string>)}
-                    <b>
-                        {displayResource(
-                            resetButton.conversion.gainResource,
-                            Decimal.max(
-                                unref(resetButton.conversion.actualGain),
-                                unref(resetButton.minimumGain as ProcessedComputable<DecimalSource>)
-                            )
+                    <NamedResource
+                        resource={resetButton.conversion.gainResource}
+                        override={Decimal.max(
+                            unref(resetButton.conversion.actualGain),
+                            unref(resetButton.minimumGain as ProcessedComputable<DecimalSource>)
                         )}
-                    </b>{" "}
-                    {resetButton.conversion.gainResource.displayName}
+                        amountTag="b"
+                    />
                     {unref(resetButton.showNextAt) != null ? (
                         <div>
                             <br />
                             {unref(resetButton.conversion.buyMax) ? "Next:" : "Req:"}{" "}
-                            {displayResource(
-                                resetButton.conversion.baseResource,
-                                !unref(resetButton.conversion.buyMax) &&
+                            <NamedResource
+                                resource={resetButton.conversion.baseResource}
+                                override={!unref(resetButton.conversion.buyMax) &&
                                     Decimal.gte(unref(resetButton.conversion.actualGain), 1)
                                     ? unref(resetButton.conversion.currentAt)
-                                    : unref(resetButton.conversion.nextAt)
-                            )}{" "}
-                            {resetButton.conversion.baseResource.displayName}
+                                    : unref(resetButton.conversion.nextAt)}
+                            />
                         </div>
                     ) : null}
                 </span>

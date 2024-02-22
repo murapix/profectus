@@ -45,7 +45,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         return unref(fome[FomeTypes.quantum].upgrades.condense.bought);
     });
 
-    const inflatons = createResource<DecimalSource>(0, name);
+    const inflatons = createResource<DecimalSource>(0, { displayName: name, singularName: "Inflaton" });
     const requirement = createCostRequirement(() => ({
         resource: noPersist(fome[FomeTypes.quantum].amount),
         cost: () => entangled.isFirstBranch(id) ? 1e9 : 1e50,
@@ -55,7 +55,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         canClick: () => requirementsMet(requirement),
         display: jsx(() => (
             <>
-                1 {inflatons.displayName}<br />
+                1 {inflatons.singularName}<br />
                 <br />
                 {displayRequirements(requirement)}
             </>

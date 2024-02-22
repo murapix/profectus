@@ -24,7 +24,7 @@ import { createModifierModal } from "util/util";
 
 const id = "subspatial";
 const layer = createLayer(id, function (this: BaseLayer) {
-    const amount = createResource<DecimalSource>(0, "Subspatial Foam");
+    const amount = createResource<DecimalSource>(0, { displayName: "Subspatial Foam" });
 
     const productionModifiers = createSequentialModifier(() => [
         ...fome.production,

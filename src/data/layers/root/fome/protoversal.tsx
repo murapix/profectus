@@ -21,7 +21,7 @@ import { createModifierModal } from "util/util";
 
 const id = "protoversal";
 const layer = createLayer(id, function (this: BaseLayer) {
-    const amount = createResource<DecimalSource>(0, "Protoversal Foam");
+    const amount = createResource<DecimalSource>(0, { displayName: "Protoversal Foam" });
 
     const productionModifiers = createSequentialModifier(() => [
         ...fome.production,

@@ -12,6 +12,8 @@ import { computed, isRef, ref, unref, watch } from "vue";
 export interface Resource<T = DecimalSource> extends Ref<T> {
     /** The name of this resource. */
     displayName: string;
+    /** The name for a singular amount of this resource, if different. */
+    singularName: string;
     /** When displaying the value of this resource, how many significant digits to display. */
     precision: number;
     /** Whether or not to display very small values using scientific notation, or rounding to 0. */
@@ -20,35 +22,36 @@ export interface Resource<T = DecimalSource> extends Ref<T> {
 
 export type PersistentResource<T extends State = DecimalSource> = Resource<T> & Persistent<T> & { [NonPersistent]: Resource<T> }
 
+export type ResourceOptions = {
+    displayName?: string;
+    singularName?: string;
+    precision?: number;
+    small?: boolean;
+}
+
 /**
  * Creates a resource.
  * @param defaultValue The initial value of the resource
  * @param displayName The human readable name of this resource
+ * @param singularName An alternate name to use when displaying a single amount of this resource
  * @param precision The number of significant digits to display by default
  * @param small Whether or not to display very small values or round to 0, by default
  */
-export function createResource<T extends State>(
-    defaultValue: T,
-    displayName?: string,
-    precision?: number,
-    small?: boolean | undefined
-): Resource<T> & Persistent<T> & { [NonPersistent]: Resource<T> };
-export function createResource<T extends State>(
-    defaultValue: Ref<T>,
-    displayName?: string,
-    precision?: number,
-    small?: boolean | undefined
-): Resource<T>;
-export function createResource<T extends State>(
-    defaultValue: T | Ref<T>,
+export function createResource<T extends State>(defaultValue: T): Resource<T> & Persistent<T> & { [NonPersistent]: Resource<T> };
+export function createResource<T extends State>(defaultValue: T, {}: ResourceOptions): Resource<T> & Persistent<T> & { [NonPersistent]: Resource<T> };
+export function createResource<T extends State>(defaultValue: Ref<T>): Resource<T>;
+export function createResource<T extends State>(defaultValue: Ref<T>, {}: ResourceOptions): Resource<T>;
+export function createResource<T extends State>(defaultValue: T | Ref<T>, {
     displayName = "points",
+    singularName = displayName,
     precision = 0,
-    small: boolean | undefined = undefined
-) {
+    small = undefined
+}: ResourceOptions = {}) {
     const resource: Partial<Resource<T>> = isRef(defaultValue)
         ? defaultValue
         : persistent(defaultValue);
     resource.displayName = displayName;
+    resource.singularName = singularName;
     resource.precision = precision;
     resource.small = small;
     if (!isRef(defaultValue)) {

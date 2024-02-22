@@ -7,8 +7,8 @@
         >
             <div class="main-display">
                 <span v-if="showPrefix">You have </span>
-                <ResourceVue :resource="resource" :color="color || 'var(--feature-background)'" />
-                {{ resource.displayName }}<!-- remove whitespace -->
+                <ResourceVue :resource="resource" :color="color || 'var(--feature-background)'" :include-name="true" />
+                <!-- remove whitespace -->
                 <span v-if="effectComponent"
                     >, <component :is="effectComponent" ref="effectRef"
                 /></span>

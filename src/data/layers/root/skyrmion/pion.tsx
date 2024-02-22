@@ -7,12 +7,10 @@ import skyrmion from "./skyrmion";
 import acceleron from "../acceleron/acceleron";
 import { ComputedRef, computed, unref } from "vue";
 import spinor from "./spinor";
-import { GenericFormula } from "game/formulas/types";
 import { Computable } from "util/computed";
 import { SkyrmionRepeatable, createSkyrmionRepeatable } from "./repeatable"
 import { createCostRequirement, requirementsMet } from "game/requirements";
 import { noPersist } from "game/persistence";
-import Formula from "game/formulas/formulas";
 import fome, { FomeTypes } from "../fome/fome";
 import Resource from "features/resources/Resource.vue";
 import { format, formatSmall } from "util/break_eternity";
@@ -29,7 +27,7 @@ const id = "pion";
 const layer = createLayer(id, function (this: BaseLayer) {
     const name = "Pions";
     
-    const pions = createResource<DecimalSource>(0, name, undefined, true);
+    const pions = createResource<DecimalSource>(0, { displayName: name, singularName: "Pion", small: true });
     const productionModifiers = createSequentialModifier(() => [
         ...skyrmion.production,
         createMultiplicativeModifier(() => ({
@@ -311,7 +309,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         display: jsx(() => (
             <div class="table" style="width: 530px; align-items: flex-end">
                 <div class="col" style="align-items: flex-end">
-                    <div>You have <Resource resource={pions} color="var(--feature-background)" tag="h3" /> {pions.displayName} (+{displayResource(pions, production.value)}/s){render(modifierModal)}</div>
+                    <div>You have <Resource resource={pions} color="var(--feature-background)" tag="h3" includeName={true} /> (+{displayResource(pions, production.value)}/s){render(modifierModal)}</div>
                     <div style="font-size: 12px">Your Spinor upgrades are increasing Pion upgrade costs by {formatSmall(unref(costNerf).minus(1).times(100))}%</div>
                     <Spacer />
                     <Pion />

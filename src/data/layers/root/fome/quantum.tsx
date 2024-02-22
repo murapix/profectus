@@ -23,7 +23,7 @@ import { createModifierModal } from "util/util";
 
 const id = "quantum";
 const layer = createLayer(id, function (this: BaseLayer) {
-    const amount = createResource<DecimalSource>(0, "Quantum Foam");
+    const amount = createResource<DecimalSource>(0, { displayName: "Quantum Foam" });
 
     const productionModifiers = createSequentialModifier(() => [
         ...fome.production,

@@ -1,5 +1,5 @@
 import { Visibility, isVisible, jsx } from "features/feature";
-import { createResource } from "features/resources/resource";
+import { createResource, displayResource } from "features/resources/resource";
 import { createLayer, BaseLayer } from "game/layers";
 import { createMultiplicativeModifier, createSequentialModifier } from "game/modifiers";
 import Decimal, { DecimalSource } from "lib/break_eternity";
@@ -110,7 +110,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         if (unref(upgrades.autoGain.bought)) { skyrmions.onClick(); }
     })
 
-    const resource = createResource<DecimalSource>(skyrmions.amount, name);
+    const resource = createResource<DecimalSource>(skyrmions.amount, { displayName: name, singularName: "Skyrmion" });
     const totalSkyrmions = computed(() => Decimal.add(unref(resource), getFomeBoost(FomeTypes.subspatial, 4)));
     const generalProductionModifiers = [
         createMultiplicativeModifier(() => ({
@@ -409,11 +409,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
         hotkeys,
         display: jsx(() => (
             <>
-                You have <Resource resource={resource} color="var(--feature-background)" tag="h2" /> {resource.displayName}{render(modifierModal)}
+                You have <Resource resource={resource} color="var(--feature-background)" tag="h2" includeName={true} />{render(modifierModal)}
                 {Decimal.gt(getFomeBoost(FomeTypes.subspatial, 4), 0)
-                ?   <><br />Your {fome.subspatial.amount.displayName} is granting an additional <h3 style={{ color: 'var(--feature-background)', textShadow: '0px 0px 10px var(--feature-background)' }}>
-                        {format(getFomeBoost(FomeTypes.subspatial, 4))}
-                    </h3> {resource.displayName}</>
+                ?   <><br />Your {fome.subspatial.amount.displayName} is granting an additional <Resource resource={resource} override={getFomeBoost(FomeTypes.subspatial, 4)} color="var(--feature-background)" tag="h3" includeName={true} /></>
                 : <Spacer height="25px" /> }
                 <Spacer />
                 <div class="row" style={{ flexFlow: "row nowrap" }}>

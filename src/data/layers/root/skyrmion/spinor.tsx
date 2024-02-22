@@ -9,8 +9,6 @@ import { ComputedRef, computed, unref } from "vue";
 import pion from "./pion";
 import { Computable } from "util/computed";
 import { SkyrmionRepeatable, createSkyrmionRepeatable } from "./repeatable";
-import Formula from "game/formulas/formulas";
-import { GenericFormula } from "game/formulas/types";
 import { noPersist } from "game/persistence";
 import { createCostRequirement, requirementsMet } from "game/requirements";
 import fome, { FomeTypes } from "../fome/fome";
@@ -30,7 +28,7 @@ const id = "spinor";
 const layer = createLayer(id, function (this: BaseLayer) {
     const name = "Spinors";
     
-    const spinors = createResource<DecimalSource>(0, name, undefined, true);
+    const spinors = createResource<DecimalSource>(0, { displayName: name, singularName: "Spinor", small: true });
     const productionModifiers = createSequentialModifier(() => [
         ...skyrmion.production,
         createMultiplicativeModifier(() => ({
@@ -313,7 +311,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         display: jsx(() => (
             <div class="table" style="width: 530px; align-items: flex-start">
                 <div class="col" style="align-items: flex-start">
-                    <div>You have <Resource resource={spinors} color="var(--feature-background)" tag="h3" /> {spinors.displayName} (+{displayResource(spinors, production.value)}/s){render(modifierModal)}</div>
+                    <div>You have <Resource resource={spinors} color="var(--feature-background)" tag="h3" includeName={true} /> (+{displayResource(spinors, production.value)}/s){render(modifierModal)}</div>
                     <div style="font-size: 12px">Your Pion upgrades are increasing Spinor upgrade costs by {formatSmall(unref(costNerf).minus(1).times(100))}%</div>
                     <Spacer />
                     <Spinor />

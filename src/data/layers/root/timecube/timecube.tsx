@@ -33,7 +33,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
 
     const unlocked: Ref<boolean> = computed(() => unref(entangled.milestones[1].earned) || unref(acceleron.loops.loops.timecube.built));
     
-    const timecubes = createResource<DecimalSource>(0, "Time Cubes");
+    const timecubes = createResource<DecimalSource>(0, { displayName: name, singularName: "Time Cube" });
     const bestTimecubes = trackBest(timecubes);
 
     const productionModifiers = createSequentialModifier(() => [

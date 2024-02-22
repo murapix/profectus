@@ -61,6 +61,7 @@ import { jsx } from 'features/feature';
 import { displayResource } from 'features/resources/resource';
 import { ProcessedComputable } from 'util/computed';
 import { DecimalSource } from 'util/bignum';
+import NamedResource from 'features/resources/NamedResource.vue';
 
 const props = defineProps<{
     challenge: GenericChallenge;
@@ -86,7 +87,7 @@ watchEffect(() => {
         jsx(() => {
             const requirement = props.challenge.requirements as CostRequirement;
             return <div>
-                Current Goal: {displayResource(requirement.resource, unref(requirement.cost as ProcessedComputable<DecimalSource>))} {requirement.resource.displayName}
+                Current Goal: <NamedResource resource={requirement.resource} override={unref(requirement.cost as ProcessedComputable<DecimalSource>)} />
             </div>
         })
     );

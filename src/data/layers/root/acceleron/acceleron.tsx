@@ -31,6 +31,7 @@ import { addTooltip } from "features/tooltips/tooltip";
 import { createModifierModal } from "util/util";
 import { createHotkey } from "features/hotkey";
 import { root } from "data/projEntry";
+import NamedResource from "features/resources/NamedResource.vue";
 
 export const id = "acceleron";
 const layer = createLayer(id, function (this: BaseLayer) {
@@ -46,7 +47,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         return unref(fome[FomeTypes.quantum].upgrades.condense.bought);
     });
 
-    const accelerons = createResource<DecimalSource>(0, name);
+    const accelerons = createResource<DecimalSource>(0, { displayName: name, singularName: "Acceleron" });
     const bestAccelerons = trackBest(accelerons);
     const totalAccelerons = trackTotal(accelerons);
 
@@ -233,7 +234,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             small: true,
             style: achievementStyle(feature),
             tooltip: {
-                requirement: <>2 {accelerons.displayName}</>,
+                requirement: <NamedResource resource={noPersist(accelerons)} override={2} />,
                 effect: <>Keep Infinitesimal Boosts and Size Upgrades on Acceleron reset</>
             }
         })),
@@ -246,7 +247,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             small: true,
             style: achievementStyle(feature),
             tooltip: {
-                requirement: <>3 {accelerons.displayName}</>,
+                requirement: <NamedResource resource={noPersist(accelerons)} override={3} />,
                 effect: <>Keep Subspatial Boosts and Size Upgrades on Acceleron reset</>
             }
         })),
@@ -259,7 +260,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             small: true,
             style: achievementStyle(feature),
             tooltip: {
-                requirement: <>5 {accelerons.displayName}</>,
+                requirement: <NamedResource resource={noPersist(accelerons)} override={5} />,
                 effect: <>Start with 10 Skyrmions on Acceleron reset</>
             }
         })),
@@ -272,7 +273,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             small: true,
             style: achievementStyle(feature),
             tooltip: {
-                requirement: <>7 {accelerons.displayName}</>,
+                requirement: <NamedResource resource={noPersist(accelerons)} override={7} />,
                 effect: <>Keep Subplanck Boosts and Size Upgrades on Acceleron reset</>
             }
         })),
@@ -285,7 +286,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             small: true,
             style: achievementStyle(feature),
             tooltip: {
-                requirement: <>10 {accelerons.displayName}</>,
+                requirement: <NamedResource resource={noPersist(accelerons)} override={10} />,
                 effect: <>Keep Quantum Boosts and Size Upgrades on Acceleron reset</>
             }
         }))

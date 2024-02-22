@@ -32,7 +32,7 @@ const layer = createLayer("entangled", () => {
 
     const unlocked: Ref<boolean> = computed(() => unref(milestones[1].earned) || (unref(acceleron.upgrades.mastery.bought) && unref(inflaton.coreResearch.research.mastery.researched)));
 
-    const strings = createResource<DecimalSource>(0, "Entangled Strings");
+    const strings = createResource<DecimalSource>(0, { displayName: name, singularName: "Entangled String" });
 
     type BranchOrder = '' | typeof acceleronId | typeof inflatonId
     const branchOrder = persistent<BranchOrder>('', false);
@@ -319,7 +319,7 @@ const layer = createLayer("entangled", () => {
                 cost: 1
             })),
             display: {
-                requirement: `1 ${strings.displayName}`,
+                requirement: `1 ${strings.singularName}`,
                 effect: `${acceleron.accelerons.displayName} and ${inflaton.inflatons.displayName} no longer inflate each other's costs`
             },
             small: false
@@ -398,7 +398,7 @@ const layer = createLayer("entangled", () => {
                     {renderCol(expansions.inflaton, expansions.timecube)}
                 </Row>
                 <Spacer />
-                <div>The next {strings.displayName} requires:</div>
+                <div>The next {strings.singularName} requires:</div>
                 <Spacer />
                 <div style={{ color: acceleron.theme["--feature-background"] }}>
                     {acceleron.accelerons.displayName}: {format(unref(requirements.acceleron.resource))} / {format(unref(requirements.acceleron.cost as ProcessedComputable<DecimalSource>))}

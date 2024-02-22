@@ -31,9 +31,15 @@ const layer = createLayer(id, function (this: BaseLayer) {
         completionLimit: 4,
         onEnter() {
             swapPersistentData(layers, swapData);
+            if (Decimal.lt(unref(fome.protoversal.upgrades.reform.amount), 1)) {
+                fome.protoversal.upgrades.reform.amount.value = 1;
+            }
         },
         onExit() {
             swapPersistentData(layers, swapData);
+            if (Decimal.lt(unref(fome.protoversal.upgrades.reform.amount), 1)) {
+                fome.protoversal.upgrades.reform.amount.value = 1;
+            }
         }
     }));
 
@@ -41,7 +47,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
 
     const upgradeCount: Resource<number> = createResource(computed(() =>
         [ skyrmion.upgrades.nu, skyrmion.upgrades.xi, skyrmion.upgrades.pi, skyrmion.upgrades.rho ].filter(upgrade => unref(upgrade.bought)).length
-    ), "Abyssal Skyrmion Upgrades");
+    ), { displayName: "Abyssal Skyrmion Upgrades", singularName: "Abyssal Skyrmion Upgrade" });
     watch(upgradeCount, count => challenge.completions.value = Decimal.max(unref(challenge.completions), count));
 
     const swapData: Record<string, unknown> = (() => {

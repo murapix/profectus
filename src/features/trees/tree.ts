@@ -368,13 +368,16 @@ export function createResourceTooltip(
     const req = convertComputable(requirement);
     return computed(() => {
         if (requiredResource == null || Decimal.gte(resource.value, unref(req))) {
-            return displayResource(resource) + " " + resource.displayName;
+            const amountDisplay = displayResource(resource);
+            let name = resource.displayName;
+            if (Decimal.lte(resource.value, 1.5) && Decimal.gte(resource.value, 0.5) && Decimal.eq(amountDisplay, 1)) name = resource.singularName;
+            return `${amountDisplay} ${name}`;
         }
         return `Reach ${
             Decimal.eq(requiredResource.precision, 0)
                 ? formatWhole(unref(req))
                 : format(unref(req), requiredResource.precision)
-        } ${requiredResource.displayName} to unlock (You have ${
+        } ${(Decimal.lte(unref(req), 1.5) && Decimal.gte(unref(req), 0.5) && Decimal.eq(format(unref(req)), 1)) ? requiredResource.singularName : requiredResource.displayName} to unlock (You have ${
             Decimal.eq(requiredResource.precision, 0)
                 ? formatWhole(requiredResource.value)
                 : format(requiredResource.value, requiredResource.precision)
