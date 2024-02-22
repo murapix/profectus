@@ -32,6 +32,7 @@ import { createHotkey } from "features/hotkey";
 import { root } from "data/projEntry";
 import timecube from "../timecube/timecube";
 import { Sides } from "../timecube/timesquares";
+import NamedResource from "features/resources/NamedResource.vue";
 
 const id = "skyrmion";
 const layer = createLayer(id, function (this: BaseLayer) {
@@ -84,13 +85,19 @@ const layer = createLayer(id, function (this: BaseLayer) {
                     cost: costFunc(feature.amount)
                 }))
             ],
-            style: { paddingHorizontal: "20px" },
             display: jsx(() => {
                 const formula = costFunc(feature.amount);
                 const maxAffordable = Decimal.clampMin(maxRequirementsMet(skyrmions.requirements), 1);
                 const cost = calculateCost(formula, Decimal.clampMin(maxAffordable, 1), true);
+                const nameType = Decimal.gt(cost, 1.5) || Decimal.lt(cost, 0.5) || Decimal.eq(format(cost), 1) ? 'displayName' : 'singularName';
                 return <>
-                    <h3>Convert {format(cost)} Pions and Spinors to {formatWhole(maxAffordable)} Skyrmions</h3>
+                    <span>
+                        Convert<br/>
+                        {format(cost)}<br/>
+                        {pion.pions[nameType]} and {spinor.spinors[nameType]}<br/>
+                        to <NamedResource resource={resource} override={maxAffordable} />
+                        <Spacer height="5px" />
+                    </span>
                 </>
             })
         }
