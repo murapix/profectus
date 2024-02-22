@@ -416,7 +416,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 <Spacer />
                 <div class="row" style={{ flexFlow: "row nowrap" }}>
                     {render(pion.display)}
-                    {unref(entangled.expansions.skyrmion.bought) ? render(abyss.challenge) : <Spacer width='250px' height='250px' />}
+                    {unref(entangled.expansions.skyrmion.bought) ? render(abyss.display) : <Spacer width='250px' height='250px' />}
                     {render(spinor.display)}
                 </div>
                 <Spacer />

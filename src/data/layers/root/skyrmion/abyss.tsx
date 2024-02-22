@@ -5,7 +5,6 @@ import { createLayer, BaseLayer, layers } from "game/layers";
 import { createCostRequirement } from "game/requirements";
 import { computed, unref, watch } from "vue";
 import skyrmion from "./skyrmion";
-import { render } from "util/vue";
 import Decimal, { DecimalSource } from "lib/break_eternity";
 import pion from "./pion";
 import spinor from "./spinor"
@@ -15,25 +14,17 @@ import acceleron from "../acceleron/acceleron";
 import timecube from "../timecube/timecube";
 import inflaton from "../inflaton/inflaton";
 import { persistent } from "game/persistence";
+import AbyssChallenge from "./AbyssChallenge.vue";
 
 const id = "abyss";
 const layer = createLayer(id, function (this: BaseLayer) {
     const color = "#ff0000";
 
     const challenge = createChallenge(feature => ({
-        style: {
-            border: 0,
-            borderRadius: 0,
-            clipPath: "polygon(75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%, 25% 0%)",
-            marginHorizontal: "50px",
-            width: "250px",
-            minWidth: "250px",
-            minHeight: "250px",
-            boxShadow: "0"
-        },
         requirements: createCostRequirement(() => ({
             cost: () => Decimal.add(unref(feature.completions), 1),
-            resource: upgradeCount
+            resource: upgradeCount,
+            requiresPay: false
         })),
         completionLimit: 4,
         onEnter() {
@@ -88,7 +79,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         swapData,
         display: jsx(() => (
             <>
-                {render(challenge)}
+                <AbyssChallenge challenge={challenge} />
             </>
         ))
     }
