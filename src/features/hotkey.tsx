@@ -103,7 +103,7 @@ document.onkeydown = function (e) {
     if (uppercaseNumbers.includes(key)) {
         key = "shift+" + uppercaseNumbers.indexOf(key);
     } else if (e.shiftKey) {
-        key = "shift+" + key.toLowerCase();
+        key = "shift+" + key;
     }
     if (e.ctrlKey) {
         key = "ctrl+" + key;
