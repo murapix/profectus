@@ -9,11 +9,12 @@ import Decimal, { DecimalSource } from "lib/break_eternity";
 import { format } from "util/break_eternity";
 import { Computable, ProcessedComputable, convertComputable } from "util/computed";
 import { createLazyProxy } from "util/proxies";
-import { computed, unref } from "vue";
+import { ComputedRef, Ref, computed, unref } from "vue";
 import TimesquareComponent from "./TimesquareComponent.vue";
 import timecube from "./timecube";
 import timelines from "./timelines";
 import { Sides } from "./timesquares";
+import { trackHover } from "util/vue";
 
 export const TimesquareType = Symbol("Timesquare");
 
@@ -35,6 +36,12 @@ export type Timesquare<T = Decimal> = {
     buy: GenericClickable;
     buyNext: GenericClickable;
     buyMax: GenericClickable;
+    toBuy: ComputedRef<DecimalSource>;
+    hovering: {
+        buy: Ref<boolean>;
+        buyNext: Ref<boolean>;
+        buyMax: Ref<boolean>;
+    }
     type: typeof TimesquareType;
     [Component]: GenericComponent;
     [GatherProps]: () => Record<string, unknown>;
@@ -45,7 +52,7 @@ export function createTimesquare<T = Decimal>(
     optionsFunc: OptionsFunc<TimesquareOptions<T>, Timesquare<T>, Timesquare<T>>
 ): Timesquare<T> {
     return createLazyProxy<Timesquare<T>, Timesquare<T>>(timesquare => {
-        const { display, buyAmount, baseCost, resource, effect } = optionsFunc.call(timesquare, timesquare);
+        const { display, buyAmount, baseCost, resource, effect, nextEffect } = optionsFunc.call(timesquare, timesquare);
 
         const baseSquareCost = convertComputable(baseCost);
         const toBuy = convertComputable(buyAmount);
@@ -92,7 +99,8 @@ export function createTimesquare<T = Decimal>(
         timesquare.square = createRepeatable<RepeatableOptions & EffectFeatureOptions<T>>(() => ({
             requirements: createBooleanRequirement(false),
             display,
-            effect
+            effect,
+            nextEffect
         }), effectDecorator) as GenericRepeatable & GenericEffectFeature<T>;
         timesquare.buy = createClickable(() => ({
             canClick: () => requirementsMet(requirements.buy.cost),
@@ -117,7 +125,7 @@ export function createTimesquare<T = Decimal>(
                 payRequirements(requirements.buyNext.cost);
                 timesquare.square.amount.value = Decimal.add(unref(timesquare.square.amount), boughtAmount);
             }
-        }))
+        }));
         timesquare.buyMax = createClickable(() => ({
             canClick: () => requirementsMet(requirements.buyMax.cost),
             display: {
@@ -130,6 +138,19 @@ export function createTimesquare<T = Decimal>(
                 timesquare.square.amount.value = Decimal.add(unref(timesquare.square.amount), boughtAmount);
             }
         }));
+        timesquare.hovering = (() => {
+            const buy = trackHover(timesquare.buy);
+            const buyNext = trackHover(timesquare.buyNext);
+            const buyMax = trackHover(timesquare.buyMax);
+
+            return { buy, buyNext, buyMax }
+        })();
+        timesquare.toBuy = computed(() => {
+            if (unref(timesquare.hovering.buyMax)) return unref(requirements.buyMax.buyAmount);
+            if (unref(timesquare.hovering.buyNext)) return unref(requirements.buyNext.buyAmount);
+            if (unref(timesquare.hovering.buy)) return unref(requirements.buy.buyAmount);
+            return 0;
+        });
 
         timesquare.type = TimesquareType;
         timesquare[Component] = TimesquareComponent as GenericComponent;

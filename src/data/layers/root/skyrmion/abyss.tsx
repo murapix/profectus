@@ -44,6 +44,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
     }));
 
     const challengeUpgradeCount = computed(() => Decimal.add(unref(pion.upgradeCount), unref(spinor.upgradeCount)).times(0.75));
+    const nextChallengeUpgradeCount = computed(() => Decimal.add(unref(pion.upgradeCount), unref(spinor.upgradeCount)).plus(1).times(0.75));
 
     const upgradeCount: Resource<number> = createResource(computed(() =>
         [ skyrmion.upgrades.nu, skyrmion.upgrades.xi, skyrmion.upgrades.pi, skyrmion.upgrades.rho ].filter(upgrade => unref(upgrade.bought)).length
@@ -83,6 +84,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         theme,
         challenge,
         upgradeCount: challengeUpgradeCount,
+        nextUpgradeCount: nextChallengeUpgradeCount,
         abyssUpgradeCount: upgradeCount,
         swapData,
         display: jsx(() => (

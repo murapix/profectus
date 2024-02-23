@@ -17,7 +17,7 @@ import { EffectUpgrade, EffectUpgradeOptions, GenericUpgrade, createUpgrade, get
 import { BaseLayer, createLayer } from "game/layers";
 import { createMultiplicativeModifier, createSequentialModifier } from "game/modifiers";
 import { noPersist, persistent } from "game/persistence";
-import { createCostRequirement, displayRequirements } from "game/requirements";
+import { createBooleanRequirement, createCostRequirement, displayRequirements } from "game/requirements";
 import Decimal, { DecimalSource } from "lib/break_eternity";
 import { format, formatTime, formatWhole } from "util/break_eternity";
 import { createModifierModal } from "util/util";
@@ -32,6 +32,7 @@ import timecube from "../timecube/timecube";
 import { Sides } from "../timecube/timesquares";
 import entropy from "./entropy";
 import loops from "./loops";
+import Toggle from "components/fields/Toggle.vue";
 
 export const id = "acceleron";
 const layer = createLayer(id, function (this: BaseLayer) {

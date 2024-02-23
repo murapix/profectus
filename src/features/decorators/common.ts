@@ -29,16 +29,23 @@ export type GenericDecorator = Decorator<unknown>;
 
 export interface EffectFeatureOptions<T = unknown> {
     effect: Computable<T>;
+    nextEffect?: Computable<T>;
 }
 
 export type EffectFeature<T extends EffectFeatureOptions> = Replace<
     T,
-    { effect: GetComputableType<T["effect"]> }
+    {
+        effect: GetComputableType<T["effect"]>,
+        nextEffect: GetComputableType<T["nextEffect"]>
+    }
 >;
 
 export type GenericEffectFeature<T = unknown> = Replace<
     EffectFeature<EffectFeatureOptions>,
-    { effect: ProcessedComputable<T> }
+    {
+        effect: ProcessedComputable<T>,
+        nextEffect?: ProcessedComputable<T>
+    }
 >;
 
 /**
@@ -55,5 +62,6 @@ export type GenericEffectFeature<T = unknown> = Replace<
 export const effectDecorator: Decorator<EffectFeatureOptions, unknown, GenericEffectFeature> = {
     postConstruct(feature) {
         processComputable(feature, "effect");
+        processComputable(feature, "nextEffect");
     }
 };

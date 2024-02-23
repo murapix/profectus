@@ -54,6 +54,12 @@ const layer = createLayer(id, function (this: BaseLayer) {
         const exponent = amount.times(0.25).times(getFomeBoost(FomeTypes.quantum, 2) as DecimalSource);
         return base.pow(exponent);
     });
+    const nextCostNerf = computed(() => {
+        const amount = unref(abyss.challenge.active) ? unref(abyss.nextUpgradeCount) : unref(spinor.upgradeCount).plus(1);
+        const base = amount.times(0.2).times(unref(spinor.upgrades.beta.effect as ComputedRef<DecimalSource>)).plus(1);
+        const exponent = amount.times(0.25).times(getFomeBoost(FomeTypes.quantum, 2) as DecimalSource);
+        return base.pow(exponent);
+    });
     const upgrades = (() => {
         const alpha = createUpgrade({
             cost(amount) {
@@ -81,7 +87,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             display: {
                 name: "β",
                 description: <>Reduce the nerf to Spinor upgrade cost by 10%</>,
-                effect: effect => `Spinor upgrade cost nerf reduced to ${formatSmall(Decimal.times(effect as DecimalSource, 100))}%`
+                effect: (effect, nextEffect) => `Spinor upgrade cost nerf reduced to ${formatSmall(Decimal.times(effect as DecimalSource, 100))}%${nextEffect ? ` → ${formatSmall(Decimal.times(nextEffect as DecimalSource, 100))}%` : undefined}`
             },
             effect: amount => Decimal.pow(0.9, amount),
             bonusAmount: fome[FomeTypes.protoversal].boosts[3].effect
@@ -113,7 +119,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 name: "δ",
                 description: <>Gain 70% more Protoversal Foam from Skyrmions</>
             },
-            effect: amount => Decimal.pow(amount, 1.7),
+            effect: amount => Decimal.pow(1.7, amount),
             bonusAmount: fome[FomeTypes.subplanck].boosts[2].effect
         });
         const epsilon = createUpgrade({
@@ -157,7 +163,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             display: {
                 name: "η",
                 description: <>Gain a free level of <b>Spinor Upgrade ε</b></>,
-                effect: effect => `${format(effect as DecimalSource)} free levels`
+                effect: (effect, nextEffect) => `${format(effect)}${nextEffect ? ` → ${format(nextEffect)}` : undefined} free levels`
             },
             effect: amount => amount,
             bonusAmount: fome[FomeTypes.subplanck].boosts[5].effect
@@ -243,8 +249,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             shouldAutobuy: noPersist(skyrmion.upgrades.nu.bought),
             display: {
                 name: "ν",
-                description: <>Increase research speed by {formatSmall(0.00025)}× per order of magnitude of Pions</>,
-                effect: effect => `${formatSmall(effect)}×`
+                description: <>Increase research speed by {formatSmall(0.00025)}× per order of magnitude of Pions</>
             },
             effect: amount => Decimal.clampMin(unref(pions), 0).plus(1).log10().times(amount).times(0.00025).plus(1)
         });
@@ -256,8 +261,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             shouldAutobuy: noPersist(skyrmion.upgrades.xi.bought),
             display: {
                 name: "ξ",
-                description: <>Decrease the Entangled String Acceleron requirement by 5%</>,
-                effect: effect => `${formatSmall(effect)}×`
+                description: <>Decrease the Entangled String Acceleron requirement by 5%</>
             },
             effect: amount => Decimal.pow(0.95, amount)
         });
@@ -306,10 +310,14 @@ const layer = createLayer(id, function (this: BaseLayer) {
         upgradeCount: effectiveUpgradeCount,
         upgrades,
         display: jsx(() => (
-            <div class="table" style="width: 530px; align-items: flex-end">
+            <div class="table" style="width: 600px; align-items: flex-end">
                 <div class="col" style="align-items: flex-end">
                     <div>You have <Resource resource={pions} color="var(--feature-background)" tag="h3" includeName={true} /> (+{displayResource(pions, production.value)}/s){render(modifierModal)}</div>
-                    <div style="font-size: 12px">Your Spinor upgrades are increasing Pion upgrade costs by {formatSmall(unref(costNerf).minus(1).times(100))}%</div>
+                    <div style="font-size: 12px">Your Spinor upgrades are increasing Pion upgrade costs by {formatSmall(unref(costNerf).minus(1).times(100))}%{
+                        Object.values(spinor.upgrades).some(upgrade => unref(upgrade.isHovered))
+                        ? <> → {formatSmall(unref(nextCostNerf).minus(1).times(100))}%</>
+                        : undefined
+                    }</div>
                     <Spacer />
                     <Pion />
                 </div>
@@ -324,7 +332,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         display: {
             name: string;
             description: JSX.Element;
-            effect?(effect: DecimalSource): CoercableComponent;
+            effect?(effect: DecimalSource, nextEffect?: DecimalSource): CoercableComponent;
         };
         effect?(amount: DecimalSource): DecimalSource;
         bonusAmount?: Computable<DecimalSource>;
