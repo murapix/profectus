@@ -38,7 +38,6 @@ const layer = createLayer("entangled", () => {
     const branchOrder = persistent<BranchOrder>('', false);
     function isFirstBranch(branch: BranchOrder): boolean {
         if (unref(milestones[1].earned)) return true;
-        if (unref(branchOrder) === '') return true;
         return branch === unref(branchOrder);
     }
 
