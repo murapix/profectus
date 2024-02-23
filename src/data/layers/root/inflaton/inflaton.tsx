@@ -47,7 +47,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
     const inflatons = createResource<DecimalSource>(0, { displayName: name, singularName: "Inflaton" });
     const requirement = createCostRequirement(() => ({
         resource: noPersist(fome[FomeTypes.quantum].amount),
-        cost: () => entangled.isFirstBranch(id) ? 1e9 : 1e50,
+        cost: () => (unref(entangled.branchOrder) === '' || entangled.isFirstBranch(id)) ? 1e9 : 1e50,
         requiresPay: false
     }));
     const conversion = createClickable(() => ({

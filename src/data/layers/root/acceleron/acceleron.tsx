@@ -17,7 +17,7 @@ import { EffectUpgrade, EffectUpgradeOptions, GenericUpgrade, createUpgrade, get
 import { BaseLayer, createLayer } from "game/layers";
 import { createMultiplicativeModifier, createSequentialModifier } from "game/modifiers";
 import { noPersist, persistent } from "game/persistence";
-import { createBooleanRequirement, createCostRequirement, displayRequirements } from "game/requirements";
+import { createCostRequirement, displayRequirements } from "game/requirements";
 import Decimal, { DecimalSource } from "lib/break_eternity";
 import { format, formatTime, formatWhole } from "util/break_eternity";
 import { createModifierModal } from "util/util";
@@ -32,7 +32,6 @@ import timecube from "../timecube/timecube";
 import { Sides } from "../timecube/timesquares";
 import entropy from "./entropy";
 import loops from "./loops";
-import Toggle from "components/fields/Toggle.vue";
 
 export const id = "acceleron";
 const layer = createLayer(id, function (this: BaseLayer) {
@@ -55,7 +54,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
     const acceleronCostModifiers = createSequentialModifier(() => [
         createMultiplicativeModifier(() => ({
             multiplier: 1e71,
-            enabled: () => !entangled.isFirstBranch(id),
+            enabled: () => !(unref(entangled.branchOrder) === '' || entangled.isFirstBranch(id)),
             description: jsx(() => <>[{inflaton.name}] Inflational Interference</>),
             smallerIsBetter: true
         })),
@@ -98,7 +97,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
     ]);
     const conversion = createCumulativeConversion(() => ({
         formula: fome => fome.dividedBy(acceleronCostModifiers.getFormula!(1e9))
-                             .pow(computed(() => entangled.isFirstBranch(id) ? 0.1 : 0.05)),
+                             .pow(computed(() => (unref(entangled.branchOrder) === '' || entangled.isFirstBranch(id)) ? 0.1 : 0.05)),
         baseResource: noPersist(fome[FomeTypes.quantum].amount),
         gainResource: noPersist(accelerons),
         onConvert() {
