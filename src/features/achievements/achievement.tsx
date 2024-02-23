@@ -196,34 +196,6 @@ export function createAchievement<T extends AchievementOptions>(
 
         processComputable(achievement as T, "visibility");
         setDefault(achievement, "visibility", Visibility.Visible);
-        const visibility = achievement.visibility as ProcessedComputable<Visibility | boolean>;
-        achievement.visibility = computed(() => {
-            const display = unref((achievement as GenericAchievement).display);
-            switch (settings.msDisplay) {
-                default:
-                case AchievementDisplay.All:
-                    return unref(visibility);
-                case AchievementDisplay.Configurable:
-                    if (
-                        unref(achievement.earned) &&
-                        !(
-                            display != null &&
-                            typeof display == "object" &&
-                            "optionsDisplay" in (display as Record<string, unknown>)
-                        )
-                    ) {
-                        return Visibility.None;
-                    }
-                    return unref(visibility);
-                case AchievementDisplay.Incomplete:
-                    if (unref(achievement.earned)) {
-                        return Visibility.None;
-                    }
-                    return unref(visibility);
-                case AchievementDisplay.None:
-                    return Visibility.None;
-            }
-        });
 
         processComputable(achievement as T, "display");
         processComputable(achievement as T, "mark");
@@ -290,34 +262,3 @@ export function createAchievement<T extends AchievementOptions>(
         return achievement as unknown as Achievement<T>;
     });
 }
-
-declare module "game/settings" {
-    interface Settings {
-        msDisplay: AchievementDisplay;
-    }
-}
-
-globalBus.on("loadSettings", settings => {
-    setDefault(settings, "msDisplay", AchievementDisplay.All);
-});
-
-const msDisplayOptions = Object.values(AchievementDisplay).map(option => ({
-    label: camelToTitle(option),
-    value: option
-}));
-
-registerSettingField(
-    jsx(() => (
-        <Select
-            title={jsx(() => (
-                <span class="option-title">
-                    Show achievements
-                    <desc>Select which achievements to display based on criterias.</desc>
-                </span>
-            ))}
-            options={msDisplayOptions}
-            onUpdate:modelValue={value => (settings.msDisplay = value as AchievementDisplay)}
-            modelValue={settings.msDisplay}
-        />
-    ))
-);

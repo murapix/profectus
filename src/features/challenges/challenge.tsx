@@ -231,13 +231,6 @@ export function createChallenge<T extends ChallengeOptions>(
         };
         processComputable(challenge as T, "visibility");
         setDefault(challenge, "visibility", Visibility.Visible);
-        const visibility = challenge.visibility as ProcessedComputable<Visibility | boolean>;
-        challenge.visibility = computed(() => {
-            if (settings.hideChallenges === true && unref(challenge.maxed)) {
-                return Visibility.None;
-            }
-            return unref(visibility);
-        });
         if (challenge.mark == null) {
             challenge.mark = computed(
                 () =>
@@ -353,28 +346,3 @@ export function isAnyChallengeActive(
     }
     return computed(() => (challenges as Ref<GenericChallenge | null>).value != null);
 }
-
-declare module "game/settings" {
-    interface Settings {
-        hideChallenges: boolean;
-    }
-}
-
-globalBus.on("loadSettings", settings => {
-    setDefault(settings, "hideChallenges", false);
-});
-
-registerSettingField(
-    jsx(() => (
-        <Toggle
-            title={jsx(() => (
-                <span class="option-title">
-                    Hide maxed challenges
-                    <desc>Hide challenges that have been fully completed.</desc>
-                </span>
-            ))}
-            onUpdate:modelValue={value => (settings.hideChallenges = value)}
-            modelValue={settings.hideChallenges}
-        />
-    ))
-);
