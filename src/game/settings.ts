@@ -22,6 +22,8 @@ export interface Settings {
     numberFormat: Notations;
     /** The format to use for numbers beyond the Standard notation limit */
     backupNumberFormat: Exclude<Notations, Notations.standard>;
+    /** Whether to show both pre- and post-purchase values where available */
+    showNextValues: boolean;
 }
 
 const state = reactive<Partial<Settings>>({
@@ -31,7 +33,8 @@ const state = reactive<Partial<Settings>>({
     unthrottled: false,
     alignUnits: false,
     numberFormat: Notations.scientific,
-    backupNumberFormat: Notations.scientific
+    backupNumberFormat: Notations.scientific,
+    showNextValues: true
 });
 
 watch(
@@ -65,7 +68,8 @@ export const hardResetSettings = (window.hardResetSettings = () => {
         showTPS: true,
         alignUnits: false,
         numberFormat: Notations.scientific,
-        backupNumberFormat: Notations.scientific as Exclude<Notations, Notations.standard>
+        backupNumberFormat: Notations.scientific as Exclude<Notations, Notations.standard>,
+        showNextValues: true
     };
     globalBus.emit("loadSettings", settings);
     Object.assign(state, settings);

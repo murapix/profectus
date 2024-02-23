@@ -20,6 +20,7 @@
                 <Select :title="notationTitle" :options="notations" v-model="numberFormat" />
                 <Select v-if="numberFormat === Notations.standard" :title="backupNotationTitle" :options="backupNotations" v-model="backupNumberFormat" />
                 <component :is="settingFieldsComponent" />
+                <Toggle :title="showNextValuesTitle" v-model="showNextValues" />
                 <Toggle :title="showTPSTitle" v-model="showTPS" />
                 <Toggle :title="alignModifierUnitsTitle" v-model="alignUnits" />
             </div>
@@ -35,7 +36,7 @@ import { jsx } from "features/feature";
 import Tooltip from "features/tooltips/Tooltip.vue";
 import player from "game/player";
 import settings, { settingFields } from "game/settings";
-import { camelToTitle, Direction } from "util/common";
+import { Direction } from "util/common";
 import { coerceComponent, render } from "util/vue";
 import { computed, ref, toRefs } from "vue";
 import Select from "./fields/Select.vue";
@@ -75,7 +76,7 @@ const settingFieldsComponent = computed(() => {
     return coerceComponent(jsx(() => (<>{settingFields.map(render)}</>)));
 });
 
-const { showTPS, unthrottled, alignUnits, numberFormat, backupNumberFormat } = toRefs(settings);
+const { showTPS, unthrottled, alignUnits, numberFormat, backupNumberFormat, showNextValues } = toRefs(settings);
 const { autosave } = toRefs(player);
 const isPaused = computed({
     get() {
@@ -127,7 +128,13 @@ const backupNotationTitle = jsx(() => (
         Backup Number Notation
         <desc>Change how numbers are formatted beyond the limit of Standard Notation</desc>
     </span>
-))
+));
+const showNextValuesTitle = jsx(() => (
+    <span class="option-title">
+        Show Next Values
+        <desc>Display both the current and next values of the hovered feature, where possible.</desc>
+    </span>
+));
 </script>
 
 <style>

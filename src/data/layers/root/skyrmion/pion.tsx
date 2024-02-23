@@ -21,6 +21,7 @@ import abyss from "./abyss";
 import { SkyrmionRepeatable, createSkyrmionRepeatable } from "./repeatable";
 import skyrmion from "./skyrmion";
 import spinor from "./spinor";
+import settings from "game/settings";
 
 const id = "pion";
 const layer = createLayer(id, function (this: BaseLayer) {
@@ -87,7 +88,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             display: {
                 name: "β",
                 description: <>Reduce the nerf to Spinor upgrade cost by 10%</>,
-                effect: (effect, nextEffect) => `Spinor upgrade cost nerf reduced to ${formatSmall(Decimal.times(effect as DecimalSource, 100))}%${nextEffect ? ` → ${formatSmall(Decimal.times(nextEffect as DecimalSource, 100))}%` : undefined}`
+                effect: (effect, nextEffect) => `Spinor upgrade cost nerf reduced to ${formatSmall(Decimal.times(effect as DecimalSource, 100))}%${(settings.showNextValues && nextEffect) ? ` → ${formatSmall(Decimal.times(nextEffect as DecimalSource, 100))}%` : ``}`
             },
             effect: amount => Decimal.pow(0.9, amount),
             bonusAmount: fome[FomeTypes.protoversal].boosts[3].effect
@@ -163,7 +164,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             display: {
                 name: "η",
                 description: <>Gain a free level of <b>Spinor Upgrade ε</b></>,
-                effect: (effect, nextEffect) => `${format(effect)}${nextEffect ? ` → ${format(nextEffect)}` : undefined} free levels`
+                effect: (effect, nextEffect) => `${format(effect)}${(settings.showNextValues && nextEffect) ? ` → ${format(nextEffect)}` : ``} free levels`
             },
             effect: amount => amount,
             bonusAmount: fome[FomeTypes.subplanck].boosts[5].effect
@@ -314,7 +315,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 <div class="col" style="align-items: flex-end">
                     <div>You have <Resource resource={pions} color="var(--feature-background)" tag="h3" includeName={true} /> (+{displayResource(pions, production.value)}/s){render(modifierModal)}</div>
                     <div style="font-size: 12px">Your Spinor upgrades are increasing Pion upgrade costs by {formatSmall(unref(costNerf).minus(1).times(100))}%{
-                        Object.values(spinor.upgrades).some(upgrade => unref(upgrade.isHovered))
+                        settings.showNextValues && Object.values(spinor.upgrades).some(upgrade => unref(upgrade.isHovered))
                         ? <> → {formatSmall(unref(nextCostNerf).minus(1).times(100))}%</>
                         : undefined
                     }</div>

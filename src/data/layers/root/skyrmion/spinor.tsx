@@ -22,6 +22,7 @@ import abyss from "./abyss";
 import pion from "./pion";
 import { SkyrmionRepeatable, createSkyrmionRepeatable } from "./repeatable";
 import skyrmion from "./skyrmion";
+import settings from "game/settings";
 
 const id = "spinor";
 const layer = createLayer(id, function (this: BaseLayer) {
@@ -73,7 +74,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             display: {
                 name: "α",
                 description: <>Reduce the cost of {skyrmion.skyrmions.displayName} by 33%</>,
-                effect: (effect, nextEffect) => `/${format(effect)}${nextEffect ? ` → /${format(nextEffect)}` : undefined}`
+                effect: (effect, nextEffect) => `/${format(effect)}${(settings.showNextValues && nextEffect) ? ` → /${format(nextEffect)}` : ``}`
             },
             effect: amount => Decimal.pow(1.5, amount),
             bonusAmount: fome[FomeTypes.protoversal].boosts[2].effect
@@ -89,7 +90,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             display: {
                 name: "β",
                 description: <>Reduce the nerf to Pion upgrade cost by 10%</>,
-                effect: (effect, nextEffect) => `Pion upgrade cost nerf reduced to ${formatSmall(Decimal.times(effect as DecimalSource, 100))}%${nextEffect ? ` → ${formatSmall(Decimal.times(nextEffect, 100))}%` : undefined}`
+                effect: (effect, nextEffect) => `Pion upgrade cost nerf reduced to ${formatSmall(Decimal.times(effect as DecimalSource, 100))}%${(settings.showNextValues && nextEffect) ? ` → ${formatSmall(Decimal.times(nextEffect, 100))}%` : ``}`
             },
             effect: amount => Decimal.pow(0.9, amount),
             bonusAmount: fome[FomeTypes.protoversal].boosts[3].effect
@@ -287,7 +288,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             display: {
                 name: "ρ",
                 description: <>Increase effective Subspace building count by 0.1%</>,
-                effect: (effect, nextEffect) => `${format(Decimal.times(effect, 100), 1)}%${nextEffect ? ` → ${format(Decimal.times(nextEffect, 100), 1)}%` : undefined}`
+                effect: (effect, nextEffect) => `${format(Decimal.times(effect, 100), 1)}%${nextEffect ? ` → ${format(Decimal.times(nextEffect, 100), 1)}%` : ``}`
             },
             effect: amount => Decimal.times(amount, 0.001)
         });
@@ -316,7 +317,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 <div class="col" style="align-items: flex-start">
                     <div>You have <Resource resource={spinors} color="var(--feature-background)" tag="h3" includeName={true} /> (+{displayResource(spinors, production.value)}/s){render(modifierModal)}</div>
                     <div style="font-size: 12px">Your Pion upgrades are increasing Spinor upgrade costs by {formatSmall(unref(costNerf).minus(1).times(100))}%{
-                        Object.values(pion.upgrades).some(upgrade => unref(upgrade.isHovered))
+                        settings.showNextValues && Object.values(pion.upgrades).some(upgrade => unref(upgrade.isHovered))
                         ? <> → {formatSmall(unref(nextCostNerf).minus(1).times(100))}%</>
                         : undefined
                     }</div>

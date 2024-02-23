@@ -13,6 +13,7 @@ import { computed, ref, unref, watch } from "vue";
 import acceleron from "../acceleron/acceleron";
 import timecube from "./timecube";
 import { Timesquare, createTimesquare } from "./timesquare";
+import settings from "game/settings";
 
 const id = "timesquare";
 const layer = createLayer(id, function (this: BaseLayer) {
@@ -62,7 +63,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             display: {
                 title: jsx(() => <>Front</>),
                 effect: jsx(() => <>+{format(unref(square.square.effect).minus(1).times(100))}%{
-                    Decimal.gt(unref(square.toBuy), 0)
+                    settings.showNextValues && Decimal.gt(unref(square.toBuy), 0)
                     ? <> → +{format(unref(square.square.nextEffect!).minus(1).times(100))}%</>
                     : undefined
                 } {timecube.timecubes.displayName}</>)
@@ -77,7 +78,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             display: {
                 title: jsx(() => <>Right</>),
                 effect: jsx(() => <>+{format(unref(square.square.effect))}×{
-                    Decimal.gt(unref(square.toBuy), 0)
+                    settings.showNextValues && Decimal.gt(unref(square.toBuy), 0)
                     ? <> → +{format(unref(square.square.nextEffect!))}</>
                     : undefined
                 } Entropic Loop build speed</>)
@@ -92,7 +93,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             display: {
                 title: jsx(() => <>Top</>),
                 effect: jsx(() => <>+{format(unref(square.square.effect).minus(1).times(100))}%{
-                    Decimal.gt(unref(square.toBuy), 0)
+                    settings.showNextValues && Decimal.gt(unref(square.toBuy), 0)
                     ? <> → +{format(unref(square.square.nextEffect!).minus(1).times(100))}%</>
                     : undefined
                 } increased Universe diameter</>)
@@ -107,7 +108,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             display: {
                 title: jsx(() => <>Back</>),
                 effect: jsx(() => <>+{format(unref(square.square.effect).minus(1).times(100))}%{
-                    Decimal.gt(unref(square.toBuy), 0)
+                    settings.showNextValues && Decimal.gt(unref(square.toBuy), 0)
                     ? <> → +{format(unref(square.square.nextEffect!).minus(1).times(100))}%</>
                     : undefined
                 } {acceleron.accelerons.displayName} effect</>)
@@ -122,7 +123,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             display: {
                 title: jsx(() => <>Left</>),
                 effect: jsx(() => <>1/{format(unref(square.square.effect))}×{
-                    Decimal.gt(unref(square.toBuy), 0)
+                    settings.showNextValues && Decimal.gt(unref(square.toBuy), 0)
                     ? <> → 1/{format(unref(square.square.nextEffect!))}×</>
                     : undefined
                 } Subspatial Construction cost</>)
@@ -137,7 +138,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             display: {
                 title: jsx(() => <>Bottom</>),
                 effect: jsx(() => <>+{format(unref(square.square.effect))}{
-                    Decimal.gt(unref(square.toBuy), 0)
+                    settings.showNextValues && Decimal.gt(unref(square.toBuy), 0)
                     ? <> → +{format(unref(square.square.nextEffect!))}</>
                     : undefined
                 } effective Entropic Enhancements</>)

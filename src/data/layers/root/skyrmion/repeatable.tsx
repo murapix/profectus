@@ -4,6 +4,7 @@ import { CoercableComponent, Visibility, jsx } from "features/feature";
 import { GenericRepeatable, RepeatableOptions, createRepeatable } from "features/repeatable";
 import { addTooltip } from "features/tooltips/tooltip";
 import { Requirements, displayRequirements } from "game/requirements";
+import settings from "game/settings";
 import Decimal, { DecimalSource } from "lib/break_eternity";
 import { formatSmall, formatWhole } from "util/break_eternity";
 import { Direction } from "util/common";
@@ -33,7 +34,7 @@ export function createSkyrmionRepeatable(
         data.effect = amount => amount;
     }
     if (data.display.effect === undefined) {
-        data.display.effect = (effect: DecimalSource, nextEffect?: DecimalSource) => `${formatSmall(effect)}×${nextEffect ? ` → ${formatSmall(nextEffect)}×` : undefined}`;
+        data.display.effect = (effect: DecimalSource, nextEffect?: DecimalSource) => `${formatSmall(effect)}×${(settings.showNextValues && nextEffect) ? ` → ${formatSmall(nextEffect)}×` : ``}`;
     }
     const repeatable = createRepeatable<SkyrmionRepeatableOptions>(feature => ({
         visibility: data.visibility,
