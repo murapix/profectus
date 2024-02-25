@@ -20,7 +20,7 @@ import { Computable, ProcessedComputable } from "util/computed";
 import { createModifierModal } from "util/util";
 import { render } from "util/vue";
 import { computed, unref } from "vue";
-import acceleron from "../acceleron/acceleron";
+import acceleron, { id as acceleronId } from "../acceleron/acceleron";
 import entropy from "../acceleron/entropy";
 import entangled from "../entangled/entangled";
 import { createReformRequirement } from "../fome/ReformRequirement";
@@ -33,6 +33,7 @@ import abyss from "./abyss";
 import pion from "./pion";
 import spinor from "./spinor";
 import { createSkyrmionUpgrade } from "./upgrade";
+import inflaton, { id as inflatonId } from "../inflaton/inflaton"
 
 const id = "skyrmion";
 const layer = createLayer(id, function (this: BaseLayer) {
@@ -280,23 +281,23 @@ const layer = createLayer(id, function (this: BaseLayer) {
         }),
         lambda: createUpgrade({
             visibility(this: GenericUpgrade) {
-                return unref(this.bought) || Decimal.gte(unref(resource), 70);
+                return unref(this.bought) || unref(acceleron.upgrades.skyrmion.bought);
             },
             display: {
                 title: "Lateralization",
                 description: <>Autobuy λ upgrades<br />λ upgrades no longer consume Pions or Spinors</>
             },
-            cost: 72
+            cost: () => entangled.isFirstBranch(acceleronId) ? 72 : 150
         }),
         mu: createUpgrade({
             visibility(this: GenericUpgrade) {
-                return unref(this.bought) || Decimal.gte(unref(resource), 75);
+                return unref(this.bought) || unref(inflaton.upgrades.skyrmionUpgrades.bought);
             },
             display: {
                 title: "Materialization",
                 description: <>Autobuy μ upgrades<br />μ upgrades no longer consume Pions or Spinors</>
             },
-            cost: 92
+            cost: () => entangled.isFirstBranch(inflatonId) ? 101 : 150
         }),
         nu: createUpgrade({
             visibility(this: GenericUpgrade) {
@@ -438,7 +439,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
 
     interface SkyrmionUpgradeData {
         visibility?: Computable<Visibility | boolean>;
-        cost?: DecimalSource;
+        cost?: Computable<DecimalSource>;
         requirement?: Requirement;
         display: {
             title: string,

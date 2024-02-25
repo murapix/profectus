@@ -18,7 +18,7 @@ import { formatWhole } from "util/break_eternity";
 import { createModifierModal } from "util/util";
 import { render, renderRow } from "util/vue";
 import { ComputedRef, Ref, computed, unref } from "vue";
-import acceleron from "../acceleron/acceleron";
+import acceleron, { id as acceleronId } from "../acceleron/acceleron";
 import entangled from "../entangled/entangled";
 import fome, { FomeTypes } from "../fome/fome";
 import skyrmion from "../skyrmion/skyrmion";
@@ -41,7 +41,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         if (unref(entangled.milestones[1].earned)) return true;
         if (entangled.isFirstBranch(id)) return true;
         if (unref(acceleron.upgrades.mastery.bought)) return true;
-        return unref(fome[FomeTypes.quantum].upgrades.condense.bought);
+        return !entangled.isFirstBranch(acceleronId) && unref(fome[FomeTypes.quantum].upgrades.condense.bought);
     });
 
     const inflatons = createResource<DecimalSource>(0, { displayName: name, singularName: "Inflaton" });
@@ -61,7 +61,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
         )),
         onClick() {
             inflatons.value = Decimal.dOne;
-            if (entangled.isFirstBranch(id)) entangled.branchOrder.value = id;
+            if (unref(entangled.milestones[1].earned)) return;
+            if (unref(entangled.branchOrder) === '') entangled.branchOrder.value = id;
         },
         style: {
             width: 'fit-content',

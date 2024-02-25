@@ -1,6 +1,6 @@
 import { BonusAmountFeatureOptions, GenericBonusAmountFeature, bonusAmountDecorator } from "features/decorators/bonusDecorator";
 import { EffectFeatureOptions, GenericEffectFeature, effectDecorator } from "features/decorators/common";
-import { CoercableComponent, Visibility, jsx } from "features/feature";
+import { CoercableComponent, Visibility, isVisible, jsx } from "features/feature";
 import { GenericRepeatable, RepeatableOptions, createRepeatable } from "features/repeatable";
 import { addTooltip } from "features/tooltips/tooltip";
 import { Requirements, displayRequirements } from "game/requirements";
@@ -8,12 +8,12 @@ import settings from "game/settings";
 import Decimal, { DecimalSource } from "lib/break_eternity";
 import { formatSmall, formatWhole } from "util/break_eternity";
 import { Direction } from "util/common";
-import { Computable } from "util/computed";
+import { Computable, convertComputable, ProcessedComputable } from "util/computed";
 import { trackHover } from "util/vue";
 import { Ref, unref } from "vue";
 
 export interface SkyrmionRepeatableData {
-    visibility?: Computable<Visibility | boolean>;
+    visibility?: Computable<Visibility | boolean> | Computable<Visibility | boolean>[];
     requirements: Requirements;
     display: {
         name: string;
@@ -36,8 +36,20 @@ export function createSkyrmionRepeatable(
     if (data.display.effect === undefined) {
         data.display.effect = (effect: DecimalSource, nextEffect?: DecimalSource) => `${formatSmall(effect)}×${(settings.showNextValues && nextEffect) ? ` → ${formatSmall(nextEffect)}×` : ``}`;
     }
+
+    let visibility: ProcessedComputable<Visibility | boolean>[] = [];
+    if (Array.isArray(data.visibility)) {
+        visibility.push(...data.visibility.map(condition => convertComputable(condition)));
+    }
+    else if (data.visibility != null) {
+        visibility.push(convertComputable(data.visibility));
+    }
+    else {
+        visibility.push(true);
+    }
+    
     const repeatable = createRepeatable<SkyrmionRepeatableOptions>(feature => ({
-        visibility: data.visibility,
+        visibility: () => unref(visibility.filter(check => isVisible(check))[0]) ?? false,
         requirements: data.requirements,
         display: data.display.name,
         effect: () => data.effect!(unref((feature as SkyrmionRepeatable).totalAmount)),

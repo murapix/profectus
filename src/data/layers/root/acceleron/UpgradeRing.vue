@@ -579,7 +579,7 @@ export default defineComponent({
 
 :deep(.ring-upgrade.can) {
     border-color: var(--feature-background);
-    color: var(--feature-foreground);
+    color: var(--feature-background);
 }
 
 :deep(.ring-upgrade.bought) {

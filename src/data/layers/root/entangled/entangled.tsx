@@ -266,6 +266,7 @@ const layer = createLayer("entangled", () => {
         },
         onClick() {
             strings.value = Decimal.add(unref(strings.value), 1);
+            branchOrder.value = '';
             nextTick(() => {
                 const keptInflatonResearch = (unref(milestones[3].earned)
                     ? [inflaton.coreResearch.research.queueTwo, inflaton.coreResearch.research.queueFour]

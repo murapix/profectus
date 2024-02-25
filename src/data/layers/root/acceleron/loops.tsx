@@ -20,10 +20,11 @@ import timelines from "../timecube/timelines";
 import { Sides } from "../timecube/timesquares";
 import LoopDescriptions from "./LoopDescriptions.vue";
 import Loops from "./Loops.vue";
-import acceleronLayer from "./acceleron";
+import acceleronLayer, { id as acceleronId } from "./acceleron";
 import entropy from "./entropy";
 import { GenericLoop, LoopOptions, createLoop } from "./loop";
 import { GenericPersistentLoop, persistentDecorator } from "./persistentLoopDecorator";
+import entangled from "../entangled/entangled";
 
 const id = "loops";
 const layer = createLayer(id, function (this: BaseLayer) {
@@ -117,8 +118,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
     const loops = (() => {
         const acceleron = createLoop<LoopOptions<Decimal>, Decimal>(loop => ({
             visibility: noPersist(acceleronLayer.upgrades.superstructures.bought),
-            buildRequirement: new Decimal(60),
-            triggerRequirement: Decimal.dOne,
+            buildRequirement: 60,
+            triggerRequirement: 1,
             display: {
                 color: computed(() => unref(abyss.challenge.active) ? "var(--feature-background)" : acceleronLayer.theme["--feature-background"]),
                 width: 10,
@@ -148,8 +149,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
         })) as GenericLoop<Decimal>;
         const instantProd = createLoop<LoopOptions<Decimal>, Decimal>(loop => ({
             visibility() { return unref(loop.built) || unref(acceleron.built) },
-            buildRequirement: new Decimal(360),
-            triggerRequirement: new Decimal(60),
+            buildRequirement: 360,
+            triggerRequirement: 60,
             display: () => ({
                 color: computed(() => unref(abyss.challenge.active) ? "var(--feature-background)" : skyrmion.theme["--feature-background"]),
                 width: 10,
@@ -177,8 +178,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
         })) as GenericLoop<Decimal>;
         const timecube = createLoop<LoopOptions<Decimal>, Decimal>(loop => ({
             visibility() { return unref(this.built) || unref(instantProd.built) },
-            buildRequirement: new Decimal(600),
-            triggerRequirement: new Decimal(3600),
+            buildRequirement: 600,
+            triggerRequirement: 60*60,
             display: {
                 color: computed(() => unref(abyss.challenge.active) ? "var(--feature-background)" : timecubeLayer.theme["--feature-background"]),
                 width: 10,
@@ -204,7 +205,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         const tempFome = createLoop<LoopOptions<Decimal>, Decimal>(loop => ({
             visibility() { return unref(this.built) || unref(acceleronLayer.upgrades.tetration.bought) || unref(timecubeLayer.upgrades.tiny.bought) },
             buildRequirement: new Decimal(250000),
-            triggerRequirement: new Decimal(86400),
+            triggerRequirement: 60*60*24,
             display: {
                 color: computed(() => unref(abyss.challenge.active) ? "var(--feature-background)" : fome.theme["--feature-background"]),
                 width: 10,
@@ -229,7 +230,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         const tempAcceleron = createLoop<LoopOptions<Decimal>, Decimal>(loop => ({
             visibility() { return unref(this.built) || (unref(acceleronLayer.upgrades.tetration.bought)) && unref(tempFome.built) },
             buildRequirement: new Decimal(1e11),
-            triggerRequirement: new Decimal(31536000),
+            triggerRequirement: 60*60*24*365,
             display: {
                 color: computed(() => unref(abyss.challenge.active) ? "var(--feature-background)" : acceleronLayer.theme["--feature-background"]),
                 width: 10,
@@ -250,8 +251,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
         }), persistentDecorator) as GenericPersistentLoop<Decimal>;
         const tempSkyrmion = createLoop<LoopOptions<Decimal>, Decimal>(loop => ({
             visibility() { return unref(this.built) || (unref(acceleronLayer.upgrades.tetration.bought) && unref(timecubeLayer.upgrades.tiny.bought) && unref(tempAcceleron.built)) },
-            buildRequirement: new Decimal(4e17),
             triggerRequirement: new Decimal(315360000),
+            buildRequirement: () => (unref(entangled.branchOrder) === '' || entangled.isFirstBranch(acceleronId)) ? 4e16 : 4e12,
             display: {
                 color: computed(() => unref(abyss.challenge.active) ? "var(--feature-background)" : skyrmion.theme["--feature-background"]),
                 width: 10,

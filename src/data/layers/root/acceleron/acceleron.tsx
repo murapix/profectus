@@ -17,16 +17,16 @@ import { EffectUpgrade, EffectUpgradeOptions, GenericUpgrade, createUpgrade, get
 import { BaseLayer, createLayer } from "game/layers";
 import { createMultiplicativeModifier, createSequentialModifier } from "game/modifiers";
 import { noPersist, persistent } from "game/persistence";
-import { createCostRequirement, displayRequirements } from "game/requirements";
+import { createCostRequirement, displayRequirements, requirementsMet } from "game/requirements";
 import Decimal, { DecimalSource } from "lib/break_eternity";
 import { format, formatTime, formatWhole } from "util/break_eternity";
 import { createModifierModal } from "util/util";
 import { render, renderRow } from "util/vue";
-import { ComputedRef, Ref, computed, unref } from "vue";
+import { ComputedRef, Ref, computed, nextTick, unref } from "vue";
 import UpgradeRing from "../acceleron/UpgradeRing.vue";
 import entangled from "../entangled/entangled";
 import fome, { FomeTypes } from "../fome/fome";
-import inflaton from "../inflaton/inflaton";
+import inflaton, { id as inflatonId } from "../inflaton/inflaton";
 import skyrmion from "../skyrmion/skyrmion";
 import timecube from "../timecube/timecube";
 import { Sides } from "../timecube/timesquares";
@@ -44,7 +44,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         if (unref(entangled.milestones[1].earned)) return true;
         if (entangled.isFirstBranch(id)) return true;
         if (unref(inflaton.coreResearch.research.mastery.researched)) return true;
-        return unref(fome[FomeTypes.quantum].upgrades.condense.bought);
+        return !entangled.isFirstBranch(inflatonId) && unref(fome[FomeTypes.quantum].upgrades.condense.bought);
     });
 
     const accelerons = createResource<DecimalSource>(0, { displayName: name, singularName: "Acceleron" });
@@ -101,7 +101,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
         baseResource: noPersist(fome[FomeTypes.quantum].amount),
         gainResource: noPersist(accelerons),
         onConvert() {
-            if (entangled.isFirstBranch(id)) entangled.branchOrder.value = id;
+            if (unref(entangled.milestones[1].earned)) return;
+            if (unref(entangled.branchOrder) === '') entangled.branchOrder.value = id;
         }
     }));
     const reset = createReset(() => ({
@@ -151,8 +152,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
             minHeight: '60px'
         },
         onClick() {
-            reset.reset();
-            skyrmion.skyrmions.value = unref(achievements.skyrmion.earned) ? 10 : 1;
+            nextTick(() => {
+                reset.reset();
+                skyrmion.skyrmions.value = unref(achievements.skyrmion.earned) ? 10 : 1;
+            });
         }
     }));
 
@@ -320,7 +323,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             display: jsx(() => (
                 <>
                     <h3>Quantum Translation</h3><br /><br />
-                    Acceleron cost is divided by the number of Foam re-formations<br /><br />
+                    Acceleron cost is divided based on the number of Foam re-formations<br /><br />
                     Currently: /{formatWhole(getUpgradeEffect(upgrade as EffectUpgrade, undefined, true))}<br />
                     {displayRequirements((upgrade as GenericUpgrade).requirements)}
                 </>
@@ -367,14 +370,14 @@ const layer = createLayer(id, function (this: BaseLayer) {
             display: jsx(() => (
                 <>
                     <h3>Temporal Fluctuation</h3><br /><br />
-                    Acceleron cost is divided by the number of completed Entropic Loops<br /><br />
+                    Acceleron cost is divided based on the number of completed Entropic Loops<br /><br />
                     Currently: /{formatWhole(getUpgradeEffect(upgrade as EffectUpgrade, undefined, true))}<br />
                     {displayRequirements((upgrade as GenericUpgrade).requirements)}
                 </>
             )),
             effect() { return unref(loops.numBuiltLoops) + 1 },
             requirements: createCostRequirement(() => ({
-                cost: new Decimal(100),
+                cost: 100,
                 resource: noPersist(accelerons)
             }))
         }), effectDecorator) as EffectUpgrade<number>;
@@ -389,7 +392,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 </>
             )),
             requirements: createCostRequirement(() => ({
-                cost: new Decimal(300),
+                cost: 300,
                 resource: noPersist(accelerons)
             }))
         })) as GenericUpgrade;
@@ -405,7 +408,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             )),
             effect() { return unref(loops.numBuiltLoops) + 1 },
             requirements: createCostRequirement(() => ({
-                cost: new Decimal(150000),
+                cost: 150000,
                 resource: noPersist(accelerons)
             }))
         }), effectDecorator) as EffectUpgrade<number>;

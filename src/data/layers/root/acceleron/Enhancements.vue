@@ -53,7 +53,7 @@ const processedRows = ([1, 2, 3, 4] as EnhancementRow[]).map(row => ({
     border: solid var(--feature-background) 2px;
 
     background: var(--quarter-transparent);
-    color: var(--feature-foreground);
+    color: var(--feature-background);
     z-index: 2;
 }
 

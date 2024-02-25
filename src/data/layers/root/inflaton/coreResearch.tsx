@@ -404,7 +404,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             if (unref(researchQueue).some(id => id === repeatables.buildingSize.id)) return;
             if (unref(researchQueue).length >= unref(queueLength)) return;
             
-            researchQueue.value = [repeatables.buildingSize.id, ...unref(researchQueue)]
+            const newQueue = [repeatables.buildingSize.id, ...unref(researchQueue)]
                 .map(id => [research, repeatables].flatMap(location => Object.values(location) as GenericResearch[]).find(node => node.id === id))
                 .filter(node => node !== undefined)
                 .sort((a,b) => Decimal.compare(
@@ -412,7 +412,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
                     unref((b!.requirements as CostRequirement).cost as ProcessedComputable<DecimalSource>)
                 ))
                 .map(node => node!.id);
-            
+
+            if (newQueue.indexOf(repeatables.buildingSize.id) < unref(parallelResearchCount)) {
+                researchQueue.value = newQueue;
+            }
             return;
         }
         Object.values(repeatables).filter(repeatable => Decimal.gte(unref(repeatable.amount), 1))
