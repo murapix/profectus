@@ -27,7 +27,8 @@ import timecube from "../timecube/timecube";
 const layer = createLayer("entangled", () => {
     const name = "Entangled Strings";
     const theme = {
-        "--feature-background": "#9a4500"
+        "--feature-background": "#9a4500",
+        "--bought": "#9a450099"
     };
 
     const unlocked: Ref<boolean> = computed(() => unref(milestones[1].earned) || (unref(acceleron.upgrades.mastery.bought) && unref(inflaton.coreResearch.research.mastery.researched)));

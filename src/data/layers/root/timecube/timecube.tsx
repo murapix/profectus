@@ -28,7 +28,8 @@ const id = "timecube";
 const layer = createLayer(id, function (this: BaseLayer) {
     const name = "Time Cubes";
     const theme = {
-        "--feature-background": "#f037ea"
+        "--feature-background": "#f037ea",
+        "--bought": "#6f3695"
     };
 
     const unlocked: Ref<boolean> = computed(() => unref(entangled.milestones[1].earned) || unref(acceleron.loops.loops.timecube.built));
