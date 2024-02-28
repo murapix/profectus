@@ -64,7 +64,7 @@ export function createTimesquare<T = Decimal>(
             const buyNext = { buyAmount: computed(() => {
                 const amount = unref(timesquare.square.amount);
                 const scale = Decimal.clampMin(amount, 1).log10().floor().pow10();
-                const mult = Decimal.div(amount, scale).floor();
+                const mult = Decimal.div(amount, scale).plus(1e-7).floor();
                 const totalAmount = mult.plus(1).times(scale);
                 return totalAmount.minus(amount);
             }) };

@@ -5,7 +5,6 @@
             {
                 visibility: isHidden(challenge.visibility) ? 'hidden' : undefined
             },
-            notifyStyle,
             unref(challenge.style) ?? {}
         ]"
         class="feature challenge"
@@ -53,31 +52,18 @@ import Node from 'components/Node.vue';
 import { GenericChallenge } from 'features/challenges/challenge';
 import { isHidden, isVisible, jsx } from 'features/feature';
 import NamedResource from 'features/resources/NamedResource.vue';
-import { getHighNotifyStyle, getNotifyStyle } from 'game/notifications';
 import type { CostRequirement } from 'game/requirements';
 import { DecimalSource } from 'util/bignum';
 import { ProcessedComputable } from 'util/computed';
-import { coerceComponent, unwrapRef } from 'util/vue';
+import { coerceComponent } from 'util/vue';
 import type { Component } from 'vue';
-import { computed, ref, shallowRef, unref, watchEffect } from 'vue';
+import { ref, shallowRef, unref, watchEffect } from 'vue';
 
 const props = defineProps<{
     challenge: GenericChallenge;
 }>();
 
 const showInfo = ref(false);
-
-const notifyStyle = computed(() => {
-    const currActive = unwrapRef(props.challenge.active);
-    const currCanComplete = unwrapRef(props.challenge.canComplete);
-    if (currActive) {
-        if (currCanComplete) {
-            return getHighNotifyStyle();
-        }
-        return getNotifyStyle();
-    }
-    return {};
-});
 
 const requirementsDisplay = shallowRef<Component | string>("");
 watchEffect(() => {

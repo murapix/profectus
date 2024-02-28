@@ -10,7 +10,6 @@ const e1k = Decimal.pow10(1e3);
 
 const smallBoundary = new Decimal(0.001);
 const mantissaLimit = Decimal.pow10(10000);
-const safeLimit = Decimal.pow10(Number.MAX_SAFE_INTEGER);
 const slogLimit = new Decimal("eeee1000");
 
 export enum PrecisionType {
@@ -24,7 +23,6 @@ export function format(value: DecimalSource, precision: number = projInfo.defaul
     if (!Decimal.isFinite(value)) { return "Infinity"; }
 
     if (value.gte(slogLimit)) { return slogFormat(value); }
-    if (value.gte(safeLimit)) { return scientificNotation(value, precision); }
     if (value.eq(Decimal.dZero)) { return (0).toFixed(precision); }
     if (value.lt(smallBoundary) && displaySmall) {
         value = invertOOM(value) as Decimal;
@@ -163,11 +161,17 @@ export function thousandsNotation(value: DecimalSource, precision: number = proj
             case PrecisionType.total: return mantissa.toPrecision(precision);
         }
     }
-    if (skipMantissa) return `t${exponent.toStringWithDecimalPlaces(0)}`;
+
+    const formattedExponent = exponent.gte(1e9)
+        ? format(exponent, Math.max(precision, 3, projInfo.defaultDigitsShown))
+        : exponent.gte(10000)
+            ? commaFormat(exponent, 0)
+            : exponent.toStringWithDecimalPlaces(0);
+    if (skipMantissa) return `t${formattedExponent}`;
 
     switch(type) {
-        case PrecisionType.decimal: return `${regularFormat(mantissa)}t${exponent.toStringWithDecimalPlaces(0)}`;
-        case PrecisionType.total: return `${mantissa.toPrecision(precision)}t${exponent.toStringWithDecimalPlaces(0)}`;
+        case PrecisionType.decimal: return `${regularFormat(mantissa)}t${formattedExponent}`;
+        case PrecisionType.total: return `${mantissa.toPrecision(precision)}t${formattedExponent}`;
     }
 }
 function getThousandsNotation(value: DecimalSource, precision: number = projInfo.defaultDigitsShown + 1, type: PrecisionType = PrecisionType.total) {
@@ -185,11 +189,17 @@ export function engineeringNotation(value: DecimalSource, precision: number = pr
             case PrecisionType.total: return mantissa.toPrecision(precision);
         }
     }
-    if (skipMantissa) return `e${exponent.toStringWithDecimalPlaces(0)}`;
+
+    const formattedExponent = exponent.gte(1e9)
+        ? format(exponent, Math.max(precision, 3, projInfo.defaultDigitsShown))
+        : exponent.gte(10000)
+            ? commaFormat(exponent, 0)
+            : exponent.toStringWithDecimalPlaces(0);
+    if (skipMantissa) return `e${formattedExponent}`;
 
     switch(type) {
-        case PrecisionType.decimal: return `${mantissa.toStringWithDecimalPlaces(precision)}e${exponent.toStringWithDecimalPlaces(0)}`;
-        case PrecisionType.total: return `${mantissa.toPrecision(precision)}e${exponent.toStringWithDecimalPlaces(0)}`;
+        case PrecisionType.decimal: return `${mantissa.toStringWithDecimalPlaces(precision)}e${formattedExponent}`;
+        case PrecisionType.total: return `${mantissa.toPrecision(precision)}e${formattedExponent}`;
     }
 }
 function getEngineeringNotation(value: DecimalSource, precision: number = projInfo.defaultDigitsShown + 1, type: PrecisionType = PrecisionType.total) {

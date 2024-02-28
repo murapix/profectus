@@ -6,7 +6,7 @@ import { format } from "util/break_eternity";
 import { isFunction } from "util/common";
 import { Computable, GetComputableType, GetComputableTypeWithDefault, ProcessedComputable, processComputable } from "util/computed";
 import { coerceComponent, isCoercableComponent } from "util/vue";
-import { Ref, computed, isRef, unref } from "vue";
+import { ComputedRef, Ref, computed, isRef, unref } from "vue";
 import RepeatableResearchComponent from "../inflaton/RepeatableResearch.vue";
 import { BaseResearch, ResearchOptions } from "./research";
 
@@ -68,6 +68,12 @@ export const repeatableDecorator: Decorator<RepeatableResearchOptions, BaseRepea
             unref(research.limit as ProcessedComputable<DecimalSource>)
         ));
 
+        const canResearch = research.canResearch as ComputedRef<boolean>;
+        research.canResearch = computed(() => {
+            if (unref(research.maxed)) return false;
+            return unref(canResearch) ?? true;
+        });
+
         research.researched = computed(() => Decimal.gt(unref(research.amount!), 0));
 
         const onResearch = research.onResearch;
@@ -78,9 +84,8 @@ export const repeatableDecorator: Decorator<RepeatableResearchOptions, BaseRepea
         }
     },
     getGatheredProps(research) {
-        return {
-            amount: research.amount
-        }
+        const { amount, maxed } = research;
+        return { amount, maxed };
     }
 }
 

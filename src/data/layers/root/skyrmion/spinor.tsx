@@ -342,6 +342,12 @@ const layer = createLayer(id, function (this: BaseLayer) {
         }
     ]);
     
+    const showNext = computed(() => {
+        if (!settings.showNextValues) return false;
+        if (Object.values(pion.upgrades).some(upgrade => unref(upgrade.isHovered))) return true;
+        if (!unref(abyss.challenge.active)) return false;
+        return Object.values(upgrades).some(upgrade => unref(upgrade.isHovered));
+    });
     return {
         name,
         spinors,
@@ -352,9 +358,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 <div class="col" style="align-items: flex-start">
                     <div>You have <Resource resource={spinors} color="var(--feature-background)" tag="h3" includeName={true} /> (+{displayResource(spinors, production.value)}/s){render(modifierModal)}</div>
                     <div style="font-size: 12px">Your Pion upgrades are increasing Spinor upgrade costs by {formatSmall(unref(costNerf).minus(1).times(100))}%{
-                        settings.showNextValues && Object.values(pion.upgrades).some(upgrade => unref(upgrade.isHovered))
-                        ? <> → {formatSmall(unref(nextCostNerf).minus(1).times(100))}%</>
-                        : undefined
+                        unref(showNext) ? <> → {formatSmall(unref(nextCostNerf).minus(1).times(100))}%</> : undefined
                     }</div>
                     <Spacer />
                     <Spinor />

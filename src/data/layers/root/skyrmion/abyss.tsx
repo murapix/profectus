@@ -19,7 +19,8 @@ import spinor from "./spinor";
 const id = "abyss";
 const layer = createLayer(id, function (this: BaseLayer) {
     const theme = {
-        "--feature-background": "#ff0000"
+        "--feature-background": "#ff0000",
+        "--bought": "#971a20"
     };
 
     const challenge = createChallenge(feature => ({

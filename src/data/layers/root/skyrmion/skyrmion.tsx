@@ -354,21 +354,23 @@ const layer = createLayer(id, function (this: BaseLayer) {
     }
 
     const hotkeys = {
-        sell: createHotkey(() => ({
-            enabled: noPersist(abyss.challenge.active),
+        resetOrSell: createHotkey(() => ({
+            enabled: () => {
+                if (unref(abyss.challenge.active)) return true;
+                return !unref(upgrades.autoGain.bought);
+            },
             key: "s",
-            description: "Sell all Pion and Spinor Upgrades",
+            description: () => unref(abyss.challenge.active) ? "Sell all Pion and Spinor Upgrades" : "Condense some Pions and Spinors into Skyrmions",
             onPress() {
-                for (const upgrade of [...Object.values(pion.upgrades), ...Object.values(spinor.upgrades)]) {
-                    upgrade.amount.value = 0;
+                if (unref(abyss.challenge.active)) {
+                    for (const upgrade of [...Object.values(pion.upgrades), ...Object.values(spinor.upgrades)]) {
+                        upgrade.amount.value = 0;
+                    }
+                }
+                else {
+                    skyrmions.onClick();
                 }
             }
-        })),
-        reset: createHotkey(() => ({
-            enabled: () => !unref(upgrades.autoGain.bought),
-            key: "s",
-            description: "Condense some Pions and Spinors into Skyrmions",
-            onPress: skyrmions.onClick
         })),
         switchTab: createHotkey(() => ({
             enabled: () => unref(fome.unlocked),

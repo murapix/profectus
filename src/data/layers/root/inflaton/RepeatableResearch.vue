@@ -12,6 +12,7 @@
             research: true,
             repeatable: true,
             locked: !unref(canResearch), // unavailable to click
+            maxed: unref(maxed),
             can: unref(canResearch) && !unref(isResearching), // available to click, not in the queue
             queued: unref(isResearching), // in queue
         }"
@@ -45,6 +46,7 @@ const props = defineProps<{
     researched: GenericRepeatableResearch["researched"];
     amount: GenericRepeatableResearch["amount"];
     limit?: GenericRepeatableResearch["limit"];
+    maxed: GenericRepeatableResearch["maxed"];
     research: GenericRepeatableResearch["research"];
 }>();
 
@@ -104,9 +106,10 @@ const fillPercent = computed(() => Decimal.times(unref(props.progressPercentage)
     background-image: linear-gradient(to right, var(--feature-background) calc(var(--fill-percent) - 5%), var(--background) calc(var(--fill-percent) + 5%));
 }
 
-.research.done {
+.research.done, .research.maxed {
     border-color: var(--bought);
     background-color: var(--bought);
+    color: white;
 }
 
 .research > :deep(*) {
