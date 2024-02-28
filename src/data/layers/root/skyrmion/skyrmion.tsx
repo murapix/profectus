@@ -118,7 +118,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         if (unref(upgrades.autoGain.bought)) { skyrmions.onClick(); }
     })
 
-    const resource = createResource<DecimalSource>(skyrmions.amount, { displayName: name, singularName: "Skyrmion" });
+    const resource = createResource<DecimalSource>(noPersist(skyrmions.amount), { displayName: name, singularName: "Skyrmion" });
     const totalSkyrmions = computed(() => Decimal.add(unref(resource), getFomeBoost(FomeTypes.subspatial, 4)));
     const generalProductionModifiers = [
         createMultiplicativeModifier(() => ({
