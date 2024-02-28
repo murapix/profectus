@@ -59,11 +59,14 @@ const layer = createLayer("entangled", () => {
             style: { width: buttonSize, height: buttonSize }
         }));
         const fome = createUpgrade(() => ({
-            requirements: createCostRequirement(() => ({
-                resource: noPersist(strings),
-                cost,
-                requiresPay: false
-            })),
+            requirements: [
+                createCostRequirement(() => ({
+                    resource: noPersist(strings),
+                    cost,
+                    requiresPay: false
+                })),
+                createBooleanRequirement(false)
+            ],
             visibility: milestones[2].earned,
             display: {
                 title: 'Architectural Renaissance (TBD)',
@@ -72,11 +75,14 @@ const layer = createLayer("entangled", () => {
             style: { width: buttonSize, height: buttonSize }
         }));
         const acceleron = createUpgrade(() => ({
-            requirements: createCostRequirement(() => ({
-                resource: noPersist(strings),
-                cost,
-                requiresPay: false
-            })),
+            requirements: [
+                createCostRequirement(() => ({
+                    resource: noPersist(strings),
+                    cost,
+                    requiresPay: false
+                })),
+                createBooleanRequirement(false)
+            ],
             visibility: milestones[2].earned,
             display: {
                 title: 'Tetradimensional Engineering (TBD)',
@@ -98,11 +104,14 @@ const layer = createLayer("entangled", () => {
             style: { width: buttonSize, height: buttonSize }
         }));
         const inflaton = createUpgrade(() => ({
-            requirements: createCostRequirement(() => ({
-                resource: noPersist(strings),
-                cost,
-                requiresPay: false
-            })),
+            requirements: [
+                createCostRequirement(() => ({
+                    resource: noPersist(strings),
+                    cost,
+                    requiresPay: false
+                })),
+                createBooleanRequirement(false)
+            ],
             visibility: milestones[2].earned,
             display: {
                 title: 'Technological Ascendency (TBD)',
@@ -394,7 +403,7 @@ const layer = createLayer("entangled", () => {
                     {renderCol(expansions.skyrmion, expansions.fome)}
                     <Column>
                         {render(resetButton)}
-                        <Spacer height={buttonSize} />
+                        {unref(milestones[2].earned) ? <Spacer height={buttonSize} /> : undefined}
                         {render(expansions.acceleron)}
                     </Column>
                     {renderCol(expansions.inflaton, expansions.timecube)}
