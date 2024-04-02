@@ -38,7 +38,7 @@
         </div>
         <div @click="savesManager?.open()">
             <Tooltip display="Saves" :direction="Direction.Down" xoffset="-20px">
-                <span class="material-icons">library_books</span>
+                <span class="material-icons" :class="{ needsSync }">library_books</span>
             </Tooltip>
         </div>
         <div @click="options?.open()">
@@ -55,7 +55,7 @@
         </div>
         <div @click="savesManager?.open()">
             <Tooltip display="Saves" :direction="Direction.Right">
-                <span class="material-icons">library_books</span>
+                <span class="material-icons" :class="{ needsSync }">library_books</span>
             </Tooltip>
         </div>
         <div @click="options?.open()">
@@ -100,12 +100,14 @@
 import Changelog from "data/Changelog.vue";
 import projInfo from "data/projInfo.json";
 import Tooltip from "features/tooltips/Tooltip.vue";
+import settings from "game/settings";
 import { Direction } from "util/common";
+import { galaxy, syncedSaves } from "util/galaxy";
 import type { ComponentPublicInstance } from "vue";
-import { ref } from "vue";
+import { computed, ref } from "vue";
 import Info from "./Info.vue";
 import Options from "./Options.vue";
-import SavesManager from "./SavesManager.vue";
+import SavesManager from "./saves/SavesManager.vue";
 import player from "game/player";
 import { format } from "util/break_eternity";
 
@@ -121,6 +123,10 @@ const { useHeader, banner, title, discordName, discordLink, versionNumber } = pr
 function openDiscord() {
     window.open(discordLink, "mywindow");
 }
+
+const needsSync = computed(
+    () => galaxy.value?.loggedIn === true && !syncedSaves.value.includes(settings.active)
+);
 </script>
 
 <style scoped>
@@ -278,5 +284,33 @@ function openDiscord() {
     display: block;
     text-align: center;
     margin-left: 250px;
+}
+
+.needsSync {
+    color: var(--danger);
+    animation: 4s wiggle ease infinite;
+}
+
+@keyframes wiggle {
+    0% {
+        transform: rotate(-3deg);
+        box-shadow: 0 2px 2px #0003;
+    }
+    5% {
+        transform: rotate(20deg);
+    }
+    10% {
+        transform: rotate(-15deg);
+    }
+    15% {
+        transform: rotate(5deg);
+    }
+    20% {
+        transform: rotate(-1deg);
+    }
+    25% {
+        transform: rotate(0);
+        box-shadow: 0 2px 2px #0003;
+    }
 }
 </style>

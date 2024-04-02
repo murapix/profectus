@@ -53,7 +53,7 @@ function update() {
     diff = Math.min(diff, projInfo.maxTickLength);
 
     // Apply dev speed
-    if (player.devSpeed != undefined) {
+    if (player.devSpeed != null) {
         diff *= player.devSpeed;
     }
 
