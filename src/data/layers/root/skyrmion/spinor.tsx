@@ -59,7 +59,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
     });
     const nextCostNerf = computed(() => {
         const amount = unref(abyss.challenge.active) ? unref(abyss.nextUpgradeCount) : unref(pion.upgradeCount).plus(1);
-        const beta = unref(pion.upgrades.beta.isHovered) ? unref(pion.upgrades.beta.nextEffect) : unref(pion.upgrades.beta.effect);
+        const beta = unref(pion.upgrades.beta.isHovered) ? unref(pion.upgrades.beta.nextEffect)! : unref(pion.upgrades.beta.effect);
         const base = amount.times(0.2).times(beta).plus(1).clampMin(1);
         const exponent = amount.times(0.25).times(getFomeBoost(FomeTypes.quantum, 2)).clampMin(0);
         return base.pow(exponent);
