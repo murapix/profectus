@@ -44,7 +44,7 @@ export type GenericEffectFeature<T = unknown> = Replace<
     EffectFeature<EffectFeatureOptions>,
     {
         effect: ProcessedComputable<T>,
-        nextEffect?: ProcessedComputable<T>
+        nextEffect: ProcessedComputable<T>
     }
 >;
 
