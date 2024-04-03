@@ -53,14 +53,15 @@ const layer = createLayer(id, function (this: BaseLayer) {
     const effectiveUpgradeCount: ComputedRef<Decimal> = computed(() => unref(upgradeCount).minus(getFomeBoost(FomeTypes.subspatial, 2)));
     const costNerf = computed(() => {
         const amount = unref(abyss.challenge.active) ? unref(abyss.upgradeCount) : unref(pion.upgradeCount);
-        const base = amount.times(0.2).times(unref(pion.upgrades.beta.effect as ComputedRef<DecimalSource>)).plus(1);
-        const exponent = amount.times(0.25).times(getFomeBoost(FomeTypes.quantum, 2));
+        const base = amount.times(0.2).times(unref(pion.upgrades.beta.effect)).plus(1).clampMin(1);
+        const exponent = amount.times(0.25).times(getFomeBoost(FomeTypes.quantum, 2)).clampMin(0);
         return base.pow(exponent);
     });
     const nextCostNerf = computed(() => {
         const amount = unref(abyss.challenge.active) ? unref(abyss.nextUpgradeCount) : unref(pion.upgradeCount).plus(1);
-        const base = amount.times(0.2).times(unref(pion.upgrades.beta.effect as ComputedRef<DecimalSource>)).plus(1);
-        const exponent = amount.times(0.25).times(getFomeBoost(FomeTypes.quantum, 2) as DecimalSource);
+        const beta = unref(pion.upgrades.beta.isHovered) ? unref(pion.upgrades.beta.nextEffect) : unref(pion.upgrades.beta.effect);
+        const base = amount.times(0.2).times(beta).plus(1).clampMin(1);
+        const exponent = amount.times(0.25).times(getFomeBoost(FomeTypes.quantum, 2)).clampMin(0);
         return base.pow(exponent);
     });
     const upgrades = (() => {
