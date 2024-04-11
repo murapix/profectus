@@ -293,12 +293,13 @@ export function formatTime(time: DecimalSource): string {
     time -= minutes * secondsPerMinute;
     const seconds = time.toPrecision(2);
 
+    const yearsOut = formatWhole(years);
     const daysOut = String(days).padStart(3);
     const hoursOut = String(hours).padStart(2);
     const minutesOut = String(minutes).padStart(2);
     const secondsOut = seconds.padStart(2);
 
-    if (years > 0) { return `${years}y ${daysOut}d ${hoursOut}h`; }
+    if (years > 0) { return `${yearsOut}y ${daysOut}d ${hoursOut}h`; }
     if (days > 0) { return `${daysOut}d ${hoursOut}h ${minutesOut}m`; }
     if (hours > 0) { return `${hoursOut}h ${minutesOut}m ${secondsOut}s`; }
     if (minutes > 0) { return `${minutesOut}m ${secondsOut}s`; }

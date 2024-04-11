@@ -114,26 +114,26 @@ function effectiveAmount(building: GenericBuilding): Decimal {
 
 export function formatLength(length: DecimalSource, precision?: number) {
     length = new Decimal(length);
-    if (length.lt(6.187e10)) return <>{format(length, precision)}ℓ<sub>P</sub></>;
+    if (length.lt(6.187e10)) return <>{format(length, precision)} ℓ<sub>P</sub></>;
 
     length = length.dividedBy(6.187e10);
-    if (length.lt(1e3)) return `${format(length, precision)}ym`;
-    if (length.lt(1e6)) return `${format(length.dividedBy(1e3), precision)}zm`;
-    if (length.lt(1e9)) return `${format(length.dividedBy(1e6), precision)}am`;
-    if (length.lt(1e12)) return `${format(length.dividedBy(1e9), precision)}fm`;
-    if (length.lt(1e15)) return `${format(length.dividedBy(1e12), precision)}pm`;
-    if (length.lt(1e18)) return `${format(length.dividedBy(1e15), precision)}nm`;
-    if (length.lt(1e21)) return `${format(length.dividedBy(1e18), precision)}μm`;
-    if (length.lt(1e24)) return `${format(length.dividedBy(1e21), precision)}mm`;
-    if (length.lt(1e27)) return `${format(length.dividedBy(1e24), precision)}m`;
-    if (length.lt(1e30)) return `${format(length.dividedBy(1e27), precision)}km`;
-    if (length.lt(1e33)) return `${format(length.dividedBy(1e30), precision)}Mm`;
-    if (length.lt(1e36)) return `${format(length.dividedBy(1e33), precision)}Gm`;
-    if (length.lt(1e39)) return `${format(length.dividedBy(1e36), precision)}Tm`;
-    if (length.lt(1e42)) return `${format(length.dividedBy(1e39), precision)}Pm`;
-    if (length.lt(9.461e42)) return `${format(length.dividedBy(1e42), precision)}ly`;
-    if (length.lt(3.086e43)) return `${format(length.dividedBy(9.461e42), precision)}pc`;
-    if (length.lt(3.086e46)) return `${format(length.dividedBy(3.086e43), precision)}kcp`;
-    if (length.lt(3.086e49)) return `${format(length.dividedBy(3.086e46), precision)}Mpc`;
-    return `${format(length.dividedBy(3.086e49), precision)}Gpc`;
+    if (length.lt(1e3)) return `${format(length, precision)} ym`;
+    if (length.lt(1e6)) return `${format(length.dividedBy(1e3), precision)} zm`;
+    if (length.lt(1e9)) return `${format(length.dividedBy(1e6), precision)} am`;
+    if (length.lt(1e12)) return `${format(length.dividedBy(1e9), precision)} fm`;
+    if (length.lt(1e15)) return `${format(length.dividedBy(1e12), precision)} pm`;
+    if (length.lt(1e18)) return `${format(length.dividedBy(1e15), precision)} nm`;
+    if (length.lt(1e21)) return `${format(length.dividedBy(1e18), precision)} μm`;
+    if (length.lt(1e24)) return `${format(length.dividedBy(1e21), precision)} mm`;
+    if (length.lt(1e27)) return `${format(length.dividedBy(1e24), precision)} m`;
+    if (length.lt(1e30)) return `${format(length.dividedBy(1e27), precision)} km`;
+    if (length.lt(1e33)) return `${format(length.dividedBy(1e30), precision)} Mm`;
+    if (length.lt(1e36)) return `${format(length.dividedBy(1e33), precision)} Gm`;
+    if (length.lt(1e39)) return `${format(length.dividedBy(1e36), precision)} Tm`;
+    if (length.lt(1e42)) return `${format(length.dividedBy(1e39), precision)} Pm`;
+    if (length.lt(9.461e42)) return `${format(length.dividedBy(1e42), precision)} ly`;
+    if (length.lt(3.086e43)) return `${format(length.dividedBy(9.461e42), precision)} pc`;
+    if (length.lt(3.086e46)) return `${format(length.dividedBy(3.086e43), precision)} kcp`;
+    if (length.lt(3.086e49)) return `${format(length.dividedBy(3.086e46), precision)} Mpc`;
+    return `${format(length.dividedBy(3.086e49), precision)} Gpc`;
 }

@@ -422,7 +422,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         }),
         lines: () => ({
             display: "Timelines",
-            unlocked: noPersist(upgrades.tactics.bought),
+            visibility: noPersist(upgrades.tactics.bought),
             tab: createTab(() => ({
                 display: jsx(() => (
                     <>

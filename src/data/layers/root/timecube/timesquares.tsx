@@ -144,7 +144,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 } effective Entropic Enhancements</>)
             },
             effect() { return Decimal.plus(unref(square.square.amount), 1).log10().pow(0.5).times(getUpgradeEffect(timecube.upgrades.tall)) },
-            nextEffect() { return Decimal.plus(unref(square.square.amount), unref(square.toBuy)).pow(0.1).times(getUpgradeEffect(timecube.upgrades.tall)) },
+            nextEffect() { return Decimal.plus(unref(square.square.amount), unref(square.toBuy)).plus(1).log10().pow(0.5).times(getUpgradeEffect(timecube.upgrades.tall)) },
             resource: noPersist(timecube.timecubes),
             baseCost: 1e6,
             buyAmount
