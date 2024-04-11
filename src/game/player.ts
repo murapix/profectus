@@ -5,8 +5,6 @@ import { reactive, unref } from "vue";
 export interface Player {
     /** The ID of this save. */
     id: string;
-    /** A multiplier for time passing. Set to 0 when the game is paused. */
-    devSpeed: number | null;
     /** The display name of this save. */
     name: string;
     /** The open tabs. */
@@ -42,7 +40,6 @@ export type LayerData<T> = {
 
 const player = reactive<Player>({
     id: "",
-    devSpeed: null,
     name: "",
     tabs: [],
     time: -1,

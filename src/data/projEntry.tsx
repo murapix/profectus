@@ -18,6 +18,7 @@ import inflaton from "./layers/root/inflaton/inflaton";
 import entangled from "./layers/root/entangled/entangled";
 import { createHotkey } from "features/hotkey";
 import abyss from "./layers/root/skyrmion/abyss";
+import settings from "game/settings";
 
 /**
  * @hidden
@@ -131,8 +132,8 @@ export const root = createLayer(id, () => {
             key: "p",
             description: "Pause",
             onPress() {
-                if (player.devSpeed === 0) player.devSpeed = null;
-                else player.devSpeed = 0;
+                if (settings.devSpeed === 0) settings.devSpeed = null;
+                else settings.devSpeed = 0;
             }
         }))
     }

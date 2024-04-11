@@ -40,6 +40,7 @@ import player, { stringifySave } from "game/player";
 import LZString from "lz-string";
 import { computed, onMounted } from "vue";
 import FeedbackButton from "./fields/FeedbackButton.vue";
+import settings from "game/settings";
 
 const props = defineProps<{
     errors: Error[];
@@ -87,7 +88,7 @@ function exportSave() {
 
 onMounted(() => {
     player.autosave = false;
-    player.devSpeed = 0;
+    settings.devSpeed = 0;
 });
 </script>
 

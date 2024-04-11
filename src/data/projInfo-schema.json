@@ -81,8 +81,8 @@
         },
         "enablePausing": {
             "type": "boolean",
-            "description": "Whether or not to allow the player to pause the game. Turning this off disables the toggle from the options menu as well as the NaN screen. Developers can still manually pause by just setting player.devSpeed to 0 in console (or 1 to resume).",
-            "markdownDescription": "Whether or not to allow the player to pause the game. Turning this off disables the toggle from the options menu as well as the NaN screen. Developers can still manually pause by just running `player.devSpeed = 0` in console (or `= 1` to resume)."
+            "description": "Whether or not to allow the player to pause the game. Turning this off disables the toggle from the options menu as well as the NaN screen. Developers can still manually pause by just setting settings.devSpeed to 0 in console (or 1 to resume).",
+            "markdownDescription": "Whether or not to allow the player to pause the game. Turning this off disables the toggle from the options menu as well as the NaN screen. Developers can still manually pause by just running `settings.devSpeed = 0` in console (or `= 1` to resume)."
         },
         "exportEncoding": {
             "type": "string",

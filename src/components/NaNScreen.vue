@@ -56,6 +56,7 @@ import type { ComponentPublicInstance } from "vue";
 import { computed, ref, toRef, watch } from "vue";
 import Toggle from "./fields/Toggle.vue";
 import SavesManager from "./saves/SavesManager.vue";
+import settings from "game/settings";
 
 const { discordName, discordLink } = projInfo;
 const autosave = ref(true);
@@ -66,10 +67,10 @@ const savesManager = ref<ComponentPublicInstance<typeof SavesManager> | null>(nu
 watch(hasNaN, hasNaN => {
     if (hasNaN) {
         autosave.value = player.autosave;
-        isPaused.value = player.devSpeed === 0;
+        isPaused.value = settings.devSpeed === 0;
     } else {
         player.autosave = autosave.value;
-        player.devSpeed = isPaused.value ? 0 : null;
+        settings.devSpeed = isPaused.value ? 0 : null;
     }
 });
 

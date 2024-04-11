@@ -80,10 +80,10 @@ const { showTPS, unthrottled, alignUnits, numberFormat, backupNumberFormat, show
 const { autosave } = toRefs(player);
 const isPaused = computed({
     get() {
-        return player.devSpeed === 0;
+        return settings.devSpeed === 0;
     },
     set(value: boolean) {
-        player.devSpeed = value ? 0 : null;
+        settings.devSpeed = value ? 0 : null;
     }
 });
 

@@ -24,6 +24,8 @@ export interface Settings {
     backupNumberFormat: Exclude<Notations, Notations.standard>;
     /** Whether to show both pre- and post-purchase values where available */
     showNextValues: boolean;
+    /** A multiplier for time passing. Set to 0 when the game is paused. */
+    devSpeed: number | null;
 }
 
 const state = reactive<Partial<Settings>>({
@@ -34,7 +36,8 @@ const state = reactive<Partial<Settings>>({
     alignUnits: false,
     numberFormat: Notations.scientific,
     backupNumberFormat: Notations.scientific,
-    showNextValues: true
+    showNextValues: true,
+    devSpeed: null
 });
 
 watch(

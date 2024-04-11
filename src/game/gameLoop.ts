@@ -36,7 +36,7 @@ function update() {
 
     diff = Math.max(diff, 0);
 
-    if (player.devSpeed === 0) {
+    if (settings.devSpeed === 0) {
         if (settings.unthrottled) {
             requestAnimationFrame(update);
             if (intervalID != null) {
@@ -53,8 +53,8 @@ function update() {
     diff = Math.min(diff, projInfo.maxTickLength);
 
     // Apply dev speed
-    if (player.devSpeed != null) {
-        diff *= player.devSpeed;
+    if (settings.devSpeed != null) {
+        diff *= settings.devSpeed;
     }
 
     if (!Number.isFinite(diff)) {

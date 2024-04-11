@@ -7,8 +7,8 @@
                 ><span>v{{ versionNumber }}</span></Tooltip
             >
         </div>
-        <div v-if="player.devSpeed === 0" class="devspeed">Game Paused</div>
-        <div v-else-if="player.devSpeed && player.devSpeed !== 1" class="devspeed">Dev Speed: {{ format(player.devSpeed) }}x</div>
+        <div v-if="settings.devSpeed === 0" class="devspeed">Game Paused</div>
+        <div v-else-if="settings.devSpeed && settings.devSpeed !== 1" class="devspeed">Dev Speed: {{ format(settings.devSpeed) }}x</div>
         <div style="flex-grow: 1; cursor: unset"></div>
         <div class="discord">
             <span @click="openDiscord" class="material-icons">discord</span>
