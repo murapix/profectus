@@ -5,6 +5,7 @@ import LZString from "lz-string";
 import { Notations } from "util/notation";
 import { decodeSave, hardReset } from "util/save";
 import { reactive, watch } from "vue";
+import { State } from "./persistence";
 
 /** The player's settings object. */
 export interface Settings {
@@ -26,6 +27,8 @@ export interface Settings {
     showNextValues: boolean;
     /** A multiplier for time passing. Set to 0 when the game is paused. */
     devSpeed: number | null;
+
+    layerData: Record<string, State>;
 }
 
 const state = reactive<Partial<Settings>>({
@@ -37,7 +40,13 @@ const state = reactive<Partial<Settings>>({
     numberFormat: Notations.scientific,
     backupNumberFormat: Notations.scientific,
     showNextValues: true,
-    devSpeed: null
+    devSpeed: null,
+
+    layerData: {
+        entropy: {
+            presets: []
+        }
+    }
 });
 
 watch(

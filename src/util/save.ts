@@ -106,8 +106,6 @@ export async function loadSave(playerObj: Partial<Player>): Promise<void> {
     const { layers, removeLayer, addLayer } = await import("game/layers");
     const { fixOldSave, getInitialLayers } = await import("data/projEntry");
 
-    const presets = (player.layers.acceleron as { entropy: { presets: [] } } | undefined)?.entropy.presets;
-
     for (const layer in layers) {
         const l = layers[layer];
         if (l) {
@@ -125,12 +123,6 @@ export async function loadSave(playerObj: Partial<Player>): Promise<void> {
 
     Object.assign(player, playerObj);
     settings.active = player.id;
-
-    if (presets != undefined) {
-        if (player.layers.acceleron != undefined) {
-            (player.layers.acceleron as { entropy: { presets: [] } }).entropy.presets = presets;
-        }
-    }
 
     globalBus.emit("onLoad");
 }

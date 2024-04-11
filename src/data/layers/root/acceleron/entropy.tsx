@@ -16,7 +16,7 @@ import { format, formatSmall, formatWhole } from "util/break_eternity";
 import { Computable, GetComputableType, GetComputableTypeWithDefault, ProcessedComputable, processComputable } from "util/computed";
 import { createModifierModal } from "util/util";
 import { coerceComponent, render } from "util/vue";
-import { ComputedRef, computed, unref, watch } from "vue";
+import { ComputedRef, computed, reactive, unref, watch } from "vue";
 import fome, { FomeTypes } from "../fome/fome";
 import timecube from "../timecube/timecube";
 import { Sides } from "../timecube/timesquares";
@@ -25,6 +25,7 @@ import Enhancements from "./Enhancements.vue";
 import Presets from "./Presets.vue";
 import acceleron from "./acceleron";
 import loops from "./loops";
+import settings from "game/settings";
 
 const id = "entropy";
 const layer = createLayer(id, function (this: BaseLayer) {
@@ -240,7 +241,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         purchased: string[];
     };
     const nextPresetID = computed(() => unref(presets).reduce((id, preset) => preset.id > id ? preset.id : id, -1) + 1);
-    const presets: Persistent<Preset[]> = persistent([]);
+    const presets = computed(() => (settings.layerData.entropy as { presets: Preset[] }).presets);
 
     const respec = createClickable(() => ({
         canClick() { return unref(totalEnhancements) > 0 },
@@ -271,7 +272,6 @@ const layer = createLayer(id, function (this: BaseLayer) {
         enhancements,
         enhancementCounts,
         enhancementLimits,
-        presets,
         display: jsx(() => (
             <>
                 <Spacer />
