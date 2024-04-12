@@ -2,8 +2,8 @@
     <div
         class="tooltip-container"
         :class="{ shown: isShown }"
-        @mouseenter="isHovered = true"
-        @mouseleave="isHovered = false"
+        @mouseenter.passive="isHovered = true"
+        @mouseleave.passive="isHovered = false"
         @click.capture="togglePinned"
     >
         <slot />

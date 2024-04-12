@@ -47,7 +47,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
     const inflatons = createResource<DecimalSource>(0, { displayName: name, singularName: "Inflaton" });
     const requirement = createCostRequirement(() => ({
         resource: noPersist(fome[FomeTypes.quantum].amount),
-        cost: () => (unref(entangled.branchOrder) === '' || entangled.isFirstBranch(id)) ? 1e9 : 1e50,
+        cost: () => (unref(entangled.branchOrder) === '' || entangled.isFirstBranch(id)) ? 1e9 : 1e59,
         requiresPay: false
     }));
     const conversion = createClickable(() => ({
@@ -63,6 +63,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             inflatons.value = Decimal.dOne;
             if (unref(entangled.milestones[1].earned)) return;
             if (unref(entangled.branchOrder) === '') entangled.branchOrder.value = id;
+            startInflation();
         },
         style: {
             width: 'fit-content',
@@ -169,12 +170,18 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 description: '<br />Allow the creation of Subspatial Structures<br />'
             },
             requirements: createCostRequirement(() => ({
-                cost: () => entangled.isFirstBranch(id) ? 5e5 : 5e46,
+                cost: () => entangled.isFirstBranch(id) ? 5e5 : 1e59,
                 resource: fome[FomeTypes.quantum].amount
             })),
             visibility() {
-                return unref(this.bought) || unref(entangled.milestones[1].earned)
-                || Decimal.gte(unref(buildings.maxSize), 6);
+                if (unref(this.bought)) return true;
+                if (unref(entangled.milestones[1].earned)) return true;
+                if (unref(entangled.branchOrder) === '' || entangled.isFirstBranch(id)) {
+                    return Decimal.gte(unref(buildings.maxSize), 6);
+                }
+                else {
+                    return Decimal.gte(unref(buildings.maxSize), 9);
+                }
             },
             style: { width: '250px' }
         }));
@@ -184,15 +191,19 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 description: `<br />Stabilization isn't enough. Maybe the constant bubbling of the quantum field may hold the secret to sustaining inflation<br />`
             },
             requirements: createCostRequirement(() => ({
-                cost: () => entangled.isFirstBranch(id) ? 1e6 : 1e47,
+                cost: () => entangled.isFirstBranch(id) ? 1e6 : 2e59,
                 resource: fome[FomeTypes.quantum].amount
             })),
             visibility() {
-                return unref(this.bought) || unref(entangled.milestones[1].earned)
-                || (
-                    unref(subspaceBuildings.bought)
-                    && Decimal.gte(unref(buildings.maxSize), 7)
-                );
+                if (unref(this.bought)) return true;
+                if (unref(entangled.milestones[1].earned)) return true;
+                if (!unref(subspaceBuildings.bought)) return false;
+                if (unref(entangled.branchOrder) === '' || entangled.isFirstBranch(id)) {
+                    return Decimal.gte(unref(buildings.maxSize), 6.3);
+                }
+                else {
+                    return Decimal.gte(unref(buildings.maxSize), 9.5);
+                }
             },
             style: { width: '250px' }
         }));
@@ -202,7 +213,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 description: `<br />Generate more Foam based on the size of your universe<br />`
             },
             requirements: createCostRequirement(() => ({
-                cost: () => entangled.isFirstBranch(id) ? 1e25 : 1e58,
+                cost: () => entangled.isFirstBranch(id) ? 1e18 : 1e61,
                 resource: fome[FomeTypes.quantum].amount
             })),
             visibility() {
@@ -217,7 +228,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 description: `<br />Gain a new Pion and Spinor Upgrade<br />`
             },
             requirements: createCostRequirement(() => ({
-                cost: () => entangled.isFirstBranch(id) ? 1e27 : 1e60,
+                cost: () => entangled.isFirstBranch(id) ? 1e20 : 1e63,
                 resource: fome[FomeTypes.quantum].amount
             })),
             visibility() {

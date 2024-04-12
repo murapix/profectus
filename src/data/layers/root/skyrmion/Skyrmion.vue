@@ -1,15 +1,14 @@
 <template>
     <div class="skyrmion-container">
         <ul class="skyrmion-grid">
-            <li class="skyrmion-upgrade reset" v-bind="$attrs">
+            <li class="skyrmion-upgrade reset">
                 <slot />
             </li>
             <template v-for="(upgrade, index) in unref(upgrades)" :key="index">
                 <li
                     class="skyrmion-upgrade"
-                    v-bind="$attrs"
                     :style="getPos(index)"
-                    v-if="unref(upgrade.visibility) !== Visibility.None"
+                    v-if="isVisible(upgrade.visibility)"
                 >
                     <component :is="render(upgrade)" />
                 </li>
@@ -19,7 +18,7 @@
 </template>
 
 <script setup lang="ts">
-import { StyleValue, Visibility } from "features/feature";
+import { StyleValue, isVisible } from "features/feature";
 import { render } from "util/vue";
 import { unref } from "vue";
 import skyrmion from "./skyrmion";

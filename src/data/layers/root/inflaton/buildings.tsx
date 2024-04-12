@@ -34,7 +34,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             cost: {
                 resource: noPersist(fome[FomeTypes.subspatial].amount),
                 base: 1.1,
-                multiplier: computed(() => entangled.isFirstBranch(inflatonId) ? 1e30 : 1e82)
+                multiplier: computed(() => entangled.isFirstBranch(inflatonId) ? 1e21 : 1e99)
             },
             display: {
                 visibility: noPersist(inflaton.upgrades.subspaceBuildings.bought),
@@ -48,7 +48,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             cost: {
                 resource: noPersist(fome[FomeTypes.subspatial].amount),
                 base: computed(() => unref(core.research.cheaperLabs.researched) ? 1.5 : 15),
-                multiplier: computed(() => entangled.isFirstBranch(inflatonId) ? 1e30 : 1e82)
+                multiplier: computed(() => entangled.isFirstBranch(inflatonId) ? 1e21 : 1e99)
             },
             display: {
                 visibility: noPersist(inflaton.upgrades.research.bought),
@@ -65,7 +65,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             cost: {
                 resource: noPersist(fome[FomeTypes.quantum].amount),
                 base: 1.2,
-                multiplier: computed(() => entangled.isFirstBranch(inflatonId) ? 1e15 : 1e48)
+                multiplier: computed(() => entangled.isFirstBranch(inflatonId) ? 1e9 : 1e59)
             },
             display: {
                 visibility: core.research.storage.researched,
@@ -88,7 +88,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             cost: {
                 resource: noPersist(fome[FomeTypes.subspatial].amount),
                 base: 1.5,
-                multiplier: computed(() => entangled.isFirstBranch(inflatonId) ? 1e40 : 1e92)
+                multiplier: computed(() => entangled.isFirstBranch(inflatonId) ? 1e40 : 1e109)
             },
             display: {
                 visibility: core.research.inflationResearch.researched,

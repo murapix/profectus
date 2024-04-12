@@ -6,6 +6,7 @@ import { Computable, GetComputableType, GetComputableTypeWithDefault, ProcessedC
 import { createLazyProxy } from "util/proxies";
 import { unref, watch } from "vue";
 import Loop from "./Loop.vue";
+import loops from "./loops";
 
 export const LoopType = Symbol("Loop");
 
@@ -74,8 +75,10 @@ export function createLoop<T extends LoopOptions<U>, U = unknown>(
         Object.assign(loop, decoratedData);
 
         watch(loop.buildProgress, progress => {
-            if (Decimal.gte(progress, unref(loop.buildRequirement as ProcessedComputable<DecimalSource>)))
+            if (Decimal.gte(progress, unref(loop.buildRequirement as ProcessedComputable<DecimalSource>))) {
                 built.value = true;
+                loops.isBuilding.value = false;
+            }
         })
         
         processComputable(loop as T, "visibility");

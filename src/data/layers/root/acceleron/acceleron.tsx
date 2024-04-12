@@ -17,7 +17,7 @@ import { EffectUpgrade, EffectUpgradeOptions, GenericUpgrade, createUpgrade, get
 import { BaseLayer, createLayer } from "game/layers";
 import { createMultiplicativeModifier, createSequentialModifier } from "game/modifiers";
 import { noPersist, persistent } from "game/persistence";
-import { createCostRequirement, displayRequirements, requirementsMet } from "game/requirements";
+import { createCostRequirement, displayRequirements } from "game/requirements";
 import Decimal, { DecimalSource } from "lib/break_eternity";
 import { format, formatTime, formatWhole } from "util/break_eternity";
 import { createModifierModal } from "util/util";
@@ -51,53 +51,42 @@ const layer = createLayer(id, function (this: BaseLayer) {
     const bestAccelerons = trackBest(accelerons);
     const totalAccelerons = trackTotal(accelerons);
 
-    const acceleronCostModifiers = createSequentialModifier(() => [
+    const acceleronGainModifiers = createSequentialModifier(() => [
         createMultiplicativeModifier(() => ({
-            multiplier: 1e71,
-            enabled: () => !(unref(entangled.branchOrder) === '' || entangled.isFirstBranch(id)),
-            description: jsx(() => <>[{inflaton.name}] Inflational Interference</>),
-            smallerIsBetter: true
-        })),
-        createMultiplicativeModifier(() => ({
-            multiplier: () => unref(upgrades.translation.effect).reciprocate(),
+            multiplier: upgrades.translation.effect,
             enabled: noPersist(upgrades.translation.bought),
-            description: jsx(() => <>[{name}] Quantum Translation</>),
-            smallerIsBetter: true
+            description: jsx(() => <>[{name}] Quantum Translation</>)
         })),
         createMultiplicativeModifier(() => ({
-            multiplier: () => 1/unref(upgrades.fluctuation.effect),
+            multiplier: upgrades.fluctuation.effect,
             enabled: noPersist(upgrades.fluctuation.bought),
-            description: jsx(() => <>[{name}] Temporal Fluctuation</>),
-            smallerIsBetter: true
+            description: jsx(() => <>[{name}] Temporal Fluctuation</>)
         })),
         createMultiplicativeModifier(() => ({
-            multiplier: () => unref(loops.averageLoopValues[loops.loops.tempAcceleron.id]).reciprocate(),
+            multiplier: loops.averageLoopValues[loops.loops.tempAcceleron.id],
             enabled: noPersist(loops.loops.tempAcceleron.built),
-            description: jsx(() => <>[{name}] Entropic Loop #5</>),
-            smallerIsBetter: true
+            description: jsx(() => <>[{name}] Entropic Loop #5</>)
         })),
         createMultiplicativeModifier(() => ({
-            multiplier: () => unref(entropy.enhancements.contraction.effect).reciprocate(),
+            multiplier: entropy.enhancements.contraction.effect,
             enabled: noPersist(entropy.enhancements.contraction.bought),
-            description: jsx(() => <>[{entropy.name}] Entropic Contraction</>),
-            smallerIsBetter: true
+            description: jsx(() => <>[{entropy.name}] Entropic Contraction</>)
         })),
         createMultiplicativeModifier(() => ({
-            multiplier: () => unref(entropy.enhancements.inversion.effect).reciprocate(),
+            multiplier: entropy.enhancements.inversion.effect,
             enabled: noPersist(entropy.enhancements.inversion.bought),
-            description: jsx(() => <>[{entropy.name}] Entropic Inversion</>),
-            smallerIsBetter: true
+            description: jsx(() => <>[{entropy.name}] Entropic Inversion</>)
         })),
         createMultiplicativeModifier(() => ({
-            multiplier: () => unref(entropy.enhancements.rotation.effect).reciprocate(),
+            multiplier: entropy.enhancements.rotation.effect,
             enabled: noPersist(entropy.enhancements.rotation.bought),
-            description: jsx(() => <>[{entropy.name}] Entropic Rotation</>),
-            smallerIsBetter: true
+            description: jsx(() => <>[{entropy.name}] Entropic Rotation</>)
         }))
     ]);
     const conversion = createCumulativeConversion(() => ({
-        formula: fome => fome.dividedBy(acceleronCostModifiers.getFormula!(1e9))
-                             .pow(computed(() => (unref(entangled.branchOrder) === '' || entangled.isFirstBranch(id)) ? 0.1 : 0.05)),
+        formula: fome => fome.dividedBy(computed(() => (unref(entangled.branchOrder) === '' || entangled.isFirstBranch(id)) ? 1e9 : 1e72))
+                             .pow(computed(() => (unref(entangled.branchOrder) === '' || entangled.isFirstBranch(id)) ? 0.1 : 0.05))
+                             .times(acceleronGainModifiers.getFormula(1)),
         baseResource: noPersist(fome[FomeTypes.quantum].amount),
         gainResource: noPersist(accelerons),
         onConvert() {
@@ -303,7 +292,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
 
     const upgrades = (() => {
         const acceleration = createUpgrade<EffectUpgradeOptions>(upgrade => ({
-            visibility() { return unref(this.bought) || Decimal.gte(unref(totalAccelerons), 4) },
+            visibility() { return unref(this.bought) || Decimal.gte(unref(totalAccelerons), 4) || Decimal.gte(unref(entangled.strings), 1) },
             display: jsx(() => (
                 <>
                     <h3>Minute Acceleration</h3><br /><br />
@@ -323,12 +312,12 @@ const layer = createLayer(id, function (this: BaseLayer) {
             display: jsx(() => (
                 <>
                     <h3>Quantum Translation</h3><br /><br />
-                    Acceleron cost is divided based on the number of Foam re-formations<br /><br />
-                    Currently: /{formatWhole(getUpgradeEffect(upgrade as EffectUpgrade, undefined, true))}<br />
+                    Acceleron gain is multiplied based on the number of Foam re-formations<br /><br />
+                    Currently: {format(getUpgradeEffect(upgrade as EffectUpgrade, undefined, true))}×<br />
                     {displayRequirements((upgrade as GenericUpgrade).requirements)}
                 </>
             )),
-            effect() { return Object.values(FomeTypes).map(fomeType => unref(fome[fomeType].upgrades.reform.amount)).reduce((a: Decimal,b) => a.plus(b), Decimal.dZero) },
+            effect() { return Object.values(FomeTypes).map(fomeType => unref(fome[fomeType].upgrades.reform.amount)).reduce((a: Decimal,b) => a.plus(b), Decimal.dZero).pow(0.75) },
             requirements: createCostRequirement(() => ({
                 cost: 5,
                 resource: noPersist(accelerons)
@@ -370,8 +359,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
             display: jsx(() => (
                 <>
                     <h3>Temporal Fluctuation</h3><br /><br />
-                    Acceleron cost is divided based on the number of completed Entropic Loops<br /><br />
-                    Currently: /{formatWhole(getUpgradeEffect(upgrade as EffectUpgrade, undefined, true))}<br />
+                    Acceleron gain is multiplied by the number of completed Entropic Loops<br /><br />
+                    Currently: {formatWhole(getUpgradeEffect(upgrade as EffectUpgrade, undefined, true))}×<br />
                     {displayRequirements((upgrade as GenericUpgrade).requirements)}
                 </>
             )),
@@ -440,7 +429,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 </>
             )),
             requirements: createCostRequirement(() => ({
-                cost: 1e8,
+                cost: 5e10,
                 resource: noPersist(accelerons)
             }))
         })) as GenericUpgrade;
@@ -455,7 +444,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 </>
             )),
             requirements: createCostRequirement(() => ({
-                cost: 1e19,
+                cost: 1.9e19,
                 resource: noPersist(accelerons)
             }))
         })) as GenericUpgrade;
@@ -499,11 +488,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
         "Acceleron Modifiers",
         () => [
             {
-                title: "Acceleron Cost",
-                modifier: acceleronCostModifiers,
-                base: 1e9,
-                baseText: jsx(() => <>[{fome.name}] Base Amount</>),
-                smallerIsBetter: true
+                title: "Acceleron Gain",
+                modifier: acceleronGainModifiers,
+                base: 1,
+                baseText: jsx(() => <>Base Gain Multiplier</>)
             },
             {
                 title: "Time Speed",

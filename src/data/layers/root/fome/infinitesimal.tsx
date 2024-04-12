@@ -21,6 +21,7 @@ import timecube from "../timecube/timecube";
 import { createReformRequirement } from "./ReformRequirement";
 import { GenericBoost, createBoost, getFomeBoost } from "./boost";
 import fome, { FomeDims, FomeTypes, FomeUpgrade, FomeUpgrades, getDimDisplay, getReformDisplay, onDimRepeatable } from "./fome";
+import loops from "../acceleron/loops";
 
 const id = "infinitesimal";
 const layer = createLayer(id, function (this: BaseLayer) {
@@ -89,6 +90,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
     fome.on("preUpdate", (diff: number) => {
         if (!unref(fome.unlocked)) return;
         if (Decimal.eq(unref(upgrades.reform.amount), 0)) return;
+        if (unref(loops.isBuilding)) return;
 
         const delta = unref(acceleron.timeMult).times(diff);
         amount.value = delta.times(unref(production)).plus(amount.value);
@@ -188,7 +190,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             bonus: boostBonus
         })),
         3: createBoost(feature => ({
-            display: () => `Reduce Pion and Spinor Upgrade α costs to 1/${format(Decimal.times(getFomeBoost(FomeTypes.infinitesimal, 3), 100).reciprocate())}%`,
+            display: () => `Reduce Pion and Spinor Upgrade α costs to 1/${format(Decimal.reciprocate(getFomeBoost(FomeTypes.infinitesimal, 3)))}×`,
             effect: () => Decimal.pow(0.8, unref(feature.total)),
             bonus: boostBonus
         })),
@@ -198,7 +200,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             bonus: boostBonus
         })),
         5: createBoost(feature => ({
-            display: () => `Reduce Pion and Spinor Upgrade γ costs to 1/${format(Decimal.times(getFomeBoost(FomeTypes.infinitesimal, 5), 100).reciprocate())}%`,
+            display: () => `Reduce Pion and Spinor Upgrade γ costs to 1/${format(Decimal.reciprocate(getFomeBoost(FomeTypes.infinitesimal, 5)))}×`,
             effect: () => Decimal.pow(0.8, unref(feature.total)),
             bonus: boostBonus
         }))

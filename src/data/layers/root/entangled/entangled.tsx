@@ -19,7 +19,7 @@ import { ProcessedComputable } from "util/computed";
 import { render, renderCol } from "util/vue";
 import { ComputedRef, Ref, computed, nextTick, unref } from "vue";
 import acceleron, { id as acceleronId } from "../acceleron/acceleron";
-import fome from "../fome/fome";
+import fome, { FomeTypes } from "../fome/fome";
 import inflaton, { id as inflatonId } from "../inflaton/inflaton";
 import skyrmion from "../skyrmion/skyrmion";
 import timecube from "../timecube/timecube";
@@ -142,17 +142,23 @@ const layer = createLayer("entangled", () => {
             resource: noPersist(acceleron.accelerons),
             cost() {
                 const cost = (() => {
-                    if (Decimal.eq(unref(strings), 0)) return 1e19;
+                    if (Decimal.eq(unref(strings), 0)) {
+                        switch (branchOrder.value) {
+                            case acceleronId: return 2e28;
+                            case inflatonId: return 2e20;
+                            default: return Decimal.dInf;
+                        }
+                    }
                     return [
-                        1e29,         // 
-                        1.5e41,       // Skyrmion
+                        2e28,         // 
+                        1.5e48,       // Skyrmion
                         Decimal.dInf, //          Fome
                         Decimal.dInf, // Skyrmion Fome
                         Decimal.dInf, //               Acceleron
                         Decimal.dInf, // Skyrmion      Acceleron
                         Decimal.dInf, //          Fome Acceleron
                         Decimal.dInf, // Skyrmion Fome Acceleron
-                        2.5e41,       //                         Timecube
+                        5.2e52,       //                         Timecube
                         1e64,         // Skyrmion                Timecube
                         Decimal.dInf, //          Fome           Timecube
                         Decimal.dInf, // Skyrmion Fome           Timecube
@@ -185,17 +191,23 @@ const layer = createLayer("entangled", () => {
             resource: noPersist(inflaton.inflatons),
             cost() {
                 const cost = (() => {
-                    if (Decimal.eq(unref(strings), 0)) return 8000;
+                    if (Decimal.eq(unref(strings), 0)) {
+                        switch (branchOrder.value) {
+                            case acceleronId: return 9e4;
+                            case inflatonId: return 4e6;
+                            default: return Decimal.dInf;
+                        }
+                    }
                     return [
-                        1.8e4,                 // 
-                        8.5e12,                // Skyrmion
+                        2.5e5,                 // 
+                        1e19,                  // Skyrmion
                         Decimal.dInf,          //          Fome
                         Decimal.dInf,          // Skyrmion Fome
                         Decimal.dInf,          //               Acceleron
                         Decimal.dInf,          // Skyrmion      Acceleron
                         Decimal.dInf,          //          Fome Acceleron
                         Decimal.dInf,          // Skyrmion Fome Acceleron
-                        3.7e5,                 //                         Timecube
+                        1.5e8,                 //                         Timecube
                         4.5e17,                // Skyrmion                Timecube
                         Decimal.dInf,          //          Fome           Timecube
                         Decimal.dInf,          // Skyrmion Fome           Timecube
@@ -283,7 +295,10 @@ const layer = createLayer("entangled", () => {
                     : []).filter(research => unref(research.researched));
                 reset.reset();
                 if (unref(milestones[2].earned)) {
-                    fome.protoversal.upgrades.reform.amount.value = Decimal.dOne;
+                    for (const fomeType of Object.values(FomeTypes)) {
+                        fome[fomeType].upgrades.condense.bought.value = true;
+                        fome[fomeType].upgrades.reform.amount.value = 1;
+                    }
                 }
                 for (const research of keptInflatonResearch) {
                     research.researched.value = true;

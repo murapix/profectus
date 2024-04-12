@@ -16,7 +16,6 @@
             bought: unref(bought),
             ...unref(classes)
         }"
-        :disabled="!unref(canPurchase)"
     >
         <component v-if="unref(component)" :is="unref(component)" />
         <MarkNode :mark="unref(mark)" />

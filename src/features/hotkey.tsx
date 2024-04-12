@@ -143,7 +143,7 @@ registerInfoComponent(
                     {keys.filter(hotkey => hotkey?.description ?? false)
                         .map(hotkey => (
                         <div>
-                            <Hotkey hotkey={hotkey as GenericHotkey} /> {hotkey?.description}
+                            <Hotkey hotkey={hotkey as GenericHotkey} /> {unref(hotkey?.description)}
                         </div>
                     ))}
                 </div>

@@ -20,11 +20,10 @@ import timelines from "../timecube/timelines";
 import { Sides } from "../timecube/timesquares";
 import LoopDescriptions from "./LoopDescriptions.vue";
 import Loops from "./Loops.vue";
-import acceleronLayer, { id as acceleronId } from "./acceleron";
+import acceleronLayer from "./acceleron";
 import entropy from "./entropy";
 import { GenericLoop, LoopOptions, createLoop } from "./loop";
 import { GenericPersistentLoop, persistentDecorator } from "./persistentLoopDecorator";
-import entangled from "../entangled/entangled";
 
 const id = "loops";
 const layer = createLayer(id, function (this: BaseLayer) {
@@ -236,15 +235,15 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 width: 10,
                 description: jsx(() => (
                     <>
-                        Every year, gain a decaying divider to Acceleron cost. Currently: <span style={{color: unref(unref((loop as GenericLoop<Decimal>).display).color)}}>
-                            /{format(Decimal.gte(unref(acceleronLayer.timeMult), unref(loop.triggerRequirement as ProcessedComputable<DecimalSource>))
+                        Every year, gain a decaying boost to Acceleron gain. Currently: <span style={{color: unref(unref((loop as GenericLoop<Decimal>).display).color)}}>
+                            {format(Decimal.gte(unref(acceleronLayer.timeMult), unref(loop.triggerRequirement as ProcessedComputable<DecimalSource>))
                                 ? unref(averageLoopValues[loop.id])
                                 : unref((loop as GenericPersistentLoop<Decimal>).value))}
                         </span>×
                     </>
                 ))
             },
-            effect() { return new Decimal(1e15) },
+            effect() { return new Decimal(1000) },
             trigger(intervals) {
                 (this as GenericPersistentLoop<Decimal>).value.value = unref((loop as GenericLoop<Decimal>).effect).div(Decimal.div(unref(timelines.nerfs[Sides.RIGHT]), unref(timelines.buffs[Sides.RIGHT]))).times(intervals)
             }

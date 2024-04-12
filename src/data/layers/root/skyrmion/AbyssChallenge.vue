@@ -126,6 +126,7 @@ watchEffect(() => {
     cursor: pointer;
     color: var(--link);
     text-decoration: none;
+    text-shadow: 0 0 10px var(--feature-foreground);
 }
 
 .challenge span {

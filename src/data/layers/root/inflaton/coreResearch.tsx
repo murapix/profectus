@@ -400,6 +400,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
     inflaton.on("update", () => { // if automating research and below parallel count, add the cheapest repeatables to the queue
         if (!unref(autoResearching)) return;
         if (unref(researchQueue).length >= unref(parallelResearchCount)) {
+            if (!unref(research.moreRepeatables.researched)) return;
             if (!unref(repeatables.buildingSize.canResearch)) return;
             if (unref(researchQueue).some(id => id === repeatables.buildingSize.id)) return;
             if (unref(researchQueue).length >= unref(queueLength)) return;

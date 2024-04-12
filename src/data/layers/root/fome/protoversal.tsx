@@ -18,6 +18,7 @@ import skyrmion from "../skyrmion/skyrmion";
 import timecube from "../timecube/timecube";
 import { GenericBoost, createBoost, getFomeBoost } from "./boost";
 import fome, { FomeDims, FomeTypes, FomeUpgrade, FomeUpgrades, getDimDisplay, getReformDisplay, onDimRepeatable } from "./fome";
+import loops from "../acceleron/loops";
 
 const id = "protoversal";
 const layer = createLayer(id, function (this: BaseLayer) {
@@ -81,6 +82,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
     fome.on("preUpdate", (diff: number) => {
         if (!unref(fome.unlocked)) return;
         if (Decimal.eq(unref(upgrades.reform.amount), 0)) return;
+        if (unref(loops.isBuilding)) return;
 
         const delta = unref(acceleron.timeMult).times(diff);
         amount.value = delta.times(unref(production)).plus(amount.value);

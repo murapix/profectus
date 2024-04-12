@@ -360,7 +360,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 return !unref(upgrades.autoGain.bought);
             },
             key: "s",
-            description: () => unref(abyss.challenge.active) ? "Sell all Pion and Spinor Upgrades" : "Condense some Pions and Spinors into Skyrmions",
+            description: computed(() => unref(abyss.challenge.active) ? "Sell all Pion and Spinor Upgrades" : "Condense some Pions and Spinors into Skyrmions"),
             onPress() {
                 if (unref(abyss.challenge.active)) {
                     for (const upgrade of [...Object.values(pion.upgrades), ...Object.values(spinor.upgrades)]) {

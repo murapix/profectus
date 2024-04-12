@@ -24,6 +24,7 @@ import { SkyrmionRepeatable, createSkyrmionRepeatable } from "./repeatable";
 import skyrmion from "./skyrmion";
 import settings from "game/settings";
 import entangled from "../entangled/entangled";
+import loops from "../acceleron/loops";
 
 const id = "spinor";
 const layer = createLayer(id, function (this: BaseLayer) {
@@ -45,6 +46,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
     ]);
     const production = computed(() => productionModifiers.apply(unref(skyrmion.totalSkyrmions).times(0.01)));
     skyrmion.on("preUpdate", (diff: number) => {
+        if (unref(loops.isBuilding)) return;
         const delta = unref(acceleron.timeMult).times(diff);
         spinors.value = delta.times(unref(production)).plus(spinors.value);
     });
@@ -115,6 +117,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         const delta = createUpgrade({
             visibility: [
                 () => unref(abyss.challenge.active),
+                () => Decimal.gte(unref(entangled.strings), 1),
                 () => unref(entangled.branchOrder) !== '',
                 () => Decimal.gt(unref(fome[FomeTypes.protoversal].boosts[1].total), 0)
             ],
@@ -134,6 +137,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         const epsilon = createUpgrade({
             visibility: [
                 () => unref(abyss.challenge.active),
+                () => Decimal.gte(unref(entangled.strings), 1),
                 () => unref(entangled.branchOrder) !== '',
                 () => Decimal.gt(unref(fome[FomeTypes.infinitesimal].upgrades.reform.amount), 0)
             ],
@@ -153,6 +157,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         const zeta = createUpgrade({
             visibility: [
                 () => unref(abyss.challenge.active),
+                () => Decimal.gte(unref(entangled.strings), 1),
                 () => unref(entangled.branchOrder) !== '',
                 () => Decimal.gt(unref(fome[FomeTypes.subspatial].upgrades.reform.amount), 0)
             ],
@@ -172,6 +177,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         const eta = createUpgrade({
             visibility: [
                 () => unref(abyss.challenge.active),
+                () => Decimal.gte(unref(entangled.strings), 1),
                 () => unref(entangled.branchOrder) !== '',
                 () => Decimal.gt(unref(fome[FomeTypes.protoversal].upgrades.reform.amount), 1)
             ],
@@ -191,6 +197,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         const theta = createUpgrade({
             visibility: [
                 () => unref(abyss.challenge.active),
+                () => Decimal.gte(unref(entangled.strings), 1),
                 () => unref(entangled.branchOrder) !== '',
                 () => Decimal.gt(unref(fome[FomeTypes.subplanck].upgrades.reform.amount), 0)
             ],
@@ -210,6 +217,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         const iota = createUpgrade({
             visibility: [
                 () => unref(abyss.challenge.active),
+                () => Decimal.gte(unref(entangled.strings), 1),
                 () => unref(entangled.branchOrder) !== '',
                 () => Decimal.gt(unref(fome[FomeTypes.protoversal].upgrades.reform.amount), 2)
             ],
@@ -229,6 +237,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         const kappa = createUpgrade({
             visibility: [
                 () => unref(abyss.challenge.active),
+                () => Decimal.gte(unref(entangled.strings), 1),
                 () => unref(entangled.branchOrder) !== '',
                 () => Decimal.gt(unref(fome[FomeTypes.infinitesimal].upgrades.reform.amount), 1)
             ],
@@ -248,6 +257,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         const lambda = createUpgrade({
             visibility: [
                 () => unref(abyss.challenge.active),
+                () => Decimal.gte(unref(entangled.strings), 1),
                 () => unref(acceleron.upgrades.skyrmion.bought)
             ],
             cost(amount) {
@@ -265,6 +275,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         const mu = createUpgrade({
             visibility: [
                 () => unref(abyss.challenge.active),
+                () => Decimal.gte(unref(entangled.strings), 1),
                 () => unref(inflaton.upgrades.skyrmionUpgrades.bought)
             ],
             cost(amount) {
