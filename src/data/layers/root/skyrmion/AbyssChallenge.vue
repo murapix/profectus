@@ -33,10 +33,16 @@
                 <h2>Knowledge of the Abyss</h2>
             </template>
             <template #body>
-                <span style="fontWeight: normal">
+                <span style="font-weight: normal">
                         The Abyss is a twisted version of reality, featuring several unique differences. Entering this alternate reality will pause your progress outside, yet what you do here will remain - and some features may even be brought out, with some effort.
                 <br/><br/>Abyssal Pion and Spinor upgrades, unlike the versions you are used to, share a singular cost nerf, and are not affected by the automation provided by the Skyrmion upgrades.
                 <br/><br/>There do seem to be a few more Skyrmion, Pion, and Spinor upgrades available though, maybe those will be of use?
+                <template v-if="Decimal.gte(unref(acceleron.bestAccelerons), 1)">
+                    <br/><br/>Abyssal Accelerons seem a bit different from their usual kind too, somewhat... stickier. Bringing them together to construct more loops may have unintended consequences.
+                </template>
+                <template v-if="Decimal.gte(unref(inflaton.inflatons), 1)">
+                    <br/><br/>The space bound by Abyssal Inflatons feels oddly weak, the boundaries thin and wavering. It may be a tougher challenge than usual, keeping all your Foam safe within the space you hold.
+                </template>
                 </span>
             </template>
         </Modal>
@@ -53,11 +59,12 @@ import { GenericChallenge } from 'features/challenges/challenge';
 import { isHidden, isVisible, jsx } from 'features/feature';
 import NamedResource from 'features/resources/NamedResource.vue';
 import type { CostRequirement } from 'game/requirements';
-import { DecimalSource } from 'util/bignum';
 import { ProcessedComputable } from 'util/computed';
 import { coerceComponent } from 'util/vue';
 import type { Component } from 'vue';
 import { ref, shallowRef, unref, watchEffect } from 'vue';
+import acceleron from '../acceleron/acceleron';
+import inflaton from '../inflaton/inflaton';
 import Decimal, { DecimalSource } from 'lib/break_eternity';
 
 const props = defineProps<{

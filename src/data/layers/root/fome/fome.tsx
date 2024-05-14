@@ -112,6 +112,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
 
     const generalProductionModifiers: WithRequired<Modifier, "description">[] = [
         createMultiplicativeModifier(() => ({
+            multiplier: () => Decimal.add(unref(inflaton.buildings.maxSize), 1).reciprocate(),
+            enabled: noPersist(abyss.challenge.active),
+            description: jsx(() => (<>[{inflaton.name}] Abyssal Dispersion</>))
+        })),
+        createMultiplicativeModifier(() => ({
             multiplier: skyrmion.spinor.upgrades.eta.effect,
             enabled: () => Decimal.gt(unref(skyrmion.spinor.upgrades.eta.totalAmount), 0),
             description: jsx(() => (<>[{skyrmion.name}] Spinor Upgrade η ({formatWhole(unref(skyrmion.spinor.upgrades.eta.totalAmount))})</>))

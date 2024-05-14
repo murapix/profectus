@@ -14,7 +14,7 @@ import { createMultiplicativeModifier, createSequentialModifier } from "game/mod
 import { noPersist, persistent } from "game/persistence";
 import { createCostRequirement, displayRequirements, requirementsMet } from "game/requirements";
 import Decimal, { DecimalSource } from "lib/break_eternity";
-import { formatWhole } from "util/break_eternity";
+import { format, formatSmall, formatWhole } from "util/break_eternity";
 import { createModifierModal } from "util/util";
 import { render, renderRow } from "util/vue";
 import { ComputedRef, Ref, computed, unref } from "vue";
@@ -28,6 +28,7 @@ import buildings from "./buildings";
 import core from "./coreResearch";
 import { formatRoman } from "./repeatableDecorator";
 import { getResearchEffect } from "./research";
+import abyss from "../skyrmion/abyss";
 
 export const id = "inflaton";
 const layer = createLayer(id, function (this: BaseLayer) {
@@ -316,6 +317,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
             ? <div>
                 You have managed to stabilize the universe at a diameter of {formatLength(unref(buildings.maxSize))}
                 {unref(inflating) && Decimal.lt(unref(buildings.currentSize), unref(buildings.maxSize)) ? <> ({formatLength(unref(buildings.currentSize))})</> : undefined}
+                {unref(abyss.challenge.active)
+                    ? <><br/>The thin boundaries of this reality are causing Foam gain to be reduced to {formatSmall(Decimal.add(unref(buildings.maxSize), 1).reciprocate().times(100))}%</>
+                    : undefined
+                }
             </div>
             : undefined
         }
