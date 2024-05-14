@@ -82,7 +82,7 @@ export default defineComponent({
 
         function togglePinned(e: MouseEvent) {
             const isPinned = pinned as unknown as Persistent<boolean> | undefined; // Vue typing :/
-            if (e.shiftKey && isPinned) {
+            if (e.shiftKey && isPinned && unref(isPinned)) {
                 isPinned.value = !isPinned.value;
                 e.stopPropagation();
                 e.preventDefault();
