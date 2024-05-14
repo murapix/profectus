@@ -1,3 +1,4 @@
+import projInfo from "data/projInfo.json";
 import Toggle from "components/fields/Toggle.vue";
 import Column from "components/layout/Column.vue";
 import Spacer from "components/layout/Spacer.vue";
@@ -191,7 +192,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         autoBuilding,
         display: jsx(() => (
             <>
-                <div>Your buildings are taking up {formatLength(unref(usedSize), 0)} / {formatLength(Decimal.floor(unref(maxSize)), 0)}</div>
+                <div>Your buildings are taking up {formatLength(unref(usedSize), 0, projInfo.defaultDigitsShown)} / {formatLength(Decimal.floor(unref(maxSize)), 0, projInfo.defaultDigitsShown)}</div>
                 <Spacer />
                 {renderRow(...Object.values(buildingRenders))}
                 <Spacer />
