@@ -61,7 +61,8 @@ export function createBuilding<T = DecimalSource>(
                     resource: noPersist(cost.resource),
                     requiresPay: () => !unref(cost.free),
                     cumulativeCost: false,
-                    maxBulkAmount: buildingSize
+                    maxBulkAmount: buildingSize,
+                    showCurrent: true
                 }))
             ],
             onClick() {

@@ -100,6 +100,14 @@ export interface CostRequirementOptions {
      * @see {@link cost} for restrictions on maximizing support.
      */
     pay?: (amount?: DecimalSource) => void;
+    /**
+     * Should the display for this requirement also show the current amount of the required resource?
+     */
+    showCurrent?: Computable<boolean>;
+    /**
+     * Enables extra coloring if this requirement is unmet
+     */
+    showUnmet?: Computable<boolean>;
 }
 
 export type CostRequirement = Replace<
@@ -110,6 +118,8 @@ export type CostRequirement = Replace<
         requiresPay: ProcessedComputable<boolean>;
         cumulativeCost: ProcessedComputable<boolean>;
         canMaximize: ProcessedComputable<boolean>;
+        showCurrent: ProcessedComputable<boolean>;
+        showUnmet: ProcessedComputable<boolean>;
     }
 >;
 
@@ -126,9 +136,9 @@ export function createCostRequirement<T extends CostRequirementOptions>(
         req.partialDisplay = amount => (
             <span
                 style={
-                    unref(req.requirementMet as ProcessedComputable<boolean>)
-                        ? ""
-                        : "color: var(--danger)"
+                    unref(req.showUnmet) && !unref(req.requirementMet)
+                        ? "color: var(--danger)"
+                        : ""
                 }
             >
                 {displayResource(
@@ -141,12 +151,20 @@ export function createCostRequirement<T extends CostRequirementOptions>(
                               unref(req.directSum) as number
                           )
                         : unref(req.cost as ProcessedComputable<DecimalSource>)
-                )}{" "}
-                {req.resource.displayName}
+                )}
+                {unref(req.showCurrent)
+                    ? <> / {displayResource(req.resource)}</>
+                    : undefined
+                }{" "}
+                {unref(req.resource.displayName)}
             </span>
         );
         req.display = amount => (
-            <div>
+            <div style={
+                unref(req.showUnmet) && !unref(req.requirementMet)
+                    ? "color: var(--danger)"
+                    : ""
+            }>
                 {unref(req.requiresPay as ProcessedComputable<boolean>) ? "Costs: " : "Requires: "}
                 {displayResource(
                     req.resource,
@@ -158,28 +176,37 @@ export function createCostRequirement<T extends CostRequirementOptions>(
                               unref(req.directSum) as number
                           )
                         : unref(req.cost as ProcessedComputable<DecimalSource>)
-                )}{" "}
-                {req.resource.displayName}
+                )}
+                {unref(req.showCurrent)
+                    ? <> / {displayResource(req.resource)}</>
+                    : undefined
+                }{" "}
+                {unref(req.resource.displayName)}
             </div>
         );
 
         processComputable(req as T, "visibility");
-        setDefault(req, "visibility", Visibility.Visible);
+        setDefault(req as T, "visibility", Visibility.Visible);
         processComputable(req as T, "cost");
         processComputable(req as T, "requiresPay");
-        setDefault(req, "requiresPay", true);
+        setDefault(req as T, "requiresPay", true);
         processComputable(req as T, "cumulativeCost");
-        setDefault(req, "cumulativeCost", true);
+        setDefault(req as T, "cumulativeCost", true);
         processComputable(req as T, "maxBulkAmount");
-        setDefault(req, "maxBulkAmount", 1);
+        setDefault(req as T, "maxBulkAmount", 1);
         processComputable(req as T, "directSum");
-        setDefault(req, "pay", function (amount?: DecimalSource) {
+        processComputable(req as T, "showCurrent");
+        setDefault(req as T, "showCurrent", false);
+        processComputable(req as T, "showUnmet");
+        setDefault(req as T, "showUnmet", false);
+
+        setDefault(req as T, "pay", function (amount?: DecimalSource) {
             const cost =
                 req.cost instanceof Formula
                     ? calculateCost(
                           req.cost,
                           amount ?? 1,
-                          unref(req.cumulativeCost) as boolean,
+                          unref(req.cumulativeCost as ProcessedComputable<boolean>),
                           unref(req.directSum) as number
                       )
                     : unref(req.cost as ProcessedComputable<DecimalSource>);
