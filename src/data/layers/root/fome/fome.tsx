@@ -179,7 +179,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             requirements: createBooleanRequirement(() => Decimal.gte(unref(protoversal.upgrades.reform.amount), 2)),
             tooltip: {
                 requirement: <>Re-form your Protoversal Foam</>,
-                effect: <>Unlock the Pion and Spinor Buy All button<br />Automatically enlarge your Protoversal Foam</>
+                effect: <>Unlock the Pion and Spinor Buy All hotkey (see Info at top right)<br />Automatically enlarge your Protoversal Foam</>
             }
         })),
         [FomeTypes.infinitesimal]: createAchievement(() => ({
