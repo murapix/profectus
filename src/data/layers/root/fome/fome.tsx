@@ -173,7 +173,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         fontWeight: 'normal',
         color: 'var(--feature-foreground)'
     } as StyleValue
-    const achievements: Record<FomeTypes | 'reform', GenericAchievement & { tooltip: { requirement: JSX.Element, effect: JSX.Element } }> = {
+    const achievements = {
         [FomeTypes.protoversal]: createAchievement(() => ({
             display: jsx(() => <span style={achievementStyle}>P<sup style={{fontWeight: 'normal'}}>2</sup></span>),
             requirements: createBooleanRequirement(() => Decimal.gte(unref(protoversal.upgrades.reform.amount), 2)),
@@ -221,8 +221,20 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 requirement: <>Re-form your Quantum Foam</>,
                 effect: <>Automatically re-form your Foam</>
             }
+        })),
+        abyssalAutobuy: createAchievement(() => ({
+            visibility: noPersist(abyss.challenge.active),
+            display: jsx(() => <><span style={achievementStyle}>QB<sup style={{fontWeight: 'normal'}}>4</sup></span></>),
+            requirements: [
+                createBooleanRequirement(() => Decimal.gte(unref(quantum.boosts[5].amount), 4)),
+                createBooleanRequirement(noPersist(abyss.challenge.active))
+            ],
+            tooltip: {
+                requirement: <>Gain 4 levels in every Abyssal Quantum Boost</>,
+                effect: <>Pion and Spinor upgrade automation is functional once more</>
+            }
         }))
-    }
+    } satisfies Record<string, GenericAchievement & { tooltip: { requirement: JSX.Element, effect: JSX.Element } }>;
     for (const achievement of Object.values(achievements)) {
         addTooltip(achievement, {
             display: jsx(() => (<><h3>{achievement.tooltip.requirement}</h3><br />{achievement.tooltip.effect}</>))
