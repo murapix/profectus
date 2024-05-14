@@ -183,8 +183,7 @@ export function createChallenge<T extends ChallengeOptions>(
             const genericChallenge = challenge as GenericChallenge;
             if (genericChallenge.active.value) {
                 if (
-                    Decimal.gt(unref(genericChallenge.canComplete), 0) &&
-                    !genericChallenge.maxed.value
+                    Decimal.gt(unref(genericChallenge.canComplete), 0)
                 ) {
                     const completions = unref(genericChallenge.canComplete);
                     genericChallenge.completions.value = Decimal.min(
@@ -198,8 +197,7 @@ export function createChallenge<T extends ChallengeOptions>(
                 genericChallenge.reset?.reset();
             } else if (
                 unref(genericChallenge.canStart) &&
-                isVisible(genericChallenge.visibility) &&
-                !genericChallenge.maxed.value
+                isVisible(genericChallenge.visibility)
             ) {
                 genericChallenge.reset?.reset();
                 genericChallenge.active.value = true;

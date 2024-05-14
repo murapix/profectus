@@ -58,6 +58,7 @@ import { ProcessedComputable } from 'util/computed';
 import { coerceComponent } from 'util/vue';
 import type { Component } from 'vue';
 import { ref, shallowRef, unref, watchEffect } from 'vue';
+import Decimal, { DecimalSource } from 'lib/break_eternity';
 
 const props = defineProps<{
     challenge: GenericChallenge;
@@ -70,6 +71,9 @@ watchEffect(() => {
     requirementsDisplay.value = coerceComponent(
         jsx(() => {
             const requirement = props.challenge.requirements as CostRequirement;
+            if (Decimal.gte(unref(requirement.cost as ProcessedComputable<DecimalSource>), 5)) {
+                return <div>Current Goal: 5 ¿Ә≤˘´ϐ ˆæ›”¿˘ı˘≥</div>
+            }
             return <div>
                 Current Goal: <NamedResource resource={requirement.resource} override={unref(requirement.cost as ProcessedComputable<DecimalSource>)} />
             </div>
