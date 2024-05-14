@@ -115,7 +115,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 .reduce((pions, spinors) => pions.plus(spinors))
                 .dividedBy(10)
             },
-            description: jsx(() => <>1/10th of the magnitude of {skyrmion.pion.pions.displayName} and {skyrmion.spinor.spinors.displayName}</>)
+            description: jsx(() => <>1/10th of the magnitude of {unref(skyrmion.pion.pions.displayName)} and {unref(skyrmion.spinor.spinors.displayName)}</>)
         })),
         createMultiplicativeModifier(() => ({
             multiplier() { return [FomeTypes.protoversal, FomeTypes.infinitesimal, FomeTypes.subspatial, FomeTypes.subplanck, FomeTypes.quantum]
@@ -127,15 +127,15 @@ const layer = createLayer(id, function (this: BaseLayer) {
         })),
         createMultiplicativeModifier(() => ({
             multiplier() { return Decimal.add(unref(acceleron.accelerons), 1).log10() },
-            description: jsx(() => <>The magnitude of {acceleron.accelerons.displayName}</>)
+            description: jsx(() => <>The magnitude of {unref(acceleron.accelerons.displayName)}</>)
         })),
         createMultiplicativeModifier(() => ({
             multiplier() { return Decimal.add(unref(inflaton.buildings.buildings.storage.effect), 10).log10().log10().times(5) },
-            description: jsx(() => <>5x the magnitude<sup>2</sup> of Stored {inflaton.inflatons.displayName}</>)
+            description: jsx(() => <>5x the magnitude<sup>2</sup> of Stored {unref(inflaton.inflatons.displayName)}</>)
         })),
         createMultiplicativeModifier(() => ({
             multiplier() { return Decimal.add(unref(timecube.timecubes), 1).log10() },
-            description: jsx(() => <>The magnitude of {timecube.timecubes.displayName}</>)
+            description: jsx(() => <>The magnitude of {unref(timecube.timecubes.displayName)}</>)
         })),
         createExponentialModifier(() => ({
             exponent() { return Object.values(timelines).filter(timeline => unref(timeline.active)).length / 2 },

@@ -310,7 +310,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             title: "Build Cost",
             modifier: buildCostModifiers,
             base: 1,
-            baseText: jsx(() => <>[{acceleronLayer.name}] {acceleronLayer.accelerons.displayName}/sec</>),
+            baseText: jsx(() => <>[{acceleronLayer.name}] {unref(acceleronLayer.accelerons.displayName)}/sec</>),
             smallerIsBetter: true
         }
     ]);

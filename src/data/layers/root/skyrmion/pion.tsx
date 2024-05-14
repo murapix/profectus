@@ -24,12 +24,13 @@ import spinor from "./spinor";
 import settings from "game/settings";
 import entangled from "../entangled/entangled";
 import loops from "../acceleron/loops";
+import quantum from "../fome/quantum";
 
 const id = "pion";
 const layer = createLayer(id, function (this: BaseLayer) {
     const name = "Pions";
     
-    const pions = createResource<DecimalSource>(0, { displayName: name, singularName: "Pion", small: true });
+    const pions = createResource<DecimalSource>(0, { displayName: name, singularName: "Pion", small: true, abyssal: true });
     const productionModifiers = createSequentialModifier(() => [
         ...skyrmion.production,
         createMultiplicativeModifier(() => ({
@@ -348,7 +349,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             title: pions.displayName,
             modifier: productionModifiers,
             base: () => unref(skyrmion.totalSkyrmions).times(0.01),
-            baseText: jsx(() => <>[{skyrmion.name}] Total {skyrmion.skyrmions.displayName}</>)
+            baseText: jsx(() => <>[{skyrmion.name}] Total {unref(skyrmion.skyrmions.displayName)}</>)
         }
     ]);
 
@@ -408,7 +409,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
             }))
         });
         skyrmion.on("update", () => {
-            if (unref(abyss.challenge.active)) return;
+            if (unref(abyss.challenge.active)) {
+                if (!unref(fome.achievements.abyssalAutobuy.earned)) return;
+            }
             if (unref(shouldAutobuy) && requirementsMet(repeatable.requirements)) {
                 repeatable.onClick();
             }

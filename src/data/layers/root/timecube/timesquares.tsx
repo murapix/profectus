@@ -66,7 +66,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                     settings.showNextValues && Decimal.gt(unref(square.toBuy), 0)
                     ? <> → +{format(unref(square.square.nextEffect!).minus(1).times(100))}%</>
                     : undefined
-                } {timecube.timecubes.displayName}</>)
+                } {unref(timecube.timecubes.displayName)}</>)
             },
             effect() { return Decimal.pow(unref(square.square.amount), 0.45).times(getUpgradeEffect(timecube.upgrades.turn)).plus(1) },
             nextEffect() { return Decimal.plus(unref(square.square.amount), unref(square.toBuy)).pow(0.45).times(getUpgradeEffect(timecube.upgrades.turn)).plus(1) },
@@ -111,7 +111,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                     settings.showNextValues && Decimal.gt(unref(square.toBuy), 0)
                     ? <> → +{format(unref(square.square.nextEffect!).minus(1).times(100))}%</>
                     : undefined
-                } {acceleron.accelerons.displayName} effect</>)
+                } {unref(acceleron.accelerons.displayName)} effect</>)
             },
             effect() { return Decimal.pow(unref(square.square.amount), 0.2).dividedBy(5).plus(1) },
             nextEffect() { return Decimal.plus(unref(square.square.amount), unref(square.toBuy)).pow(0.2).dividedBy(5).plus(1) },

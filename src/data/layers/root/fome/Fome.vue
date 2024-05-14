@@ -23,7 +23,7 @@ import fome, { FomeDims, FomeTypes } from "./fome";
 
 function getFomeDisplay(fomeType: FomeTypes) {
     return `You have ${format(unref(fome[fomeType].amount))} ${
-        fome[fomeType].amount.displayName
+        unref(fome[fomeType].amount.displayName)
     }${
         Decimal.gt(unref(fome[fomeType].upgrades.reform.amount), 1) ? `<sup>${formatWhole(unref(fome[fomeType].upgrades.reform.amount))}</sup>` : ""
     }`;

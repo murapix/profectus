@@ -25,7 +25,7 @@ import loops from "../acceleron/loops";
 
 const id = "infinitesimal";
 const layer = createLayer(id, function (this: BaseLayer) {
-    const amount = createResource<DecimalSource>(0, { displayName: "Infinitesimal Foam" });
+    const amount = createResource<DecimalSource>(0, { displayName: "Infinitesimal Foam", abyssal: true });
 
     const productionModifiers = createSequentialModifier(() => [
         ...fome.production,
@@ -140,7 +140,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 resource: noPersist(amount),
                 cost: 2e4
             })),
-            display: { description: `Condense your ${amount.displayName}` },
+            display: { description: jsx(() => <>Condense your {unref(amount.displayName)}</>) },
             onPurchase() { fome.subspatial.upgrades.reform.amount.value = Decimal.dOne },
             classes: () => ({ auto: unref(fome.achievements.reform.earned) })
         })),
@@ -206,12 +206,12 @@ const layer = createLayer(id, function (this: BaseLayer) {
         }))
     }
 
-    const modifierModal = createModifierModal(`${amount.displayName} Modifiers`, () => [
+    const modifierModal = createModifierModal('Infinitesimal Foam Modifiers', () => [
         {
             title: amount.displayName,
             modifier: productionModifiers,
             base: () => unref(skyrmion.totalSkyrmions).times(0.01),
-            baseText: jsx(() => <>[{skyrmion.name}] Total {skyrmion.skyrmions.displayName}</>)
+            baseText: jsx(() => <>[{skyrmion.name}] Total {unref(skyrmion.skyrmions.displayName)}</>)
         }
     ]);
 

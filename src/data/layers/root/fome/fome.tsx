@@ -34,6 +34,7 @@ import protoversal from "./protoversal";
 import quantum from "./quantum";
 import subplanck from "./subplanck";
 import subspatial from "./subspatial";
+import abyss from "../skyrmion/abyss";
 
 export enum FomeTypes {
     protoversal = "protoversal",
@@ -70,7 +71,7 @@ export function getDimDisplay(fomeType: FomeTypes, dim: FomeDims) {
     }
     return jsx(() => (
         <>
-            <h3>Enlarge {layer[fomeType].amount.displayName} {dimName} by 1m</h3><br />
+            <h3>Enlarge {unref(layer[fomeType].amount.displayName)} {dimName} by 1m</h3><br />
             <br />
             Current {dimName}: {format(unref(layer[fomeType].upgrades[dim].amount))}m<br />
             <br />
@@ -82,7 +83,7 @@ export function getDimDisplay(fomeType: FomeTypes, dim: FomeDims) {
 export function getReformDisplay(fomeType: FomeTypes) {
     return jsx(() => (
         <>
-            Re-form your {layer[fomeType].amount.displayName}<br />
+            Re-form your {unref(layer[fomeType].amount.displayName)}<br />
             <br />
             Amount: {formatWhole(unref(layer[fomeType].upgrades.reform.amount))}<br />
             <br />
@@ -261,7 +262,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 display: jsx(() => (
                     <>
                         <div>
-                            You have <Resource resource={layer[unref(highestFome)].amount} color="var(--feature-background)" /> {layer[unref(highestFome)].amount.displayName}
+                            You have <Resource resource={layer[unref(highestFome)].amount} color="var(--feature-background)" /> {unref(layer[unref(highestFome)].amount.displayName)}
                             {Decimal.gt(unref(layer[unref(highestFome)].upgrades.reform.amount), 1)
                                 ? <sup>{formatWhole(unref(layer[unref(highestFome)].upgrades.reform.amount))}</sup>
                                 : undefined

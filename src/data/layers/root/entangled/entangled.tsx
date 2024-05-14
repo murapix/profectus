@@ -345,8 +345,8 @@ const layer = createLayer("entangled", () => {
                 cost: 1
             })),
             display: {
-                requirement: `1 ${strings.singularName}`,
-                effect: `${acceleron.accelerons.displayName} and ${inflaton.inflatons.displayName} no longer inflate each other's costs`
+                requirement: jsx(() => <>1 {unref(strings.singularName)}</>),
+                effect: jsx(() => <>{unref(acceleron.accelerons.displayName)} and {unref(inflaton.inflatons.displayName)} no longer inflate each other's costs</>)
             },
             small: false
         })),
@@ -356,7 +356,7 @@ const layer = createLayer("entangled", () => {
                 cost: 2
             })),
             display: {
-                requirement: `2 ${strings.displayName}`,
+                requirement: jsx(() => <>2 {unref(strings.displayName)}</>),
                 effect: jsx(() => <>
                     Unlock expansions to previous content<br />
                     Keep Skyrmion upgrades and Foam milestones
@@ -370,7 +370,7 @@ const layer = createLayer("entangled", () => {
                 cost: 3
             })),
             display: {
-                requirement: `3 ${strings.displayName}`,
+                requirement: jsx(() => <>3 {unref(strings.displayName)}</>),
                 effect: 'Keep all parallel research and research queue researches'
             },
             small: false
@@ -381,7 +381,7 @@ const layer = createLayer("entangled", () => {
                 cost: 7
             })),
             display: {
-                requirement: `7 ${strings.displayName}`,
+                requirement: jsx(() => <>7 {unref(strings.displayName)}</>),
                 effect: 'Unlock Fundamental Particles'
             },
             small: false
@@ -424,13 +424,13 @@ const layer = createLayer("entangled", () => {
                     {renderCol(expansions.inflaton, expansions.timecube)}
                 </Row>
                 <Spacer />
-                <div>The next {strings.singularName} requires:</div>
+                <div>The next {unref(strings.singularName)} requires:</div>
                 <Spacer />
                 <div style={{ color: acceleron.theme["--feature-background"] }}>
-                    {acceleron.accelerons.displayName}: {format(unref(requirements.acceleron.resource))} / {format(unref(requirements.acceleron.cost as ProcessedComputable<DecimalSource>))}
+                    {unref(acceleron.accelerons.displayName)}: {format(unref(requirements.acceleron.resource))} / {format(unref(requirements.acceleron.cost as ProcessedComputable<DecimalSource>))}
                 </div>
                 <div style={{ color: inflaton.theme["--feature-background"] }}>
-                    Stored {inflaton.inflatons.displayName}: {format(unref(requirements.inflaton.resource))} / {format(unref(requirements.inflaton.cost as ProcessedComputable<DecimalSource>))}
+                    Stored {unref(inflaton.inflatons.displayName)}: {format(unref(requirements.inflaton.resource))} / {format(unref(requirements.inflaton.cost as ProcessedComputable<DecimalSource>))}
                 </div>
                 {isVisible(requirements.timecube.visibility)
                     ? <div style={{ color: timecube.theme["--feature-background"] }}>

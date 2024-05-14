@@ -37,7 +37,7 @@ export function createReformRequirement<T extends ReformRequirementOptions>(
                         : "color: var(--danger)"
                 }
             >
-                {fome[unref(req.fomeType as ProcessedComputable<FomeTypes>)].amount.displayName}
+                {unref(fome[unref(req.fomeType as ProcessedComputable<FomeTypes>)].amount.displayName)}
                 <sup>{formatWhole(Decimal.floor(
                     req.cost instanceof Formula
                         ? calculateCost(req.cost, amount ?? 1, false)
@@ -47,7 +47,7 @@ export function createReformRequirement<T extends ReformRequirementOptions>(
         );
         req.display = amount => (
             <div>
-                Requires: {fome[unref(req.fomeType as ProcessedComputable<FomeTypes>)].amount.displayName}
+                Requires: {unref(fome[unref(req.fomeType as ProcessedComputable<FomeTypes>)].amount.displayName)}
                 <sup>{formatWhole(Decimal.floor(
                     req.cost instanceof Formula
                         ? calculateCost(req.cost, amount ?? 1, false)

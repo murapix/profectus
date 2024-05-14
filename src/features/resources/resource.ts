@@ -1,3 +1,4 @@
+import abyss from "data/layers/root/skyrmion/abyss";
 import { globalBus } from "game/events";
 import type { Persistent, State } from "game/persistence";
 import { NonPersistent, persistent } from "game/persistence";
@@ -6,18 +7,20 @@ import Decimal, { format, formatWhole } from "util/bignum";
 import type { ProcessedComputable } from "util/computed";
 import { loadingSave } from "util/save";
 import type { ComputedRef, Ref } from "vue";
-import { computed, isRef, ref, unref, watch } from "vue";
+import { computed, isRef, nextTick, ref, unref, watch } from "vue";
 
 /** An object that represents a named and quantifiable resource in the game. */
 export interface Resource<T = DecimalSource> extends Ref<T> {
     /** The name of this resource. */
-    displayName: string;
+    displayName: ComputedRef<string>;
     /** The name for a singular amount of this resource, if different. */
-    singularName: string;
+    singularName: ComputedRef<string>;
     /** When displaying the value of this resource, how many significant digits to display. */
     precision: number;
     /** Whether or not to display very small values using scientific notation, or rounding to 0. */
     small?: boolean;
+    /** Whether or not the resource name is prefixed by 'Abyssal' while within the abyss */
+    abyssal?: boolean;
 }
 
 export type PersistentResource<T extends State = DecimalSource> = Resource<T> & Persistent<T> & { [NonPersistent]: Resource<T> }
@@ -27,7 +30,10 @@ export type ResourceOptions = {
     singularName?: string;
     precision?: number;
     small?: boolean;
+    abyssal?: boolean;
 }
+
+const inAbyss = ref(false);
 
 /**
  * Creates a resource.
@@ -45,20 +51,39 @@ export function createResource<T extends State>(defaultValue: T | Ref<T>, {
     displayName = "points",
     singularName = displayName,
     precision = 0,
-    small = undefined
+    small = undefined,
+    abyssal = false
 }: ResourceOptions = {}) {
+    nextTick(() => {
+        if (unref(abyss.challenge.active)) inAbyss.value = true;
+        watch(abyss.challenge.active, active => { inAbyss.value = active; })
+    });
+
     const resource: Partial<Resource<T>> = isRef(defaultValue)
         ? defaultValue
         : persistent(defaultValue);
-    resource.displayName = displayName;
-    resource.singularName = singularName;
+    resource.displayName = computed(() => {
+        if (inAbyss.value && abyssal) return `Abyssal ${displayName}`;
+        return displayName;
+    });
+    resource.singularName = computed(() => {
+        if (inAbyss.value && abyssal) return `Abyssal ${singularName}`;
+        return singularName;
+    });
     resource.precision = precision;
     resource.small = small;
     if (!isRef(defaultValue)) {
         const nonPersistentResource = (resource as Persistent<T>)[
             NonPersistent
         ] as unknown as Resource<T>;
-        nonPersistentResource.displayName = displayName;
+        nonPersistentResource.displayName = computed(() => {
+            if (inAbyss.value && abyssal) return `Abyssal ${displayName}`;
+            return displayName;
+        });
+        nonPersistentResource.singularName = computed(() => {
+            if (inAbyss.value && abyssal) return `Abyssal ${singularName}`;
+            return singularName;
+        });
         nonPersistentResource.precision = precision;
         nonPersistentResource.small = small;
     }
@@ -140,7 +165,7 @@ export function trackOOMPS(
             return pointGain
                 ? format(pointGain.value, resource.precision, resource.small) +
                       " " +
-                      resource.displayName +
+                      unref(resource.displayName) +
                       "/s"
                 : "";
         }

@@ -25,12 +25,13 @@ import skyrmion from "./skyrmion";
 import settings from "game/settings";
 import entangled from "../entangled/entangled";
 import loops from "../acceleron/loops";
+import quantum from "../fome/quantum";
 
 const id = "spinor";
 const layer = createLayer(id, function (this: BaseLayer) {
     const name = "Spinors";
     
-    const spinors = createResource<DecimalSource>(0, { displayName: name, singularName: "Spinor", small: true });
+    const spinors = createResource<DecimalSource>(0, { displayName: name, singularName: "Spinor", small: true, abyssal: true });
     const productionModifiers = createSequentialModifier(() => [
         ...skyrmion.production,
         createMultiplicativeModifier(() => ({
@@ -77,7 +78,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             shouldAutobuy: noPersist(skyrmion.upgrades.alpha.bought),
             display: {
                 name: "α",
-                description: <>Reduce the cost of {skyrmion.skyrmions.displayName} by 33%</>,
+                description: <>Reduce the cost of {unref(skyrmion.skyrmions.displayName)} by 33%</>,
                 effect: (effect, nextEffect) => `/${format(effect)}${(settings.showNextValues && nextEffect) ? ` → /${format(nextEffect)}` : ``}`
             },
             effect: amount => Decimal.pow(1.5, amount),
@@ -322,7 +323,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             shouldAutobuy: noPersist(skyrmion.upgrades.pi.bought),
             display: {
                 name: "π",
-                description: <>Increase Pion and Spinor gain by 0.25% per total {entropy.entropy.displayName}</>
+                description: <>Increase Pion and Spinor gain by 0.25% per total {unref(entropy.entropy.displayName)}</>
             },
             effect: amount => Decimal.times(amount, 0.0025).times(unref(entropy.maxEntropy)).plus(1)
         });
@@ -350,7 +351,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             title: spinors.displayName,
             modifier: productionModifiers,
             base: () => unref(skyrmion.totalSkyrmions).times(0.01),
-            baseText: jsx(() => <>[{skyrmion.name}] Total {skyrmion.skyrmions.displayName}</>)
+            baseText: jsx(() => <>[{skyrmion.name}] Total {unref(skyrmion.skyrmions.displayName)}</>)
         }
     ]);
     
@@ -410,7 +411,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
             }))
         });
         skyrmion.on("update", () => {
-            if (unref(abyss.challenge.active)) return;
+            if (unref(abyss.challenge.active)) {
+                if (!unref(fome.achievements.abyssalAutobuy.earned)) return;
+            }
             if (unref(shouldAutobuy) && requirementsMet(repeatable.requirements)) {
                 repeatable.onClick();
             }

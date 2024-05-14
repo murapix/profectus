@@ -1,10 +1,10 @@
 <template>
-    <div style="display: grid; gridTemplateColumns: repeat(7, auto); width: fit-content; margin: auto; padding-left: 150px">
+    <div style="display: grid; grid-template-columns: repeat(7, auto); width: fit-content; margin: auto; padding-left: 150px">
         <template v-for="(fomeBoosts, key) in boosts" :key="key">
             <Spacer :num-labels="7" v-for="n in 7" :key="n" />
             <template v-for="(boost, index) in fomeBoosts" :key="key + '-' + index">
                 <template v-if="Decimal.gt(unref(fome[key].boosts[index].total), 0)">
-                    <div>{{ fome[key].amount.displayName.split(" ")[0] }} Boost {{ index }}</div>
+                    <div>{{ unref(fome[key].amount.displayName).split(" ").reverse().slice(1).reverse().join(" ") }} Boost {{ index }}</div>
                     <div>[</div>
                     <div>{{ formatWhole(unref(fome[key].boosts[index].amount)) }}</div>
                     <template v-if="Decimal.gt(unref(fome[key].boosts[index].bonus ?? 0), 0)">
@@ -32,6 +32,7 @@ import { CoercableComponent } from "features/feature";
 import Decimal, { format, formatWhole } from "util/break_eternity";
 import { unref } from "vue";
 import fome, { FomeTypes } from "./fome";
+import abyss from "../skyrmion/abyss";
 
 const boosts = Object.fromEntries(Object.values(FomeTypes).map(fomeType => 
     [fomeType, Object.fromEntries(

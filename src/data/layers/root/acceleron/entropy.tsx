@@ -31,7 +31,7 @@ const id = "entropy";
 const layer = createLayer(id, function (this: BaseLayer) {
     const name = "Entropy";
 
-    const entropy = createResource<DecimalSource>(0, { displayName: name });
+    const entropy = createResource<DecimalSource>(0, { displayName: name, abyssal: true });
     
     const maxEntropyModifiers = createSequentialModifier(() => [
         createMultiplicativeModifier(() => ({
@@ -277,7 +277,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 <Spacer />
                 Entropy: {formatWhole(unref(entropy))} / {formatWhole(unref(maxEntropy))}{render(maxEntropyModal)}
                 <br />
-                Next Enhancement: {formatWhole(unref(enhancementCost))} {entropy.displayName}
+                Next Enhancement: {formatWhole(unref(enhancementCost))} {unref(entropy.displayName)}
                 <Spacer />
                 {render(respec)}
                 <Spacer />

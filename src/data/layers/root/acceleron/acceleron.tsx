@@ -32,6 +32,7 @@ import timecube from "../timecube/timecube";
 import { Sides } from "../timecube/timesquares";
 import entropy from "./entropy";
 import loops from "./loops";
+import abyss from "../skyrmion/abyss";
 
 export const id = "acceleron";
 const layer = createLayer(id, function (this: BaseLayer) {
@@ -47,7 +48,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         return !entangled.isFirstBranch(inflatonId) && unref(fome[FomeTypes.quantum].upgrades.condense.bought);
     });
 
-    const accelerons = createResource<DecimalSource>(0, { displayName: name, singularName: "Acceleron" });
+    const accelerons = createResource<DecimalSource>(0, { displayName: name, singularName: "Acceleron", abyssal: true });
     const bestAccelerons = trackBest(accelerons);
     const totalAccelerons = trackTotal(accelerons);
 
@@ -86,7 +87,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
     const conversion = createCumulativeConversion(() => ({
         formula: fome => fome.dividedBy(computed(() => (unref(entangled.branchOrder) === '' || entangled.isFirstBranch(id)) ? 1e9 : 1e72))
                              .pow(computed(() => (unref(entangled.branchOrder) === '' || entangled.isFirstBranch(id)) ? 0.1 : 0.05))
-                             .times(acceleronGainModifiers.getFormula(1)),
+                             .times(computed(() => acceleronGainModifiers.apply(1))),
         baseResource: noPersist(fome[FomeTypes.quantum].amount),
         gainResource: noPersist(accelerons),
         onConvert() {
@@ -153,6 +154,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
         return amount.gte(1e12) ? amount.log10().times(5e5/6) : amount.sqrt();
     });
     const timeModifiers = createSequentialModifier(() => [
+        createMultiplicativeModifier(() => ({
+            multiplier: () => Decimal.sqr(unref(upgrades.fluctuation.effect)).reciprocate(),
+            enabled: noPersist(abyss.challenge.active),
+            description: jsx(() => <>[{name}] Abyssal Interference</>)
+        })),
         createMultiplicativeModifier(() => ({
             multiplier: (timecube.upgrades.time as EffectUpgrade<DecimalSource>).effect,
             enabled: noPersist(timecube.upgrades.time.bought),
@@ -438,7 +444,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             display: jsx(() => (
                 <>
                     <h3>Temporal Mastery</h3><br /><br />
-                    Unlock {(entangled.isFirstBranch(id) || Decimal.gt(unref(entangled.strings), 0)) ? inflaton.inflatons.displayName : entangled.strings.displayName}<br /><br /><br />
+                    Unlock {(entangled.isFirstBranch(id) || Decimal.gt(unref(entangled.strings), 0)) ? unref(inflaton.inflatons.displayName) : unref(entangled.strings.displayName)}<br /><br /><br />
                     <br />
                     {displayRequirements((upgrade as GenericUpgrade).requirements)}
                 </>

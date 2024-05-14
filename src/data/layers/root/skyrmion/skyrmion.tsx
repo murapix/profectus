@@ -66,7 +66,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         amount: ProcessedComputable<DecimalSource>
     ) => Formula.variable(amount)
                 .pow10()
-                .times(skyrmionCostModifiers.getFormula!(1));
+                .times(computed(() => skyrmionCostModifiers.apply(1)));
     const skyrmions: GenericRepeatable = createRepeatable(feature => {
         return {
             initialAmount: 1,
@@ -95,7 +95,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                     <span>
                         Convert<br/>
                         {format(cost)}<br/>
-                        {pion.pions[nameType]} and {spinor.spinors[nameType]}<br/>
+                        {unref(pion.pions[nameType])} and {unref(spinor.spinors[nameType])}<br/>
                         to <NamedResource resource={resource} override={maxAffordable} />
                         <Spacer height="5px" />
                     </span>
@@ -118,7 +118,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         if (unref(upgrades.autoGain.bought)) { skyrmions.onClick(); }
     })
 
-    const resource = createResource<DecimalSource>(noPersist(skyrmions.amount), { displayName: name, singularName: "Skyrmion" });
+    const resource = createResource<DecimalSource>(noPersist(skyrmions.amount), { displayName: name, singularName: "Skyrmion", abyssal: true });
     const totalSkyrmions = computed(() => Decimal.add(unref(resource), getFomeBoost(FomeTypes.subspatial, 4)));
     const generalProductionModifiers = [
         createMultiplicativeModifier(() => ({
@@ -381,6 +381,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         buy: createHotkey(() => ({
             enabled() {
                 if (!unref(fome.unlocked)) return false;
+                if (unref(abyss.challenge.active)) return true;
                 return Object.keys(upgrades)
                              .filter(key => !unref(upgrades[key as keyof typeof upgrades].bought))
                              .filter(key => key !== 'autoGain')
@@ -421,7 +422,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             <>
                 You have <Resource resource={resource} color="var(--feature-background)" tag="h2" includeName={true} />{render(modifierModal)}
                 {Decimal.gt(getFomeBoost(FomeTypes.subspatial, 4), 0)
-                ?   <><br />Your {fome.subspatial.amount.displayName} is granting an additional <Resource resource={resource} override={getFomeBoost(FomeTypes.subspatial, 4)} color="var(--feature-background)" tag="h3" includeName={true} /></>
+                ?   <><br />Your {unref(fome.subspatial.amount.displayName)} is granting an additional <Resource resource={resource} override={getFomeBoost(FomeTypes.subspatial, 4)} color="var(--feature-background)" tag="h3" includeName={true} /></>
                 : <Spacer height="25px" /> }
                 <Spacer />
                 <div class="row" style={{ flexFlow: "row nowrap" }}>

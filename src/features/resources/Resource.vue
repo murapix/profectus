@@ -23,7 +23,7 @@ const props = defineProps<{
 const amount = computed(() => displayResource(props.resource, props.override));
 const name = computed(() => {
     const resourceAmount = unref(props.override ?? props.resource);
-    if (Decimal.gt(resourceAmount, 1.5) || Decimal.lt(resourceAmount, 0.5)) return props.resource.displayName;
-    return Decimal.eq(unref(amount), 1) ? props.resource.singularName : props.resource.displayName;
+    if (Decimal.gt(resourceAmount, 1.5) || Decimal.lt(resourceAmount, 0.5)) return unref(props.resource.displayName);
+    return Decimal.eq(unref(amount), 1) ? unref(props.resource.singularName) : unref(props.resource.displayName);
 });
 </script>
