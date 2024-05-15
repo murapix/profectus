@@ -1,7 +1,6 @@
 import { LoadablePlayerData } from "components/saves/SavesManager.vue";
 import projInfo from "data/projInfo.json";
 import { globalBus } from "game/events";
-import { Persistent } from "game/persistence";
 import type { Player } from "game/player";
 import player, { stringifySave } from "game/player";
 import settings, { loadSettings } from "game/settings";

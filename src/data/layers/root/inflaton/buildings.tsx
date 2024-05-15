@@ -78,9 +78,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
         })) as GenericBuilding;
         const tuner = createBuilding<{gain: DecimalSource, cost: DecimalSource}>(building => ({
             effect(amount) {
-                let gain = Decimal.times(amount, 0.01).plus(1);
-                let cost = new Decimal(amount);
-                let capacity = unref(coreResearch.researchGain);
+                const gain = Decimal.times(amount, 0.01).plus(1);
+                const cost = new Decimal(amount);
+                const capacity = unref(coreResearch.researchGain);
                 if (cost.gt(capacity)) {
                     return { gain: gain.times(capacity).dividedBy(cost), cost: capacity }
                 }

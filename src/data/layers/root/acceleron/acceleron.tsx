@@ -150,7 +150,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
     }));
 
     const timeInput = computed(() => {
-        let amount = Decimal.max(unref(bestAccelerons), 0).plus(1);
+        const amount = Decimal.max(unref(bestAccelerons), 0).plus(1);
         return amount.gte(1e12) ? amount.log10().times(5e5/6) : amount.sqrt();
     });
     const timeModifiers = createSequentialModifier(() => [

@@ -9,14 +9,14 @@ import { addTooltip } from "features/tooltips/tooltip";
 import { EffectUpgrade, EffectUpgradeOptions, GenericUpgrade, createUpgrade, getUpgradeEffect } from "features/upgrades/upgrade";
 import { BaseLayer, createLayer } from "game/layers";
 import { createMultiplicativeModifier, createSequentialModifier } from "game/modifiers";
-import { Persistent, noPersist, persistent } from "game/persistence";
+import { noPersist } from "game/persistence";
 import { Requirement, createBooleanRequirement, createCostRequirement } from "game/requirements";
 import Decimal, { DecimalSource } from "lib/break_eternity";
 import { format, formatSmall, formatWhole } from "util/break_eternity";
 import { Computable, GetComputableType, GetComputableTypeWithDefault, ProcessedComputable, processComputable } from "util/computed";
 import { createModifierModal } from "util/util";
 import { coerceComponent, render } from "util/vue";
-import { ComputedRef, computed, reactive, unref, watch } from "vue";
+import { ComputedRef, computed, unref, watch } from "vue";
 import fome, { FomeTypes } from "../fome/fome";
 import timecube from "../timecube/timecube";
 import { Sides } from "../timecube/timesquares";
@@ -304,7 +304,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
     }
 
     function createEnhancement<T = unknown, U extends EnhancementOptions<T> = EnhancementOptions<T>>(
-        optionsFunc: OptionsFunc<U, {}, GenericEnhancement<T>>
+        optionsFunc: OptionsFunc<U, object, GenericEnhancement<T>>
     ): EffectUpgrade<T> {
         const enhancement = optionsFunc.call({}, {});
     
@@ -334,7 +334,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         addTooltip(upgrade, {
             display: jsx(() => {
                 const Description = coerceComponent(enhancement.display.description, "div");
-                const EffectDisplay = enhancement.effect
+                const EffectDisplay = enhancement.effect != undefined
                     ? coerceComponent(jsx(() => <>{displayFunc(unref(upgrade.effect))}</>))
                     : undefined;
                 

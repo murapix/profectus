@@ -207,7 +207,7 @@ export function createUpgrade<T extends UpgradeOptions>(
     });
 }
 
-export function getUpgradeEffect(upgrade: GenericUpgrade | EffectUpgrade, defaultValue: any = 1, always: boolean = false): any {
+export function getUpgradeEffect<T>(upgrade: GenericUpgrade | EffectUpgrade<T>, defaultValue: T = 1 as T, always: boolean = false): any {
     if (!('effect' in upgrade))
         throw new TypeError(`Upgrade ${upgrade.id} does not have an effect`);
     return (always || unref(upgrade.bought)) ? unref(upgrade.effect) : defaultValue;

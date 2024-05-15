@@ -37,7 +37,7 @@ export function createSkyrmionRepeatable(
         data.display.effect = (effect: DecimalSource, nextEffect?: DecimalSource) => `${formatSmall(effect)}×${(settings.showNextValues && nextEffect) ? ` → ${formatSmall(nextEffect)}×` : ``}`;
     }
 
-    let visibility: ProcessedComputable<Visibility | boolean>[] = [];
+    const visibility: ProcessedComputable<Visibility | boolean>[] = [];
     if (Array.isArray(data.visibility)) {
         visibility.push(...data.visibility.map(condition => convertComputable(condition)));
     }

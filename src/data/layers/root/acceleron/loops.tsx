@@ -1,5 +1,5 @@
 import Spacer from "components/layout/Spacer.vue";
-import { createClickable } from "features/clickables/clickable";
+import { GenericClickable, createClickable } from "features/clickables/clickable";
 import { isVisible, jsx } from "features/feature";
 import NamedResource from "features/resources/NamedResource.vue";
 import { getUpgradeEffect } from "features/upgrades/upgrade";
@@ -29,7 +29,7 @@ const id = "loops";
 const layer = createLayer(id, function (this: BaseLayer) {
     const isBuilding = persistent<boolean>(false);
 
-    const toggleBuilding = createClickable(() => ({
+    const toggleBuilding = createClickable(toggle => ({
         visibility: noPersist(acceleronLayer.upgrades.superstructures.bought),
         canClick() { return unref(nextLoop) !== undefined; },
         onClick() { isBuilding.value = !unref(isBuilding); },
@@ -37,10 +37,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
         style() {
             return {
                 borderRadius: '50%',
-                borderColor: unref(this.canClick) ? 'var(--feature-background)' : 'var(--locked)',
+                borderColor: unref((toggle as GenericClickable).canClick) ? 'var(--feature-background)' : 'var(--locked)',
 
                 backgroundColor: 'var(--transparent)',
-                color: unref(this.canClick) ? 'var(--feature-background)' : 'var(--locked)'
+                color: unref((toggle as GenericClickable).canClick) ? 'var(--feature-background)' : 'var(--locked)'
             }
         }
     }));
@@ -176,7 +176,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             }
         })) as GenericLoop<Decimal>;
         const timecube = createLoop<LoopOptions<Decimal>, Decimal>(loop => ({
-            visibility() { return unref(this.built) || unref(instantProd.built) },
+            visibility() { return unref(loop.built) || unref(instantProd.built) },
             buildRequirement: 600,
             triggerRequirement: 60*60,
             display: {
@@ -202,7 +202,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             }
         })) as GenericLoop<Decimal>;
         const tempFome = createLoop<LoopOptions<Decimal>, Decimal>(loop => ({
-            visibility() { return unref(this.built) || unref(acceleronLayer.upgrades.tetration.bought) || unref(timecubeLayer.upgrades.tiny.bought) },
+            visibility() { return unref(loop.built) || unref(acceleronLayer.upgrades.tetration.bought) || unref(timecubeLayer.upgrades.tiny.bought) },
             buildRequirement: 250000,
             triggerRequirement: 60*60*24,
             display: {
@@ -227,7 +227,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             }
         }), persistentDecorator) as GenericPersistentLoop<Decimal>;
         const tempAcceleron = createLoop<LoopOptions<Decimal>, Decimal>(loop => ({
-            visibility() { return unref(this.built) || (unref(acceleronLayer.upgrades.tetration.bought)) && unref(tempFome.built) },
+            visibility() { return unref(loop.built) || (unref(acceleronLayer.upgrades.tetration.bought)) && unref(tempFome.built) },
             buildRequirement: 1e11,
             triggerRequirement: 60*60*24*365,
             display: {
@@ -249,7 +249,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             }
         }), persistentDecorator) as GenericPersistentLoop<Decimal>;
         const tempSkyrmion = createLoop<LoopOptions<Decimal>, Decimal>(loop => ({
-            visibility() { return unref(this.built) || (unref(acceleronLayer.upgrades.tetration.bought) && unref(timecubeLayer.upgrades.tiny.bought) && unref(tempAcceleron.built)) },
+            visibility() { return unref(loop.built) || (unref(acceleronLayer.upgrades.tetration.bought) && unref(timecubeLayer.upgrades.tiny.bought) && unref(tempAcceleron.built)) },
             buildRequirement: 4e17,
             triggerRequirement: 60*60*24*365*10,
             display: {

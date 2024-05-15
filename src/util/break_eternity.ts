@@ -109,7 +109,7 @@ export function standardNotation(
 function getStandardNotation(value: DecimalSource, precision: number = projInfo.defaultDigitsShown + 1): [Decimal, string|Decimal] {
     const maxExponent = 1000;
 
-    let [mantissa, exponent] = getThousandsNotation(value, precision);
+    const [mantissa, exponent] = getThousandsNotation(value, precision);
     
     if (exponent.gt(maxExponent)) return [mantissa, exponent];
     if (exponent.eq(0)) return [mantissa, exponent];
@@ -175,7 +175,7 @@ export function thousandsNotation(value: DecimalSource, precision: number = proj
     }
 }
 function getThousandsNotation(value: DecimalSource, precision: number = projInfo.defaultDigitsShown + 1, type: PrecisionType = PrecisionType.total) {
-    let [mantissa, exponent] = getEngineeringNotation(value, precision, type);
+    const [mantissa, exponent] = getEngineeringNotation(value, precision, type);
     return [mantissa, exponent.div(3)];
 }
 
@@ -203,7 +203,7 @@ export function engineeringNotation(value: DecimalSource, precision: number = pr
     }
 }
 function getEngineeringNotation(value: DecimalSource, precision: number = projInfo.defaultDigitsShown + 1, type: PrecisionType = PrecisionType.total) {
-    let [mantissa, exponent] = getScientificNotation(value, precision, type);
+    const [mantissa, exponent] = getScientificNotation(value, precision, type);
     if (exponent.gte(Number.MAX_SAFE_INTEGER)) return [mantissa, exponent];
 
     const offset = exponent.toNumber() % 3;
@@ -212,7 +212,7 @@ function getEngineeringNotation(value: DecimalSource, precision: number = projIn
 
 export const exponentialFormat = scientificNotation;
 export function scientificNotation(value: DecimalSource, precision: number = projInfo.defaultDigitsShown, type: PrecisionType = PrecisionType.decimal, skipMantissa: boolean = false) {
-    let [mantissa, exponent] = getScientificNotation(value, precision, type);
+    const [mantissa, exponent] = getScientificNotation(value, precision, type);
     const formattedExponent = exponent.gte(1e9)
         ? format(exponent, Math.max(precision, 3, projInfo.defaultDigitsShown))
         : exponent.gte(10000)

@@ -25,7 +25,6 @@ import skyrmion from "./skyrmion";
 import settings from "game/settings";
 import entangled from "../entangled/entangled";
 import loops from "../acceleron/loops";
-import quantum from "../fome/quantum";
 
 const id = "spinor";
 const layer = createLayer(id, function (this: BaseLayer) {

@@ -1,6 +1,4 @@
-import { computed } from "@vue/reactivity";
 import { isArray } from "@vue/shared";
-import Select from "components/fields/Select.vue";
 import AchievementComponent from "features/achievements/Achievement.vue";
 import { GenericDecorator } from "features/decorators/common";
 import {
@@ -13,10 +11,8 @@ import {
     StyleValue,
     Visibility,
     getUniqueID,
-    jsx,
     setDefault
 } from "features/feature";
-import { globalBus } from "game/events";
 import "game/notifications";
 import type { Persistent } from "game/persistence";
 import { persistent } from "game/persistence";
@@ -28,8 +24,7 @@ import {
     displayRequirements,
     requirementsMet
 } from "game/requirements";
-import settings, { registerSettingField } from "game/settings";
-import { camelToTitle } from "util/common";
+import settings from "game/settings";
 import type {
     Computable,
     GetComputableType,

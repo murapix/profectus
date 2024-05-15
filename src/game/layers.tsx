@@ -10,7 +10,6 @@ import type {
 import { jsx, setDefault } from "features/feature";
 import { globalBus } from "game/events";
 import type { Persistent } from "game/persistence";
-import { persistent } from "game/persistence";
 import player from "game/player";
 import type { Emitter } from "nanoevents";
 import { createNanoEvents } from "nanoevents";

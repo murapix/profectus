@@ -1,11 +1,9 @@
 import { isVisible, jsx, StyleValue } from "features/feature";
-import { createTab, GenericTab } from "features/tabs/tab";
+import { createTab } from "features/tabs/tab";
 import { GenericTabFamily, createTabFamily } from "features/tabs/tabFamily";
-import { GenericLayer, layers } from "game/layers";
+import { GenericLayer } from "game/layers";
 import { createLayer } from "game/layers";
 import type { Player } from "game/player";
-import player from "game/player";
-import { format } from "util/bignum";
 import { render } from "util/vue";
 
 import { computed, Ref, unref } from "vue";

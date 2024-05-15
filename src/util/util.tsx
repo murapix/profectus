@@ -23,7 +23,7 @@ export function clonePersistentData(object: unknown) {
     const copy = {} as Record<string | number | symbol, unknown>;
     for (const [key, value] of Object.entries(object)) {
         if (['requirements', 'tabs', 'prerequisites'].includes(key)) continue;
-        let data = clonePersistentData(value);
+        const data = clonePersistentData(value);
         if (data !== undefined) copy[key] = data;
     }
     if (Object.keys(copy).length === 0) return;

@@ -14,7 +14,7 @@ import { createMultiplicativeModifier, createSequentialModifier } from "game/mod
 import { noPersist, persistent } from "game/persistence";
 import { createCostRequirement, displayRequirements, requirementsMet } from "game/requirements";
 import Decimal, { DecimalSource } from "lib/break_eternity";
-import { format, formatSmall, formatWhole } from "util/break_eternity";
+import { formatSmall, formatWhole } from "util/break_eternity";
 import { createModifierModal } from "util/util";
 import { render, renderRow } from "util/vue";
 import { ComputedRef, Ref, computed, unref } from "vue";
@@ -94,7 +94,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
     function endInflation() {
         inflating.value = false;
         inflatons.value = Decimal.min(unref(inflatons), unref(buildings.buildings.storage.effect));
-    };
+    }
     const inflating = persistent<boolean>(false);
 
     const inflatonNerf = computed(() => {
@@ -127,8 +127,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
         timecube: inflatonNerf
     };
     const inflatonGain = computed(() => {
-        let exponent = Decimal.clampMin(unref(inflatons), 1).log10().plus(1).dividedBy(10);
-        let gain = exponent.pow_base(2).times(unref(inflatons));
+        const exponent = Decimal.clampMin(unref(inflatons), 1).log10().plus(1).dividedBy(10);
+        const gain = exponent.pow_base(2).times(unref(inflatons));
         return gain.layer >= 3
             ? Decimal.fromComponents(gain.sign, gain.layer, gain.mag * 1.000000000000001)
             : gain

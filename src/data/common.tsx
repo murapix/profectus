@@ -5,7 +5,7 @@ import { createClickable } from "features/clickables/clickable";
 import type { GenericConversion } from "features/conversion";
 import type { CoercableComponent, JSXFunction, OptionsFunc, Replace } from "features/feature";
 import { jsx, setDefault } from "features/feature";
-import { Resource, displayResource } from "features/resources/resource";
+import { Resource } from "features/resources/resource";
 import type { GenericTree, GenericTreeNode, TreeNode, TreeNodeOptions } from "features/trees/tree";
 import { createTreeNode } from "features/trees/tree";
 import type { GenericFormula } from "game/formulas/types";
@@ -16,7 +16,7 @@ import { DefaultValue, persistent } from "game/persistence";
 import player from "game/player";
 import settings from "game/settings";
 import type { DecimalSource } from "util/bignum";
-import Decimal, { format, formatSmall, formatTime } from "util/bignum";
+import Decimal, { formatSmall, formatTime } from "util/bignum";
 import { WithRequired, camelToTitle } from "util/common";
 import type {
     Computable,
