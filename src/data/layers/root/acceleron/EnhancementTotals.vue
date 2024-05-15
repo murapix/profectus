@@ -126,8 +126,8 @@ const effects = {
     },
     time: computed(() => getUpgradeEffect(enhancements.dilation)),
     loops: {
-        1: computed(() => getUpgradeEffect(enhancements.acceleration, 0)),
-        2: computed(() => getUpgradeEffect(enhancements.expansion, 0)),
+        1: computed(() => getUpgradeEffect<DecimalSource>(enhancements.acceleration, 0)),
+        2: computed(() => getUpgradeEffect<DecimalSource>(enhancements.expansion, 0)),
         buildSpeed: computed(() => getUpgradeEffect(enhancements.construction)),
         buildCost: computed(() => getUpgradeEffect(enhancements.development))
     },
@@ -137,7 +137,7 @@ const effects = {
         [FomeTypes.infinitesimal]: computed(() => getUpgradeEffect(enhancements.extension)),
         [FomeTypes.subspatial]: computed(() => getUpgradeEffect(enhancements.configuration)),
         [FomeTypes.subplanck]: computed(() => getUpgradeEffect(enhancements.invention)),
-        boosts: computed(() => getUpgradeEffect(enhancements.entitlement, 0))
+        boosts: computed(() => getUpgradeEffect<DecimalSource>(enhancements.entitlement, 0))
     },
     acceleron: computed(() => new Decimal(getUpgradeEffect(enhancements.contraction))
                                     .times(getUpgradeEffect(enhancements.inversion))

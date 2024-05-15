@@ -171,7 +171,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         }))
     ];
 
-    const globalBoostBonus: ComputedRef<Decimal> = computed(() => Decimal.add(getUpgradeEffect(entropy.enhancements.entitlement, 0), getUpgradeEffect(timecube.upgrades.tier, 0)));
+    const globalBoostBonus: ComputedRef<Decimal> = computed(() => Decimal.add(getUpgradeEffect<DecimalSource>(entropy.enhancements.entitlement, 0), getUpgradeEffect(timecube.upgrades.tier, 0)));
 
     const achievementStyle = {
         fontSize: '48px',

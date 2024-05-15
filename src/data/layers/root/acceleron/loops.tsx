@@ -133,7 +133,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                     </>
                 ))
             },
-            effect() { return Decimal.add(0.001, getUpgradeEffect(entropy.enhancements.acceleration, 0))
+            effect() { return Decimal.add(0.001, getUpgradeEffect<DecimalSource>(entropy.enhancements.acceleration, 0))
                                      .div(unref(timelines.nerfs[Sides.RIGHT]))
                                      .times(unref(timelines.buffs[Sides.RIGHT]))
             },
@@ -164,7 +164,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                     </>
                 ))
             }),
-            effect() { return Decimal.plus(1, getUpgradeEffect(entropy.enhancements.expansion, 0))
+            effect() { return Decimal.plus(1, getUpgradeEffect<DecimalSource>(entropy.enhancements.expansion, 0))
                                      .div(unref(timelines.nerfs[Sides.RIGHT]))
                                      .times(unref(timelines.buffs[Sides.RIGHT]))
             },
