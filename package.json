@@ -35,7 +35,6 @@
     "vite-tsconfig-paths": "^3.5.0",
     "vue": "^3.2.26",
     "vue-next-select": "^2.10.2",
-    "vue-panzoom": "https://github.com/thepaperpilot/vue-panzoom.git",
     "vue-textarea-autosize": "^1.1.1",
     "vue-toastification": "^2.0.0-rc.1",
     "vue-transition-expand": "^0.1.0",

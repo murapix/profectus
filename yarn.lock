@@ -1825,13 +1825,6 @@ ajv@^8.6.0:
     require-from-string "^2.0.2"
     uri-js "^4.2.2"
 
-amator@^1.1.0:
-  version "1.1.0"
-  resolved "https://registry.npmjs.org/amator/-/amator-1.1.0.tgz"
-  integrity sha512-V5+aH8pe+Z3u/UG3L3pG3BaFQGXAyXHVQDroRwjPHdh08bcUEchAVsU1MCuJSCaU5o60wTK6KaE6te5memzgYw==
-  dependencies:
-    bezier-easing "^2.0.3"
-
 ansi-regex@^5.0.1:
   version "5.0.1"
   resolved "https://registry.npmjs.org/ansi-regex/-/ansi-regex-5.0.1.tgz"
@@ -1932,11 +1925,6 @@ balanced-match@^1.0.0:
   version "1.0.2"
   resolved "https://registry.npmjs.org/balanced-match/-/balanced-match-1.0.2.tgz"
   integrity sha512-3oSeUO0TMV67hN1AmbXsK4yaqU7tjiHlbxRDZOpH0KW9+CeX4bRAaX0Anxt0tx2MrpRpWwQaPwIlISEJhYU5Pw==
-
-bezier-easing@^2.0.3:
-  version "2.1.0"
-  resolved "https://registry.npmjs.org/bezier-easing/-/bezier-easing-2.1.0.tgz"
-  integrity sha512-gbIqZ/eslnUFC1tjEvtz0sgx+xTK20wDnYMIA27VA04R7w6xxXQPZDbibjA9DTWZRA2CXtwHykkVzlCaAJAZig==
 
 brace-expansion@^1.1.7:
   version "1.1.11"
@@ -3462,11 +3450,6 @@ natural-compare@^1.4.0:
   resolved "https://registry.npmjs.org/natural-compare/-/natural-compare-1.4.0.tgz"
   integrity sha512-OWND8ei3VtNC9h7V60qff3SVobHr996CTwgxubgyQYEpg290h9J0buyECNNJexkFm5sOajh5G116RYA1c8ZMSw==
 
-ngraph.events@^1.2.2:
-  version "1.2.2"
-  resolved "https://registry.npmjs.org/ngraph.events/-/ngraph.events-1.2.2.tgz"
-  integrity sha512-JsUbEOzANskax+WSYiAPETemLWYXmixuPAlmZmhIbIj6FH/WDgEGCGnRwUQBK0GjOnVm8Ui+e5IJ+5VZ4e32eQ==
-
 node-releases@^2.0.8:
   version "2.0.10"
   resolved "https://registry.npmjs.org/node-releases/-/node-releases-2.0.10.tgz"
@@ -3567,15 +3550,6 @@ p-locate@^5.0.0:
   integrity sha512-LaNjtRWUBY++zB5nE/NwcaoMylSPk+S+ZHNB1TzdbMJMny6dynpAGt7X/tl/QYq3TIeE6nxHppbo2LGymrG5Pw==
   dependencies:
     p-limit "^3.0.2"
-
-panzoom@^9.4.1:
-  version "9.4.3"
-  resolved "https://registry.npmjs.org/panzoom/-/panzoom-9.4.3.tgz"
-  integrity sha512-xaxCpElcRbQsUtIdwlrZA90P90+BHip4Vda2BC8MEb4tkI05PmR6cKECdqUCZ85ZvBHjpI9htJrZBxV5Gp/q/w==
-  dependencies:
-    amator "^1.1.0"
-    ngraph.events "^1.2.2"
-    wheel "^1.0.0"
 
 parent-module@^1.0.0:
   version "1.0.1"
@@ -4523,12 +4497,6 @@ vue-next-select@^2.10.2:
   resolved "https://registry.npmjs.org/vue-next-select/-/vue-next-select-2.10.5.tgz"
   integrity sha512-O77bdbp2wj/Dkpd8XFv21EYXI8UtqgTxnKBsycCd2pUe4SAxKsT1h3MT+b7tuyGQV5udMpBYaUE445Z1VdHyUw==
 
-"vue-panzoom@https://github.com/thepaperpilot/vue-panzoom.git":
-  version "1.1.6"
-  resolved "git+ssh://git@github.com/thepaperpilot/vue-panzoom.git#fa3cc91f6842cdfbd1bfb433c75cac01f177fe2d"
-  dependencies:
-    panzoom "^9.4.1"
-
 vue-textarea-autosize@^1.1.1:
   version "1.1.1"
   resolved "https://registry.npmjs.org/vue-textarea-autosize/-/vue-textarea-autosize-1.1.1.tgz"
@@ -4626,11 +4594,6 @@ whatwg-url@^7.0.0:
     lodash.sortby "^4.7.0"
     tr46 "^1.0.1"
     webidl-conversions "^4.0.2"
-
-wheel@^1.0.0:
-  version "1.0.0"
-  resolved "https://registry.npmjs.org/wheel/-/wheel-1.0.0.tgz"
-  integrity sha512-XiCMHibOiqalCQ+BaNSwRoZ9FDTAvOsXxGHXChBugewDj7HC8VBIER71dEOiRH1fSdLbRCQzngKTSiZ06ZQzeA==
 
 which-boxed-primitive@^1.0.2:
   version "1.0.2"
