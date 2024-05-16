@@ -266,7 +266,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             display: jsx(() => <span style={achievementTextStyle}>Sp</span>),
             requirements: createCostRequirement(() => ({
                 resource: noPersist(totalAcceleronResource),
-                cost: 7
+                cost: 10
             })),
             small: true,
             style: achievementStyle(feature),
@@ -279,7 +279,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             display: jsx(() => <span style={achievementTextStyle}>Q</span>),
             requirements: createCostRequirement(() => ({
                 resource: noPersist(totalAcceleronResource),
-                cost: 10
+                cost: 25
             })),
             small: true,
             style: achievementStyle(feature),
@@ -341,7 +341,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 </>
             )),
             requirements: createCostRequirement(() => ({
-                cost: 25,
+                cost: 50,
                 resource: noPersist(accelerons)
             }))
         })) as GenericUpgrade;
@@ -356,7 +356,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 </>
             )),
             requirements: createCostRequirement(() => ({
-                cost: 50,
+                cost: 100,
                 resource: noPersist(accelerons)
             }))
         })) as GenericUpgrade;
@@ -372,7 +372,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             )),
             effect() { return unref(loops.numBuiltLoops) + 1 },
             requirements: createCostRequirement(() => ({
-                cost: 100,
+                cost: 250,
                 resource: noPersist(accelerons)
             }))
         }), effectDecorator) as EffectUpgrade<number>;
@@ -387,7 +387,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 </>
             )),
             requirements: createCostRequirement(() => ({
-                cost: 300,
+                cost: 450,
                 resource: noPersist(accelerons)
             }))
         })) as GenericUpgrade;
