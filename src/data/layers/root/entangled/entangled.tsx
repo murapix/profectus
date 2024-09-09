@@ -158,8 +158,8 @@ const layer = createLayer("entangled", () => {
                         Decimal.dInf, // Skyrmion      Acceleron
                         Decimal.dInf, //          Fome Acceleron
                         Decimal.dInf, // Skyrmion Fome Acceleron
-                        5.2e52,       //                         Timecube
-                        1e64,         // Skyrmion                Timecube
+                        4.2e42,       //                         Timecube
+                        6.2e62,       // Skyrmion                Timecube
                         Decimal.dInf, //          Fome           Timecube
                         Decimal.dInf, // Skyrmion Fome           Timecube
                         Decimal.dInf, //               Acceleron Timecube
@@ -208,7 +208,7 @@ const layer = createLayer("entangled", () => {
                         Decimal.dInf,          //          Fome Acceleron
                         Decimal.dInf,          // Skyrmion Fome Acceleron
                         1.5e8,                 //                         Timecube
-                        4.5e17,                // Skyrmion                Timecube
+                        4.5e20,                // Skyrmion                Timecube
                         Decimal.dInf,          //          Fome           Timecube
                         Decimal.dInf,          // Skyrmion Fome           Timecube
                         Decimal.dInf,          //               Acceleron Timecube
@@ -254,7 +254,7 @@ const layer = createLayer("entangled", () => {
                     Decimal.dInf, //          Fome Acceleron
                     Decimal.dInf, // Skyrmion Fome Acceleron
                     1e4,          //                         Timecube
-                    5e6,          // Skyrmion                Timecube
+                    2e6,          // Skyrmion                Timecube
                     Decimal.dInf, //          Fome           Timecube
                     Decimal.dInf, // Skyrmion Fome           Timecube
                     Decimal.dInf, //               Acceleron Timecube
