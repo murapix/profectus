@@ -57,7 +57,7 @@ table {
 td {
     font-size: 14px;
     text-align: left;
-    padding: 2px 4px;
+    padding: 2px 8px;
 }
 
 td:nth-child(1), td:nth-child(2) {
