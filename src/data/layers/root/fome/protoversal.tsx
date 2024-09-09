@@ -140,7 +140,17 @@ const layer = createLayer(id, function (this: BaseLayer) {
             visibility: noPersist(upgrades.condense.bought),
             requirements: createCostRequirement(() => ({
                 resource: noPersist(amount),
-                cost: () => Decimal.minus(unref(feature.amount), 3).max(2).pow_base(unref(feature.amount)).plus(1).times(4).pow10(),
+                cost: () => [
+                    Decimal.pow10(4),
+                    Decimal.pow10(8),
+                    Decimal.pow10(20),
+                    Decimal.pow10(40),
+                    Decimal.pow10(82),
+                    Decimal.pow10(106),
+                    Decimal.pow10(8680),
+                    Decimal.pow10(96080),
+                    Decimal.dInf
+                ][new Decimal(unref(feature.amount)).trunc().clampMax(8).toNumber()],
                 requiresPay: () => !unref(fome.achievements.reform.earned)
             })),
             display: getReformDisplay(FomeTypes.protoversal),

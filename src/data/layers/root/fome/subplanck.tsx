@@ -134,7 +134,14 @@ const layer = createLayer(id, function (this: BaseLayer) {
             requirements: [
                 createCostRequirement(() => ({
                     resource: noPersist(amount),
-                    cost: () => Decimal.minus(unref(feature.amount), 3).max(2).pow_base(unref(feature.amount)).plus(1).times(6).pow10(),
+                    cost: () => [
+                        Decimal.pow10(6),
+                        Decimal.pow10(25),
+                        Decimal.pow10(66),
+                        Decimal.pow10(600),
+                        Decimal.pow10(1020),
+                        Decimal.dInf
+                    ][new Decimal(unref(feature.amount)).trunc().clampMax(5).toNumber()],
                     requiresPay: () => !unref(fome.achievements.reform.earned)
                 })),
                 createReformRequirement(() => ({
