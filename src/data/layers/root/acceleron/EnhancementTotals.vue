@@ -69,8 +69,8 @@
                 <td>+{{ format(Decimal.times(effects.loops[1].value, 100), 1) }}%</td>
             </tr>
             <tr v-if="Decimal.neq(effects.acceleron.value, defaults.acceleron)">
-                <td>Acceleron Cost</td>
-                <td>/{{ format(effects.acceleron.value) }}</td>
+                <td>Acceleron Gain</td>
+                <td>×{{ format(effects.acceleron.value) }}</td>
             </tr>
             <tr class="break" v-if="breaks.acceleron.value"><td /><td /></tr>
             <tr v-if="Decimal.neq(effects.timecube.value, defaults.timecube)">
