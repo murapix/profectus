@@ -140,7 +140,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 resource: noPersist(amount),
                 cost: 4e5
             })),
-            display: { description: jsx(() => <>Condense your {unref(amount.displayName)}</>) },
+            display: { description: jsx(() => <><h3>Condense your {unref(amount.displayName)}</h3><br/></>) },
             onPurchase() { fome.subplanck.upgrades.reform.amount.value = Decimal.dOne },
             classes: () => ({ auto: unref(fome.achievements.reform.earned) })
         })),
