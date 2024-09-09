@@ -34,6 +34,7 @@ import pion from "./pion";
 import spinor from "./spinor";
 import { createSkyrmionUpgrade } from "./upgrade";
 import inflaton, { id as inflatonId } from "../inflaton/inflaton"
+import { createClickable } from "features/clickables/clickable";
 
 const id = "skyrmion";
 const layer = createLayer(id, function (this: BaseLayer) {
@@ -400,6 +401,21 @@ const layer = createLayer(id, function (this: BaseLayer) {
         }))
     }
 
+    const sellAllRepeatables = createClickable(() => ({
+        canClick: () => [...Object.values(pion.upgrades), ...Object.values(spinor.upgrades)].some(upgrade => Decimal.gt(unref(upgrade.amount), 0)),
+        onClick() {
+            for (const upgrade of [...Object.values(pion.upgrades), ...Object.values(spinor.upgrades)]) {
+                upgrade.amount.value = 0;
+            }
+        },
+        display: jsx(() => (
+            <>
+                Respecialization<br/>
+                <sub>Sell all Abyssal Pion and Spinor Upgrades</sub>
+            </>
+        ))
+    }));
+
     const modifierModal = createModifierModal("Skyrmion Modifiers", () => [
         {
             title: "Skyrmion Cost",
@@ -432,7 +448,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                     {render(spinor.display)}
                 </div>
                 <Spacer />
-                <Skyrmion>{render(skyrmions)}</Skyrmion>
+                <Skyrmion>{unref(abyss.challenge.active) ? render(sellAllRepeatables) : render(skyrmions)}</Skyrmion>
             </>
         )),
         
