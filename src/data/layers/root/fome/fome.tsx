@@ -160,14 +160,14 @@ const layer = createLayer(id, function (this: BaseLayer) {
 
     const timelineBonuses: WithRequired<Modifier, "description">[] = [
         createMultiplicativeModifier(() => ({
-            multiplier: timelines.buffs[Sides.LEFT],
+            multiplier: timelines.buffs[Sides.RIGHT],
             enabled: noPersist(timecube.upgrades.tactics.bought),
-            description: jsx(() => (<>[{timecube.name}] Passive Left Timeline Bonus</>))
+            description: jsx(() => (<>[{timecube.name}] Passive Right Timeline Bonus</>))
         })),
         createMultiplicativeModifier(() => ({
-            multiplier: () => Decimal.reciprocate(unref(timelines.nerfs[Sides.LEFT])),
+            multiplier: () => Decimal.reciprocate(unref(timelines.nerfs[Sides.RIGHT])),
             enabled: noPersist(timecube.upgrades.tactics.bought),
-            description: jsx(() => (<>[{timecube.name}] Active Left Timeline Effect</>))
+            description: jsx(() => (<>[{timecube.name}] Active Right Timeline Effect</>))
         }))
     ];
 
