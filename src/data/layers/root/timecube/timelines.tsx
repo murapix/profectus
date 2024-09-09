@@ -66,10 +66,10 @@ const layer = createLayer(id, function (this: BaseLayer) {
 
     const sidedScoreMulti: Record<Sides, DecimalSource> = {
         [Sides.FRONT]: 100,
-        [Sides.RIGHT]: 0.01,
+        [Sides.RIGHT]: 1000,
         [Sides.TOP]: 1,
         [Sides.BACK]: 1,
-        [Sides.LEFT]: 1000,
+        [Sides.LEFT]: 0.01,
         [Sides.BOTTOM]: 1
     };
     const scores = Object.fromEntries(
