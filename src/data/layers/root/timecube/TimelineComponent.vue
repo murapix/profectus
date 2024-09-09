@@ -9,7 +9,7 @@
         }"
     >
         <h2>{{ sideNames[0] }} {{ sideNames[1] }}</h2>
-        <div>Amount: {{ format(unref(score)) }}</div>
+        <div>Score: {{ format(unref(score)) }}</div>
         <div>{{ sideNames[0] }}: +{{ format(unref(sideEffects[sides[0]]).times(100)) }}%</div>
         <div>{{ sideNames[1] }}: +{{ format(unref(sideEffects[sides[1]]).times(100)) }}%</div>
     </button>

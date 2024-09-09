@@ -1,6 +1,6 @@
 <template>
     <div class="totals">
-        <div>Active Penalties</div>
+        <div>Passive Bonuses</div>
         <div class="break" />
         <table>
             <template v-for="side in Sides">
