@@ -449,10 +449,20 @@ const layer = createLayer(id, function (this: BaseLayer) {
                     {displayRequirements((upgrade as GenericUpgrade).requirements)}
                 </>
             )),
-            requirements: createCostRequirement(() => ({
-                cost: 1.9e19,
-                resource: noPersist(accelerons)
-            }))
+            requirements: [
+                createCostRequirement(() => ({
+                    cost: 6,
+                    resource: createResource(loops.numBuiltLoops, {
+                        displayName: "Entropic Loops",
+                        abyssal: true
+                    }),
+                    requiresPay: false
+                })),
+                createCostRequirement(() => ({
+                    cost: 1e21,
+                    resource: noPersist(accelerons)
+                }))
+            ]
         })) as GenericUpgrade;
 
         return {
