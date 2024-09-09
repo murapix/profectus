@@ -83,7 +83,7 @@ export function getDimDisplay(fomeType: FomeTypes, dim: FomeDims) {
 export function getReformDisplay(fomeType: FomeTypes) {
     return jsx(() => (
         <>
-            Re-form your {unref(layer[fomeType].amount.displayName)}<br />
+            <h3>Re-form your {unref(layer[fomeType].amount.displayName)}</h3><br />
             <br />
             Amount: {formatWhole(unref(layer[fomeType].upgrades.reform.amount))}<br />
             <br />
