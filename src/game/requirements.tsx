@@ -338,22 +338,22 @@ export function displayRequirements(requirements: Requirements, amount: DecimalS
         const withoutCosts = requirements.filter(r => !unref(r.requiresPay));
         return (
             <>
-                {withCosts.length > 0 ? (
-                    <div>
-                        Costs:{" "}
-                        {joinJSX(
-                            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-                            withCosts.map(r => r.partialDisplay!(amount)),
-                            <>, </>
-                        )}
-                    </div>
-                ) : null}
                 {withoutCosts.length > 0 ? (
                     <div>
                         Requires:{" "}
                         {joinJSX(
                             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
                             withoutCosts.map(r => r.partialDisplay!(amount)),
+                            <>, </>
+                        )}
+                    </div>
+                ) : null}
+                {withCosts.length > 0 ? (
+                    <div>
+                        Costs:{" "}
+                        {joinJSX(
+                            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                            withCosts.map(r => r.partialDisplay!(amount)),
                             <>, </>
                         )}
                     </div>
