@@ -271,7 +271,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             small: true,
             style: achievementStyle(feature),
             tooltip: {
-                requirement: <NamedResource resource={noPersist(accelerons)} override={7} />,
+                requirement: <NamedResource resource={noPersist(accelerons)} override={10} />,
                 effect: <>Keep Subplanck Boosts and Size Upgrades on Acceleron reset</>
             }
         })),
@@ -284,7 +284,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             small: true,
             style: achievementStyle(feature),
             tooltip: {
-                requirement: <NamedResource resource={noPersist(accelerons)} override={10} />,
+                requirement: <NamedResource resource={noPersist(accelerons)} override={25} />,
                 effect: <>Keep Quantum Boosts and Size Upgrades on Acceleron reset</>
             }
         }))
