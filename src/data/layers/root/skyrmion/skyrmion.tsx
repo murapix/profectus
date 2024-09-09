@@ -384,6 +384,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 if (unref(abyss.challenge.active)) return true;
                 return Object.keys(upgrades)
                              .filter(key => !unref(upgrades[key as keyof typeof upgrades].bought))
+                             .filter(key => key !== 'fome')
                              .filter(key => key !== 'autoGain')
                              .filter(key => isVisible(pion.upgrades[key as keyof typeof pion.upgrades].visibility))
                              .filter(key => isVisible(spinor.upgrades[key as keyof typeof spinor.upgrades].visibility))
