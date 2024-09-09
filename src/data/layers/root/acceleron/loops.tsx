@@ -134,8 +134,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 ))
             },
             effect() { return Decimal.add(0.001, getUpgradeEffect<DecimalSource>(entropy.enhancements.acceleration, 0))
-                                     .div(unref(timelines.nerfs[Sides.RIGHT]))
-                                     .times(unref(timelines.buffs[Sides.RIGHT]))
+                                     .div(unref(timelines.nerfs[Sides.LEFT]))
+                                     .times(unref(timelines.buffs[Sides.LEFT]))
             },
             trigger(intervals) {
                 let gain = new Decimal(unref(acceleronLayer.conversion.currentGain));
@@ -165,8 +165,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 ))
             }),
             effect() { return Decimal.plus(1, getUpgradeEffect<DecimalSource>(entropy.enhancements.expansion, 0))
-                                     .div(unref(timelines.nerfs[Sides.RIGHT]))
-                                     .times(unref(timelines.buffs[Sides.RIGHT]))
+                                     .div(unref(timelines.nerfs[Sides.LEFT]))
+                                     .times(unref(timelines.buffs[Sides.LEFT]))
             },
             trigger(intervals) {
                 const gain = new Decimal(unref(this.triggerRequirement as ProcessedComputable<DecimalSource>)).times(unref((loop as GenericLoop<Decimal>).effect)).times(intervals);
@@ -194,8 +194,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 ))
             },
             effect() { return new Decimal(unref(timecubeLayer.production))
-                                .div(unref(timelines.nerfs[Sides.RIGHT]))
-                                .times(unref(timelines.buffs[Sides.RIGHT]))
+                                .div(unref(timelines.nerfs[Sides.LEFT]))
+                                .times(unref(timelines.buffs[Sides.LEFT]))
             },
             trigger(intervals) {
                 timecubeLayer.timecubes.value = unref((loop as GenericLoop<Decimal>).effect).times(intervals).plus(unref(timecubeLayer.timecubes))
@@ -221,8 +221,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
             effect() { return new Decimal(1e6) },
             trigger(intervals) {
                 (this as GenericPersistentLoop<Decimal>).value.value = unref((loop as GenericLoop<Decimal>).effect).div(
-                    Decimal.div(unref(timelines.nerfs[Sides.RIGHT]),
-                                unref(timelines.buffs[Sides.RIGHT])))
+                    Decimal.div(unref(timelines.nerfs[Sides.LEFT]),
+                                unref(timelines.buffs[Sides.LEFT])))
                             .times(intervals)
             }
         }), persistentDecorator) as GenericPersistentLoop<Decimal>;
@@ -245,7 +245,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             },
             effect() { return new Decimal(1000) },
             trigger(intervals) {
-                (this as GenericPersistentLoop<Decimal>).value.value = unref((loop as GenericLoop<Decimal>).effect).div(Decimal.div(unref(timelines.nerfs[Sides.RIGHT]), unref(timelines.buffs[Sides.RIGHT]))).times(intervals)
+                (this as GenericPersistentLoop<Decimal>).value.value = unref((loop as GenericLoop<Decimal>).effect).div(Decimal.div(unref(timelines.nerfs[Sides.LEFT]), unref(timelines.buffs[Sides.LEFT]))).times(intervals)
             }
         }), persistentDecorator) as GenericPersistentLoop<Decimal>;
         const tempSkyrmion = createLoop<LoopOptions<Decimal>, Decimal>(loop => ({
@@ -267,7 +267,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             },
             effect() { return new Decimal(1e9) },
             trigger(intervals) {
-                (this as GenericPersistentLoop<Decimal>).value.value = unref((loop as GenericLoop<Decimal>).effect).div(Decimal.div(unref(timelines.nerfs[Sides.RIGHT]), unref(timelines.buffs[Sides.RIGHT]))).times(intervals)
+                (this as GenericPersistentLoop<Decimal>).value.value = unref((loop as GenericLoop<Decimal>).effect).div(Decimal.div(unref(timelines.nerfs[Sides.LEFT]), unref(timelines.buffs[Sides.LEFT]))).times(intervals)
             }
         }), persistentDecorator) as GenericPersistentLoop<Decimal>;
 

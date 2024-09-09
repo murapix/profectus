@@ -200,7 +200,7 @@ const layer = createLayer("entangled", () => {
                     }
                     return [
                         2.5e5,                 // 
-                        1e19,                  // Skyrmion
+                        2.5e18,                // Skyrmion
                         Decimal.dInf,          //          Fome
                         Decimal.dInf,          // Skyrmion Fome
                         Decimal.dInf,          //               Acceleron
