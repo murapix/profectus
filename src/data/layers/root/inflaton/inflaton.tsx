@@ -199,7 +199,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 if (unref(this.bought)) return true;
                 if (unref(entangled.milestones[1].earned)) return true;
                 if (!unref(subspaceBuildings.bought)) return false;
-                if (unref(entangled.branchOrder) === '' || entangled.isFirstBranch(id)) {
+                if ((unref(entangled.branchOrder) === '' || entangled.isFirstBranch(id)) && !unref(abyss.challenge.active)) {
                     return Decimal.gte(unref(buildings.maxSize), 6.3);
                 }
                 else {

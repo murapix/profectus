@@ -85,8 +85,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
         }))
     ]);
     const conversion = createCumulativeConversion(() => ({
-        formula: fome => fome.dividedBy(computed(() => (unref(entangled.branchOrder) === '' || entangled.isFirstBranch(id)) ? 1e9 : 1e72))
-                             .pow(computed(() => (unref(entangled.branchOrder) === '' || entangled.isFirstBranch(id)) ? 0.1 : 0.05))
+        formula: fome => fome.dividedBy(computed(() => (unref(entangled.branchOrder) === '' || entangled.isFirstBranch(id)) ? 1e9 : 1e71))
+                             .pow(computed(() => (unref(entangled.branchOrder) === '' || entangled.isFirstBranch(id)) && !unref(abyss.challenge.active) ? 0.1 : 0.05))
                              .times(computed(() => acceleronGainModifiers.apply(1))),
         baseResource: noPersist(fome[FomeTypes.quantum].amount),
         gainResource: noPersist(accelerons),
