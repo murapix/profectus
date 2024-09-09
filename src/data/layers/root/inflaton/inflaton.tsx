@@ -181,7 +181,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                     return Decimal.gte(unref(buildings.maxSize), 6);
                 }
                 else {
-                    return Decimal.gte(unref(buildings.maxSize), 9);
+                    return Decimal.gte(unref(buildings.maxSize), 8.8);
                 }
             },
             style: { width: '250px' }
