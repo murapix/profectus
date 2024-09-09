@@ -7,9 +7,6 @@
                 <tr>
                     <td>{{ descriptions[side] }}</td>
                     <td>×{{ format(unref(buffs[side])) }}</td>
-                    <td>(</td>
-                    <td>{{ format(unref(scores[side])) }}</td>
-                    <td>)</td>
                     <td>{{ names[side] }}</td>
                 </tr>
             </template>
@@ -60,8 +57,9 @@ td {
     padding: 2px 8px;
 }
 
-td:nth-child(1), td:nth-child(2) {
+td:nth-child(1) {
     text-align: right;
+
 }
 
 td:first-child {

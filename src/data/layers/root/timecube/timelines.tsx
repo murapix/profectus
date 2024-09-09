@@ -75,7 +75,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
     const scores = Object.fromEntries(
         Object.entries(timelineSides).map(
             ([side, timelines]) => [side, computed(() => (timelines as GenericTimeline[]).reduce(
-                (sum, timeline) => sum.plus(unref(timeline.score)), Decimal.dZero)
+                (sum, timeline) => Decimal.add(unref(timeline.score), 1).log10().dividedBy(10).plus(sum), Decimal.dZero)
             )]
         )
     ) as Record<Sides, ComputedRef<Decimal>>;
