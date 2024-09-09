@@ -17,6 +17,7 @@ import entangled from "./layers/root/entangled/entangled";
 import { createHotkey } from "features/hotkey";
 import abyss from "./layers/root/skyrmion/abyss";
 import settings from "game/settings";
+import Decimal from "lib/break_eternity";
 
 /**
  * @hidden
@@ -161,7 +162,9 @@ export const getInitialLayers = (
  * A computed ref whose value is true whenever the game is over.
  */
 export const hasWon = computed(() => {
-    return false;
+    return Decimal.gte(unref(entangled.strings), 4)
+        && unref(acceleron.upgrades.mastery.bought)
+        && unref(inflaton.coreResearch.research.mastery.researched);
 });
 
 /**
