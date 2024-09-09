@@ -149,6 +149,9 @@ const layer = createLayer("entangled", () => {
                             default: return Decimal.dInf;
                         }
                     }
+                    if (Decimal.neq(unref(strings), unref(numExpansions)+1)) {
+                        return Decimal.dInf;
+                    }
                     return [
                         2e28,         // 
                         1.5e48,       // Skyrmion
@@ -184,7 +187,7 @@ const layer = createLayer("entangled", () => {
                         Decimal.dInf  // Skyrmion Fome Acceleron Timecube Inflaton
                     ][unref(expansionScore)];
                 })();
-                return Decimal.times(cost, unref(skyrmion.pion.upgrades.xi.effect));
+                return Decimal.isFinite(cost) ? Decimal.times(cost, unref(skyrmion.pion.upgrades.xi.effect)) : cost;
             }
         })),
         inflaton: createCostRequirement(() => ({
@@ -197,6 +200,9 @@ const layer = createLayer("entangled", () => {
                             case inflatonId: return 4e6;
                             default: return Decimal.dInf;
                         }
+                    }
+                    if (Decimal.neq(unref(strings), unref(numExpansions)+1)) {
+                        return Decimal.dInf;
                     }
                     return [
                         2.5e5,                 // 
@@ -233,7 +239,7 @@ const layer = createLayer("entangled", () => {
                         Decimal.dInf           // Skyrmion Fome Acceleron Timecube Inflaton
                     ][unref(expansionScore)];
                 })();
-                return Decimal.times(cost, unref(skyrmion.spinor.upgrades.xi.effect)).pow10();
+                return Decimal.isFinite(cost) ? Decimal.times(cost, unref(skyrmion.spinor.upgrades.xi.effect)).pow10() : cost;
             }
         })),
         timecube: createCostRequirement(() => ({
@@ -244,6 +250,9 @@ const layer = createLayer("entangled", () => {
                 )),
             cost() {
                 if (!unref(expansions.timecube.bought)) return 0;
+                if (Decimal.neq(unref(strings), unref(numExpansions)+1)) {
+                    return Decimal.dInf;
+                }
                 return [
                     Decimal.dInf, // 
                     Decimal.dInf, // Skyrmion
