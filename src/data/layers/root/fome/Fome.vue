@@ -33,10 +33,14 @@ function getFomeDisplay(fomeType: FomeTypes) {
 <style scoped>
 .fome-grid {
     display: grid;
-    grid-template-columns: 400px repeat(4, 1fr);
+    grid-template-columns: repeat(5, 1fr);
     grid-gap: 0px;
     width: 90%;
     max-width: 1200px;
+}
+
+.fome-grid > div {
+    padding: 5px;
 }
 
 .fome-grid > :deep(.clickable), .fome-grid > :deep(.upgrade) {
