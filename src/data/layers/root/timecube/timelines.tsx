@@ -20,6 +20,7 @@ import TimelineNerfs from "./TimelineNerfs.vue";
 import timecube from "./timecube";
 import { GenericTimeline, createTimeline } from "./timeline";
 import { Sides } from "./timesquares";
+import entangled from "../entangled/entangled";
 
 const id = "timeline";
 const layer = createLayer(id, function (this: BaseLayer) {
@@ -63,6 +64,54 @@ const layer = createLayer(id, function (this: BaseLayer) {
         )
     ) as Record<Sides, ComputedRef<number>>;
     const inTimeline = computed(() => Object.values(activeDepths).some(depth => unref(depth) > 0));
+
+    const enum TimelineDifficulty {
+        NORMAL = "NORMAL",
+        HARD = "HARD",
+        EXTREME = "EXTREME"
+    };
+    const timelineDifficulty = computed(() => {
+        // FILL THIS AS MORE SECTIONS ARE ADDED
+        switch (Object.values(entangled.expansions).filter(expansion => unref(expansion.bought)).length) {
+            case 1: {
+                if (Object.values(nextDepths).some(depth => unref(depth) >= 2)) return TimelineDifficulty.EXTREME;
+                switch (Object.values(nextDepths).map(depth => unref(depth)).reduce((a,b) => a+b, 0)) {
+                    case 0:
+                    case 2: return TimelineDifficulty.NORMAL;
+                    case 4: {
+                        if (unref(timecube.upgrades.tempo.bought)) return TimelineDifficulty.NORMAL;
+                        return TimelineDifficulty.HARD;
+                    }
+                    case 6: return TimelineDifficulty.EXTREME
+                }
+            }
+            case 2: {
+                if (Object.values(nextDepths).some(depth => unref(depth) >= 2)) return TimelineDifficulty.EXTREME;
+                switch (Object.values(nextDepths).map(depth => unref(depth)).reduce((a,b) => a+b, 0)) {
+                    case 0:
+                    case 2: return TimelineDifficulty.NORMAL;
+                    case 4: {
+                        if (unref(timecube.upgrades.title.bought)) return TimelineDifficulty.NORMAL;
+                        return TimelineDifficulty.HARD;
+                    }
+                    case 6: {
+                        if (unref(timecube.upgrades.toil.bought)) return TimelineDifficulty.NORMAL;
+                        if (unref(timecube.upgrades.title.bought)) return TimelineDifficulty.HARD;
+                        return TimelineDifficulty.EXTREME;
+                    }
+                }
+            }
+            case 3: {
+                return TimelineDifficulty.NORMAL;
+            }
+            case 4: {
+                return TimelineDifficulty.NORMAL;
+            }
+            case 5: {
+                return TimelineDifficulty.NORMAL;
+            }
+        }
+    });
 
     const sidedScoreMulti: Record<Sides, DecimalSource> = {
         [Sides.FRONT]: 100,
@@ -146,9 +195,14 @@ const layer = createLayer(id, function (this: BaseLayer) {
 
     const enterTimeline = createClickable(() => ({
         display() {
-            if (Object.values(timelines).some(timeline => unref(timeline.next))) return 'Enter Timeline';
             if (Object.values(timelines).some(timeline => unref(timeline.active))) return 'Exit Timeline';
-            return 'Enter Timeline';
+
+            const header = 'Enter Timeline';
+            switch (unref(timelineDifficulty)) {
+                default: return header;
+                case TimelineDifficulty.HARD: return `${header}<br/><h3>WARNING: HIGH INSTABILITY</h3>`;
+                case TimelineDifficulty.EXTREME: return `${header}<br/><h3>DANGER: EXTREME INSTABILITY, DO NOT ENTER</h3>`
+            }
         },
         canClick() {
             return Object.values(timelines).some(timeline => unref(timeline.next) || unref(timeline.active))
