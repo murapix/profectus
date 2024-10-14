@@ -59,7 +59,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         createMultiplicativeModifier(() => ({
             multiplier: skyrmion.pion.upgrades.pi.effect,
             enabled: () => Decimal.gt(unref(skyrmion.pion.upgrades.pi.totalAmount), 0),
-            description: jsx(() => <>[{skyrmion.name}] Pion Upgrade π ({format(unref(skyrmion.pion.upgrades.pi.totalAmount))})</>)
+            description: jsx(() => <>[{skyrmion.name}] {unref(skyrmion.pion.pions.singularName)} Upgrade π ({format(unref(skyrmion.pion.upgrades.pi.totalAmount))})</>)
         })),
         createMultiplicativeModifier(() => ({
             multiplier: timecubeLayer.getTimesquareEffect(Sides.RIGHT),
@@ -299,8 +299,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
         }
     });
 
-    const modifiersModal = createModifierModal("Entropic Loop Modifiers", () => [
-        {
+    const modifiersModal = createModifierModal(
+        "Entropic Loop Modifiers",
+        () => [{
             title: "Build Speed",
             modifier: buildSpeedModifiers,
             base: acceleronLayer.timeMult,
@@ -312,8 +313,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
             base: 1,
             baseText: jsx(() => <>[{acceleronLayer.name}] {unref(acceleronLayer.accelerons.displayName)}/sec</>),
             smallerIsBetter: true
-        }
-    ]);
+        }]
+    );
 
     return {
         isBuilding,

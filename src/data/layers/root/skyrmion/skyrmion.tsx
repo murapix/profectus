@@ -47,7 +47,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         createMultiplicativeModifier(() => ({
             multiplier: () => Decimal.reciprocate(unref(spinor.upgrades.alpha.effect)),
             enabled: () => Decimal.gt(unref(spinor.upgrades.alpha.totalAmount), 0),
-            description: jsx(() => <>[{name}] Spinor Upgrade α ({formatWhole(unref(spinor.upgrades.alpha.totalAmount))})</>),
+            description: jsx(() => <>[{name}] {unref(spinor.spinors.singularName)} Upgrade α ({formatWhole(unref(spinor.upgrades.alpha.totalAmount))})</>),
             smallerIsBetter: true
         })),
         createMultiplicativeModifier(() => ({
@@ -125,22 +125,22 @@ const layer = createLayer(id, function (this: BaseLayer) {
         createMultiplicativeModifier(() => ({
             multiplier: pion.upgrades.alpha.effect,
             enabled: () => Decimal.gt(unref(pion.upgrades.alpha.totalAmount), 0),
-            description: jsx(() => (<>[{name}] Pion Upgrade α ({format(unref(pion.upgrades.alpha.totalAmount))})</>))
+            description: jsx(() => (<>[{name}] {unref(pion.pions.singularName)} Upgrade α ({format(unref(pion.upgrades.alpha.totalAmount))})</>))
         })),
         createMultiplicativeModifier(() => ({
             multiplier: spinor.upgrades.zeta.effect,
             enabled: () => Decimal.gt(unref(spinor.upgrades.zeta.totalAmount), 0),
-            description: jsx(() => (<>[{name}] Spinor Upgrade ζ ({format(unref(spinor.upgrades.zeta.totalAmount))})</>))
+            description: jsx(() => (<>[{name}] {unref(spinor.spinors.singularName)} Upgrade ζ ({format(unref(spinor.upgrades.zeta.totalAmount))})</>))
         })),
         createMultiplicativeModifier(() => ({
             multiplier: spinor.upgrades.lambda.effect,
             enabled: () => Decimal.gt(unref(spinor.upgrades.lambda.totalAmount), 0),
-            description: jsx(() => (<>[{name}] Spinor Upgrade λ ({format(unref(spinor.upgrades.lambda.totalAmount))})</>))
+            description: jsx(() => (<>[{name}] {unref(spinor.spinors.singularName)} Upgrade λ ({format(unref(spinor.upgrades.lambda.totalAmount))})</>))
         })),
         createMultiplicativeModifier(() => ({
             multiplier: spinor.upgrades.pi.effect,
             enabled: () => Decimal.gt(unref(spinor.upgrades.pi.totalAmount), 0),
-            description: jsx(() => (<>[{name}] Spinor Upgrade π ({format(unref(spinor.upgrades.pi.totalAmount))})</>))
+            description: jsx(() => (<>[{name}] {unref(spinor.spinors.singularName)} Upgrade π ({format(unref(spinor.upgrades.pi.totalAmount))})</>))
         })),
         createMultiplicativeModifier(() => ({
             multiplier: fome[FomeTypes.infinitesimal].boosts[2].effect,
@@ -416,15 +416,16 @@ const layer = createLayer(id, function (this: BaseLayer) {
         ))
     }));
 
-    const modifierModal = createModifierModal("Skyrmion Modifiers", () => [
-        {
-            title: "Skyrmion Cost",
+    const modifierModal = createModifierModal(
+        () => `${unref(resource.singularName)} Modifiers`,
+        () => [{
+            title: () => `${unref(resource.singularName)} Cost`,
             modifier: skyrmionCostModifiers,
             base: () => Decimal.pow10(unref(skyrmions.amount)),
             baseText: jsx(() => <>[{name}] Pions and Spinors</>),
             smallerIsBetter: true
-        }
-    ]);
+        }]
+    );
 
     return {
         name,

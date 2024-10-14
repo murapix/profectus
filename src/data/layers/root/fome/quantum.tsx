@@ -31,27 +31,27 @@ const layer = createLayer(id, function (this: BaseLayer) {
         createMultiplicativeModifier(() => ({
             multiplier: upgrades[FomeDims.height].effect,
             enabled: () => Decimal.gt(unref(upgrades[FomeDims.height].amount), 0),
-            description: jsx(() => (<>[{fome.name}] Quantum Foam Height ({formatWhole(unref(upgrades[FomeDims.height].amount))})</>))
+            description: jsx(() => (<>[{fome.name}] {unref(amount.singularName)} Height ({formatWhole(unref(upgrades[FomeDims.height].amount))})</>))
         })),
         createMultiplicativeModifier(() => ({
             multiplier: upgrades[FomeDims.width].effect,
             enabled: () => Decimal.gt(unref(upgrades[FomeDims.width].amount), 0),
-            description: jsx(() => (<>[{fome.name}] Quantum Foam Width ({formatWhole(unref(upgrades[FomeDims.width].amount))})</>))
+            description: jsx(() => (<>[{fome.name}] {unref(amount.singularName)} Width ({formatWhole(unref(upgrades[FomeDims.width].amount))})</>))
         })),
         createMultiplicativeModifier(() => ({
             multiplier: upgrades[FomeDims.depth].effect,
             enabled: () => Decimal.gt(unref(upgrades[FomeDims.depth].amount), 0),
-            description: jsx(() => (<>[{fome.name}] Quantum Foam Depth ({formatWhole(unref(upgrades[FomeDims.depth].amount))})</>))
+            description: jsx(() => (<>[{fome.name}] {unref(amount.singularName)} Depth ({formatWhole(unref(upgrades[FomeDims.depth].amount))})</>))
         })),
         createExponentialModifier(() => ({
             exponent: upgrades.reform.effect,
             enabled: () => Decimal.gt(unref(upgrades.reform.amount), 1),
-            description: jsx(() => (<>[{fome.name}] Quantum Foam<sup>{formatWhole(unref(upgrades.reform.amount))}</sup></>))
+            description: jsx(() => (<>[{fome.name}] {unref(amount.singularName)}<sup>{formatWhole(unref(upgrades.reform.amount))}</sup></>))
         })),
         createMultiplicativeModifier(() => ({
             multiplier: 0,
             enabled: () => Decimal.eq(unref(upgrades.reform.amount), 0),
-            description: jsx(() => (<>[{fome.name}] Quantum Foam<sup>{formatWhole(unref(upgrades.reform.amount))}</sup></>))
+            description: jsx(() => (<>[{fome.name}] {unref(amount.singularName)}<sup>{formatWhole(unref(upgrades.reform.amount))}</sup></>))
         })),
         ...fome.timelineProduction,
         createMultiplicativeModifier(() => ({
@@ -192,14 +192,15 @@ const layer = createLayer(id, function (this: BaseLayer) {
         }))
     }
 
-    const modifierModal = createModifierModal('Quantum Foam Modifiers', () => [
-        {
+    const modifierModal = createModifierModal(
+        () => `${unref(amount.singularName)} Modifiers`,
+        () => [{
             title: amount.displayName,
             modifier: productionModifiers,
             base: () => unref(skyrmion.totalSkyrmions).times(0.01),
             baseText: jsx(() => <>[{skyrmion.name}] Total {unref(skyrmion.skyrmions.displayName)}</>)
-        }
-    ]);
+        }]
+    );
 
     return {
         amount,

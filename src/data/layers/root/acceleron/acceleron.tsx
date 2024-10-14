@@ -412,7 +412,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             display: jsx(() => (
                 <>
                     <h3>Subspatial Alacrity</h3><br /><br />
-                    Increase Subspatial Foam gain by {formatWhole(getUpgradeEffect(upgrade as EffectUpgrade, undefined, true))}×<br /><br />
+                    Increase {unref(fome.subspatial.amount.singularName)} gain by {formatWhole(getUpgradeEffect(upgrade as EffectUpgrade, undefined, true))}×<br /><br />
                     <br />
                     {displayRequirements((upgrade as GenericUpgrade).requirements)}
                 </>
@@ -501,21 +501,19 @@ const layer = createLayer(id, function (this: BaseLayer) {
     }
 
     const modifiersModal = createModifierModal(
-        "Acceleron Modifiers",
-        () => [
-            {
-                title: "Acceleron Gain",
-                modifier: acceleronGainModifiers,
-                base: 1,
-                baseText: jsx(() => <>Base Gain Multiplier</>)
-            },
-            {
-                title: "Time Speed",
-                modifier: timeModifiers,
-                base: timeInput,
-                baseText: jsx(() => <>[{name}] Best Accelerons ({formatWhole(unref(bestAccelerons))})</>)
-            }
-        ]
+        () => `${unref(accelerons.singularName)} Modifiers`,
+        () => [{
+            title: () => `${unref(accelerons.singularName)} Gain`,
+            modifier: acceleronGainModifiers,
+            base: 1,
+            baseText: jsx(() => <>Base Gain Multiplier</>)
+        },
+        {
+            title: "Time Speed",
+            modifier: timeModifiers,
+            base: timeInput,
+            baseText: jsx(() => <>[{name}] Best Accelerons ({formatWhole(unref(bestAccelerons))})</>)
+        }]
     );
 
     const header = jsx(() => (

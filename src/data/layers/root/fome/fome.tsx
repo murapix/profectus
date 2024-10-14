@@ -119,7 +119,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         createMultiplicativeModifier(() => ({
             multiplier: skyrmion.spinor.upgrades.eta.effect,
             enabled: () => Decimal.gt(unref(skyrmion.spinor.upgrades.eta.totalAmount), 0),
-            description: jsx(() => (<>[{skyrmion.name}] Spinor Upgrade η ({formatWhole(unref(skyrmion.spinor.upgrades.eta.totalAmount))})</>))
+            description: jsx(() => (<>[{skyrmion.name}] {unref(skyrmion.spinor.spinors.singularName)} Upgrade η ({formatWhole(unref(skyrmion.spinor.upgrades.eta.totalAmount))})</>))
         })),
         createMultiplicativeModifier(() => ({
             multiplier: (acceleron.upgrades.acceleration as EffectUpgrade<DecimalSource>).effect,
@@ -129,7 +129,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         createMultiplicativeModifier(() => ({
             multiplier: acceleron.loops.averageLoopValues[acceleron.loops.loops.tempFome.id],
             enabled: noPersist(acceleron.loops.loops.tempFome.built),
-            description: jsx(() => (<>[{acceleron.name}] Acceleron Loop #4</>))
+            description: jsx(() => (<>[{acceleron.name}] Entropic Loop #4</>))
         })),
         createMultiplicativeModifier(() => ({
             multiplier: entropy.enhancements.formation.effect as Ref<DecimalSource>,

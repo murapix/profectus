@@ -374,7 +374,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         createMultiplicativeModifier(() => ({
             multiplier: skyrmion.pion.upgrades.nu.effect,
             enabled: () => Decimal.gt(unref(skyrmion.pion.upgrades.nu.totalAmount), 0),
-            description: jsx(() => <>[{skyrmion.name}] Pion Upgrade ν ({formatWhole(unref(skyrmion.pion.upgrades.nu.totalAmount))})</>)
+            description: jsx(() => <>[{skyrmion.name}] {unref(skyrmion.pion.pions.singularName)} Upgrade ν ({formatWhole(unref(skyrmion.pion.upgrades.nu.totalAmount))})</>)
         }))
     ]);
     const finalResearchGainModifiers = createSequentialModifier(() => [
@@ -441,8 +441,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
         });
     });
 
-    const modifiersModal = createModifierModal("Research Modifiers", () => [
-        {
+    const modifiersModal = createModifierModal(
+        "Research Modifiers",
+        () => [{
             title: "Maximum Distributed Analysis Framework Bonus",
             modifier: researchBoostLimitModifiers,
             visible: noPersist(research.researchBoost.researched),
@@ -454,8 +455,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
             modifier: finalResearchGainModifiers,
             base: buildings.buildings.lab.effect,
             baseText: jsx(() => <>[{inflaton.name}] Quantum Flux Analyzers</>)
-        }
-    ]);
+        }]
+    );
 
     return {
         research,

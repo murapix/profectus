@@ -292,12 +292,14 @@ const layer = createLayer(id, function (this: BaseLayer) {
         }))
     }
 
-    const fomeModifierModal = createModifierModal("Inflaton Resonance", () => [
-        {
-            title: "Maximum Potential Foam Gain",
+    const fomeModifierModal = createModifierModal(
+        () => `${unref(inflatons.singularName)} Resonance`,
+        () => [{
+            title: () => `Maximum Potential ${unref(abyss.challenge.active) ? 'Abyssal ' : ''}Foam Gain`,
             modifier: fomeModifiers
-        }
-    ], "12px");
+        }],
+        "12px"
+    );
 
     const header = jsx(() => (<>
         <MainDisplay resource={inflatons} stickyStyle={{background: 'unset'}} />

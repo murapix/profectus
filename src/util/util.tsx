@@ -1,10 +1,11 @@
 import Formula from "game/formulas/formulas";
 import { DefaultValue, NonPersistent, SkipPersistence, deletePersistent, persistent } from "game/persistence";
-import { isRef, ref } from "vue";
+import { computed, isRef, ref, unref } from "vue";
 import Decimal from "./break_eternity";
 import { Section, createCollapsibleModifierSections } from "data/common";
 import { jsx } from "features/feature";
 import Modal from "components/Modal.vue";
+import { Computable, convertComputable } from "./computed";
 
 export function clonePersistentData(object: unknown) {
     if (object == undefined) return;
@@ -56,11 +57,12 @@ export function swapPersistentData(object: unknown, clone: unknown) {
 }
 
 export function createModifierModal(
-    title: string,
+    title: Computable<string>,
     sectionsFunc: () => Section[],
     fontSize?: string
 ) {
     const [modifiers, collapsed] = createCollapsibleModifierSections(sectionsFunc);
+    const computedTitle = convertComputable(title);
     deletePersistent(collapsed);
 
     const showModifiers = ref(false);
@@ -78,7 +80,7 @@ export function createModifierModal(
                 modelValue={showModifiers.value}
                 onUpdate:modelValue={value => showModifiers.value = value}
                 v-slots={{
-                    header: () => <h2>{title}</h2>,
+                    header: () => <h2>{unref(computedTitle)}</h2>,
                     body: modifiers
                 }}
             />

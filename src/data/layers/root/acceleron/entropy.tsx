@@ -256,14 +256,15 @@ const layer = createLayer(id, function (this: BaseLayer) {
         }
     }));
 
-    const maxEntropyModal = createModifierModal("Entropy Modifiers", () => [
-        {
-            title: "Maximum Entropy",
+    const maxEntropyModal = createModifierModal(
+        () => `${unref(entropy.singularName)} Modifiers`, 
+        () => [{
+            title: () => `Maximum ${unref(entropy.singularName)}`,
             modifier: maxEntropyModifiers,
             base: loops.numBuiltLoops,
             baseText: jsx(() => <>[{acceleron.name}] Entropic Loops</>)
-        }
-    ]);
+        }]
+    );
     
     return {
         name,

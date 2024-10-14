@@ -36,12 +36,12 @@ const layer = createLayer(id, function (this: BaseLayer) {
         createMultiplicativeModifier(() => ({
             multiplier: pion.upgrades.gamma.effect,
             enabled: () => Decimal.gt(unref(pion.upgrades.gamma.totalAmount), 0),
-            description: jsx(() => (<>[{skyrmion.name}] Pion Upgrade γ ({format(unref(pion.upgrades.gamma.totalAmount))})</>))
+            description: jsx(() => (<>[{skyrmion.name}] {unref(skyrmion.pion.pions.singularName)} Upgrade γ ({format(unref(pion.upgrades.gamma.totalAmount))})</>))
         })),
         createMultiplicativeModifier(() => ({
             multiplier: pion.upgrades.mu.effect as Computable<DecimalSource>,
             enabled: () => Decimal.gt(unref(pion.upgrades.mu.totalAmount), 0),
-            description: jsx(() => (<>[{skyrmion.name}] Pion Upgrade μ ({format(unref(pion.upgrades.mu.totalAmount))})</>))
+            description: jsx(() => (<>[{skyrmion.name}] {unref(skyrmion.pion.pions.singularName)} Upgrade μ ({format(unref(pion.upgrades.mu.totalAmount))})</>))
         }))
     ]);
     const production = computed(() => productionModifiers.apply(unref(skyrmion.totalSkyrmions).times(0.01)));
@@ -345,14 +345,15 @@ const layer = createLayer(id, function (this: BaseLayer) {
         }
     })();
 
-    const modifierModal = createModifierModal("Spinor Modifiers", () => [
-        {
+    const modifierModal = createModifierModal(
+        () => `${unref(spinors.singularName)} Modifiers`,
+        () => [{
             title: spinors.displayName,
             modifier: productionModifiers,
             base: () => unref(skyrmion.totalSkyrmions).times(0.01),
             baseText: jsx(() => <>[{skyrmion.name}] Total {unref(skyrmion.skyrmions.displayName)}</>)
-        }
-    ]);
+        }]
+    );
     
     const showNext = computed(() => {
         if (!settings.showNextValues) return false;

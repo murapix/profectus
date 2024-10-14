@@ -32,17 +32,17 @@ const layer = createLayer(id, function (this: BaseLayer) {
         createMultiplicativeModifier(() => ({
             multiplier: upgrades[FomeDims.height].effect,
             enabled: () => Decimal.gt(unref(upgrades[FomeDims.height].amount), 0),
-            description: jsx(() => (<>[{fome.name}] Infinitesimal Foam Height ({formatWhole(unref(upgrades[FomeDims.height].amount))})</>))
+            description: jsx(() => (<>[{fome.name}] {unref(amount.singularName)} Height ({formatWhole(unref(upgrades[FomeDims.height].amount))})</>))
         })),
         createMultiplicativeModifier(() => ({
             multiplier: upgrades[FomeDims.width].effect,
             enabled: () => Decimal.gt(unref(upgrades[FomeDims.width].amount), 0),
-            description: jsx(() => (<>[{fome.name}] Infinitesimal Foam Width ({formatWhole(unref(upgrades[FomeDims.width].amount))})</>))
+            description: jsx(() => (<>[{fome.name}] {unref(amount.singularName)} Width ({formatWhole(unref(upgrades[FomeDims.width].amount))})</>))
         })),
         createMultiplicativeModifier(() => ({
             multiplier: upgrades[FomeDims.depth].effect,
             enabled: () => Decimal.gt(unref(upgrades[FomeDims.depth].amount), 0),
-            description: jsx(() => (<>[{fome.name}] Infinitesimal Foam Depth ({formatWhole(unref(upgrades[FomeDims.depth].amount))})</>))
+            description: jsx(() => (<>[{fome.name}] {unref(amount.singularName)} Depth ({formatWhole(unref(upgrades[FomeDims.depth].amount))})</>))
         })),
         createMultiplicativeModifier(() => ({
             multiplier: boosts[1].effect,
@@ -52,17 +52,17 @@ const layer = createLayer(id, function (this: BaseLayer) {
         createMultiplicativeModifier(() => ({
             multiplier: skyrmion.pion.upgrades.iota.effect,
             enabled: () => Decimal.gt(unref(skyrmion.pion.upgrades.iota.totalAmount), 0),
-            description: jsx(() => (<>[{skyrmion.name}] Pion Upgrade ι ({formatWhole(unref(skyrmion.pion.upgrades.iota.totalAmount))})</>))
+            description: jsx(() => (<>[{skyrmion.name}] {unref(skyrmion.pion.pions.singularName)} Upgrade ι ({formatWhole(unref(skyrmion.pion.upgrades.iota.totalAmount))})</>))
         })),
         createMultiplicativeModifier(() => ({
             multiplier: skyrmion.spinor.upgrades.epsilon.effect,
             enabled: () => Decimal.gt(unref(skyrmion.spinor.upgrades.epsilon.totalAmount), 0),
-            description: jsx(() => (<>[{skyrmion.name}] Spinor Upgrade ε ({formatWhole(unref(skyrmion.spinor.upgrades.epsilon.totalAmount))})</>))
+            description: jsx(() => (<>[{skyrmion.name}] {unref(skyrmion.spinor.spinors.singularName)} Upgrade ε ({formatWhole(unref(skyrmion.spinor.upgrades.epsilon.totalAmount))})</>))
         })),
         createMultiplicativeModifier(() => ({
             multiplier: skyrmion.spinor.upgrades.iota.effect,
             enabled: () => Decimal.gt(unref(skyrmion.spinor.upgrades.iota.totalAmount), 0),
-            description: jsx(() => (<>[{skyrmion.name}] Spinor Upgrade ι ({formatWhole(unref(skyrmion.spinor.upgrades.iota.totalAmount))})</>))
+            description: jsx(() => (<>[{skyrmion.name}] {unref(skyrmion.spinor.spinors.singularName)} Upgrade ι ({formatWhole(unref(skyrmion.spinor.upgrades.iota.totalAmount))})</>))
         })),
         createMultiplicativeModifier(() => ({
             multiplier: entropy.enhancements.extension.effect as Ref<DecimalSource>,
@@ -72,12 +72,12 @@ const layer = createLayer(id, function (this: BaseLayer) {
         createExponentialModifier(() => ({
             exponent: upgrades.reform.effect,
             enabled: () => Decimal.gt(unref(upgrades.reform.amount), 1),
-            description: jsx(() => (<>[{fome.name}] Infinitesimal Foam<sup>{formatWhole(unref(upgrades.reform.amount))}</sup></>))
+            description: jsx(() => (<>[{fome.name}] {unref(amount.singularName)}<sup>{formatWhole(unref(upgrades.reform.amount))}</sup></>))
         })),
         createMultiplicativeModifier(() => ({
             multiplier: 0,
             enabled: () => Decimal.eq(unref(upgrades.reform.amount), 0),
-            description: jsx(() => (<>[{fome.name}] Infinitesimal Foam<sup>{formatWhole(unref(upgrades.reform.amount))}</sup></>))
+            description: jsx(() => (<>[{fome.name}] {unref(amount.singularName)}<sup>{formatWhole(unref(upgrades.reform.amount))}</sup></>))
         })),
         ...fome.timelineProduction,
         createMultiplicativeModifier(() => ({
@@ -187,7 +187,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
     const boosts: Record<1|2|3|4|5, GenericBoost> & { index: Persistent<1|2|3|4|5> } = {
         index: persistent<1|2|3|4|5>(1),
         1: createBoost(feature => ({
-            display: () => `Multiply the generation of Infinitesimal Foam by ${format(getFomeBoost(FomeTypes.infinitesimal, 1))}`,
+            display: () => `Multiply the generation of ${unref(amount.singularName)} by ${format(getFomeBoost(FomeTypes.infinitesimal, 1))}`,
             effect: () => new Decimal(unref(feature.total)).times(unref(skyrmion.pion.upgrades.lambda.effect))
                                                            .times(unref(skyrmion.pion.upgrades.kappa.effect))
                                                            .plus(1),
@@ -215,14 +215,15 @@ const layer = createLayer(id, function (this: BaseLayer) {
         }))
     }
 
-    const modifierModal = createModifierModal('Infinitesimal Foam Modifiers', () => [
-        {
+    const modifierModal = createModifierModal(
+        () => `${unref(amount.singularName)} Modifiers`,
+        () => [{
             title: amount.displayName,
             modifier: productionModifiers,
             base: () => unref(skyrmion.totalSkyrmions).times(0.01),
             baseText: jsx(() => <>[{skyrmion.name}] Total {unref(skyrmion.skyrmions.displayName)}</>)
-        }
-    ]);
+        }]
+    );
 
     return {
         amount,

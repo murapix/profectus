@@ -201,13 +201,14 @@ const layer = createLayer(id, function (this: BaseLayer) {
         }
     }));
 
-    const modifiersModal = createModifierModal("Timeline Score", () => [
-        {
+    const modifiersModal = createModifierModal(
+        "Timeline Score",
+        () => [{
             title: "Timeline Score",
             modifier: currentScoreModifiers,
             base: 1e-4
-        }
-    ]);
+        }]
+    );
 
     const showInfo = ref(false);
     const infoModal = jsx(() => (

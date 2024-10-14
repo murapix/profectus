@@ -32,17 +32,17 @@ const layer = createLayer(id, function (this: BaseLayer) {
         createMultiplicativeModifier(() => ({
             multiplier: upgrades[FomeDims.height].effect,
             enabled: () => Decimal.gt(unref(upgrades[FomeDims.height].amount), 0),
-            description: jsx(() => (<>[{fome.name}] Subplanck Foam Height ({formatWhole(unref(upgrades[FomeDims.height].amount))})</>))
+            description: jsx(() => (<>[{fome.name}] {unref(amount.singularName)} Height ({formatWhole(unref(upgrades[FomeDims.height].amount))})</>))
         })),
         createMultiplicativeModifier(() => ({
             multiplier: upgrades[FomeDims.width].effect,
             enabled: () => Decimal.gt(unref(upgrades[FomeDims.width].amount), 0),
-            description: jsx(() => (<>[{fome.name}] Subplanck Foam Width ({formatWhole(unref(upgrades[FomeDims.width].amount))})</>))
+            description: jsx(() => (<>[{fome.name}] {unref(amount.singularName)} Width ({formatWhole(unref(upgrades[FomeDims.width].amount))})</>))
         })),
         createMultiplicativeModifier(() => ({
             multiplier: upgrades[FomeDims.depth].effect,
             enabled: () => Decimal.gt(unref(upgrades[FomeDims.depth].amount), 0),
-            description: jsx(() => (<>[{fome.name}] Subplanck Foam Depth ({formatWhole(unref(upgrades[FomeDims.depth].amount))})</>))
+            description: jsx(() => (<>[{fome.name}] {unref(amount.singularName)} Depth ({formatWhole(unref(upgrades[FomeDims.depth].amount))})</>))
         })),
         createMultiplicativeModifier(() => ({
             multiplier: boosts[1].effect,
@@ -57,12 +57,12 @@ const layer = createLayer(id, function (this: BaseLayer) {
         createExponentialModifier(() => ({
             exponent: upgrades.reform.effect,
             enabled: () => Decimal.gt(unref(upgrades.reform.amount), 1),
-            description: jsx(() => (<>[{fome.name}] Subplanck Foam<sup>{formatWhole(unref(upgrades.reform.amount))}</sup></>))
+            description: jsx(() => (<>[{fome.name}] {unref(amount.singularName)}<sup>{formatWhole(unref(upgrades.reform.amount))}</sup></>))
         })),
         createMultiplicativeModifier(() => ({
             multiplier: 0,
             enabled: () => Decimal.eq(unref(upgrades.reform.amount), 0),
-            description: jsx(() => (<>[{fome.name}] Subplanck Foam<sup>{formatWhole(unref(upgrades.reform.amount))}</sup></>))
+            description: jsx(() => (<>[{fome.name}] {unref(amount.singularName)}<sup>{formatWhole(unref(upgrades.reform.amount))}</sup></>))
         })),
         ...fome.timelineProduction,
         createMultiplicativeModifier(() => ({
@@ -170,7 +170,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
     const boosts: Record<1|2|3|4|5, GenericBoost> & { index: Persistent<1|2|3|4|5> } = {
         index: persistent<1|2|3|4|5>(1),
         1: createBoost(feature => ({
-            display: () => `Multiply the generation of Subplanck Foam by ${format(getFomeBoost(FomeTypes.subplanck, 1))}`,
+            display: () => `Multiply the generation of ${unref(amount.singularName)} by ${format(getFomeBoost(FomeTypes.subplanck, 1))}`,
             effect: () => new Decimal(unref(feature.total)).times(unref(skyrmion.spinor.upgrades.kappa.effect))
                                                            .times(unref(skyrmion.pion.upgrades.kappa.effect))
                                                            .plus(1),
@@ -198,14 +198,15 @@ const layer = createLayer(id, function (this: BaseLayer) {
         }))
     }
 
-    const modifierModal = createModifierModal('Subplanck Foam Modifiers', () => [
-        {
+    const modifierModal = createModifierModal(
+        () => `${unref(amount.singularName)} Modifiers`,
+        () => [{
             title: amount.displayName,
             modifier: productionModifiers,
             base: () => unref(skyrmion.totalSkyrmions).times(0.01),
             baseText: jsx(() => <>[{skyrmion.name}] Total {unref(skyrmion.skyrmions.displayName)}</>)
-        }
-    ]);
+        }]
+    );
 
     return {
         amount,

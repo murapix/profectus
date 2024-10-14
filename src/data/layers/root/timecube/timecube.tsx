@@ -384,14 +384,15 @@ const layer = createLayer(id, function (this: BaseLayer) {
         }))
     }
 
-    const modifierModal = createModifierModal("Time Cube Modifiers", () => [
-        {
+    const modifierModal = createModifierModal(
+        () => `${unref(timecubes.singularName)} Modifiers`,
+        () => [{
             title: timecubes.displayName,
             modifier: productionModifiers,
             base: 1,
             baseText: jsx(() => <>[{acceleron.name}] Gain per Loop</>)
-        }
-    ]);
+        }]
+    );
 
     const header = jsx(() => (
         <MainDisplay resource={timecubes} modal={modifierModal}/>
