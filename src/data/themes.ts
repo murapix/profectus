@@ -66,8 +66,8 @@ const defaultTheme: Theme = {
     "--transparent": "#0000",
     
     "--changelog-feature": "#B48EAD",
-    "--changelog-fix": "#A3BE8C",
-    "--changelog-balance": "#EBCB8B",
+    "--changelog-fix": "#84A965",
+    "--changelog-balance": "#D7B164",
 
     "--feature-foreground": "#000",
     "--feature-background": "#4c566a",
