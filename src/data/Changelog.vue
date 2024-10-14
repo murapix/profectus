@@ -13,6 +13,7 @@
                     <li class="breaking">Save system reworked entirely</li>
                     <li class="feature">Save Bank added with important milestones</li>
                     <li class="breaking">Overhauled Skyrmion, Acceleron, and Inflaton visuals</li>
+                    <li class="feature">Added new number formatting options</li>
                     <li class="balancing">Found a few calculation errors very early on, had to rebalance <i>everything</i></li>
                     <li class="balancing">Skyrmion upgrade costs modified</li>
                     <li class="balancing">Deep Abyssal content is now more difficult</li>
