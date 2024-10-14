@@ -35,10 +35,11 @@ const props = defineProps<{
 const links: ComputedRef<Link[]> = computed(() => 
         props.research.flatMap(row => row)
                       .flatMap(node => node.prerequisites
-                        ?.map(prerequisite => ({
+                        ?.filter(prerequisite => isVisible(prerequisite.visibility))
+                        .map(prerequisite => ({
                             startNode: { id: node.id },
                             endNode: { id: prerequisite.id },
-                            stroke: !isVisible(node.visibility)
+                            stroke: isVisible(node.visibility)
                                     ? 'var(--locked)'
                                     : unref(prerequisite.researched)
                                         ? 'var(--feature-background)'

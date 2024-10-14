@@ -310,7 +310,7 @@ const layer = createLayer("entangled", () => {
                     }
                 }
                 for (const research of keptInflatonResearch) {
-                    research.researched.value = true;
+                    research.progress.value = unref((research.requirements as CostRequirement).cost as ProcessedComputable<DecimalSource>);
                 }
                 skyrmion.skyrmions.value = unref(acceleron.achievements.skyrmion.earned) ? 10 : 1;
             });
