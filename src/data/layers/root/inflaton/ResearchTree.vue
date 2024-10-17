@@ -35,8 +35,7 @@ const props = defineProps<{
 const links: ComputedRef<Link[]> = computed(() => 
         props.research.flatMap(row => row)
                       .flatMap(node => node.prerequisites
-                        ?.filter(prerequisite => isVisible(prerequisite.visibility))
-                        .map(prerequisite => ({
+                        ?.map(prerequisite => ({
                             startNode: { id: node.id },
                             endNode: { id: prerequisite.id },
                             stroke: isVisible(node.visibility)
