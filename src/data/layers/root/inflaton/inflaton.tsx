@@ -220,7 +220,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             visibility() {
                 return unref(this.bought) || unref(core.research.upgrades.researched);
             },
-            effect: buildings.maxSize,
+            effect: noPersist(buildings.maxSize),
             style: { width: '250px' }
         }), effectDecorator) as EffectUpgrade<DecimalSource>;
         const skyrmionUpgrades = createUpgrade(() => ({
