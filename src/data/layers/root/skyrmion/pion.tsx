@@ -323,7 +323,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 name: "π",
                 description: <>Increase Entropic Loop construction speed by 5% per completed Entropic Loop</>
             },
-            effect: amount => Decimal.times(amount, 0.05).times(unref(acceleron.loops.numBuiltLoops))
+            effect: amount => Decimal.times(amount, 0.05).times(unref(acceleron.loops.numBuiltLoops)).plus(1)
         });
         const rho = createUpgrade({
             visibility: () => unref(abyss.challenge.active) || unref(skyrmion.upgrades.rho.bought),

@@ -14,7 +14,7 @@
                     </Tooltip>
                 </button>
             </Row>
-            <div v-else class="title">{{ preset.name }}</div>
+            <button v-else @click="emit('load')" class="title button">{{ preset.name }}</button>
             <Row>
                 <FeedbackButton
                     @click="emit('export')"
@@ -27,11 +27,11 @@
                     </Tooltip>
                 </FeedbackButton>
                 <button
-                    @click="emit('load')"
+                    @click="emit('reassign')"
                     class="button"
                     v-if="!deleting"
                 >
-                    <Tooltip display="Load" :direction="Direction.Up" class="info">
+                    <Tooltip display="Re-Assign" :direction="Direction.Up" class="info">
                         <span class="material-icons">content_copy</span>
                     </Tooltip>
                 </button>
@@ -74,7 +74,7 @@ import Row from 'components/layout/Row.vue';
 import Tooltip from 'features/tooltips/Tooltip.vue';
 import { GenericUpgrade } from 'features/upgrades/upgrade';
 import { Direction } from 'util/common';
-import { ref, unref, watch } from 'vue';
+import { computed, ref, unref, watch } from 'vue';
 
 type PresetType = {
     name: string;
@@ -91,17 +91,18 @@ const emit = defineEmits<{
     (emit: "load"): void;
     (emit: "delete"): void;
     (emit: "rename", name: string): void;
+    (emit: "reassign"): void;
 }>();
 
-const buyMap = Object.fromEntries(
+const buyMap = computed(() => Object.fromEntries(
     Object.entries(props.rows).map(
         ([row, upgrades]) => [row, upgrades.map(
             upgrade => props.preset.purchased.includes(upgrade.id)
         )]
     )
-);
+));
 
-const dimensions = Object.values(buyMap).map(row => row.reduce(
+const dimensions = computed(() => Object.values(unref(buyMap)).map(row => row.reduce(
     (width, bought, column) => bought && column > width
         ? column
         : width,
@@ -112,7 +113,7 @@ const dimensions = Object.values(buyMap).map(row => row.reduce(
         maxHeight: width > 0 ? row : maxHeight
     }),
     { maxWidth: 0, maxHeight: 0 }
-);
+));
 
 const renaming = ref(false);
 const deleting = ref(false);
@@ -166,6 +167,8 @@ function rename() {
 }
 
 .title {
+    font-size: 16px;
+    padding: 0 0 1em 0;
     margin: 5px;
     height: 2em;
 }

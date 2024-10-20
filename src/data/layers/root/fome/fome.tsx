@@ -19,12 +19,12 @@ import { format, formatWhole } from "util/break_eternity";
 import { WithRequired } from "util/common";
 import { render, renderRowJSX } from "util/vue";
 import { ComputedRef, Ref, computed, unref } from "vue";
-import acceleron from "../acceleron/acceleron";
+import acceleron, {id as acceleronId} from "../acceleron/acceleron";
 import entropy from "../acceleron/entropy";
 import entangled from "../entangled/entangled";
 import Fome from "../fome/Fome.vue";
 import FomeBoost from "../fome/FomeBoost.vue";
-import inflaton from "../inflaton/inflaton";
+import inflaton, {id as inflatonId} from "../inflaton/inflaton";
 import skyrmion from "../skyrmion/skyrmion";
 import timecube from "../timecube/timecube";
 import timelines from "../timecube/timelines";
@@ -35,6 +35,7 @@ import quantum from "./quantum";
 import subplanck from "./subplanck";
 import subspatial from "./subspatial";
 import abyss from "../skyrmion/abyss";
+import Modal from "components/Modal.vue";
 
 export enum FomeTypes {
     protoversal = "protoversal",
@@ -272,12 +273,48 @@ const layer = createLayer(id, function (this: BaseLayer) {
         }))
     }
 
+    const showBranchChoice = computed(() => {
+        if (unref(entangled.milestones[1].earned)) return false;
+        if (unref(entangled.branchOrder) !== '') return false;
+        return unref(quantum.upgrades.condense.bought);
+    });
     const tabs = createTabFamily({
         main: () => ({
             display: "Foam",
             tab: createTab(() => ({
                 display: jsx(() => (
                     <>
+                        <Modal
+                            modelValue={unref(showBranchChoice)}
+                            preventClosing={true}
+                            v-slots={{
+                                header: () => <div style={{textAlign: 'center'}}><h2>A Choice</h2></div>,
+                                body: () => (
+                                    <div style={{textAlign: 'center'}}>
+                                        As you condense the foam bubbling around you, a pair of particles appear out of the volatile layers, similar in composition yet opposing in purpose.<br/>
+                                        The pair dance around each other as you watch, intrinsically tied together yet kept apart by forces beyond your control.<br/><br/>
+                                        One of <span style={{color: acceleron.theme["--feature-background"]}}>Time</span>, one of <span style={{color: inflaton.theme["--feature-background"]}}>Space</span><br/><br/>
+                                        Reaching for one causes the other to drift away - it seems you will need to make a choice of which to take.<br/>The other, though, does not seem too much further out of reach.
+                                    </div>
+                                ),
+                                footer: () => (
+                                    <div style={{textAlign: 'center', display: 'flex', justifyContent: 'center'}}>
+                                        <button class="feature clickable can" style={{
+                                            backgroundColor: acceleron.theme["--feature-background"],
+                                            width: '150px',
+                                            height: '60px'
+                                        }} onClick={() => entangled.branchOrder.value = acceleronId}>Accelerons</button>
+                                        <Spacer width='150px' style={{margin: 0}}/>
+                                        <button class="feature clickable can" style={{
+                                            backgroundColor: inflaton.theme["--feature-background"],
+                                            width: '150px',
+                                            height: '60px'
+                                        }} onClick={() => entangled.branchOrder.value = inflatonId}>Inflatons</button>
+                                    </div>
+                                )
+                            }}
+                        >
+                        </Modal>
                         <div>
                             You have <Resource resource={layer[unref(highestFome)].amount} color="var(--feature-background)" /> {unref(layer[unref(highestFome)].amount.displayName)}
                             {Decimal.gt(unref(layer[unref(highestFome)].upgrades.reform.amount), 1)

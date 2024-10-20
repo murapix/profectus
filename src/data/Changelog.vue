@@ -6,7 +6,16 @@
         <template v-slot:body>
             <details open>
                 <summary>v1.0 Revitalization</summary>
-                v1.0.0 Rewrite in Profectus - <time>2024-09-09</time><br/>
+                v1.1.0 A Bit More Clarity - <time>2024-10-20</time>
+                <ul>
+                    <li class="breaking">Fixed Universe Size sticking oddly in the Abyss - UNIVERSE SIZE IS RESET TO FIX SOFTLOCKED SAVES</li>
+                    <li class="feature">Added a modal clarifying the Acceleron-Inflaton split</li>
+                    <li class="feature">Enhancement Presets are now loaded by clicking the name, and can be re-set</li>
+                    <li class="fix">All Skyrmion upgrades now count for Abyssal requirements</li>
+                    <li class="fix">Higher Entropic Loop speeds now have tamer visuals</li>
+                    <li class="fix">Fixed a softlock from buying an upgrade without any Entropic Loops</li>
+                </ul>
+                v1.0.0 Rewrite in Profectus - <time>2024-10-14</time><br/>
                 It's been a while, hasn't it?
                 <ul>
                     <li class="breaking">Moved from TMT to Profectus</li>

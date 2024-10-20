@@ -194,7 +194,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
 
     const time = persistent<DecimalSource>(0);
     this.on("preUpdate", (diff) => {
-        time.value = Decimal.add(unref(time), diff);
+        if (!unref(loops.isBuilding)) time.value = Decimal.add(unref(time), diff);
     });
 
     const totalAcceleronResource = createResource(noPersist(totalAccelerons));

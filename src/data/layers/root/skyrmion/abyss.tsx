@@ -25,7 +25,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
 
     const challenge = createChallenge(feature => ({
         requirements: createCostRequirement(() => ({
-            cost: () => Decimal.add(unref(feature.completions), 1),
+            cost: () => Decimal.add(unref(feature.completions), 15),
             resource: upgradeCount,
             requiresPay: false
         })),
@@ -47,10 +47,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
     const challengeUpgradeCount = computed(() => Decimal.add(unref(pion.upgradeCount), unref(spinor.upgradeCount)).times(0.75));
     const nextChallengeUpgradeCount = computed(() => Decimal.add(unref(pion.upgradeCount), unref(spinor.upgradeCount)).plus(1).times(0.75));
 
-    const upgradeCount: Resource<number> = createResource(computed(() =>
-        [ skyrmion.upgrades.nu, skyrmion.upgrades.xi, skyrmion.upgrades.pi, skyrmion.upgrades.rho ].filter(upgrade => unref(upgrade.bought)).length
-    ), { displayName: "Abyssal Skyrmion Upgrades", singularName: "Abyssal Skyrmion Upgrade" });
-    watch(upgradeCount, count => challenge.completions.value = Decimal.max(unref(challenge.completions), count));
+    const upgradeCount: Resource<number> = createResource(computed(() => 
+        Object.values(skyrmion.upgrades).filter(upgrade => unref(upgrade.bought)).length),
+        { displayName: "Abyssal Skyrmion Upgrades", singularName: "Abyssal Skyrmion Upgrade" }
+    );
+    watch(upgradeCount, count => challenge.completions.value = Decimal.max(unref(challenge.completions), count-14));
 
     const swapData: Record<string, unknown> = (() => {
         const swapData = {

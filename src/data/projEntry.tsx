@@ -177,5 +177,18 @@ export function fixOldSave(
     oldVersion: string | undefined,
     player: Partial<Player>
     // eslint-disable-next-line @typescript-eslint/no-empty-function
-): void {}
+): void {
+    if (oldVersion == undefined) return;
+
+    switch (oldVersion) {
+        case "1.0.0":
+        case "1.0.1":
+        {
+            const abyssData = (player.layers!.skyrmion as typeof skyrmion).abyss;
+            (player.layers!.inflaton as typeof inflaton).buildings.maxSize.value = 0;
+            (abyssData.swapData.inflaton as typeof inflaton).buildings.maxSize.value = 0;
+            delete (abyssData.swapData.inflaton as {upgrades: { moreFome: { effect?: unknown }}}).upgrades.moreFome.effect;
+        }
+    }
+}
 /* eslint-enable @typescript-eslint/no-unused-vars */

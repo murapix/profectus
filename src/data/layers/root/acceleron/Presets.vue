@@ -30,6 +30,7 @@
                         @load="loadPreset(preset)"
                         @delete="deletePreset(preset)"
                         @rename="(name: string) => renamePreset(preset, name)"
+                        @reassign="reassignPreset(preset)"
                     />
                 </template>
             </div>
@@ -73,6 +74,13 @@ function createPreset() {
     });
     newName.value = "";
     tryImport.value = false;
+}
+
+function reassignPreset(toReassign: PresetType) {
+    toReassign.purchased = Object.values(props.enhancements)
+                                 .flatMap(row => row)
+                                 .filter(upgrade => unref(upgrade.bought))
+                                 .map(upgrade => upgrade.id)
 }
 
 function exportPreset(toExport: PresetType) {
