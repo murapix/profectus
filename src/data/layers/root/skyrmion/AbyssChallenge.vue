@@ -66,6 +66,7 @@ import { ref, shallowRef, unref, watchEffect } from 'vue';
 import acceleron from '../acceleron/acceleron';
 import inflaton from '../inflaton/inflaton';
 import Decimal, { DecimalSource } from 'lib/break_eternity';
+import { displayResource } from 'features/resources/resource';
 
 const props = defineProps<{
     challenge: GenericChallenge;
@@ -78,11 +79,11 @@ watchEffect(() => {
     requirementsDisplay.value = coerceComponent(
         jsx(() => {
             const requirement = props.challenge.requirements as CostRequirement;
-            if (Decimal.gte(unref(requirement.cost as ProcessedComputable<DecimalSource>), 5)) {
-                return <div>Current Goal: 5 ¿Ә≤˘´ϐ ˆæ›”¿˘ı˘≥</div>
+            if (Decimal.gte(unref(requirement.cost as ProcessedComputable<DecimalSource>), 19)) {
+                return <div>Current Goal: ◆⫔ ¿Ә≤˘´ϐ ˆæ›”¿˘ı˘≥</div>
             }
             return <div>
-                Current Goal: <NamedResource resource={requirement.resource} override={unref(requirement.cost as ProcessedComputable<DecimalSource>)} />
+                Current Goal: {displayResource(requirement.resource)}/<NamedResource resource={requirement.resource} override={unref(requirement.cost as ProcessedComputable<DecimalSource>)} />
             </div>
         })
     );
@@ -147,6 +148,6 @@ watchEffect(() => {
 
 .goal {
     font-size: 14px;
-    width: 150px;
+    width: 160px;
 }
 </style>
