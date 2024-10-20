@@ -24,7 +24,7 @@ import { GenericClickable } from "features/clickables/clickable";
 import { isHidden, isVisible } from "features/feature";
 import Decimal from "lib/break_eternity";
 import { render } from "util/vue";
-import { ComputedRef, computed, unref } from "vue";
+import { ComputedRef, computed, ref, unref, watch, watchEffect } from "vue";
 import Loop from "./Loop.vue";
 import acceleron from "./acceleron";
 import { GenericLoop } from "./loop";
@@ -63,15 +63,49 @@ const translations: ComputedRef<number>[] = props.loops.map((_, index, loops) =>
     });
 });
 
-const progressAmounts: ComputedRef<Decimal>[] = props.loops.map(loop => 
+const cyclesPerSecond = props.loops.map(loop => 
+    computed(() => {
+        if (unref(loop.built)) return Decimal.div(unref(acceleron.timeMult), unref(loop.triggerRequirement));
+        else return Decimal.dZero;
+    })
+);
+const progressAmounts = props.loops.map(loop => 
     computed(() => {
         if (unref(loop.built)) return Decimal.div(unref(loop.triggerProgress), unref(loop.triggerRequirement));
         else return Decimal.div(unref(loop.buildProgress), unref(loop.buildRequirement));
     })
 );
 
-const startAngles: ComputedRef<number>[] = props.loops.map(loop => computed(() => Decimal.times(unref(acceleron.time), unref(acceleron.timeMult)).div(unref(loop.triggerRequirement)).toNumber() % 360));
-const endAngles: ComputedRef<number>[] = props.loops.map((_, index) => computed(() => unref(progressAmounts[index]).times(360).toNumber() % 360));
+const currentTime = computed(() => Decimal.times(unref(acceleron.time), unref(acceleron.timeMult)));
+
+const loopFormatRequirement = 2;
+const startAngles = props.loops.map((loop, index) => 
+    computed(() => {
+        if (unref(cyclesPerSecond[index]).lte(loopFormatRequirement)) { // first format = 0-4 cycles per second
+            return Decimal.div(unref(currentTime), unref(loop.triggerRequirement)).toNumber() % 360;
+        }
+        else if (unref(cyclesPerSecond[index]).lte(360*loopFormatRequirement)) { // second format = 0-4 meta-cycles per second, 1 meta cycle = 360 cycles per second
+            return Decimal.div(unref(currentTime), unref(loop.triggerRequirement)).dividedBy(360).toNumber() % 360;
+        }
+        else { // third format = n+ meta^2-cycles per second = n*360*360 full cycles per second
+            return Decimal.times(unref(acceleron.time), props.loops.length).dividedBy(index+1).toNumber() % 360;
+        }
+    })
+);
+
+const arcLengths = props.loops.map((_, index) => 
+    computed(() => {
+        if (unref(cyclesPerSecond[index]).lte(loopFormatRequirement)) {
+            return unref(progressAmounts[index]).times(360).toNumber() % 360;
+        }
+        else if (unref(cyclesPerSecond[index]).lte(360*loopFormatRequirement)) {
+            return 360 - (unref(cyclesPerSecond[index]).times(unref(acceleron.time)).toNumber() % 360);
+        }
+        else {
+            return 180;
+        }
+    })
+);
 
 const processedLoops = props.loops.map((loop, index) => ({
     id: loop.id,
@@ -80,7 +114,7 @@ const processedLoops = props.loops.map((loop, index) => ({
     width: computed(() => unref(loop.display).width),
     radius: radii[index],
     offset: startAngles[index],
-    angle: endAngles[index],
+    angle: arcLengths[index],
     translation: computed(() => {
         const translation = unref(translations[index]);
         return `translate(${translation},${translation})`;
