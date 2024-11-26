@@ -30,6 +30,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         const condenser = createBuilding(building => ({
             effect(amount) {
                 return Decimal.times(amount, getResearchEffect(core.research.quintupleCondenser, 1))
+                              .times(unref(tuner.effect).gain)
                               .pow_base(0.975);
             },
             cost: {

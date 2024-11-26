@@ -72,11 +72,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
             },
             prerequisites: [inflationResearch]
         }));
-        const inflationResearch = createResearch(() => ({
+        const smallerBuildings = createResearch(() => ({
             cost: 15000,
             display: {
-                title: 'Active Restoration Protocols',
-                description: 'Allow the construction of Active Redistribution Centers'
+                title: 'Hybridized Containerization Strategies',
+                description: 'Reduce subspace building size by up to 10%'
             },
             prerequisites: [queueTwo, improvedStorage]
         }));
@@ -262,16 +262,28 @@ const layer = createLayer(id, function (this: BaseLayer) {
             prerequisites: [moreRepeatables, queueFour, autobuild]
         }));
 
+        // TODO: Move to expansion research
+        const inflationResearch = createResearch(() => ({
+            cost: 15000,
+            display: {
+                title: 'Active Restoration Protocols',
+                description: 'Allow the construction of Active Redistribution Centers'
+            },
+            prerequisites: [queueTwo, improvedStorage]
+        }));
+
         return {
             quintupleCondenser,
             doubleSize, cheaperLabs,
             fomeGain, researchBoost, storage,
             halfQuantum, quadrupleSize, upgrades, respecs,
             moreFomeGain, queueTwo, improvedStorage,
-            quarterQuantum, repeatableUnlock, inflationResearch, autofillStorage,
+            quarterQuantum, repeatableUnlock, smallerBuildings, autofillStorage,
             evenMoreFomeGain, biggerBuildings, isolatedStorage, instantInflation,
             moreRepeatables, queueFour, autobuild,
-            mastery
+            mastery,
+
+            inflationResearch
         }
     })();
 
@@ -491,7 +503,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                         [research.fomeGain, research.researchBoost, research.storage],
                         [research.halfQuantum, research.quadrupleSize, research.upgrades, research.respecs],
                         [research.moreFomeGain, research.queueTwo, research.improvedStorage],
-                        [research.quarterQuantum, research.repeatableUnlock, research.inflationResearch, research.autofillStorage],
+                        [research.quarterQuantum, research.repeatableUnlock, research.smallerBuildings, research.autofillStorage],
                         [research.evenMoreFomeGain, research.biggerBuildings, research.isolatedStorage, research.instantInflation],
                         [research.moreRepeatables, research.queueFour, research.autobuild],
                         [research.mastery]

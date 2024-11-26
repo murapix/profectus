@@ -15,6 +15,7 @@ import { getResearchEffect } from "../inflaton/research";
 import skyrmion from "../skyrmion/skyrmion";
 import buildings from "./buildings";
 import core from "./coreResearch";
+import { createMultiplicativeModifier, createSequentialModifier } from "game/modifiers";
 
 export interface BuildingData<T = DecimalSource> {
     effect: (amount: DecimalSource) => T;
@@ -101,8 +102,23 @@ const buildingStyle = computed(() => ({
     borderBottomRightRadius: unref(core.research.respecs.researched) ? 0 : 'var(--border-radius)',
 }));
 
+const buildingSizeModifiers = createSequentialModifier(() => [
+    createMultiplicativeModifier(() => ({
+        multiplier: 0.9,
+        enabled: noPersist(core.research.smallerBuildings.researched),
+        smallerIsBetter: true
+    })),
+    createMultiplicativeModifier(() => ({
+        multiplier: () => unref(core.research.biggerBuildings.effect).size,
+        enabled: noPersist(core.research.biggerBuildings.researched)
+    })),
+    createMultiplicativeModifier(() => ({
+        multiplier: () => unref(core.repeatables.buildingSize.effect).size,
+        enabled: () => Decimal.gt(unref(core.repeatables.buildingSize.amount), 0)
+    }))
+]);
 export const buildingSize = computed(() => {
-    return Decimal.times(getResearchEffect(core.research.biggerBuildings, {size: 1, effect: 1}).size, getResearchEffect(core.repeatables.buildingSize, {size: 1, effect: 1}).size)
+    return Decimal.ceil(buildingSizeModifiers.apply(1));
 });
 function canBuild(sizeMultiplier: DecimalSource) {
     return computed(() => Decimal.minus(unref(buildings.maxSize), unref(buildings.usedSize)).gte(unref(buildingSize).times(sizeMultiplier)));
