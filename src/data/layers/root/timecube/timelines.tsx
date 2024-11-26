@@ -1,4 +1,4 @@
-import Modal from "components/Modal.vue";
+import Modal from "components/modals/Modal.vue";
 import Column from "components/layout/Column.vue";
 import Spacer from "components/layout/Spacer.vue";
 import { createClickable } from "features/clickables/clickable";

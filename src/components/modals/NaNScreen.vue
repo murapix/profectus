@@ -56,6 +56,7 @@ import { computed, ref, toRef, watch } from "vue";
 import Toggle from "../fields/Toggle.vue";
 import Modal from "./Modal.vue";
 import SavesManager from "./SavesManager.vue";
+import settings from "game/settings";
 
 const { discordName, discordLink } = projInfo;
 const autosave = ref(true);

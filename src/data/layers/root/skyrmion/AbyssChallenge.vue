@@ -53,7 +53,7 @@
 </template>
 
 <script setup lang="tsx">
-import Modal from 'components/Modal.vue';
+import Modal from 'components/modals/Modal.vue';
 import Node from 'components/Node.vue';
 import { GenericChallenge } from 'features/challenges/challenge';
 import { isHidden, isVisible, jsx } from 'features/feature';

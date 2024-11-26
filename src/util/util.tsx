@@ -4,7 +4,7 @@ import { computed, isRef, ref, unref } from "vue";
 import Decimal from "./break_eternity";
 import { Section, createCollapsibleModifierSections } from "data/common";
 import { jsx } from "features/feature";
-import Modal from "components/Modal.vue";
+import Modal from "components/modals/Modal.vue";
 import { Computable, convertComputable } from "./computed";
 
 export function clonePersistentData(object: unknown) {

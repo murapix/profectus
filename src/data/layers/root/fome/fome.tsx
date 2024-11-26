@@ -35,7 +35,7 @@ import quantum from "./quantum";
 import subplanck from "./subplanck";
 import subspatial from "./subspatial";
 import abyss from "../skyrmion/abyss";
-import Modal from "components/Modal.vue";
+import Modal from "components/modals/Modal.vue";
 
 export enum FomeTypes {
     protoversal = "protoversal",
