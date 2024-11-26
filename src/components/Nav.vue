@@ -105,10 +105,9 @@ import { Direction } from "util/common";
 import { galaxy, syncedSaves } from "util/galaxy";
 import type { ComponentPublicInstance } from "vue";
 import { computed, ref } from "vue";
-import Info from "./Info.vue";
-import Options from "./Options.vue";
-import SavesManager from "./saves/SavesManager.vue";
-import player from "game/player";
+import Info from "./modals/Info.vue";
+import Options from "./modals/Options.vue";
+import SavesManager from "./modals/SavesManager.vue";
 import { format } from "util/break_eternity";
 
 const info = ref<ComponentPublicInstance<typeof Info> | null>(null);

@@ -21,5 +21,6 @@
 
 	"maxTickLength": 3600,
 	"enablePausing": true,
-	"exportEncoding": "base64"
+	"exportEncoding": "base64",
+	"disableHealthWarning": false
 }

@@ -13,6 +13,7 @@
             <div v-if="isTab('behaviour')">
                 <Toggle :title="unthrottledTitle" v-model="unthrottled" />
                 <Toggle v-if="projInfo.enablePausing" :title="isPausedTitle" v-model="isPaused" />
+                <Toggle :title="showHealthWarningTitle" v-model="showHealthWarning" v-if="!projInfo.disableHealthWarning" />
                 <Toggle :title="autosaveTitle" v-model="autosave" />
                 <FeedbackButton v-if="!autosave" class="button save-button" @click="save()">Manually save</FeedbackButton>
             </div>
@@ -29,7 +30,6 @@
 </template>
 
 <script setup lang="tsx">
-import Modal from "components/Modal.vue";
 import projInfo from "data/projInfo.json";
 import { save } from "util/save";
 import { jsx } from "features/feature";
@@ -39,9 +39,10 @@ import settings, { settingFields } from "game/settings";
 import { Direction } from "util/common";
 import { coerceComponent, render } from "util/vue";
 import { computed, ref, toRefs } from "vue";
-import Select from "./fields/Select.vue";
-import Toggle from "./fields/Toggle.vue";
-import FeedbackButton from "./fields/FeedbackButton.vue";
+import FeedbackButton from "../fields/FeedbackButton.vue";
+import Select from "../fields/Select.vue";
+import Toggle from "../fields/Toggle.vue";
+import Modal from "./Modal.vue";
 import { Notations } from "util/notation";
 
 const isOpen = ref(false);
@@ -76,7 +77,7 @@ const settingFieldsComponent = computed(() => {
     return coerceComponent(jsx(() => (<>{settingFields.map(render)}</>)));
 });
 
-const { showTPS, unthrottled, alignUnits, numberFormat, backupNumberFormat, showNextValues } = toRefs(settings);
+const { showTPS, unthrottled, alignUnits, numberFormat, backupNumberFormat, showNextValues, showHealthWarning } = toRefs(settings);
 const { autosave } = toRefs(player);
 const isPaused = computed({
     get() {
@@ -91,6 +92,12 @@ const unthrottledTitle = jsx(() => (
     <span class="option-title">
         Unthrottled
         <desc>Allow the game to run as fast as possible. Not battery friendly.</desc>
+    </span>
+));
+const showHealthWarningTitle = jsx(() => (
+    <span class="option-title">
+        Show videogame addiction warning
+        <desc>Show a helpful warning after playing for a long time about video game addiction and encouraging you to take a break.</desc>
     </span>
 ));
 const autosaveTitle = jsx(() => (

@@ -23,6 +23,8 @@ export interface Settings {
     numberFormat: Notations;
     /** The format to use for numbers beyond the Standard notation limit */
     backupNumberFormat: Exclude<Notations, Notations.standard>;
+    /** Whether or not to show a video game health warning after playing excessively. */
+    showHealthWarning: boolean;
     /** Whether to show both pre- and post-purchase values where available */
     showNextValues: boolean;
     /** A multiplier for time passing. Set to 0 when the game is paused. */
@@ -39,6 +41,7 @@ const state = reactive<Partial<Settings>>({
     alignUnits: false,
     numberFormat: Notations.scientific,
     backupNumberFormat: Notations.scientific,
+    showHealthWarning: true,
     showNextValues: true,
     devSpeed: null,
 
@@ -74,13 +77,16 @@ declare global {
 export default window.settings = state as Settings;
 /** A function that erases all player settings, including all saves. */
 export const hardResetSettings = (window.hardResetSettings = () => {
-    const settings = {
+    // Only partial because of any properties that are only added during the loadSettings event.
+    const settings: Partial<Settings> = {
         active: "",
         saves: [],
         showTPS: true,
+        unthrottled: false,
         alignUnits: false,
         numberFormat: Notations.scientific,
         backupNumberFormat: Notations.scientific as Exclude<Notations, Notations.standard>,
+        showHealthWarning: true,
         showNextValues: true
     };
     globalBus.emit("loadSettings", settings);
