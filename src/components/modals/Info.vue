@@ -18,7 +18,7 @@
                     Made in Profectus, by thepaperpilot with inspiration from Acameada and Jacorb
                 </div>
                 <br />
-                <div class="link" @click="openChangelog">Changelog</div>
+                <div class="link" @click="emits('openChangelog')">Changelog</div>
                 <br />
                 <div>
                     <a
@@ -53,45 +53,38 @@
                 </div>
                 <br />
                 <div>Time Played: {{ timePlayed }}</div>
-                <component :is="infoComponent" />
+                <InfoComponents />
             </div>
         </template>
     </Modal>
 </template>
 
 <script setup lang="tsx">
-import type Changelog from "data/Changelog.vue";
 import projInfo from "data/projInfo.json";
-import { jsx } from "features/feature";
 import player from "game/player";
 import { infoComponents } from "game/settings";
 import { formatTime } from "util/bignum";
-import { coerceComponent, render } from "util/vue";
-import { computed, ref, toRefs, unref } from "vue";
+import { render } from "util/vue";
+import { computed, ref } from "vue";
 import Modal from "./Modal.vue";
 
 const { title, logo, author, discordName, discordLink, versionNumber, versionTitle } = projInfo;
 
-const _props = defineProps<{ changelog: typeof Changelog | null }>();
-const props = toRefs(_props);
+const emits = defineEmits<{
+    (e: "openChangelog"): void;
+}>();
 
 const isOpen = ref(false);
 
 const timePlayed = computed(() => formatTime(player.timePlayed));
 
-const infoComponent = computed(() => {
-    return coerceComponent(jsx(() => (<>{infoComponents.map(render)}</>)));
-});
+const InfoComponents = () => infoComponents.map(f => render(f));
 
 defineExpose({
     open() {
         isOpen.value = true;
     }
 });
-
-function openChangelog() {
-    unref(props.changelog)?.open();
-}
 </script>
 
 <style scoped>

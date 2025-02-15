@@ -1,10 +1,9 @@
-import { LoadablePlayerData } from "components/modals/SavesManager.vue";
 import player, { Player, stringifySave } from "game/player";
 import settings from "game/settings";
 import LZString from "lz-string";
 import { GalaxyApi, initGalaxy } from "unofficial-galaxy-sdk";
 import { ref } from "vue";
-import { decodeSave, loadSave, save, setupInitialStore } from "./save";
+import { decodeSave, LoadablePlayerData, loadSave, save, setupInitialStore } from "./save";
 
 export const galaxy = ref<GalaxyApi>();
 export const conflictingSaves = ref<
@@ -82,7 +81,7 @@ function syncSaves(
     const saves = (
         Object.keys(list)
             .map(slot => {
-                const { label, content } = list[slot as unknown as number];
+                const { label, content } = list[parseInt(slot)];
                 try {
                     return {
                         slot: parseInt(slot),
@@ -172,6 +171,7 @@ function syncSaves(
                 const localSave = localStorage.getItem(id) ?? "";
                 const parsedLocalSave = JSON.parse(decodeSave(localSave) ?? "");
                 const slot = availableSlots.values().next().value;
+                if (slot == null) return;
                 galaxy.value
                     ?.save(slot, localSave, parsedLocalSave.name)
                     .then(() => syncedSaves.value.push(parsedLocalSave.id))

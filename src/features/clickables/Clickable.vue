@@ -1,11 +1,6 @@
 <template>
     <button
-        v-if="isVisible(visibility)"
-        :style="[
-            { visibility: isHidden(visibility) ? 'hidden' : undefined },
-            unref(style) ?? []
-        ]"
-        @click="onClick"
+        @click="e => emits('click', e)"
         @mousedown="start"
         @mouseleave="stop"
         @mouseup="stop"
@@ -13,114 +8,40 @@
         @touchend.passive="stop"
         @touchcancel.passive="stop"
         :class="{
-            feature: true,
             clickable: true,
             can: unref(canClick),
-            locked: !unref(canClick),
-            small,
-            ...unref(classes)
+            locked: !unref(canClick)
         }"
+        :disabled="!unref(canClick)"
     >
-        <component v-if="unref(comp)" :is="unref(comp)" />
-        <MarkNode :mark="unref(mark)" />
-        <Node :id="id" />
+        <Component />
     </button>
 </template>
 
-<script lang="tsx">
+<script setup lang="tsx">
 import "components/common/features.css";
-import MarkNode from "components/MarkNode.vue";
-import Node from "components/Node.vue";
-import type { GenericClickable } from "features/clickables/clickable";
-import type { StyleValue } from "features/feature";
-import { isHidden, isVisible, jsx, Visibility } from "features/feature";
+import { MaybeGetter } from "util/computed";
 import {
-    coerceComponent,
-    isCoercableComponent,
-    processedPropType,
-    setupHoldToClick,
-    unwrapRef
+    render,
+    Renderable,
+    setupHoldToClick
 } from "util/vue";
-import type { Component, PropType, UnwrapRef } from "vue";
-import { defineComponent, shallowRef, toRefs, unref, watchEffect } from "vue";
+import type { Component, MaybeRef } from "vue";
+import { unref } from "vue";
 
-export default defineComponent({
-    props: {
-        display: {
-            type: processedPropType<UnwrapRef<GenericClickable["display"]>>(
-                Object,
-                String,
-                Function
-            ),
-            required: true
-        },
-        visibility: {
-            type: processedPropType<Visibility | boolean>(Number, Boolean),
-            required: true
-        },
-        style: processedPropType<StyleValue>(Object, String, Array),
-        classes: processedPropType<Record<string, boolean>>(Object),
-        onClick: Function as PropType<(e?: MouseEvent | TouchEvent) => void>,
-        onHold: Function as PropType<VoidFunction>,
-        canClick: {
-            type: processedPropType<boolean>(Boolean),
-            required: true
-        },
-        small: Boolean,
-        mark: processedPropType<boolean | string>(Boolean, String),
-        id: {
-            type: String,
-            required: true
-        }
-    },
-    components: {
-        Node,
-        MarkNode
-    },
-    setup(props) {
-        const { display, onClick, onHold } = toRefs(props);
+const props = defineProps<{
+    canClick: MaybeRef<boolean>;
+    display?: MaybeGetter<Renderable>;
+}>();
 
-        const comp = shallowRef<Component | string>("");
+const emits = defineEmits<{
+    (e: "click", event?: MouseEvent | TouchEvent): void;
+    (e: "hold"): void;
+}>();
 
-        watchEffect(() => {
-            const currDisplay = unwrapRef(display);
-            if (currDisplay == null) {
-                comp.value = "";
-                return;
-            }
-            if (isCoercableComponent(currDisplay)) {
-                comp.value = coerceComponent(currDisplay);
-                return;
-            }
-            const Title = coerceComponent(currDisplay.title ?? "", "h3");
-            const Description = coerceComponent(currDisplay.description, "div");
-            comp.value = coerceComponent(
-                jsx(() => (
-                    <span>
-                        {currDisplay.title != null ? (
-                            <div>
-                                <Title />
-                            </div>
-                        ) : null}
-                        <Description />
-                    </span>
-                ))
-            );
-        });
+const Component = () => props.display == null ? <></> : render(props.display);
 
-        const { start, stop } = setupHoldToClick(onClick, onHold);
-
-        return {
-            start,
-            stop,
-            comp,
-            Visibility,
-            isVisible,
-            isHidden,
-            unref
-        };
-    }
-});
+const { start, stop } = setupHoldToClick(() => emits("hold"));
 </script>
 
 <style scoped>
@@ -128,10 +49,6 @@ export default defineComponent({
     min-height: 120px;
     width: 120px;
     font-size: 10px;
-}
-
-.clickable.small {
-    min-height: unset;
 }
 
 .clickable > * {
