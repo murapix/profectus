@@ -1,6 +1,7 @@
-import "@fontsource/material-icons";
 import App from "App.vue";
 import projInfo from "data/projInfo.json";
+import { globalBus } from "game/events";
+import { startGameLoop } from "game/gameLoop";
 import "game/notifications";
 import state from "game/state";
 import "util/galaxy";
@@ -9,8 +10,6 @@ import { useRegisterSW } from "virtual:pwa-register/vue";
 import type { App as VueApp } from "vue";
 import { createApp, nextTick } from "vue";
 import { useToast } from "vue-toastification";
-import { globalBus } from "game/events";
-import { startGameLoop } from "game/gameLoop";
 
 declare global {
     /**

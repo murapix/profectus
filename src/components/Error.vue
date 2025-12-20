@@ -11,14 +11,15 @@
         </div>
         <div class="instructions">
             Check the console for more details, and consider sharing it with the developers on
-            <a :href="projInfo.discordLink || 'https://discord.gg/yJ4fjnjU54'" class="discord-link"
-                >discord</a
-            >!
-            <FeedbackButton @click="exportSave" class="button" style="display: inline-flex"
-                ><span class="material-icons" style="font-size: 16px">content_paste</span
-                ><span style="margin-left: 8px; font-size: medium">Copy Save</span></FeedbackButton
-            ><br />
-            <div v-if="errors.length > 1" style="margin-top: 20px"><h3>Other errors</h3></div>
+            <a :href="projInfo.discordLink || 'https://discord.gg/yJ4fjnjU54'" class="discord-link">discord</a>!
+            <FeedbackButton @click="exportSave" class="button" style="display: inline-flex">
+                <Icon icon="mdi:content-paste" style="font-size: 16px" />
+                <span style="margin-left: 8px; font-size: medium">Copy Save</span>
+            </FeedbackButton>
+            <br />
+            <div v-if="errors.length > 1" style="margin-top: 20px">
+                <h3>Other errors</h3>
+            </div>
             <div v-for="(error, i) in errors.slice(1)" :key="i" style="margin-top: 20px">
                 <details class="error-details">
                     <summary>{{ error.name }}: {{ error.message }}</summary>
@@ -35,6 +36,7 @@
 </template>
 
 <script setup lang="ts">
+import { Icon } from "@iconify/vue";
 import projInfo from "data/projInfo.json";
 import player, { stringifySave } from "game/player";
 import LZString from "lz-string";
@@ -54,8 +56,8 @@ const causes = computed(() =>
         error.cause == null
             ? []
             : (typeof error.cause === "string" ? error.cause : JSON.stringify(error.cause)).split(
-                  "\n"
-              )
+                "\n"
+            )
     )
 );
 

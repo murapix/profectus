@@ -21,33 +21,20 @@
                 <div class="link" @click="emits('openChangelog')">Changelog</div>
                 <br />
                 <div>
-                    <a
-                        :href="discordLink"
-                        v-if="discordLink"
-                        class="info-modal-discord-link"
-                        target="_blank"
-                    >
-                        <span class="material-icons info-modal-discord">discord</span>
+                    <a :href="discordLink" v-if="discordLink" class="info-modal-discord-link" target="_blank">
+                        <Icon icon="mdi:discord" class="info-modal-discord" />
                         {{ discordName }}
                     </a>
                 </div>
                 <div>
-                    <a
-                        href="https://discord.gg/yJ4fjnjU54"
-                        class="info-modal-discord-link"
-                        target="_blank"
-                    >
-                        <span class="material-icons info-modal-discord">discord</span>
+                    <a href="https://discord.gg/yJ4fjnjU54" class="info-modal-discord-link" target="_blank">
+                        <Icon icon="mdi:discord" class="info-modal-discord" />
                         Profectus & Friends
                     </a>
                 </div>
                 <div>
-                    <a
-                        href="https://discord.gg/F3xveHV"
-                        class="info-modal-discord-link"
-                        target="_blank"
-                    >
-                        <span class="material-icons info-modal-discord">discord</span>
+                    <a href="https://discord.gg/F3xveHV" class="info-modal-discord-link" target="_blank">
+                        <Icon icon="mdi:discord" class="info-modal-discord" />
                         The Modding Tree
                     </a>
                 </div>
@@ -60,6 +47,7 @@
 </template>
 
 <script setup lang="tsx">
+import { Icon } from "@iconify/vue";
 import projInfo from "data/projInfo.json";
 import player from "game/player";
 import { infoComponents } from "game/settings";

@@ -15,7 +15,6 @@
     "lint:fix": "eslint --fix --max-warnings 0 src"
   },
   "dependencies": {
-    "@fontsource/material-icons": "^5.1.0",
     "@fontsource/roboto-mono": "^5.1.0",
     "@pixi/app": "^6.5.10",
     "@pixi/constants": "~6.5.10",
@@ -42,6 +41,7 @@
     "vuedraggable": "^4.1.0"
   },
   "devDependencies": {
+    "@iconify/vue": "^5.0.0",
     "@ivanv/vue-collapse-transition": "^1.0.2",
     "@rushstack/eslint-patch": "^1.7.2",
     "@types/lz-string": "^1.5.0",

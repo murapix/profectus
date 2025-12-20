@@ -1,32 +1,22 @@
 <template>
-    <div
-        class="tooltip-container"
-        :class="{ shown: isShown }"
-        @mouseenter="isHovered = true"
-        @mouseleave="isHovered = false"
-        @click.capture="togglePinned"
-    >
+    <div class="tooltip-container" :class="{ shown: isShown }" @mouseenter="isHovered = true"
+        @mouseleave="isHovered = false" @click.capture="togglePinned">
         <slot />
         <transition name="fade">
-            <div
-                v-if="isShown"
-                class="tooltip"
-                :class="{
-                    top: unref(direction) === Direction.Up,
-                    left: unref(direction) === Direction.Left,
-                    right: unref(direction) === Direction.Right,
-                    bottom: unref(direction) === Direction.Down,
-                    ...unref(classes)
-                }"
-                :style="[
+            <div v-if="isShown" class="tooltip" :class="{
+                top: unref(direction) === Direction.Up,
+                left: unref(direction) === Direction.Left,
+                right: unref(direction) === Direction.Right,
+                bottom: unref(direction) === Direction.Down,
+                ...unref(classes)
+            }" :style="[
                     {
                         '--xoffset': unref(xoffset) || '0px',
                         '--yoffset': unref(yoffset) || '0px'
                     },
                     unref(style) ?? {}
-                ]"
-            >
-                <span v-if="showPin" class="material-icons pinned">push_pin</span>
+                ]">
+                <Icon icon="mdi:push-pin" v-if="showPin" class="pinned" />
                 <Component />
             </div>
         </transition>
@@ -34,6 +24,7 @@
 </template>
 
 <script setup lang="tsx">
+import { Icon } from "@iconify/vue";
 import themes from "data/themes";
 import settings from "game/settings";
 import { Direction } from "util/common";

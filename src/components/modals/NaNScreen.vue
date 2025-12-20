@@ -8,17 +8,14 @@
         <template v-slot:body>
             <div>
                 Attempted to assign "{{ path }}" to NaN<span v-if="previous">
-                    {{ " " }}(previously {{ format(previous) }})</span
-                >. Auto-saving has been {{ autosave ? "enabled" : "disabled" }}. Check the console
+                    {{ " " }}(previously {{ format(previous) }})</span>. Auto-saving has been {{ autosave ? "enabled" :
+                "disabled" }}. Check the console
                 for more details, and consider sharing it with the developers on discord.
             </div>
             <br />
             <div>
-                <a
-                    :href="discordLink || 'https://discord.gg/yJ4fjnjU54'"
-                    class="nan-modal-discord-link"
-                >
-                    <span class="material-icons nan-modal-discord">discord</span>
+                <a :href="discordLink || 'https://discord.gg/yJ4fjnjU54'" class="nan-modal-discord-link">
+                    <Icon icon="mdi:discord" class="nan-modal-discord" />
                     {{ discordName || "Profectus & Friends" }}
                 </a>
             </div>
@@ -31,11 +28,8 @@
                 <button @click="savesManager?.open()" class="button">Open Saves Manager</button>
                 <button @click="setZero" class="button">Set to 0</button>
                 <button @click="setOne" class="button">Set to 1</button>
-                <button
-                    @click="hasNaN = false"
-                    class="button"
-                    v-if="previous && Decimal.neq(previous, 0) && Decimal.neq(previous, 1)"
-                >
+                <button @click="hasNaN = false" class="button"
+                    v-if="previous && Decimal.neq(previous, 0) && Decimal.neq(previous, 1)">
                     Set to previous
                 </button>
                 <button @click="ignore" class="button danger">Ignore</button>
@@ -46,6 +40,7 @@
 </template>
 
 <script setup lang="ts">
+import { Icon } from "@iconify/vue";
 import projInfo from "data/projInfo.json";
 import player from "game/player";
 import state from "game/state";
