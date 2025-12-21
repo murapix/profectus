@@ -4,11 +4,12 @@ import { globalBus } from "game/events";
 import { startGameLoop } from "game/gameLoop";
 import "game/notifications";
 import state from "game/state";
+import { safeStringify } from "util/common";
 import "util/galaxy";
 import { load } from "util/save";
 import { useRegisterSW } from "virtual:pwa-register/vue";
 import type { App as VueApp } from "vue";
-import { createApp, nextTick } from "vue";
+import { createApp, nextTick, unref } from "vue";
 import { useToast } from "vue-toastification";
 
 declare global {
@@ -30,13 +31,13 @@ console.error = function (...args) {
 };
 
 window.onerror = function (event, source, lineno, colno, err) {
-    state.errors.push(err instanceof Error ? err : new Error(JSON.stringify(err)));
+    state.errors.push(err instanceof Error ? err : new Error(safeStringify(err)));
     error(err);
     return true;
 };
 window.onunhandledrejection = function (event) {
     state.errors.push(
-        event.reason instanceof Error ? event.reason : new Error(JSON.stringify(event.reason))
+        event.reason instanceof Error ? event.reason : new Error(safeStringify(event.reason))
     );
     error(event.reason);
 };

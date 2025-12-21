@@ -1,3 +1,6 @@
+import stringify from "safe-stable-stringify";
+import { unref } from "vue";
+
 export type RequiredKeys<T> = {
     [K in keyof T]-?: NonNullable<unknown> extends Pick<T, K> ? never : K;
 }[keyof T];
@@ -37,4 +40,8 @@ export enum Direction {
     Right = "Right",
     // eslint-disable-next-line @typescript-eslint/no-duplicate-enum-values
     Default = "Up"
+}
+
+export function safeStringify(obj: any) {
+    return stringify(obj, (key, value) => unref(value) ?? null);
 }

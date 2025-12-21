@@ -27,6 +27,7 @@
 import projInfo from "data/projInfo.json";
 import { type FeatureNode } from "game/layers";
 import player from "game/player";
+import { safeStringify } from "util/common";
 import { MaybeGetter } from "util/computed";
 import { render, Renderable } from "util/vue";
 import { computed, MaybeRef, onErrorCaptured, Ref, ref, unref } from "vue";
@@ -63,7 +64,7 @@ const errors = ref<Error[]>([]);
 onErrorCaptured((err, instance, info) => {
     console.warn(`Error caught in "${props.name}" layer`, err, instance, info);
     errors.value.push(
-        err instanceof Error ? (err as Error) : new Error(JSON.stringify(err))
+        err instanceof Error ? (err as Error) : new Error(safeStringify(err))
     );
     return false;
 });

@@ -40,6 +40,7 @@ import { Icon } from "@iconify/vue";
 import projInfo from "data/projInfo.json";
 import player, { stringifySave } from "game/player";
 import LZString from "lz-string";
+import { safeStringify } from "util/common";
 import { computed, onMounted } from "vue";
 import FeedbackButton from "./fields/FeedbackButton.vue";
 
@@ -55,9 +56,9 @@ const causes = computed(() =>
     props.errors.map(error =>
         error.cause == null
             ? []
-            : (typeof error.cause === "string" ? error.cause : JSON.stringify(error.cause)).split(
-                "\n"
-            )
+            : (typeof error.cause === "string" ? error.cause : safeStringify(error.cause) ?? "").split(
+                  "\n"
+              )
     )
 );
 
