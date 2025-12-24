@@ -42,6 +42,6 @@ export enum Direction {
     Default = "Up"
 }
 
-export function safeStringify(obj: any) {
+export function safeStringify(obj: unknown) {
     return stringify(obj, (key, value) => unref(value) ?? null);
 }

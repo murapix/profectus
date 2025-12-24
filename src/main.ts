@@ -9,7 +9,7 @@ import "util/galaxy";
 import { load } from "util/save";
 import { useRegisterSW } from "virtual:pwa-register/vue";
 import type { App as VueApp } from "vue";
-import { createApp, nextTick, unref } from "vue";
+import { createApp, nextTick } from "vue";
 import { useToast } from "vue-toastification";
 
 declare global {
