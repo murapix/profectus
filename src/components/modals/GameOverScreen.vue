@@ -18,10 +18,16 @@
                     updates!
                 </div>
                 <br />
-                <div>
+                <div v-if="discordLink && discordName">
                     <a :href="discordLink" class="game-over-modal-discord-link">
-                        <span class="material-icons game-over-modal-discord">discord</span>
+                        <Icon icon="mdi:discord" class="game-over-modal-discord" />
                         {{ discordName }}
+                    </a>
+                </div>
+                <div v-else>
+                    <a href="https://discord.gg/yJ4fjnjU54" class="game-over-modal-discord-link">
+                        <Icon icon="mdi:discord" class="game-over-modal-discord" />
+                        Profectus & Friends
                     </a>
                 </div>
                 <Toggle title="Autosave" v-model="autosave" />
@@ -37,6 +43,7 @@
 </template>
 
 <script setup lang="ts">
+import { Icon } from "@iconify/vue";
 import { hasWon } from "data/projEntry";
 import projInfo from "data/projInfo.json";
 import player from "game/player";

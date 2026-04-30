@@ -1,66 +1,49 @@
 <template>
     <div class="save" :class="{ active: isActive, readonly }">
-        <div class="handle material-icons" v-if="readonly !== true">drag_handle</div>
+        <Icon icon="drag_handle" class="handle" v-if="readonly !== true" />
         <div class="actions" v-if="!isEditing && readonly !== true">
-            <FeedbackButton
-                @click="emit('export')"
-                class="button"
-                left
-                v-if="save.error == undefined && !isConfirming"
-            >
+            <FeedbackButton @click="emit('export')" class="button" left v-if="save.error == undefined && !isConfirming">
                 <Tooltip display="Export" :direction="Direction.Left" class="info">
-                    <span class="material-icons">content_paste</span>
+                    <Icon icon="mdi:content-paste" />
                 </Tooltip>
             </FeedbackButton>
-            <button
-                @click="emit('duplicate')"
-                class="button"
-                v-if="save.error == undefined && !isConfirming"
-            >
+            <button @click="emit('duplicate')" class="button" v-if="save.error == undefined && !isConfirming">
                 <Tooltip display="Duplicate" :direction="Direction.Left" class="info">
-                    <span class="material-icons">content_copy</span>
+                    <Icon icon="mdi:content-copy" />
                 </Tooltip>
             </button>
-            <button
-                @click="isEditing = !isEditing"
-                class="button"
-                v-if="save.error == undefined && !isConfirming"
-            >
+            <button @click="isEditing = !isEditing" class="button" v-if="save.error == undefined && !isConfirming">
                 <Tooltip display="Edit Name" :direction="Direction.Left" class="info">
-                    <span class="material-icons">edit</span>
+                    <Icon icon="mdi:edit" />
                 </Tooltip>
             </button>
-            <DangerButton
-                :disabled="isActive"
-                @click="emit('delete')"
-                @confirmingChanged="(value: boolean) => (isConfirming = value)"
-            >
+            <DangerButton :disabled="isActive" @click="emit('delete')"
+                @confirmingChanged="(value: boolean) => (isConfirming = value)">
                 <Tooltip display="Delete" :direction="Direction.Left" class="info">
-                    <span class="material-icons" style="margin: -2px">delete</span>
+                    <Icon icon="mdi:delete" style="margin: -2px" />
                 </Tooltip>
             </DangerButton>
         </div>
         <div class="actions" v-else-if="readonly !== true">
             <button @click="changeName" class="button">
                 <Tooltip display="Save" :direction="Direction.Left" class="info">
-                    <span class="material-icons">check</span>
+                    <Icon icon="mdi:check" />
                 </Tooltip>
             </button>
             <button @click="isEditing = !isEditing" class="button">
                 <Tooltip display="Cancel" :direction="Direction.Left" class="info">
-                    <span class="material-icons">close</span>
+                    <Icon icon="mdi:close" />
                 </Tooltip>
             </button>
         </div>
         <div class="details" v-if="save.error == undefined && !isEditing">
-            <Tooltip display="Synced!" :direction="Direction.Right" v-if="synced"
-                ><span class="material-icons synced">cloud</span></Tooltip
-            >
+            <Tooltip display="Synced!" :direction="Direction.Right" v-if="synced">
+                <Icon icon="mdi:cloud" class="synced" />
+            </Tooltip>
             <button class="button open" @click="emit('open')" :disabled="readonly">
                 <h3>{{ save.name }}</h3>
             </button>
-            <span class="save-version">v{{ save.modVersion }}</span
-            ><br />
+            <span class="save-version">v{{ save.modVersion }}</span><br />
             <div v-if="currentTime" class="time">
                 Last played {{ dateFormat.format(currentTime) }}
             </div>
@@ -75,21 +58,22 @@
 </template>
 
 <script setup lang="ts">
-import Tooltip from "features/tooltips/Tooltip.vue";
+import { Icon } from "@iconify/vue";
 import player from "game/player";
 import { Direction } from "util/common";
-import { computed, ref, toRefs, unref, watch } from "vue";
+import { galaxy, syncedSaves } from "util/galaxy";
+import { LoadablePlayerData } from "util/save";
+import { computed, ref, watch } from "vue";
+import Tooltip from "wrappers/tooltips/Tooltip.vue";
 import DangerButton from "../fields/DangerButton.vue";
 import FeedbackButton from "../fields/FeedbackButton.vue";
 import Text from "../fields/Text.vue";
-import type { LoadablePlayerData } from "./SavesManager.vue";
-import { galaxy, syncedSaves } from "util/galaxy";
 
-const _props = defineProps<{
+const props = defineProps<{
     save: LoadablePlayerData;
     readonly?: boolean;
 }>();
-const { save, readonly } = toRefs(_props);
+
 const emit = defineEmits<{
     (e: "export"): void;
     (e: "open"): void;
@@ -111,19 +95,19 @@ const isEditing = ref(false);
 const isConfirming = ref(false);
 const newName = ref("");
 
-watch(isEditing, () => (newName.value = save.value.name ?? ""));
+watch(isEditing, () => (newName.value = props.save.name ?? ""));
 
 const isActive = computed(
-    () => save.value != null && save.value.id === player.id && !unref(readonly)
+    () => props.save != null && props.save.id === player.id && !props.readonly
 );
 const currentTime = computed(() =>
-    isActive.value ? player.time : (save.value != null && save.value.time) ?? 0
+    isActive.value ? player.time : (props.save != null && props.save.time) ?? 0
 );
 const synced = computed(
     () =>
-        !unref(readonly) &&
+        !props.readonly &&
         galaxy.value?.loggedIn === true &&
-        syncedSaves.value.includes(save.value.id)
+        syncedSaves.value.includes(props.save.id)
 );
 
 function changeName() {
@@ -225,7 +209,7 @@ function changeName() {
     font-size: 1.2em;
 }
 
-.save .actions button .material-icons {
+.save .actions button svg {
     font-size: unset;
 }
 
@@ -239,7 +223,7 @@ function changeName() {
     margin: 0;
 }
 
-.details > .tooltip-container {
+.details>.tooltip-container {
     display: inline;
 }
 </style>

@@ -1,12 +1,10 @@
-import { isVisible, jsx, StyleValue } from "features/feature";
-import { createTab } from "features/tabs/tab";
-import { GenericTabFamily, createTabFamily } from "features/tabs/tabFamily";
-import { GenericLayer } from "game/layers";
+import type { Layer } from "game/layers";
 import { createLayer } from "game/layers";
-import type { Player } from "game/player";
+import { Player } from "game/player";
+import Decimal, {  } from "util/bignum";
 import { render } from "util/vue";
 
-import { computed, Ref, unref } from "vue";
+import { computed, Ref, StyleValue, unref } from "vue";
 
 import skyrmion from "./layers/root/skyrmion/skyrmion";
 import fome from "./layers/root/fome/fome";
@@ -17,22 +15,21 @@ import entangled from "./layers/root/entangled/entangled";
 import { createHotkey } from "features/hotkey";
 import abyss from "./layers/root/skyrmion/abyss";
 import settings from "game/settings";
-import Decimal from "lib/break_eternity";
+import { isVisible } from "features/feature";
+import { createTab } from "features/tabs/tab";
+import { TabFamily, createTabFamily } from "features/tabs/tabFamily";
 
-/**
- * @hidden
- */
 const id = "root";
-type layer = GenericLayer & { unlocked?: Ref<boolean> }
+type layer = Layer & { unlocked?: Ref<boolean> }
 const rootLayers = [skyrmion, fome, acceleron, timecube, inflaton, entangled] as layer[];
     
 export const root = createLayer(id, () => {
-    const tabs: GenericTabFamily = createTabFamily(Object.fromEntries(rootLayers.map(layer => 
+    const tabs: TabFamily = createTabFamily(Object.fromEntries(rootLayers.map(layer => 
         [layer.name, () => ({
             display: layer.name,
             tab: createTab(() => ({
                 style: computed(() => ((unref(abyss.challenge.active) ? abyss.theme : layer.theme) ?? {}) as StyleValue),
-                display: jsx(() => (<><div>{render(unref(layer.display))}</div></>))
+                display: () => (<><div>{render(unref(layer.display))}</div></>)
             })),
             visibility: 'unlocked' in layer ? () => unref(layer.unlocked ?? true) : true
         })]
@@ -46,7 +43,7 @@ export const root = createLayer(id, () => {
                 const currentTab = tabs.selected.value;
                 if (currentTab === undefined) return;
 
-                const availableTabs = Object.entries(tabs.tabs).filter(([_, tab]) => isVisible(tab.visibility)).map(([id, _]) => id);
+                const availableTabs = Object.entries(tabs.tabs).filter(([_, tab]) => isVisible(tab.visibility ?? true)).map(([id, _]) => id);
                 if (availableTabs.length <= 0) return;
 
                 const index = availableTabs.indexOf(currentTab);
@@ -64,7 +61,7 @@ export const root = createLayer(id, () => {
                 const currentTab = tabs.selected.value;
                 if (currentTab === undefined) return;
 
-                const availableTabs = Object.entries(tabs.tabs).filter(([_, tab]) => isVisible(tab.visibility)).map(([id, _]) => id);
+                const availableTabs = Object.entries(tabs.tabs).filter(([_, tab]) => isVisible(tab.visibility ?? true)).map(([id, _]) => id);
                 if (availableTabs.length <= 0) return;
 
                 const index = availableTabs.indexOf(currentTab);
@@ -86,11 +83,11 @@ export const root = createLayer(id, () => {
                 if (currentLayer === undefined) return;
                 if (!('tabs' in currentLayer)) return;
                 
-                const subtabs = currentLayer.tabs as GenericTabFamily;
+                const subtabs = currentLayer.tabs as TabFamily;
                 const currentSubtab = subtabs.selected.value;
                 if (currentSubtab === undefined) return;
 
-                const availableSubtabs = Object.entries(subtabs.tabs).filter(([_, tab]) => isVisible(tab.visibility)).map(([id, _]) => id);
+                const availableSubtabs = Object.entries(subtabs.tabs).filter(([_, tab]) => isVisible(tab.visibility ?? true)).map(([id, _]) => id);
                 if (availableSubtabs.length <= 0) return;
 
                 const index = availableSubtabs.indexOf(currentSubtab);
@@ -112,11 +109,11 @@ export const root = createLayer(id, () => {
                 if (currentLayer === undefined) return;
                 if (!('tabs' in currentLayer)) return;
                 
-                const subtabs = currentLayer.tabs as GenericTabFamily;
+                const subtabs = currentLayer.tabs as TabFamily;
                 const currentSubtab = subtabs.selected.value;
                 if (currentSubtab === undefined) return;
 
-                const availableSubtabs = Object.entries(subtabs.tabs).filter(([_, tab]) => isVisible(tab.visibility)).map(([id, _]) => id);
+                const availableSubtabs = Object.entries(subtabs.tabs).filter(([_, tab]) => isVisible(tab.visibility ?? true)).map(([id, _]) => id);
                 if (availableSubtabs.length <= 0) return;
 
                 const index = availableSubtabs.indexOf(currentSubtab);
@@ -137,13 +134,15 @@ export const root = createLayer(id, () => {
         }))
     }
 
+    // Note: layers don't _need_ a reference to everything,
+    //  but I'd recommend it over trying to remember what does and doesn't need to be included.
+    // Officially all you need are anything with persistency or that you want to access elsewhere
     return {
         name: "Root",
         minWidth: 300,
-        display: jsx(() => unref(fome.unlocked)
+        display: () => unref(fome.unlocked)
             ? <>{render(tabs)}</>
-            : <div style={skyrmion.theme as StyleValue}>{render(unref(tabs.tabs[skyrmion.name].tab))}</div>
-        ),
+            : <div style={skyrmion.theme as StyleValue}>{render(unref(tabs.tabs[unref(skyrmion.name)].tab))}</div>,
         hotkeys,
         tabs
     };
@@ -156,7 +155,7 @@ export const root = createLayer(id, () => {
 export const getInitialLayers = (
     /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
     player: Partial<Player>
-): Array<GenericLayer> => [...Object.values(rootLayers), root];
+): Array<Layer> => [...Object.values(rootLayers), root];
 
 /**
  * A computed ref whose value is true whenever the game is over.

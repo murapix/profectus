@@ -1,7 +1,7 @@
 import type { Settings } from "game/settings";
 import { createNanoEvents } from "nanoevents";
 import type { App } from "vue";
-import type { GenericLayer } from "./layers";
+import type { Layer } from "./layers";
 import state from "./state";
 
 /** All types of events able to be sent or emitted from the global event bus. */
@@ -11,12 +11,12 @@ export interface GlobalEvents {
      * @param layer The layer being added.
      * @param saveData The layer's save data object within player.
      */
-    addLayer: (layer: GenericLayer, saveData: Record<string, unknown>) => void;
+    addLayer: (layer: Layer, saveData: Record<string, unknown>) => void;
     /**
      * Sent whenever a layer is removed.
      * @param layer The layer being removed.
      */
-    removeLayer: (layer: GenericLayer) => void;
+    removeLayer: (layer: Layer) => void;
     /**
      * Sent every game tick. Runs the life cycle of the project.
      * @param diff The delta time since last tick, in ms.
@@ -27,7 +27,6 @@ export interface GlobalEvents {
      * Sent when constructing the {@link Settings} object.
      * Use it to add default values for custom properties to the object.
      * @param settings The settings object being constructed.
-     * @see {@link features/features.setDefault} for setting default values.
      */
     loadSettings: (settings: Partial<Settings>) => void;
     /**

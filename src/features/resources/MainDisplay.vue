@@ -3,18 +3,13 @@
         <div
             class="main-display-container"
             :class="classes ?? {}"
-            :style="[{ height: `${(effectRef?.$el.clientHeight ?? 0) + 50}px` }, style ?? {}]"
-        >
-            <div class="main-display">
+            :style="[{ height: `${(displayRef?.clientHeight ?? 0) + 20}px` }, style ?? {}]">
+            <div class="main-display" ref="displayRef">
                 <span v-if="showPrefix">You have </span>
                 <ResourceVue :resource="resource" :color="color || 'var(--feature-background)'" :include-name="true" />
                 <!-- remove whitespace -->
-                <span v-if="effectComponent"
-                    >, <component :is="effectComponent" ref="effectRef"
-                /></span>
-                <template v-if="modal">
-                    <component :is="render(modal)" />
-                </template>
+                <span v-if="effect">, <Effect /></span>
+                <Modal v-if="modal" />
             </div>
         </div>
     </Sticky>
@@ -22,31 +17,26 @@
 
 <script setup lang="ts">
 import Sticky from "components/layout/Sticky.vue";
-import type { CoercableComponent, JSXFunction } from "features/feature";
 import type { Resource } from "features/resources/resource";
 import ResourceVue from "features/resources/Resource.vue";
 import Decimal from "util/bignum";
-import { computeOptionalComponent } from "util/vue";
-import { ComponentPublicInstance, ref, Ref, StyleValue } from "vue";
-import { computed, toRefs } from "vue";
-import { render } from "util/vue";
+import { MaybeGetter } from "util/computed";
+import { Renderable } from "util/vue";
+import { computed, CSSProperties, ref, toValue } from "vue";
 
-const _props = defineProps<{
+const props = defineProps<{
     resource: Resource;
     color?: string;
     classes?: Record<string, boolean>;
-    style?: StyleValue;
-    stickyStyle?: StyleValue;
-    effect?: CoercableComponent;
-    modal?: JSXFunction;
+    style?: CSSProperties;
+    effect?: MaybeGetter<Renderable>;
+    modal?: MaybeGetter<Renderable>;
 }>();
-const props = toRefs(_props);
 
-const effectRef = ref<ComponentPublicInstance | null>(null);
+const displayRef = ref<Element | null>(null);
 
-const effectComponent = computeOptionalComponent(
-    props.effect as Ref<CoercableComponent | undefined>
-);
+const Effect = () => toValue(props.effect);
+const Modal = () => toValue(props.modal);
 
 const showPrefix = computed(() => {
     return Decimal.lt(props.resource.value, "1e1000");

@@ -8,8 +8,11 @@
 
 <script setup lang="ts">
 import "components/common/table.css";
+import { computed } from "vue";
 
-defineProps<{
-    mergeAdjacent?: boolean;
+const props = defineProps<{
+    dontMerge?: boolean
 }>();
+
+const mergeAdjacent = computed(() => props.dontMerge !== true);
 </script>

@@ -1,41 +1,32 @@
-import { isArray } from "@vue/shared";
-import AchievementComponent from "features/achievements/Achievement.vue";
-import { GenericDecorator } from "features/decorators/common";
-import {
-    CoercableComponent,
-    Component,
-    GatherProps,
-    GenericComponent,
-    OptionsFunc,
-    Replace,
-    StyleValue,
-    Visibility,
-    getUniqueID,
-    setDefault
-} from "features/feature";
+import Select from "components/fields/Select.vue";
+import { Visibility } from "features/feature";
+import { globalBus } from "game/events";
 import "game/notifications";
 import type { Persistent } from "game/persistence";
 import { persistent } from "game/persistence";
 import player from "game/player";
 import {
-    Requirements,
     createBooleanRequirement,
     createVisibilityRequirement,
     displayRequirements,
+    Requirements,
     requirementsMet
 } from "game/requirements";
-import settings from "game/settings";
-import type {
-    Computable,
-    GetComputableType,
-    GetComputableTypeWithDefault,
-    ProcessedComputable
-} from "util/computed";
-import { processComputable } from "util/computed";
+import settings, { registerSettingField } from "game/settings";
+import { camelToTitle } from "util/common";
+import { MaybeGetter, processGetter } from "util/computed";
 import { createLazyProxy } from "util/proxies";
-import { coerceComponent, isCoercableComponent } from "util/vue";
-import { unref, watchEffect } from "vue";
+import {
+    isJSXElement,
+    render,
+    Renderable,
+    VueFeature,
+    vueFeatureMixin,
+    VueFeatureOptions
+} from "util/vue";
+import { computed, MaybeRef, MaybeRefOrGetter, unref, watchEffect } from "vue";
 import { useToast } from "vue-toastification";
+import Achievement from "./Achievement.vue";
 
 const toast = useToast();
 
@@ -54,206 +45,156 @@ export enum AchievementDisplay {
 /**
  * An object that configures an {@link Achievement}.
  */
-export interface AchievementOptions {
-    /** Whether this achievement should be visible. */
-    visibility?: Computable<Visibility | boolean>;
-    /** The requirement(s) to earn this achievement. Can be left null if using {@link BaseAchievement.complete}. */
+export interface AchievementOptions extends VueFeatureOptions {
+    /** The requirement(s) to earn this achievement. Can be left null if using {@link Achievement.complete}. */
     requirements?: Requirements;
     /** The display to use for this achievement. */
-    display?: Computable<
-        | CoercableComponent
+    display?:
+        | MaybeGetter<Renderable>
         | {
               /** Description of the requirement(s) for this achievement. If unspecified then the requirements will be displayed automatically based on {@link requirements}. */
-              requirement?: CoercableComponent;
+              requirement?: MaybeGetter<Renderable>;
               /** Description of what will change (if anything) for achieving this. */
-              effect?: CoercableComponent;
+              effect?: MaybeGetter<Renderable>;
               /** Any additional things to display on this achievement, such as a toggle for it's effect. */
-              optionsDisplay?: CoercableComponent;
-          }
-    >;
-    /** Shows a marker on the corner of the feature. */
-    mark?: Computable<boolean | string>;
+              options?: MaybeGetter<Renderable>;
+          };
     /** Toggles a smaller design for the feature. */
-    small?: Computable<boolean>;
+    small?: MaybeRefOrGetter<boolean>;
     /** An image to display as the background for this achievement. */
-    image?: Computable<string>;
-    /** CSS to apply to this feature. */
-    style?: Computable<StyleValue>;
-    /** Dictionary of CSS classes to apply to this feature. */
-    classes?: Computable<Record<string, boolean>>;
+    image?: MaybeRefOrGetter<string>;
     /** Whether or not to display a notification popup when this achievement is earned. */
-    showPopups?: Computable<boolean>;
+    showPopups?: MaybeRefOrGetter<boolean>;
     /** A function that is called when the achievement is completed. */
     onComplete?: VoidFunction;
 }
 
-/**
- * The properties that are added onto a processed {@link AchievementOptions} to create an {@link Achievement}.
- */
-export interface BaseAchievement {
-    /** An auto-generated ID for identifying features that appear in the DOM. Will not persist between refreshes or updates. */
-    id: string;
+/** An object that represents a feature with requirements that is passively earned upon meeting certain requirements. */
+export interface Achievement extends VueFeature {
+    /** The requirement(s) to earn this achievement. */
+    requirements?: Requirements;
+    /** A function that is called when the achievement is completed. */
+    onComplete?: VoidFunction;
+    /** The display to use for this achievement. */
+    display?: MaybeGetter<Renderable>;
+    /** Toggles a smaller design for the feature. */
+    small?: MaybeRef<boolean>;
+    /** An image to display as the background for this achievement. */
+    image?: MaybeRef<string>;
+    /** Whether or not to display a notification popup when this achievement is earned. */
+    showPopups: MaybeRef<boolean>;
     /** Whether or not this achievement has been earned. */
     earned: Persistent<boolean>;
     /** A function to complete this achievement. */
     complete: VoidFunction;
     /** A symbol that helps identify features of the same type. */
     type: typeof AchievementType;
-    /** The Vue component used to render this feature. */
-    [Component]: GenericComponent;
-    /** A function to gather the props the vue component requires for this feature. */
-    [GatherProps]: () => Record<string, unknown>;
 }
-
-/** An object that represents a feature with requirements that is passively earned upon meeting certain requirements. */
-export type Achievement<T extends AchievementOptions> = Replace<
-    T & BaseAchievement,
-    {
-        visibility: GetComputableTypeWithDefault<T["visibility"], Visibility.Visible>;
-        display: GetComputableType<T["display"]>;
-        mark: GetComputableType<T["mark"]>;
-        image: GetComputableType<T["image"]>;
-        style: GetComputableType<T["style"]>;
-        classes: GetComputableType<T["classes"]>;
-        showPopups: GetComputableTypeWithDefault<T["showPopups"], true>;
-    }
->;
-
-/** A type that matches any valid {@link Achievement} object. */
-export type GenericAchievement = Replace<
-    Achievement<AchievementOptions>,
-    {
-        visibility: ProcessedComputable<Visibility | boolean>;
-        showPopups: ProcessedComputable<boolean>;
-    }
->;
 
 /**
  * Lazily creates an achievement with the given options.
  * @param optionsFunc Achievement options.
  */
-export function createAchievement<T extends AchievementOptions>(
-    optionsFunc?: OptionsFunc<T, BaseAchievement, GenericAchievement>,
-    ...decorators: GenericDecorator[]
-): Achievement<T> {
+export function createAchievement<T extends AchievementOptions>(optionsFunc?: () => T) {
     const earned = persistent<boolean>(false, false);
-    const decoratedData = decorators.reduce(
-        (current, next) => Object.assign(current, next.getPersistentData?.()),
-        {}
-    );
-    return createLazyProxy(feature => {
-        const achievement =
-            optionsFunc?.call(feature, feature) ??
-            ({} as ReturnType<NonNullable<typeof optionsFunc>>);
-        achievement.id = getUniqueID("achievement-");
-        achievement.type = AchievementType;
-        achievement[Component] = AchievementComponent as GenericComponent;
+    return createLazyProxy(() => {
+        const options = optionsFunc?.() ?? ({} as T);
+        const {
+            requirements,
+            display: _display,
+            small,
+            image,
+            showPopups,
+            onComplete,
+            ...props
+        } = options;
 
-        for (const decorator of decorators) {
-            decorator.preConstruct?.(achievement);
-        }
+        const vueFeature = vueFeatureMixin("achievement", options, () => (
+            <Achievement
+                display={achievement.display}
+                earned={achievement.earned}
+                requirements={achievement.requirements}
+                image={achievement.image}
+                small={achievement.small}
+            />
+        ));
 
-        achievement.earned = earned;
-        achievement.complete = function () {
-            if (earned.value) {
-                return;
-            }
-            earned.value = true;
-            const genericAchievement = achievement as GenericAchievement;
-            genericAchievement.onComplete?.();
-            if (
-                genericAchievement.display != null &&
-                unref(genericAchievement.showPopups) === true
-            ) {
-                const display = unref(genericAchievement.display);
-                let Display;
-                if (isCoercableComponent(display)) {
-                    Display = coerceComponent(display);
-                } else if (display.requirement != null) {
-                    Display = coerceComponent(display.requirement);
-                } else {
-                    Display = displayRequirements(genericAchievement.requirements ?? []);
-                }
-                toast.info(
-                    <div>
-                        <h3>Achievement earned!</h3>
+        let display: MaybeGetter<Renderable> | undefined = undefined;
+        if (typeof _display === "object" && !isJSXElement(_display)) {
+            const { requirement, effect, options } = _display;
+            display = () => (
+                <span>
+                    {requirement == null
+                        ? displayRequirements(requirements ?? [])
+                        : render(requirement, el => <h3>{el}</h3>)}
+                    {effect == null ? null : (
                         <div>
-                            {/* eslint-disable-next-line @typescript-eslint/ban-ts-comment */}
-                            {/* @ts-ignore */}
-                            <Display />
+                            {render(effect, el => (
+                                <b>{el}</b>
+                            ))}
                         </div>
-                    </div>
-                );
-            }
-        };
-
-        Object.assign(achievement, decoratedData);
-
-        processComputable(achievement as T, "visibility");
-        setDefault(achievement, "visibility", Visibility.Visible);
-
-        processComputable(achievement as T, "display");
-        processComputable(achievement as T, "mark");
-        processComputable(achievement as T, "small");
-        processComputable(achievement as T, "image");
-        processComputable(achievement as T, "style");
-        processComputable(achievement as T, "classes");
-        processComputable(achievement as T, "showPopups");
-        setDefault(achievement, "showPopups", true);
-
-        for (const decorator of decorators) {
-            decorator.postConstruct?.(achievement);
+                    )}
+                    {options != null ? (
+                        <div class="equal-spaced">{render(options)}</div>
+                    ) : null}
+                </span>
+            );
+        } else if (_display != null) {
+            display = _display;
         }
 
-        const decoratedProps = decorators.reduce(
-            (current, next) => Object.assign(current, next.getGatheredProps?.(achievement)),
-            {}
-        );
-        achievement[GatherProps] = function (this: GenericAchievement) {
-            const {
-                visibility,
-                display,
-                requirements,
-                earned,
-                image,
-                style,
-                classes,
-                mark,
-                small,
-                id
-            } = this;
-            return {
-                visibility,
-                display,
-                requirements,
-                earned,
-                image,
-                style: unref(style),
-                classes,
-                mark,
-                small,
-                id,
-                ...decoratedProps
-            };
-        };
+        const achievement = {
+            type: AchievementType,
+            ...(props as Omit<typeof props, keyof VueFeature | keyof AchievementOptions>),
+            ...vueFeature,
+            earned,
+            onComplete,
+            small: processGetter(small),
+            image: processGetter(image),
+            showPopups: processGetter(showPopups) ?? true,
+            display,
+            requirements:
+                requirements == null
+                    ? undefined
+                    : [
+                          createVisibilityRequirement(vueFeature.visibility ?? true),
+                          createBooleanRequirement(() => !earned.value),
+                          ...(Array.isArray(requirements) ? requirements : [requirements])
+                      ],
+            complete() {
+                if (earned.value) {
+                    return;
+                }
+                earned.value = true;
+                achievement.onComplete?.();
+                if (achievement.display != null && unref(achievement.showPopups) === true) {
+                    let display = achievement.display;
+                    if (typeof _display === "object" && !isJSXElement(_display)) {
+                        if (_display.requirement != null) {
+                            display = _display.requirement;
+                        } else {
+                            display = displayRequirements(requirements ?? []);
+                        }
+                    }
+                    toast.info(
+                        <div>
+                            <h3>Achievement earned!</h3>
+                            <div>{render(display)}</div>
+                        </div>
+                    );
+                }
+            }
+        } satisfies Achievement;
 
-        if (achievement.requirements) {
-            const genericAchievement = achievement as GenericAchievement;
-            const requirements = [
-                createVisibilityRequirement(genericAchievement),
-                createBooleanRequirement(() => !genericAchievement.earned.value),
-                ...(isArray(achievement.requirements)
-                    ? achievement.requirements
-                    : [achievement.requirements])
-            ];
+        if (achievement.requirements != null) {
             watchEffect(() => {
                 if (settings.active !== player.id) return;
-                if (requirementsMet(requirements)) {
-                    genericAchievement.complete();
+                if (requirementsMet(achievement.requirements ?? [])) {
+                    achievement.complete();
                 }
             });
         }
 
-        return achievement as unknown as Achievement<T>;
+        return achievement;
     });
 }

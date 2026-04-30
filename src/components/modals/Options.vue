@@ -20,7 +20,7 @@
             <div v-if="isTab('appearance')">
                 <Select :title="notationTitle" :options="notations" v-model="numberFormat" />
                 <Select v-if="numberFormat === Notations.standard" :title="backupNotationTitle" :options="backupNotations" v-model="backupNumberFormat" />
-                <component :is="settingFieldsComponent" />
+                <SettingFields />
                 <Toggle :title="showNextValuesTitle" v-model="showNextValues" />
                 <Toggle :title="showTPSTitle" v-model="showTPS" />
                 <Toggle :title="alignModifierUnitsTitle" v-model="alignUnits" />
@@ -31,14 +31,14 @@
 
 <script setup lang="tsx">
 import projInfo from "data/projInfo.json";
-import { save } from "util/save";
-import { jsx } from "features/feature";
-import Tooltip from "features/tooltips/Tooltip.vue";
+import rawThemes from "data/themes";
 import player from "game/player";
 import settings, { settingFields } from "game/settings";
-import { Direction } from "util/common";
-import { coerceComponent, render } from "util/vue";
+import { camelToTitle, Direction } from "util/common";
+import { save } from "util/save";
+import { render } from "util/vue";
 import { computed, ref, toRefs } from "vue";
+import Tooltip from "wrappers/tooltips/Tooltip.vue";
 import FeedbackButton from "../fields/FeedbackButton.vue";
 import Select from "../fields/Select.vue";
 import Toggle from "../fields/Toggle.vue";
@@ -73,9 +73,7 @@ const notations = [
 ];
 const backupNotations = notations.filter(notation => notation.value !== Notations.standard);
 
-const settingFieldsComponent = computed(() => {
-    return coerceComponent(jsx(() => (<>{settingFields.map(render)}</>)));
-});
+const SettingFields = () => settingFields.map(f => render(f));
 
 const { showTPS, unthrottled, alignUnits, numberFormat, backupNumberFormat, showNextValues, showHealthWarning } = toRefs(settings);
 const { autosave } = toRefs(player);
@@ -88,60 +86,43 @@ const isPaused = computed({
     }
 });
 
-const unthrottledTitle = jsx(() => (
-    <span class="option-title">
-        Unthrottled
-        <desc>Allow the game to run as fast as possible. Not battery friendly.</desc>
-    </span>
-));
-const showHealthWarningTitle = jsx(() => (
-    <span class="option-title">
-        Show videogame addiction warning
-        <desc>Show a helpful warning after playing for a long time about video game addiction and encouraging you to take a break.</desc>
-    </span>
-));
-const autosaveTitle = jsx(() => (
-    <span class="option-title">
-        Autosave<Tooltip display="Save-specific" direction={Direction.Right}>*</Tooltip>
-        <desc>Automatically save the game every second or when the game is closed.</desc>
-    </span>
-));
-const isPausedTitle = jsx(() => (
-    <span class="option-title">
-        Pause game<Tooltip display="Save-specific" direction={Direction.Right}>*</Tooltip>
-        <desc>Stop everything from moving.</desc>
-    </span>
-));
-const showTPSTitle = jsx(() => (
-    <span class="option-title">
-        Show TPS
-        <desc>Show TPS meter at the bottom-left corner of the page.</desc>
-    </span>
-));
-const alignModifierUnitsTitle = jsx(() => (
-    <span class="option-title">
-        Align modifier units
-        <desc>Align numbers to the beginning of the unit in modifier view.</desc>
-    </span>
-));
-const notationTitle = jsx(() => (
-    <span class="option-title">
-        Number Notation
-        <desc>Change how numbers are formatted for display.</desc>
-    </span>
-));
-const backupNotationTitle = jsx(() => (
-    <span class="option-title">
-        Backup Number Notation
-        <desc>Change how numbers are formatted beyond the limit of Standard Notation</desc>
-    </span>
-));
-const showNextValuesTitle = jsx(() => (
-    <span class="option-title">
-        Show Next Values
-        <desc>Display both the current and next values of the hovered feature, where possible.</desc>
-    </span>
-));
+const unthrottledTitle = <span class="option-title">
+    Unthrottled
+    <desc>Allow the game to run as fast as possible. Not battery friendly.</desc>
+</span>;
+const showHealthWarningTitle = <span class="option-title">
+    Show videogame addiction warning
+    <desc>Show a helpful warning after playing for a long time about video game addiction and encouraging you to take a break.</desc>
+</span>;
+const autosaveTitle = <span class="option-title">
+    Autosave<Tooltip display="Save-specific" direction={Direction.Right}>*</Tooltip>
+    <desc>Automatically save the game every second or when the game is closed.</desc>
+</span>;
+const isPausedTitle = <span class="option-title">
+    Pause game<Tooltip display="Save-specific" direction={Direction.Right}>*</Tooltip>
+    <desc>Stop everything from moving.</desc>
+</span>;
+const showTPSTitle = <span class="option-title">
+    Show TPS
+    <desc>Show TPS meter at the bottom-left corner of the page.</desc>
+</span>;
+const alignModifierUnitsTitle = <span class="option-title">
+    Align modifier units
+    <desc>Align numbers to the beginning of the unit in modifier view.</desc>
+</span>;
+const notationTitle = <span class="option-title">
+    Number Notation
+    <desc>Change how numbers are formatted for display.</desc>
+</span>;
+const backupNotationTitle = <span class="option-title">
+    Backup Number Notation
+    <desc>Change how numbers are formatted beyond the limit of Standard Notation</desc>
+</span>;
+const showNextValuesTitle = <span class="option-title">
+    Show Next Values
+    <desc>Display both the current and next values of the hovered feature, where possible.</desc>
+</span>;
+
 </script>
 
 <style>

@@ -1,14 +1,16 @@
-import "@fontsource/material-icons";
 import App from "App.vue";
 import projInfo from "data/projInfo.json";
+import { globalBus } from "game/events";
+import { startGameLoop } from "game/gameLoop";
 import "game/notifications";
 import state from "game/state";
+import { safeStringify } from "util/common";
+import "util/galaxy";
 import { load } from "util/save";
 import { useRegisterSW } from "virtual:pwa-register/vue";
 import type { App as VueApp } from "vue";
 import { createApp, nextTick } from "vue";
 import { useToast } from "vue-toastification";
-import "util/galaxy";
 
 declare global {
     /**
@@ -17,11 +19,6 @@ declare global {
     interface Window {
         vue: VueApp;
         projInfo: typeof projInfo;
-    }
-
-    /** Fix for typedoc treating import functions as taking AssertOptions instead of GlobOptions. */
-    interface AssertOptions {
-        as: string;
     }
 }
 
@@ -34,13 +31,13 @@ console.error = function (...args) {
 };
 
 window.onerror = function (event, source, lineno, colno, err) {
-    state.errors.push(err instanceof Error ? err : new Error(JSON.stringify(err)));
+    state.errors.push(err instanceof Error ? err : new Error(safeStringify(err)));
     error(err);
     return true;
 };
 window.onunhandledrejection = function (event) {
     state.errors.push(
-        event.reason instanceof Error ? event.reason : new Error(JSON.stringify(event.reason))
+        event.reason instanceof Error ? event.reason : new Error(safeStringify(event.reason))
     );
     error(event.reason);
 };
@@ -61,8 +58,6 @@ requestAnimationFrame(async () => {
         "padding: 4px;"
     );
     await load();
-    const { globalBus } = await import("./game/events");
-    const { startGameLoop } = await import("./game/gameLoop");
 
     // Create Vue
     const vue = (window.vue = createApp(App));
@@ -75,33 +70,13 @@ requestAnimationFrame(async () => {
     // Setup PWA update prompt
     nextTick(() => {
         const toast = useToast();
-        const { updateServiceWorker } = useRegisterSW({
-            onNeedRefresh() {
-                toast.info("New content available, click here to update.", {
-                    timeout: false,
-                    closeOnClick: false,
-                    draggable: false,
-                    icon: {
-                        iconClass: "material-icons",
-                        iconChildren: "refresh",
-                        iconTag: "i"
-                    },
-                    rtl: false,
-                    onClick() {
-                        updateServiceWorker();
-                    }
-                });
-            },
+        useRegisterSW({
+            immediate: true,
             onOfflineReady() {
                 toast.info("App ready to work offline");
             },
             onRegisterError: console.warn,
-            onRegistered(r) {
-                if (r) {
-                    // https://stackoverflow.com/questions/65500916/typeerror-failed-to-execute-update-on-serviceworkerregistration-illegal-in
-                    setInterval(() => r.update(), 60 * 60 * 1000);
-                }
-            }
+            onRegistered: console.info
         });
     });
 

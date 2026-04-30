@@ -11,7 +11,7 @@
         <div v-else-if="settings.devSpeed && settings.devSpeed !== 1" class="devspeed">Dev Speed: {{ format(settings.devSpeed) }}x</div>
         <div style="flex-grow: 1; cursor: unset"></div>
         <div class="discord">
-            <span @click="openDiscord" class="material-icons">discord</span>
+            <span @click="openDiscord" class="nav-item"><Icon icon="mdi:discord" /></span>
             <ul class="discord-links">
                 <li v-if="discordLink">
                     <a :href="discordLink" target="_blank">{{ discordName }}</a>
@@ -24,26 +24,26 @@
                 </li>
             </ul>
         </div>
-        <div>
+        <div class="nav-item">
             <a href="https://forums.moddingtree.com/" target="_blank">
                 <Tooltip display="Forums" :direction="Direction.Down" yoffset="5px">
-                    <span class="material-icons">forum</span>
+                    <Icon icon="mdi:forum" />
                 </Tooltip>
             </a>
         </div>
-        <div @click="info?.open()">
+        <div @click="info?.open()" class="nav-item">
             <Tooltip display="Info" :direction="Direction.Down" class="info">
-                <span class="material-icons">info</span>
+                <Icon icon="mdi:info" />
             </Tooltip>
         </div>
-        <div @click="savesManager?.open()">
+        <div @click="savesManager?.open()" class="nav-item">
             <Tooltip display="Saves" :direction="Direction.Down" xoffset="-20px">
-                <span class="material-icons" :class="{ needsSync }">library_books</span>
+                <Icon icon="mdi:library-books" :class="{ needsSync }" />
             </Tooltip>
         </div>
-        <div @click="options?.open()">
+        <div @click="options?.open()" class="nav-item">
             <Tooltip display="Settings" :direction="Direction.Down" xoffset="-66px">
-                <span class="material-icons">settings</span>
+                <Icon icon="mdi:settings" />
             </Tooltip>
         </div>
     </div>
@@ -53,30 +53,30 @@
                 <span>v{{ versionNumber }}</span>
             </Tooltip>
         </div>
-        <div @click="savesManager?.open()">
+        <div @click="savesManager?.open()" class="nav-item">
             <Tooltip display="Saves" :direction="Direction.Right">
-                <span class="material-icons" :class="{ needsSync }">library_books</span>
+                <Icon icon="mdi:library-books" :class="{ needsSync }" />
             </Tooltip>
         </div>
-        <div @click="options?.open()">
+        <div @click="options?.open()" class="nav-item">
             <Tooltip display="Settings" :direction="Direction.Right">
-                <span class="material-icons">settings</span>
+                <Icon icon="mdi:settings" />
             </Tooltip>
         </div>
-        <div @click="info?.open()">
+        <div @click="info?.open()" class="nav-item">
             <Tooltip display="Info" :direction="Direction.Right">
-                <span class="material-icons">info</span>
+                <Icon icon="mdi:info" />
             </Tooltip>
         </div>
-        <div>
+        <div class="nav-item">
             <a href="https://forums.moddingtree.com/" target="_blank">
                 <Tooltip display="Forums" :direction="Direction.Right" xoffset="7px">
-                    <span class="material-icons">forum</span>
+                    <Icon icon="mdi:forum" />
                 </Tooltip>
             </a>
         </div>
         <div class="discord">
-            <span @click="openDiscord" class="material-icons">discord</span>
+            <span @click="openDiscord" class="nav-item"><Icon icon="mdi:discord" /></span>
             <ul class="discord-links">
                 <li v-if="discordLink">
                     <a :href="discordLink" target="_blank">{{ discordName }}</a>
@@ -90,32 +90,30 @@
             </ul>
         </div>
     </div>
-    <Info ref="info" :changelog="changelog" />
+    <Info ref="info" @open-changelog="changelog?.open()" />
     <SavesManager ref="savesManager" />
     <Options ref="options" />
     <Changelog ref="changelog" />
 </template>
 
 <script setup lang="ts">
+import { Icon } from "@iconify/vue";
 import Changelog from "data/Changelog.vue";
 import projInfo from "data/projInfo.json";
-import Tooltip from "features/tooltips/Tooltip.vue";
 import settings from "game/settings";
 import { Direction } from "util/common";
 import { galaxy, syncedSaves } from "util/galaxy";
-import type { ComponentPublicInstance } from "vue";
 import { computed, ref } from "vue";
+import Tooltip from "wrappers/tooltips/Tooltip.vue";
 import Info from "./modals/Info.vue";
 import Options from "./modals/Options.vue";
 import SavesManager from "./modals/SavesManager.vue";
 import { format } from "util/break_eternity";
 
-const info = ref<ComponentPublicInstance<typeof Info> | null>(null);
-const savesManager = ref<ComponentPublicInstance<typeof SavesManager> | null>(null);
-const options = ref<ComponentPublicInstance<typeof Options> | null>(null);
-// For some reason Info won't accept the changelog unless I do this:
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const changelog = ref<ComponentPublicInstance<any> | null>(null);
+const info = ref<typeof Info | null>(null);
+const savesManager = ref<typeof SavesManager | null>(null);
+const options = ref<typeof Options | null>(null);
+const changelog = ref<typeof Changelog | null>(null);
 
 const { useHeader, banner, title, discordName, discordLink, versionNumber } = projInfo;
 
@@ -240,12 +238,13 @@ const needsSync = computed(
     right: 0;
 }
 
-.material-icons {
+.nav-item {
     font-size: 36px;
+    display: flex;
 }
 
-.material-icons:hover {
-    text-shadow: 5px 0 10px var(--link), -3px 0 12px var(--foreground);
+.nav-item:hover svg {
+    filter: drop-shadow(5px 0 10px var(--link)) drop-shadow(-3px 0 12px var(--foreground));
 }
 
 .nav .version-container {

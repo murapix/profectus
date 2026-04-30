@@ -1,83 +1,45 @@
 <template>
     <ErrorVue v-if="errors.length > 0" :errors="errors" />
-    <div class="layer-container" :style="theme" v-bind="$attrs" v-else>
-        <button v-if="showGoBack" class="goBack" @click="goBack">❌</button>
-
-        <div class="layer-tab" :class="{ showGoBack }" v-else>
+    <div class="layer-container" :style="theme as StyleValue" v-bind="$attrs" v-else>
+        <div class="layer-tab">
             <Context @update-nodes="updateNodes">
-                <component :is="component" />
+                <Component />
             </Context>
         </div>
     </div>
 </template>
 
-<script lang="ts">
-import projInfo from "data/projInfo.json";
-import type { CoercableComponent } from "features/feature";
-import type { FeatureNode } from "game/layers";
-import player from "game/player";
-import { computeComponent, processedPropType } from "util/vue";
-import { PropType, Ref, computed, defineComponent, onErrorCaptured, ref, toRefs, unref } from "vue";
+<script setup lang="ts">
+import { type FeatureNode } from "game/layers";
+import { safeStringify } from "util/common";
+import { MaybeGetter } from "util/computed";
+import { render, Renderable } from "util/vue";
+import { MaybeRef, onErrorCaptured, Ref, ref, StyleValue } from "vue";
 import Context from "./Context.vue";
 import ErrorVue from "./Error.vue";
 import { LayerTheme } from "data/themes";
 
-export default defineComponent({
-    components: { Context, ErrorVue },
-    props: {
-        index: {
-            type: Number,
-            required: true
-        },
-        display: {
-            type: processedPropType<CoercableComponent>(Object, String, Function),
-            required: true
-        },
-        name: {
-            type: processedPropType<string>(String),
-            required: true
-        },
-        theme: processedPropType<LayerTheme>(Object),
-        nodes: {
-            type: Object as PropType<Ref<Record<string, FeatureNode | undefined>>>,
-            required: true
-        }
-    },
-    emits: ["setMinimized"],
-    setup(props) {
-        const { display, index } = toRefs(props);
+const props = defineProps<{
+    display: MaybeGetter<Renderable>;
+    name?: MaybeRef<string>;
+    theme: LayerTheme;
+    nodes: Ref<Record<string, FeatureNode | undefined>>;
+    index: number;
+}>();
 
-        const component = computeComponent(display);
-        const showGoBack = computed(
-            () => projInfo.allowGoBack && index.value > 0
-        );
+const Component = () => render(props.display);
 
-        function goBack() {
-            player.tabs.splice(unref(props.index), Infinity);
-        }
+function updateNodes(nodes: Record<string, FeatureNode | undefined>) {
+    props.nodes.value = nodes;
+}
 
-        function updateNodes(nodes: Record<string, FeatureNode | undefined>) {
-            props.nodes.value = nodes;
-        }
-
-        const errors = ref<Error[]>([]);
-        onErrorCaptured((err, instance, info) => {
-            console.warn(`Error caught in "${props.name}" layer`, err, instance, info);
-            errors.value.push(
-                err instanceof Error ? (err as Error) : new Error(JSON.stringify(err))
-            );
-            return false;
-        });
-
-        return {
-            component,
-            showGoBack,
-            updateNodes,
-            unref,
-            goBack,
-            errors
-        };
-    }
+const errors = ref<Error[]>([]);
+onErrorCaptured((err, instance, info) => {
+    console.warn(`Error caught in "${props.name}" layer`, err, instance, info);
+    errors.value.push(
+        err instanceof Error ? (err as Error) : new Error(safeStringify(err))
+    );
+    return false;
 });
 </script>
 

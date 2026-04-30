@@ -1,28 +1,25 @@
 import Modal from "components/modals/Modal.vue";
-import { LayerTheme } from "data/themes";
-import type {
-    CoercableComponent,
-    JSXFunction,
-    OptionsFunc,
-    Replace,
-    StyleValue
-} from "features/feature";
-import { jsx, setDefault } from "features/feature";
+import defaultTheme, { LayerTheme } from "data/themes";
 import { globalBus } from "game/events";
 import type { Persistent } from "game/persistence";
 import player from "game/player";
 import type { Emitter } from "nanoevents";
 import { createNanoEvents } from "nanoevents";
-import type {
-    Computable,
-    GetComputableType,
-    GetComputableTypeWithDefault,
-    ProcessedComputable
-} from "util/computed";
-import { processComputable } from "util/computed";
+import { MaybeGetter, processGetter } from "util/computed";
 import { createLazyProxy } from "util/proxies";
-import { computed, InjectionKey, Ref } from "vue";
-import { ref, shallowReactive, unref } from "vue";
+import { Renderable } from "util/vue";
+import {
+    computed,
+    type CSSProperties,
+    InjectionKey,
+    MaybeRef,
+    MaybeRefOrGetter,
+    Ref,
+    ref,
+    shallowReactive,
+    unref
+} from "vue";
+import { JSX } from "vue/jsx-runtime";
 
 /** A feature's node in the DOM that has its size tracked. */
 export interface FeatureNode {
@@ -32,22 +29,22 @@ export interface FeatureNode {
 }
 
 /**
- * An injection key that a {@link ContextComponent} will use to provide a function that registers a {@link FeatureNode} with the given id and HTML element.
+ * An injection key that a Context component will use to provide a function that registers a {@link FeatureNode} with the given id and HTML element.
  */
 export const RegisterNodeInjectionKey: InjectionKey<(id: string, element: HTMLElement) => void> =
     Symbol("RegisterNode");
 /**
- * An injection key that a {@link ContextComponent} will use to provide a function that unregisters a {@link FeatureNode} with the given id.
+ * An injection key that a Context component will use to provide a function that unregisters a {@link FeatureNode} with the given id.
  */
 export const UnregisterNodeInjectionKey: InjectionKey<(id: string) => void> =
     Symbol("UnregisterNode");
 /**
- * An injection key that a {@link ContextComponent} will use to provide a ref to a map of all currently registered {@link FeatureNode}s.
+ * An injection key that a Context component will use to provide a ref to a map of all currently registered {@link FeatureNode}s.
  */
 export const NodesInjectionKey: InjectionKey<Ref<Record<string, FeatureNode | undefined>>> =
     Symbol("Nodes");
 /**
- * An injection key that a {@link ContextComponent} will use to provide a ref to a bounding rect of the Context.
+ * An injection key that a Context component will use to provide a ref to a bounding rect of the Context.
  */
 export const BoundsInjectionKey: InjectionKey<Ref<DOMRect | undefined>> = Symbol("Bounds");
 
@@ -74,12 +71,12 @@ export interface LayerEvents {
  * A reference to all the current layers.
  * It is shallow reactive so it will update when layers are added or removed, but not interfere with the existing refs within each layer.
  */
-export const layers: Record<string, Readonly<GenericLayer> | undefined> = shallowReactive({});
+export const layers: Record<string, Readonly<Layer>> = shallowReactive({});
 
 declare global {
     /** Augment the window object so the layers can be accessed from the console. */
     interface Window {
-        layers: Record<string, Readonly<GenericLayer> | undefined>;
+        layers: Record<string, Readonly<Layer> | undefined>;
     }
 }
 window.layers = layers;
@@ -106,32 +103,32 @@ export interface Position {
  */
 export interface LayerOptions {
     /** The colors of the layer, used to theme the entire layer's display. */
-    theme?: Computable<Partial<LayerTheme> & Pick<LayerTheme, "--feature-background">>;
+    theme?: MaybeRef<LayerTheme>;
     /**
      * The layout of this layer's features.
-     * When the layer is open in {@link game/player.PlayerData.tabs}, this is the content that is displayed.
+     * When the layer is open in {@link game/player.Player.tabs}, this is the content that is displayed.
      */
-    display: Computable<CoercableComponent>;
+    display: MaybeGetter<Renderable>;
     /** An object of classes that should be applied to the display. */
-    classes?: Computable<Record<string, boolean>>;
+    classes?: MaybeRefOrGetter<Record<string, boolean>>;
     /** Styles that should be applied to the display. */
-    style?: Computable<StyleValue>;
+    style?: MaybeRefOrGetter<CSSProperties>;
     /**
      * The name of the layer.
      * Defaults to {@link BaseLayer.id}.
      */
-    name?: Computable<string>;
+    name?: MaybeRefOrGetter<string>;
     /**
      * Whether or not to force the go back button to be hidden.
-     * If true, go back will be hidden regardless of {@link data/projInfo.allowGoBack}.
+     * If true, go back will be hidden regardless of allowGoBack value in the project settings.
      */
-    forceHideGoBack?: Computable<boolean>;
+    forceHideGoBack?: MaybeRefOrGetter<boolean>;
     /**
      * A CSS min-width value that is applied to the layer.
      * Can be a number, in which case the unit is assumed to be px.
      * Defaults to 600px.
      */
-    minWidth?: Computable<number | string>;
+    minWidth?: MaybeRefOrGetter<number | string>;
 }
 
 /** The properties that are added onto a processed {@link LayerOptions} to create a {@link Layer} */
@@ -148,32 +145,35 @@ export interface BaseLayer {
     on: OmitThisParameter<Emitter<LayerEvents>["on"]>;
     /** A function to emit a {@link LayerEvents} event to this layer. */
     emit: <K extends keyof LayerEvents>(...args: [K, ...Parameters<LayerEvents[K]>]) => void;
-    /** A map of {@link FeatureNode}s present in this layer's {@link ContextComponent} component. */
+    /** A map of {@link FeatureNode}s present in this layer's Context component. */
     nodes: Ref<Record<string, FeatureNode | undefined>>;
 }
 
 /** An unit of game content. Displayed to the user as a tab or modal. */
-export type Layer<T extends LayerOptions> = Replace<
-    T & BaseLayer,
-    {
-        theme: GetComputableType<T["theme"]>;
-        display: GetComputableType<T["display"]>;
-        classes: GetComputableType<T["classes"]>;
-        style: GetComputableType<T["style"]>;
-        name: GetComputableTypeWithDefault<T["name"], string>;
-        minWidth: GetComputableTypeWithDefault<T["minWidth"], 600>;
-        forceHideGoBack: GetComputableType<T["forceHideGoBack"]>;
-    }
->;
-
-/** A type that matches any valid {@link Layer} object. */
-export type GenericLayer = Replace<
-    Layer<LayerOptions>,
-    {
-        name: ProcessedComputable<string>;
-        minWidth: ProcessedComputable<number>;
-    }
->;
+export interface Layer extends BaseLayer {
+    /** The color of the layer, used to theme the entire layer's display. */
+    theme?: MaybeRef<LayerTheme>;
+    /**
+     * The layout of this layer's features.
+     * When the layer is open in {@link game/player.Player.tabs}, this is the content that is displayed.
+     */
+    display: MaybeGetter<Renderable>;
+    /** An object of classes that should be applied to the display. */
+    classes?: MaybeRef<Record<string, boolean>>;
+    /** Styles that should be applied to the display. */
+    style?: MaybeRef<CSSProperties>;
+    /**
+     * The name of the layer, used on minimized tabs.
+     * Defaults to {@link BaseLayer.id}.
+     */
+    name?: MaybeRef<string>;
+    /**
+     * A CSS min-width value that is applied to the layer.
+     * Can be a number, in which case the unit is assumed to be px.
+     * Defaults to 600px.
+     */
+    minWidth?: MaybeRef<number | string>;
+}
 
 /**
  * When creating layers, this object a map of layer ID to a set of any created persistent refs in order to check they're all included in the final layer object.
@@ -190,60 +190,68 @@ export const addingLayers: string[] = [];
  */
 export function createLayer<T extends LayerOptions>(
     id: string,
-    optionsFunc: OptionsFunc<T, BaseLayer>
-): Layer<T> {
+    optionsFunc: (layer: BaseLayer) => T & ThisType<Layer & Omit<T, keyof Layer>>
+) {
     return createLazyProxy(() => {
-        const layer = {} as T & Partial<BaseLayer>;
-        const emitter = (layer.emitter = createNanoEvents<LayerEvents>());
-        layer.on = emitter.on.bind(emitter);
-        layer.emit = emitter.emit.bind(emitter) as <K extends keyof LayerEvents>(
-            ...args: [K, ...Parameters<LayerEvents[K]>]
-        ) => void;
-        layer.nodes = ref({});
-        layer.id = id;
-
+        const emitter = createNanoEvents<LayerEvents>();
         addingLayers.push(id);
         persistentRefs[id] = new Set();
-        Object.assign(layer, optionsFunc.call(layer, layer as BaseLayer));
+
+        const baseLayer = {
+            id,
+            emitter,
+            ...emitter,
+            nodes: ref({})
+        } satisfies BaseLayer;
+
+        const options = optionsFunc(baseLayer);
+        const {
+            theme,
+            display,
+            classes,
+            style: _style,
+            name,
+            minWidth,
+            ...props
+        } = options;
         if (
             addingLayers[addingLayers.length - 1] == null ||
             addingLayers[addingLayers.length - 1] !== id
         ) {
             throw new Error(
-                `Adding layers stack in invalid state. This should not happen\nStack: ${addingLayers}\nTrying to pop ${layer.id}`
+                `Adding layers stack in invalid state. This should not happen\nStack: ${addingLayers}\nTrying to pop ${id}`
             );
         }
         addingLayers.pop();
 
-        processComputable(layer as T, "theme");
-        processComputable(layer as T, "display");
-        processComputable(layer as T, "classes");
-        processComputable(layer as T, "style");
-        processComputable(layer as T, "name");
-        setDefault(layer, "name", layer.id);
-        processComputable(layer as T, "minWidth");
-        setDefault(layer, "minWidth", 600);
+        const style = processGetter(_style);
 
-        const style = layer.style as ProcessedComputable<StyleValue> | undefined;
-        layer.style = computed(() => {
-            let width = unref(layer.minWidth as ProcessedComputable<number | string>);
-            if (typeof width === "number" || !Number.isNaN(parseInt(width))) {
-                width = width + "px";
-            }
-            return [
-                unref(style) ?? "",
-                {
+        const layer = {
+            ...baseLayer,
+            ...(props as Omit<typeof props, keyof LayerOptions>),
+            theme: processGetter(theme),
+            display,
+            classes: processGetter(classes),
+            style: computed((): CSSProperties => {
+                let width = unref(layer.minWidth);
+                if (typeof width === "number" || !Number.isNaN(parseInt(width))) {
+                    width = width + "px";
+                }
+                return {
+                    ...unref(style),
                     flexGrow: "",
                     flexShrink: "",
                     width: "",
                     minWidth: width,
                     flexBasis: width,
                     margin: ""
-                }
-            ];
-        }) as Ref<StyleValue>;
+                };
+            }),
+            name: processGetter(name) ?? id,
+            minWidth: processGetter(minWidth) ?? 600
+        } satisfies Layer;
 
-        return layer as unknown as Layer<T>;
+        return layer;
     });
 }
 
@@ -256,11 +264,11 @@ export function createLayer<T extends LayerOptions>(
  * @param player The player data object, which will have a data object for this layer.
  */
 export function addLayer(
-    layer: GenericLayer,
+    layer: Layer,
     player: { layers?: Record<string, Record<string, unknown>> }
 ): void {
     console.info("Adding layer", layer.id);
-    if (layers[layer.id]) {
+    if (layers[layer.id] != null) {
         console.error(
             "Attempted to add layer with same ID as existing layer",
             layer.id,
@@ -269,7 +277,7 @@ export function addLayer(
         return;
     }
 
-    setDefault(player, "layers", {});
+    player.layers ??= {};
     if (player.layers[layer.id] == null) {
         player.layers[layer.id] = {};
     }
@@ -282,7 +290,7 @@ export function addLayer(
  * Convenience method for getting a layer by its ID with correct typing.
  * @param layerID The ID of the layer to get.
  */
-export function getLayer<T extends GenericLayer>(layerID: string): T {
+export function getLayer<T extends Layer>(layerID: string): T {
     return layers[layerID] as T;
 }
 
@@ -291,11 +299,11 @@ export function getLayer<T extends GenericLayer>(layerID: string): T {
  * Note that accessing a layer/its properties does NOT require it to be enabled.
  * @param layer The layer to remove.
  */
-export function removeLayer(layer: GenericLayer): void {
+export function removeLayer(layer: Layer): void {
     console.info("Removing layer", layer.id);
     globalBus.emit("removeLayer", layer);
 
-    layers[layer.id] = undefined;
+    delete layers[layer.id];
 }
 
 /**
@@ -303,7 +311,7 @@ export function removeLayer(layer: GenericLayer): void {
  * This is useful for layers with dynamic content, to ensure persistent refs are correctly configured.
  * @param layer Layer to remove and then re-add
  */
-export function reloadLayer(layer: GenericLayer): void {
+export function reloadLayer(layer: Layer): void {
     removeLayer(layer);
 
     // Re-create layer
@@ -315,23 +323,23 @@ export function reloadLayer(layer: GenericLayer): void {
  * Returns the modal itself, which can be rendered anywhere you need, as well as a function to open the modal.
  * @param layer The layer to display in the modal.
  */
-export function setupLayerModal(layer: GenericLayer): {
+export function setupLayerModal(layer: Layer): {
     openModal: VoidFunction;
-    modal: JSXFunction;
+    modal: () => JSX.Element;
 } {
     const showModal = ref(false);
     return {
         openModal: () => (showModal.value = true),
-        modal: jsx(() => (
+        modal: () => (
             <Modal
                 modelValue={showModal.value}
                 onUpdate:modelValue={value => (showModal.value = value)}
                 v-slots={{
                     header: () => <h2>{unref(layer.name)}</h2>,
-                    body: unref(layer.display)
+                    body: typeof layer.display ? layer.display : () => layer.display
                 }}
             />
-        ))
+        )
     };
 }
 
