@@ -66,13 +66,13 @@
 </template>
 
 <script setup lang="tsx">
+import Tooltip from 'wrappers/tooltips/Tooltip.vue';
 import DangerButton from 'components/fields/DangerButton.vue';
 import FeedbackButton from 'components/fields/FeedbackButton.vue';
 import Text from 'components/fields/Text.vue';
 import Column from 'components/layout/Column.vue';
 import Row from 'components/layout/Row.vue';
-import Tooltip from 'features/tooltips/Tooltip.vue';
-import { GenericUpgrade } from 'features/upgrades/upgrade';
+import { Upgrade } from 'features/clickables/upgrade';
 import { Direction } from 'util/common';
 import { computed, ref, unref, watch } from 'vue';
 
@@ -82,7 +82,7 @@ type PresetType = {
 };
 
 const props = defineProps<{
-    rows: Record<number, GenericUpgrade[]>;
+    rows: Record<number, Upgrade[]>;
     preset: PresetType;
 }>();
 

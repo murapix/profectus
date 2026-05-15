@@ -1,11 +1,10 @@
 import Formula from "game/formulas/formulas";
 import { DefaultValue, NonPersistent, SkipPersistence, deletePersistent, persistent } from "game/persistence";
-import { computed, isRef, ref, unref } from "vue";
+import { computed, isRef, MaybeRefOrGetter, ref, unref } from "vue";
 import Decimal from "./break_eternity";
 import { Section, createCollapsibleModifierSections } from "data/common";
-import { jsx } from "features/feature";
 import Modal from "components/modals/Modal.vue";
-import { Computable, convertComputable } from "./computed";
+import { processGetter } from "./computed";
 
 export function clonePersistentData(object: unknown) {
     if (object == undefined) return;
@@ -57,17 +56,17 @@ export function swapPersistentData(object: unknown, clone: unknown) {
 }
 
 export function createModifierModal(
-    title: Computable<string>,
+    title: MaybeRefOrGetter<string>,
     sectionsFunc: () => Section[],
     fontSize?: string
 ) {
     const [modifiers, collapsed] = createCollapsibleModifierSections(sectionsFunc);
-    const computedTitle = convertComputable(title);
+    const computedTitle = processGetter(title);
     deletePersistent(collapsed);
 
     const showModifiers = ref(false);
 
-    return jsx(() => (
+    return () => (
         <>
             <button class="button"
                     style={{
@@ -85,5 +84,9 @@ export function createModifierModal(
                 }}
             />
         </>
-    ))
+    )
+}
+
+export function clamp(num: number, min: number, max: number) {
+    return Math.max(Math.min(num, max), min);
 }

@@ -1,9 +1,9 @@
 <template>
     <button
-        v-if="isVisible(visibility)"
+        v-if="isVisible(visibility ?? true)"
         :style="[
             {
-                visibility: isHidden(visibility) ? 'hidden' : undefined,
+                visibility: isHidden(visibility ?? true) ? 'hidden' : undefined,
                 '--fill-percent': `${format(unref(fillPercent))}%`
             }
         ]"
@@ -18,7 +18,7 @@
         }"
         :disabled="!unref(canResearch)"
     >
-        <div v-if="!isVisible(visibility)">???</div>
+        <div v-if="!isVisible(visibility ?? true)">???</div>
         <component v-else-if="unref(component)" :is="unref(component)" />
         <Node :id="id" />
     </button>
@@ -26,28 +26,27 @@
 
 <script setup lang="tsx" generic="T">
 import Node from 'components/Node.vue';
-import { isHidden, isVisible, jsx } from 'features/feature';
-import { displayRequirements } from 'game/requirements';
+import { isHidden, isVisible } from 'features/feature';
 import Decimal from 'lib/break_eternity';
 import { format } from 'util/break_eternity';
-import { coerceComponent, isCoercableComponent } from 'util/vue';
 import { DefineComponent, computed, shallowRef, unref, watchEffect } from 'vue';
-import { GenericRepeatableResearch } from './repeatableDecorator';
+import { RepeatableResearch } from './repeatableDecorator';
+import { render } from 'util/vue';
 
 const props = defineProps<{
-    visibility: GenericRepeatableResearch["visibility"];
-    display: GenericRepeatableResearch["display"];
-    id: GenericRepeatableResearch["id"];
-    requirements: GenericRepeatableResearch["requirements"];
-    canResearch: GenericRepeatableResearch["canResearch"];
-    isResearching: GenericRepeatableResearch["isResearching"];
-    progress: GenericRepeatableResearch["progress"];
-    progressPercentage: GenericRepeatableResearch["progressPercentage"];
-    researched: GenericRepeatableResearch["researched"];
-    amount: GenericRepeatableResearch["amount"];
-    limit?: GenericRepeatableResearch["limit"];
-    maxed: GenericRepeatableResearch["maxed"];
-    research: GenericRepeatableResearch["research"];
+    visibility: RepeatableResearch["visibility"];
+    display: RepeatableResearch["display"];
+    id: RepeatableResearch["id"];
+    requirements: RepeatableResearch["requirements"];
+    canResearch: RepeatableResearch["canResearch"];
+    isResearching: RepeatableResearch["isResearching"];
+    progress: RepeatableResearch["progress"];
+    progressPercentage: RepeatableResearch["progressPercentage"];
+    researched: RepeatableResearch["researched"];
+    amount: RepeatableResearch["amount"];
+    limit?: RepeatableResearch["limit"];
+    maxed: RepeatableResearch["maxed"];
+    research: RepeatableResearch["research"];
 }>();
 
 const component = shallowRef<DefineComponent | string>("");
@@ -57,20 +56,7 @@ watchEffect(() => {
         component.value = "";
         return;
     }
-    if (isCoercableComponent(currentDisplay)) {
-        component.value = coerceComponent(currentDisplay);
-        return;
-    }
-    const Requirements = props.requirements;
-    const Title = coerceComponent(currentDisplay.title ?? "", "h3");
-    const Description = coerceComponent(currentDisplay.description);
-    const EffectDisplay = coerceComponent(currentDisplay.effect ?? "");
-    component.value = coerceComponent(jsx(() => (<>
-                {currentDisplay.title ? <Title /> : null}
-                <span><Description /></span>
-                {currentDisplay.effect ? <span>Currently: <EffectDisplay /></span> : null}
-                {displayRequirements(Requirements)}
-        </>)));
+    component.value = render(currentDisplay);
 });
 
 const fillPercent = computed(() => Decimal.times(unref(props.progressPercentage), 1.1).minus(0.05).times(100));

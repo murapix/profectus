@@ -30,9 +30,9 @@ export interface ResetButtonOptions extends ClickableOptions {
     /** The conversion the button uses to calculate how much resources will be gained on click */
     conversion: Conversion;
     /** The tree this reset button is apart of */
-    tree: Tree;
+    tree?: Tree;
     /** The specific tree node associated with this reset button */
-    treeNode: TreeNode;
+    treeNode?: TreeNode;
     /**
      * Text to display on low conversion amounts, describing what "resetting" is in this context.
      * Defaults to "Reset for ".
@@ -67,9 +67,9 @@ export interface ResetButton extends Clickable {
     /** The conversion the button uses to calculate how much resources will be gained on click */
     conversion: Conversion;
     /** The tree this reset button is apart of */
-    tree: Tree;
+    tree?: Tree;
     /** The specific tree node associated with this reset button */
-    treeNode: TreeNode;
+    treeNode?: TreeNode;
     /**
      * Text to display on low conversion amounts, describing what "resetting" is in this context.
      * Defaults to "Reset for ".
@@ -158,7 +158,8 @@ export function createResetButton<T extends ClickableOptions & ResetButtonOption
                     return;
                 }
                 conversion.convert();
-                tree.reset(treeNode);
+                if (tree != undefined && treeNode != undefined)
+                    tree.reset(treeNode);
                 if (resetTime) {
                     resetTime.value = resetTime[DefaultValue];
                 }

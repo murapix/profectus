@@ -82,12 +82,12 @@
 </template>
 
 <script setup lang="tsx">
-import { getUpgradeEffect } from 'features/upgrades/upgrade';
 import { DecimalSource } from 'util/bignum';
 import Decimal, { format, formatSmall, formatWhole } from 'util/break_eternity';
 import { ComputedRef, computed, unref } from 'vue';
-import { FomeTypes } from '../fome/fome';
+import { FomeTypes } from '../../fome/fome';
 import entropy from './entropy';
+import { getUpgradeEffect } from 'features/clickables/upgrade';
 
 const enhancements = entropy.enhancements;
 

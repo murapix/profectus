@@ -1,6 +1,6 @@
 import { InternalFormula } from "game/formulas/formulas";
 import { DecimalSource } from "util/bignum";
-import { MaybeRef } from "util/computed";
+import { MaybeRef } from "vue";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type GenericFormula = InternalFormula<any>;

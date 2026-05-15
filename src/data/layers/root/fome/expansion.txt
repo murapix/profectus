@@ -1,0 +1,8 @@
+Foam is currently only integer-valued exponents, this section would be about exploring fractal dimensions (aka raising foam gain to a power)
+
+Within fractal dimensions, progress can be spent on connections in a node-map a la AD's final celestial or Shark Game's particle accelerators
+- Multiple progress bars, each requiring exponentially-increasing resources (e.g. 1e10 pions for the first %, 1e11 for the second, 1e20 for the 10th %, up until 1e100 to max out)
+- Progress bars give some bonus based on their percentage, and may give extra bonuses at specific milestones
+- Could give bonuses for completing all bars connected to a given node
+- Further bars may have stronger requirements (more fractalized foam, specific timelines, etc.)
+- Could re-do bars on higher difficulties for stronger/more effects? Or maybe do certain levels alongside other challenges (abyss, timelines) to unlock secondary bonuses

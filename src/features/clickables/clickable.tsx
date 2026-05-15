@@ -29,7 +29,7 @@ export interface ClickableOptions extends VueFeatureOptions {
               /** A header to appear at the top of the display. */
               title?: MaybeGetter<Renderable>;
               /** The main text that appears in the display. */
-              description: MaybeGetter<Renderable>;
+              description?: MaybeGetter<Renderable>;
           };
     /** A function that is called when the clickable is clicked. */
     onClick?: (e?: MouseEvent | TouchEvent) => void;
@@ -71,7 +71,7 @@ export function createClickable<T extends ClickableOptions>(optionsFunc?: () => 
                             ))}
                         </div>
                     ) : null}
-                    {render(_display.description, el => (
+                    {render(_display.description ?? "", el => (
                         <div>{el}</div>
                     ))}
                 </span>

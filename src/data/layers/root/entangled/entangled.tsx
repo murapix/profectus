@@ -2,27 +2,26 @@ import Column from "components/layout/Column.vue";
 import Row from "components/layout/Row.vue";
 import Spacer from "components/layout/Spacer.vue";
 import { root } from "data/projEntry";
-import { GenericAchievement, createAchievement } from "features/achievements/achievement";
-import { GenericClickable, createClickable } from "features/clickables/clickable";
-import { isVisible, jsx } from "features/feature";
+import { Achievement, createAchievement } from "features/achievements/achievement";
+import { createClickable } from "features/clickables/clickable";
+import { isVisible } from "features/feature";
 import { createHotkey } from "features/hotkey";
 import { createReset } from "features/reset";
 import MainDisplay from "features/resources/MainDisplay.vue";
 import { createResource } from "features/resources/resource";
-import { createUpgrade } from "features/upgrades/upgrade";
 import { createLayer } from "game/layers";
 import { noPersist, persistent } from "game/persistence";
-import { CostRequirement, Requirement, createBooleanRequirement, createCostRequirement, requirementsMet } from "game/requirements";
+import { CostRequirement, createBooleanRequirement, createCostRequirement, requirementsMet } from "game/requirements";
 import Decimal, { DecimalSource } from "lib/break_eternity";
 import { format } from "util/break_eternity";
-import { ProcessedComputable } from "util/computed";
 import { render, renderCol } from "util/vue";
-import { ComputedRef, Ref, computed, nextTick, unref } from "vue";
+import { ComputedRef, MaybeRef, Ref, computed, nextTick, unref } from "vue";
 import acceleron, { id as acceleronId } from "../acceleron/acceleron";
 import fome, { FomeTypes } from "../fome/fome";
 import inflaton, { id as inflatonId } from "../inflaton/inflaton";
 import skyrmion from "../skyrmion/skyrmion";
 import timecube from "../timecube/timecube";
+import { createUpgrade } from "features/clickables/upgrade";
 
 const layer = createLayer("entangled", () => {
     const name = "Entangled Strings";
@@ -136,7 +135,7 @@ const layer = createLayer("entangled", () => {
         if (Decimal.lte(strings.value, 1)) return true;
         return Decimal.lte(strings.value, numExpansions.value+1);
     });
-    const requirements: Record<'expansion', Requirement> & Record<'acceleron' | 'inflaton' | 'timecube', CostRequirement> = {
+    const requirements = {
         expansion: createBooleanRequirement(canEntangle),
         acceleron: createCostRequirement(() => ({
             resource: noPersist(acceleron.accelerons),
@@ -291,7 +290,7 @@ const layer = createLayer("entangled", () => {
             visibility: noPersist(expansions.timecube.bought)
         }))
     }
-    const resetButton: GenericClickable = createClickable(() => ({
+    const resetButton = createClickable(() => ({
         canClick() {
             return requirementsMet(Object.values(requirements));
         },
@@ -310,7 +309,7 @@ const layer = createLayer("entangled", () => {
                     }
                 }
                 for (const research of keptInflatonResearch) {
-                    research.progress.value = unref((research.requirements as CostRequirement).cost as ProcessedComputable<DecimalSource>);
+                    research.progress.value = unref((research.requirements as CostRequirement).cost as MaybeRef<DecimalSource>);
                 }
                 skyrmion.skyrmions.value = unref(acceleron.achievements.skyrmion.earned) ? 10 : 1;
             });
@@ -347,15 +346,15 @@ const layer = createLayer("entangled", () => {
         }
     }))
 
-    const milestones: Record<1|2|3|7, GenericAchievement> = {
+    const milestones: Record<1|2|3|7, Achievement> = {
         1: createAchievement(() => ({
             requirements: createCostRequirement(() => ({
                 resource: noPersist(strings),
                 cost: 1
             })),
             display: {
-                requirement: jsx(() => <>1 {unref(strings.singularName)}</>),
-                effect: jsx(() => <>{unref(acceleron.accelerons.displayName)} and {unref(inflaton.inflatons.displayName)} no longer inflate each other's costs</>)
+                requirement: () => <>1 {unref(strings.singularName)}</>,
+                effect: () => <>{unref(acceleron.accelerons.displayName)} and {unref(inflaton.inflatons.displayName)} no longer inflate each other's costs</>
             },
             small: false
         })),
@@ -365,11 +364,11 @@ const layer = createLayer("entangled", () => {
                 cost: 2
             })),
             display: {
-                requirement: jsx(() => <>2 {unref(strings.displayName)}</>),
-                effect: jsx(() => <>
+                requirement: () => <>2 {unref(strings.displayName)}</>,
+                effect: () => <>
                     Unlock expansions to previous content<br />
                     Keep Skyrmion upgrades and Foam milestones
-                </>)
+                </>
             },
             small: false
         })),
@@ -379,7 +378,7 @@ const layer = createLayer("entangled", () => {
                 cost: 3
             })),
             display: {
-                requirement: jsx(() => <>3 {unref(strings.displayName)}</>),
+                requirement: () => <>3 {unref(strings.displayName)}</>,
                 effect: 'Keep all parallel research and research queue researches'
             },
             small: false
@@ -390,7 +389,7 @@ const layer = createLayer("entangled", () => {
                 cost: 7
             })),
             display: {
-                requirement: jsx(() => <>7 {unref(strings.displayName)}</>),
+                requirement: () => <>7 {unref(strings.displayName)}</>,
                 effect: 'Unlock Fundamental Particles'
             },
             small: false
@@ -420,7 +419,7 @@ const layer = createLayer("entangled", () => {
         expansions,
         milestones,
         hotkeys,
-        display: jsx(() => (
+        display: () => (
             <>
                 <MainDisplay resource={strings} />
                 <Row>
@@ -435,22 +434,22 @@ const layer = createLayer("entangled", () => {
                 <Spacer />
                 <div>The next {unref(strings.singularName)} requires:</div>
                 <Spacer />
-                <div style={{ color: acceleron.theme["--feature-background"] }}>
-                    {unref(acceleron.accelerons.displayName)}: {format(unref(requirements.acceleron.resource))} / {format(unref(requirements.acceleron.cost as ProcessedComputable<DecimalSource>))}
+                <div style={{ color: unref(acceleron.theme!)["--feature-background"] }}>
+                    {unref(acceleron.accelerons.displayName)}: {format(unref(requirements.acceleron.resource))} / {format(unref(requirements.acceleron.cost as MaybeRef<DecimalSource>))}
                 </div>
-                <div style={{ color: inflaton.theme["--feature-background"] }}>
-                    Stored {unref(inflaton.inflatons.displayName)}: {format(unref(requirements.inflaton.resource))} / {format(unref(requirements.inflaton.cost as ProcessedComputable<DecimalSource>))}
+                <div style={{ color: unref(inflaton.theme!)["--feature-background"] }}>
+                    Stored {unref(inflaton.inflatons.displayName)}: {format(unref(requirements.inflaton.resource))} / {format(unref(requirements.inflaton.cost as MaybeRef<DecimalSource>))}
                 </div>
                 {isVisible(requirements.timecube.visibility)
-                    ? <div style={{ color: timecube.theme["--feature-background"] }}>
-                        Total Timeline Score: {format(unref(requirements.timecube.resource))} / {format(unref(requirements.timecube.cost as ProcessedComputable<DecimalSource>))}
+                    ? <div style={{ color: unref(timecube.theme!)["--feature-background"] }}>
+                        Total Timeline Score: {format(unref(requirements.timecube.resource))} / {format(unref(requirements.timecube.cost as MaybeRef<DecimalSource>))}
                     </div>
                     : undefined
                 }
                 <Spacer />
                 {renderCol(...Object.values(milestones))}
             </>
-        )),
+        ),
 
         branchOrder,
         isFirstBranch

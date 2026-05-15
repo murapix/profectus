@@ -5,8 +5,17 @@
         </template>
         <template v-slot:body>
             <details open>
+                <summary>v1.1 Fractionalization</summary>
+                v1.1.0 Double Expansion - <time>2026-05-14</time>
+                <ul>
+                    <li class="feature">Added Foam and Acceleron expansions</li>
+                    <li class="feature">Added automation milestones for String Expansions</li>
+                    <li class="breaking">String Expansions now save their purchase order in order to support automation milestones</li>
+                </ul>
+            </details>
+            <details open>
                 <summary>v1.0 Revitalization</summary>
-                v1.1.0 A Bit More Clarity - <time>2024-10-20</time>
+                v1.0.1 A Bit More Clarity - <time>2024-10-20</time>
                 <ul>
                     <li class="breaking">Fixed Universe Size sticking oddly in the Abyss - UNIVERSE SIZE IS RESET TO FIX SOFTLOCKED SAVES</li>
                     <li class="feature">Added a modal clarifying the Acceleron-Inflaton split</li>

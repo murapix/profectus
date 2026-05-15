@@ -1,9 +1,9 @@
 <template>
     <div
-        v-if="isVisible(challenge.visibility)"
+        v-if="isVisible(challenge.visibility ?? true)"
         :style="[
             {
-                visibility: isHidden(challenge.visibility) ? 'hidden' : undefined
+                visibility: isHidden(challenge.visibility ?? true) ? 'hidden' : undefined
             },
             unref(challenge.style) ?? {}
         ]"
@@ -55,37 +55,36 @@
 <script setup lang="tsx">
 import Modal from 'components/modals/Modal.vue';
 import Node from 'components/Node.vue';
-import { GenericChallenge } from 'features/challenges/challenge';
-import { isHidden, isVisible, jsx } from 'features/feature';
+import { Challenge } from 'features/challenges/challenge';
+import { isHidden, isVisible } from 'features/feature';
 import NamedResource from 'features/resources/NamedResource.vue';
 import type { CostRequirement } from 'game/requirements';
-import { ProcessedComputable } from 'util/computed';
-import { coerceComponent } from 'util/vue';
-import type { Component } from 'vue';
+import type { Component, MaybeRef } from 'vue';
 import { ref, shallowRef, unref, watchEffect } from 'vue';
 import acceleron from '../acceleron/acceleron';
 import inflaton from '../inflaton/inflaton';
 import Decimal, { DecimalSource } from 'lib/break_eternity';
 import { displayResource } from 'features/resources/resource';
+import { render } from 'util/vue';
 
 const props = defineProps<{
-    challenge: GenericChallenge;
+    challenge: Challenge;
 }>();
 
 const showInfo = ref(false);
 
 const requirementsDisplay = shallowRef<Component | string>("");
 watchEffect(() => {
-    requirementsDisplay.value = coerceComponent(
-        jsx(() => {
+    requirementsDisplay.value = render(
+        () => {
             const requirement = props.challenge.requirements as CostRequirement;
-            if (Decimal.gte(unref(requirement.cost as ProcessedComputable<DecimalSource>), 19)) {
+            if (Decimal.gte(unref(requirement.cost as MaybeRef<DecimalSource>), 19)) {
                 return <div>Current Goal: ◆⫔ ¿Ә≤˘´ϐ ˆæ›”¿˘ı˘≥</div>
             }
             return <div>
-                Current Goal: {displayResource(requirement.resource)}/<NamedResource resource={requirement.resource} override={unref(requirement.cost as ProcessedComputable<DecimalSource>)} />
+                Current Goal: {displayResource(requirement.resource)}/<NamedResource resource={requirement.resource} override={unref(requirement.cost as MaybeRef<DecimalSource>)} />
             </div>
-        })
+        }
     );
 });
 </script>

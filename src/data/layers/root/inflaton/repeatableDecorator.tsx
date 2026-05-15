@@ -1,91 +1,66 @@
-import { Decorator, EffectFeatureOptions } from "features/decorators/common";
-import { Component, GenericComponent, Replace, Visibility, jsx, setDefault } from "features/feature";
-import { Persistent, persistent } from "game/persistence";
+import { Persistent } from "game/persistence";
 import Decimal, { DecimalSource } from "lib/break_eternity";
 import { format } from "util/break_eternity";
 import { isFunction } from "util/common";
-import { Computable, GetComputableType, GetComputableTypeWithDefault, ProcessedComputable, processComputable } from "util/computed";
-import { coerceComponent, isCoercableComponent } from "util/vue";
-import { ComputedRef, Ref, computed, isRef, unref } from "vue";
-import RepeatableResearchComponent from "../inflaton/RepeatableResearch.vue";
-import { BaseResearch, ResearchOptions } from "./research";
+import { MaybeRef, MaybeRefOrGetter, Ref, computed, isRef, unref } from "vue";
+import { Research, ResearchOptions } from "./research";
+import { effectMixin } from "mixins/effects";
+import { processGetter } from "util/computed";
+import { isJSXElement } from "util/vue";
 
-export interface RepeatableResearchOptions<T = unknown> extends ResearchOptions, EffectFeatureOptions<T> {
-    limit?: Computable<DecimalSource>;
+export interface RepeatableResearchOptions<T = unknown> extends ResearchOptions {
+    limit?: MaybeRefOrGetter<DecimalSource>;
+    effect: MaybeRefOrGetter<T>;
 }
 
-export interface BaseRepeatableResearch<T = unknown> extends BaseResearch {
-    effect: Computable<T>;
+export interface RepeatableResearch<T = unknown> extends Research {
+    effect: MaybeRef<T>;
     amount: Persistent<DecimalSource>;
+    limit: MaybeRef<DecimalSource>;
     maxed: Ref<boolean>;
 }
 
-export type RepeatableResearch<T extends RepeatableResearchOptions<U>, U> = Replace<
-    T & BaseRepeatableResearch<U>,
-    {
-        visibility: GetComputableTypeWithDefault<T["visibility"], Visibility.Visible>;
-        display: GetComputableType<T["display"]>;
-        isResearching: GetComputableType<T["isResearching"]>;
-        limit: GetComputableTypeWithDefault<T["limit"], 3998>;
-    }
->;
+export function repeatableResearchWrapper<T = unknown>(repeatableData: {
+    research: Ref<RepeatableResearch<T>>;
+    canResearch?: MaybeRefOrGetter<boolean>;
+    onResearch?: VoidFunction;
+    display: ResearchOptions["display"];
+    effect: MaybeRefOrGetter<T>;
+    limit?: MaybeRefOrGetter<DecimalSource>;
+}) {
+    const { research, canResearch, onResearch, display, effect, limit } = repeatableData;
 
-export type GenericRepeatableResearch<T = unknown> = Replace<
-    RepeatableResearch<RepeatableResearchOptions<T>, T>,
-    {
-        visibility: ProcessedComputable<Visibility | boolean>;
-        isResearching: ProcessedComputable<boolean>;
-        limit: ProcessedComputable<DecimalSource>;
-        effect: ProcessedComputable<T>;
-    }
->;
+    (() => {
+        if (isRef(display)) return;
+        if (isFunction(display)) return;
+        if (isJSXElement(display)) return;
+        if (typeof display === 'string') return;
+        
+        const oldTitle = processGetter(display.title);
+        display.title = () => <h3>Repeatable: {unref(oldTitle)} {formatRoman(Decimal.add(unref(research.value.amount ?? 0), 1))}</h3>;
+    })();
 
-export const repeatableDecorator: Decorator<RepeatableResearchOptions, BaseRepeatableResearch, GenericRepeatableResearch> = {
-    getPersistentData() {
-        return {
-            amount: persistent<DecimalSource>(0)
-        }
-    },
-    preConstruct(research) {
-        research[Component] = RepeatableResearchComponent as unknown as GenericComponent;
+    const processedCanResearch = processGetter(canResearch);
+    const _canResearch = computed(() => {
+        if (unref(research.value.maxed)) return false;
+        return unref(processedCanResearch) ?? true;
+    })
 
-        if (isCoercableComponent(research.display)) return;
-        if (isRef(research.display)) return;
-        if (isFunction(research.display)) return;
-
-        const title = research.display.title;
-        research.display.title = jsx(() => {
-            const Title = coerceComponent(title ?? "");
-            return <h3>Repeatable: <Title /> {formatRoman(Decimal.add(unref(research.amount ?? 0), 1))}</h3>
-        });
-    },
-    postConstruct(research) {
-        processComputable(research, "limit");
-        setDefault(research, "limit", 3998);
-
-        research.maxed = computed(() => Decimal.gte(
-            unref(research.amount!),
-            unref(research.limit as ProcessedComputable<DecimalSource>)
-        ));
-
-        const canResearch = research.canResearch as ComputedRef<boolean>;
-        research.canResearch = computed(() => {
-            if (unref(research.maxed)) return false;
-            return unref(canResearch) ?? true;
-        });
-
-        research.researched = computed(() => Decimal.gt(unref(research.amount!), 0));
-
-        const onResearch = research.onResearch;
-        research.onResearch = () => {
+    return {
+        canResearch: _canResearch,
+        onResearch: () => {
             onResearch?.();
-            research.amount!.value = Decimal.add(unref(research.amount!), 1);
-            research.progress!.value = 0;
-        }
-    },
-    getGatheredProps(research) {
-        const { amount, maxed } = research;
-        return { amount, maxed };
+            research.value.amount.value = Decimal.add(unref(research.value.amount), 1);
+            research.value.progress.value = 0;
+        },
+        display,
+        ...effectMixin(effect),
+        limit: processGetter(limit ?? 3998),
+        maxed: computed(() => Decimal.gte(
+            unref(research.value.amount),
+            unref(research.value.limit)
+        )),
+        researched: computed(() => Decimal.gt(unref(research.value.amount), 0)),
     }
 }
 

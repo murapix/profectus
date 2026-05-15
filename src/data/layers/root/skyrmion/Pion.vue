@@ -6,7 +6,7 @@
                     class="pion-upgrade"
                     v-bind="$attrs"
                     :style="getPos(index)"
-                    v-if="isVisible(upgrade.visibility)"
+                    v-if="isVisible(upgrade.visibility ?? true)"
                 >
                     <component :is="render(upgrade)" />
                 </li>
@@ -16,9 +16,10 @@
 </template>
 
 <script setup lang="ts">
-import { StyleValue, isVisible } from "features/feature";
+import { isVisible } from "features/feature";
 import { render } from "util/vue";
 import pion from "./pion";
+import { CSSProperties } from "vue";
 
 const upgrades = pion.upgrades;
 const positions: Record<keyof typeof upgrades, { row: number; col: number }> = {
@@ -40,7 +41,7 @@ const positions: Record<keyof typeof upgrades, { row: number; col: number }> = {
     rho: { row: 10, col: 1 }
 };
 function getPos(index: keyof typeof upgrades) {
-    return { "--row": positions[index].row, "--col": positions[index].col } as StyleValue;
+    return { "--row": positions[index].row, "--col": positions[index].col } as CSSProperties;
 }
 </script>
 

@@ -7,16 +7,16 @@
 </template>
 
 <script setup lang="ts">
+import { Upgrade } from 'features/clickables/upgrade';
 import { isVisible } from 'features/feature';
-import { GenericUpgrade } from 'features/upgrades/upgrade';
 import { render } from 'util/vue';
 import { computed, unref } from 'vue';
 
 const props = defineProps<{
-    upgrades: GenericUpgrade[]
+    upgrades: Upgrade[]
 }>();
 
-const rows: GenericUpgrade[][] = [];
+const rows: Upgrade[][] = [];
 for (let i = 0; i < unref(props.upgrades).length; i += 5) {
     rows.push([]);
 }
@@ -28,14 +28,14 @@ for (const upgrade of unref(props.upgrades)) {
 
 const left = rows.map(row => row.map((_, index) => {
     if (index === 0) return false;
-    return computed(() => isVisible(row[index-1].visibility));
+    return computed(() => isVisible(row[index-1].visibility ?? true));
 }));
 const right = rows.map(row => row.map((_, index) => {
     if (index >= row.length-1) return false;
-    return computed(() => isVisible(row[index+1].visibility));
+    return computed(() => isVisible(row[index+1].visibility ?? true));
 }));
 
-const visibleCounts = rows.map(row => computed(() => row.filter(upgrade => isVisible(upgrade.visibility)).length));
+const visibleCounts = rows.map(row => computed(() => row.filter(upgrade => isVisible(upgrade.visibility ?? true)).length));
 const top = rows.map((row, index) => {
     return row.map(() => computed(() => index === 0 ? false : unref(visibleCounts[index]) <= unref(visibleCounts[index-1])));
 });

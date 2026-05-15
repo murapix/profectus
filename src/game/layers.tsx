@@ -103,7 +103,7 @@ export interface Position {
  */
 export interface LayerOptions {
     /** The colors of the layer, used to theme the entire layer's display. */
-    theme?: MaybeRef<LayerTheme>;
+    theme?: MaybeRef<Partial<LayerTheme> & Pick<LayerTheme, "--feature-background">>;
     /**
      * The layout of this layer's features.
      * When the layer is open in {@link game/player.Player.tabs}, this is the content that is displayed.
@@ -151,8 +151,7 @@ export interface BaseLayer {
 
 /** An unit of game content. Displayed to the user as a tab or modal. */
 export interface Layer extends BaseLayer {
-    /** The color of the layer, used to theme the entire layer's display. */
-    theme?: MaybeRef<LayerTheme>;
+    theme?: MaybeRef<Partial<LayerTheme> & Pick<LayerTheme, '--feature-background'>>;
     /**
      * The layout of this layer's features.
      * When the layer is open in {@link game/player.Player.tabs}, this is the content that is displayed.

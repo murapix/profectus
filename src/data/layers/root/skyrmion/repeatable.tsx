@@ -1,31 +1,38 @@
-import { BonusAmountFeatureOptions, GenericBonusAmountFeature, bonusAmountDecorator } from "features/decorators/bonusDecorator";
-import { EffectFeatureOptions, GenericEffectFeature, effectDecorator } from "features/decorators/common";
-import { CoercableComponent, Visibility, isVisible, jsx } from "features/feature";
-import { GenericRepeatable, RepeatableOptions, createRepeatable } from "features/repeatable";
-import { addTooltip } from "features/tooltips/tooltip";
+import { createRepeatable, Repeatable, RepeatableOptions } from "features/clickables/repeatable";
+import { Visibility, isVisible } from "features/feature";
 import { Requirements, displayRequirements } from "game/requirements";
 import settings from "game/settings";
 import Decimal, { DecimalSource } from "lib/break_eternity";
+import { bonusAmountMixin } from "mixins/bonusAmount";
+import { effectMixin } from "mixins/effects";
 import { formatSmall, formatWhole } from "util/break_eternity";
 import { Direction } from "util/common";
-import { Computable, convertComputable, ProcessedComputable } from "util/computed";
-import { trackHover } from "util/vue";
-import { Ref, unref } from "vue";
+import { MaybeGetter, processGetter } from "util/computed";
+import { Renderable, trackHover } from "util/vue";
+import { computed, MaybeRef, MaybeRefOrGetter, Ref, unref } from "vue";
+import { JSX } from "vue/jsx-runtime";
+import { addTooltip } from "wrappers/tooltips/tooltip";
 
 export interface SkyrmionRepeatableData {
-    visibility?: Computable<Visibility | boolean> | Computable<Visibility | boolean>[];
+    visibility?: MaybeRefOrGetter<Visibility | boolean> | MaybeRefOrGetter<Visibility | boolean>[];
     requirements: Requirements;
     display: {
         name: string;
         description: JSX.Element;
-        effect?(effect: unknown, nextEffect: unknown): CoercableComponent;
+        effect?(effect: DecimalSource, nextEffect: DecimalSource): Renderable;
     };
     effect?(amount: DecimalSource): DecimalSource;
-    bonusAmount?: Computable<DecimalSource>;
+    bonusAmount?: MaybeRefOrGetter<DecimalSource>;
 }
 
-export interface SkyrmionRepeatableOptions extends RepeatableOptions, EffectFeatureOptions, BonusAmountFeatureOptions {};
-export type SkyrmionRepeatable = GenericRepeatable & GenericEffectFeature<DecimalSource> & GenericBonusAmountFeature & { isHovered: Ref<boolean> };
+export interface SkyrmionRepeatableOptions extends RepeatableOptions, Parameters<typeof bonusAmountMixin> { effect: MaybeGetter<DecimalSource> };
+export type SkyrmionRepeatable = Repeatable & {
+    effect: MaybeRef<DecimalSource>,
+    nextEffect: MaybeRef<DecimalSource>
+} & ReturnType<typeof bonusAmountMixin>
+& {
+    isHovered: Ref<boolean>
+};
 
 export function createSkyrmionRepeatable(
     data: SkyrmionRepeatableData
@@ -37,30 +44,38 @@ export function createSkyrmionRepeatable(
         data.display.effect = (effect: DecimalSource, nextEffect?: DecimalSource) => `${formatSmall(effect)}×${(settings.showNextValues && nextEffect) ? ` → ${formatSmall(nextEffect)}×` : ``}`;
     }
 
-    const visibility: ProcessedComputable<Visibility | boolean>[] = [];
+    const visibility: MaybeRef<Visibility | boolean>[] = [];
     if (Array.isArray(data.visibility)) {
-        visibility.push(...data.visibility.map(condition => convertComputable(condition)));
+        visibility.push(...data.visibility.map(condition => processGetter(condition)));
     }
     else if (data.visibility != null) {
-        visibility.push(convertComputable(data.visibility));
+        visibility.push(processGetter(data.visibility));
     }
     else {
         visibility.push(true);
     }
     
-    const repeatable = createRepeatable<SkyrmionRepeatableOptions>(feature => ({
-        visibility: () => unref(visibility.filter(check => isVisible(check))[0]) ?? false,
-        requirements: data.requirements,
-        display: data.display.name,
-        effect: () => data.effect!(unref((feature as SkyrmionRepeatable).totalAmount)),
-        nextEffect: () => data.effect!(Decimal.add(unref((feature as SkyrmionRepeatable).totalAmount), 1)),
-        bonusAmount: data.bonusAmount ?? 0
-    }), effectDecorator, bonusAmountDecorator) as SkyrmionRepeatable;
+    const repeatable = createRepeatable(() => {
+        const effectFunc = data.effect!;
+        const currentAmount: Ref<DecimalSource> = repeatable.amount;
+        const currentTotal: Ref<DecimalSource> = repeatable.totalAmount;
+        const nextTotal = computed((): Decimal => Decimal.add(unref(repeatable.totalAmount), 1));
+        const isHovered = trackHover(repeatable)
+        return {
+            visibility: () => unref(visibility.filter(check => isVisible(check))[0]) ?? false,
+            requirements: data.requirements,
+            display: data.display.name,
+            ...effectMixin(() => effectFunc(unref(currentTotal)), () => effectFunc(unref(nextTotal))),
+            ...bonusAmountMixin(currentAmount, data.bonusAmount ?? 0),
+            isHovered
+        }
+    });
 
-    addTooltip(repeatable, {
+
+    addTooltip(repeatable, () => ({
         direction: Direction.Down,
         yoffset: "var(--upgrade-width)",
-        display: jsx(() => {
+        display: () => {
             const bonusAmount = unref(repeatable.bonusAmount);
             let bonusAmountDisplay;
             if (Decimal.gt(bonusAmount, 0)) {
@@ -76,10 +91,8 @@ export function createSkyrmionRepeatable(
                 <br />
                 {displayRequirements(repeatable.requirements)}
             </>
-        })
-    });
-
-    repeatable.isHovered = trackHover(repeatable);
+        }
+    }));
 
     return repeatable;
 }

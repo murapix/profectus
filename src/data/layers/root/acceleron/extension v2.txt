@@ -1,0 +1,30 @@
+New segment is all about prediction and virtualization
+
+Core prediction loop:
+- Run millenium loop (runtime 1 minute)
+- Loop ends, receive features:
+  - Divergance percentage
+  - (approximate) particle counts
+
+after first loop, unlock progression tracks for improving loops and eventual loop production
+- particle access upgrades (unlock slots for particle buildings on loops)
+- particle guidance buildings (narrows particle generation bands)
+- particle alignment buildings (provides a bonus until loop is rerun)
+
+divergance is based on difference between average and actual particle results
+
+reaching X% divergance of a max-tier loop (5%? 1%? lower?) unlocks a higher-tier loop with new particles and virtualization upgrades
+
+virtualization system:
+completing loops with low divergance gives virtual particles, which are spent on actual production upgrades
+- particle building buffs
+- lower divergance
+- parallelism (highten lower-loop divergance but multiply lower-loop virtual production)
+- extra particle building slots
+
+loop particle counts are increased based on real production
+virtual particle gain is proportional to loop particle gain, but reduced by divergance
+
+---------------
+
+Meta-loop - cycle between standard production bonuses and virtual production bonuses to get next virtual upgrades, then eventually do an accuracy push to unlock next loop

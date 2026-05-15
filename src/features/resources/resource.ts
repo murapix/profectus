@@ -1,4 +1,4 @@
-import abyss from "data/layers/root/skyrmion/abyss";
+import { inAbyss } from "data/projEntry";
 import { globalBus } from "game/events";
 import type { Persistent, State } from "game/persistence";
 import { NonPersistent, persistent } from "game/persistence";
@@ -32,8 +32,6 @@ export type ResourceOptions = {
     abyssal?: boolean;
 }
 
-const inAbyss = ref(false);
-
 /**
  * Creates a resource.
  * @param defaultValue The initial value of the resource
@@ -53,11 +51,6 @@ export function createResource<T extends State>(defaultValue: T | Ref<T>, {
     small = undefined,
     abyssal = false
 }: ResourceOptions = {}) {
-    nextTick(() => {
-        if (unref(abyss.challenge.active)) inAbyss.value = true;
-        watch(abyss.challenge.active, active => { inAbyss.value = active; })
-    });
-
     const resource: Partial<Resource<T>> = isRef(defaultValue)
         ? defaultValue
         : persistent(defaultValue);

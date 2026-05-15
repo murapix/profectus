@@ -1,11 +1,11 @@
 <template>
     <div class="enhancementRow" v-for="(row, index) in processedRows">
-        <Row v-if="row.row.some(upgrade => isVisible(upgrade.visibility))">
+        <Row v-if="row.row.some(upgrade => isVisible(upgrade.visibility ?? true))">
             <div :class="{ bought: unref(row.count) >= unref(row.limit) }">
                 <span>Row {{ index+1 }}: {{ unref(row.count) }}/{{ unref(row.limit) }}</span>
             </div>
             <template v-for="upgrade in row.row">
-                <template v-if="isVisible(upgrade.visibility)">
+                <template v-if="isVisible(upgrade.visibility ?? true)">
                     <component :is="render(upgrade)" />
                 </template>
             </template>
@@ -16,13 +16,13 @@
 <script setup lang="ts">
 import Row from 'components/layout/Row.vue';
 import { isVisible } from 'features/feature';
-import { GenericUpgrade } from 'features/upgrades/upgrade';
 import { render } from 'util/vue';
 import { unref } from 'vue';
 import entropy, { EnhancementRow } from './entropy';
+import { Upgrade } from 'features/clickables/upgrade';
 
 const props = defineProps<{
-    rows: Record<EnhancementRow, GenericUpgrade[]>;
+    rows: Record<EnhancementRow, Upgrade[]>;
 }>();
 
 const processedRows = ([1, 2, 3, 4] as EnhancementRow[]).map(row => ({

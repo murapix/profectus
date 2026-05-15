@@ -1,12 +1,9 @@
 import { root } from "data/projEntry";
-import { effectDecorator } from "features/decorators/common";
-import { jsx } from "features/feature";
 import { createHotkey } from "features/hotkey";
 import MainDisplay from "features/resources/MainDisplay.vue";
 import { createResource, trackBest } from "features/resources/resource";
 import { createTab } from "features/tabs/tab";
 import { createTabFamily } from "features/tabs/tabFamily";
-import { EffectUpgrade, EffectUpgradeOptions, createUpgrade } from "features/upgrades/upgrade";
 import { BaseLayer, createLayer } from "game/layers";
 import { createMultiplicativeModifier, createSequentialModifier } from "game/modifiers";
 import { noPersist } from "game/persistence";
@@ -17,15 +14,17 @@ import { createModifierModal } from "util/util";
 import { render } from "util/vue";
 import { ComputedRef, Ref, computed, unref } from "vue";
 import acceleron from "../acceleron/acceleron";
-import entropy from "../acceleron/entropy";
+import entropy from "../acceleron/enhancements/entropy";
 import entangled from "../entangled/entangled";
 import fome, { FomeTypes } from "../fome/fome";
 import TimecubeUpgrades from "./TimecubeUpgrades.vue";
 import timelines from "./timelines";
 import timesquares, { Sides } from "./timesquares";
+import { createUpgrade } from "features/clickables/upgrade";
+import { effectMixin } from "mixins/effects";
 
 const id = "timecube";
-const layer = createLayer(id, function (this: BaseLayer) {
+const layer = createLayer(id, () => {
     const name = "Time Cubes";
     const theme = {
         "--feature-background": "#f037ea",
@@ -41,77 +40,77 @@ const layer = createLayer(id, function (this: BaseLayer) {
         createMultiplicativeModifier(() => ({
             multiplier: acceleron.upgrades.conversion.effect,
             enabled: noPersist(acceleron.upgrades.conversion.bought),
-            description: jsx(() => <>[{acceleron.name}] Stability Conversion</>)
+            description: () => <>[{acceleron.name}] Stability Conversion</>
         })),
         createMultiplicativeModifier(() => ({
-            multiplier: entropy.enhancements.tesselation.effect,
+            multiplier: entropy.enhancements.tesselation.effect!,
             enabled: noPersist(entropy.enhancements.tesselation.bought),
-            description: jsx(() => <>[{entropy.name}] Entropic Tesselation</>)
+            description: () => <>[{entropy.name}] Entropic Tesselation</>
         })),
         createMultiplicativeModifier(() => ({
             multiplier: upgrades.tile.effect,
             enabled: noPersist(upgrades.tile.bought),
-            description: jsx(() => <>[{name}] Tile</>)
+            description: () => <>[{name}] Tile</>
         })),
         createMultiplicativeModifier(() => ({
             multiplier: layer.getTimesquareEffect(Sides.FRONT),
             enabled: () => Decimal.gt(unref(timesquares.squares[Sides.FRONT].square.amount), 0),
-            description: jsx(() => <>[{name}] Front Time Squares ({formatWhole(unref(timesquares.squares[Sides.FRONT].square.amount))})</>)
+            description: () => <>[{name}] Front Time Squares ({formatWhole(unref(timesquares.squares[Sides.FRONT].square.amount))})</>
         })),
         createMultiplicativeModifier(() => ({
             multiplier: () => Decimal.reciprocate(unref(timelines.nerfs[Sides.FRONT])),
             enabled: () => unref(timelines.depths[Sides.FRONT]) > 0,
-            description: jsx(() => <>[{name}] Active Front Timeline Effect</>)
+            description: () => <>[{name}] Active Front Timeline Effect</>
         })),
         createMultiplicativeModifier(() => ({
             multiplier: timelines.buffs[Sides.FRONT],
             enabled: () => unref(timelines.scores[Sides.FRONT]).gt(0),
-            description: jsx(() => <>[{name}] Passive Front Timeline Effect</>)
+            description: () => <>[{name}] Passive Front Timeline Effect</>
         }))
     ]);
     const production: ComputedRef<DecimalSource> = computed(() => productionModifiers.apply(1));
 
     const upgrades = (() => {
-        const tile = createUpgrade<EffectUpgradeOptions<Decimal>>(upgrade => ({
+        const tile = createUpgrade(() => ({
             display: {
                 title: 'Tile',
                 description: 'log10(Accelerons) increases Time Cube gain',
-                effect: jsx(() => <>{format(unref((upgrade as EffectUpgrade<Decimal>).effect))}×</>)
+                effect: () => <>{format(unref(tile.effect))}×</>
             },
             requirements: createCostRequirement(() => ({
                 resource: noPersist(timecubes),
                 cost: 1
             })),
-            effect() { return Decimal.max(unref(acceleron.accelerons), 0).plus(1).log10() }
-        }), effectDecorator) as EffectUpgrade<Decimal>;
-        const time = createUpgrade<EffectUpgradeOptions<Decimal>>(upgrade => ({
-            visibility() { return unref(this.bought) || unref(tile.bought) },
+            ...effectMixin((): Decimal => Decimal.max(unref(acceleron.accelerons), 0).plus(1).log10())
+        }));
+        const time = createUpgrade(() => ({
+            visibility(): boolean { return unref(time.bought) || unref(tile.bought) },
             display: {
                 title: 'Time',
                 description: 'log10(Best Time Cubes) increases Acceleron effect',
-                effect: jsx(() => <>{format(unref((upgrade as EffectUpgrade<DecimalSource>).effect))}×</>)
+                effect: () => <>{format(unref(time.effect))}×</>
             },
             requirements: createCostRequirement(() => ({
                 resource: noPersist(timecubes),
                 cost: 2
             })),
-            effect() { return Decimal.max(unref(bestTimecubes), 0).plus(1).log10().plus(1) }
-        }), effectDecorator) as EffectUpgrade<Decimal>;
-        const tier = createUpgrade<EffectUpgradeOptions<number>>(upgrade => ({
-            visibility() { return unref(this.bought) || unref(time.bought) },
+            ...effectMixin(() => Decimal.max(unref(bestTimecubes), 0).plus(1).log10().plus(1))
+        }));
+        const tier = createUpgrade(() => ({
+            visibility(): boolean { return unref(tier.bought) || unref(time.bought) },
             display: {
                 title: 'Tier',
                 description: 'Each upgrade in this row gives a free level of every Foam Boost',
-                effect: jsx(() => <>+{formatWhole(unref((upgrade as EffectUpgrade<number>).effect))} free levels</>)
+                effect: () => <>+{formatWhole(unref(tier.effect))} free levels</>
             },
             requirements: createCostRequirement(() => ({
                 resource: noPersist(timecubes),
                 cost: 3
             })),
-            effect(): number { return [tile, time, this, tilt, tiny].filter(upgrade => unref(upgrade.bought)).length }
-        }), effectDecorator) as EffectUpgrade<number>;
-        const tilt = createUpgrade<EffectUpgradeOptions<number>>(() => ({
-            visibility() { return unref(this.bought) || unref(tier.bought) },
+            ...effectMixin((): number => [tile, time, this, tilt, tiny].filter(upgrade => unref(tier.bought)).length)
+        }));
+        const tilt = createUpgrade(() => ({
+            visibility(): boolean { return unref(tilt.bought) || unref(tier.bought) },
             display: {
                 title: 'Tilt',
                 description: 'Entropic Expansion is 50% stronger',
@@ -121,9 +120,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 cost: 10
             })),
             effect: 1.5
-        }), effectDecorator) as EffectUpgrade<number>;
+        }));
         const tiny = createUpgrade(() => ({
-            visibility() { return unref(this.bought) || unref(tilt.bought) },
+            visibility(): boolean { return unref(tiny.bought) || unref(tilt.bought) },
             display: {
                 title: 'Tiny',
                 description: 'Unlock another Entropic Loop'
@@ -133,20 +132,20 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 cost: 25
             }))
         }));
-        const twice = createUpgrade<EffectUpgradeOptions<number>>(() => ({
-            visibility() { return unref(this.bought) || unref(tiny.bought) },
-            display: () => ({
+        const twice = createUpgrade(() => ({
+            visibility(): boolean { return unref(twice.bought) || unref(tiny.bought) },
+            display: {
                 title: 'Twice',
-                description: `${unref(triple.bought) ? 'Triple' : 'Double'} maximum entropy`
-            }),
+                description: () => `${unref(triple.bought) ? 'Triple' : 'Double'} maximum entropy`
+            },
             requirements: createCostRequirement(() => ({
                 resource: noPersist(timecubes),
                 cost: 2500
             })),
-            effect() { return unref(triple.bought) ? 3 : 2 }
-        }), effectDecorator) as EffectUpgrade<number>;
+            ...effectMixin((): number => unref(triple.bought) ? 3 : 2 )
+        }));
         const twist = createUpgrade(() => ({
-            visibility() { return unref(this.bought) || unref(twice.bought) },
+            visibility(): boolean { return unref(twist.bought) || unref(twice.bought) },
             display: {
                 title: 'Twist',
                 description: 'You may select an additional first row Entropic Enhancement'
@@ -156,8 +155,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 cost: 4e8
             }))
         }));
-        const ten = createUpgrade<EffectUpgradeOptions<number>>(() => ({
-            visibility() { return unref(this.bought) || unref(twist.bought) },
+        const ten = createUpgrade(() => ({
+            visibility(): boolean { return unref(ten.bought) || unref(twist.bought) },
             display: {
                 title: 'Ten',
                 description: 'Increase Entropic Loop build speed by 10,000x',
@@ -167,9 +166,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 cost: 5e8
             })),
             effect: 10000
-        }), effectDecorator) as EffectUpgrade<number>;
+        }));
         const twirl = createUpgrade(() => ({
-            visibility() { return unref(this.bought) || unref(ten.bought) },
+            visibility(): boolean { return unref(twirl.bought) || unref(ten.bought) },
             display: {
                 title: 'Twirl',
                 description: 'You may select an additional fourth row Entropic Enhancement'
@@ -180,7 +179,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             }))
         }));
         const tetrate = createUpgrade(() => ({
-            visibility() { return unref(this.bought) || unref(twirl.bought) },
+            visibility(): boolean { return unref(tetrate.bought) || unref(twirl.bought) },
             display: {
                 title: 'Tetrate',
                 description: 'Unlock the fourth column of Entropic Enhancements'
@@ -191,7 +190,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             }))
         }));
         const tesselate = createUpgrade(() => ({
-            visibility() { return unref(this.bought) || unref(entangled.expansions.timecube.bought) },
+            visibility(): boolean { return unref(tesselate.bought) || unref(entangled.expansions.timecube.bought) },
             display: {
                 title: 'Tesselate',
                 description: 'Unlock Time Squares'
@@ -202,7 +201,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             }))
         }));
         const triple = createUpgrade(() => ({
-            visibility() { return unref(this.bought) || unref(tesselate.bought) },
+            visibility(): boolean { return unref(triple.bought) || unref(tesselate.bought) },
             display: {
                 title: 'Triple',
                 description: 'Change <b>Twice</b> from double to triple'
@@ -213,7 +212,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             }))
         }));
         const turn = createUpgrade(() => ({
-            visibility() { return unref(this.bought) || unref(tesselate.bought) },
+            visibility(): boolean { return unref(turn.bought) || unref(tesselate.bought) },
             display: {
                 title: 'Turn',
                 description: 'Front squares are 50% stronger'
@@ -223,9 +222,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 cost: 1e12
             })),
             effect: 1.5
-        }), effectDecorator) as EffectUpgrade<number>;
+        }));
         const tall = createUpgrade(() => ({
-            visibility() { return unref(this.bought) || (unref(triple.bought) && unref(turn.bought)) },
+            visibility(): boolean { return unref(tall.bought) || (unref(triple.bought) && unref(turn.bought)) },
             display: {
                 title: 'Tall',
                 description: 'Bottom squares are 50% stronger'
@@ -235,9 +234,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 cost: 2e12
             })),
             effect: 1.5
-        }), effectDecorator) as EffectUpgrade<number>;
+        }));
         const tour = createUpgrade(() => ({
-            visibility() { return unref(this.bought) || (unref(triple.bought) && unref(turn.bought)) },
+            visibility(): boolean { return unref(tour.bought) || (unref(triple.bought) && unref(turn.bought)) },
             display: {
                 title: 'Tour',
                 description: 'Double the Acceleron effect'
@@ -247,9 +246,9 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 cost: 5e12
             })),
             effect: 2
-        }), effectDecorator) as EffectUpgrade<number>;
+        }));
         const tactics = createUpgrade(() => ({
-            visibility() { return unref(this.bought) || unref(tour.bought) },
+            visibility(): boolean { return unref(tactics.bought) || unref(tour.bought) },
             display: {
                 title: 'Tactics',
                 description: 'Unlock Timelines'
@@ -260,7 +259,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             }))
         }));
         const tower = createUpgrade(() => ({
-            visibility() { return unref(this.bought) || unref(tactics.bought) },
+            visibility(): boolean { return unref(tower.bought) || unref(tactics.bought) },
             display: {
                 title: 'Tower',
                 description: 'While in at least one Top timeline, Foam retainment applies to Pions and Spinors as well'
@@ -271,7 +270,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             }))
         }));
         const title = createUpgrade(() => ({
-            visibility() { return unref(this.bought) || unref(tactics.bought) },
+            visibility(): boolean { return unref(title.bought) || unref(tactics.bought) },
             display: {
                 title: 'Title',
                 description: 'Best timeline scores also increase their corresponding Time Square gain'
@@ -282,7 +281,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             }))
         }));
         const tempo = createUpgrade(() => ({
-            visibility() { return unref(this.bought) || (unref(title.bought) && unref(tower.bought)) },
+            visibility(): boolean { return unref(tempo.bought) || (unref(title.bought) && unref(tower.bought)) },
             display: {
                 title: 'Tempo',
                 description: 'The first entropic loop always produces at least one Acceleron'
@@ -299,8 +298,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
             [FomeTypes.subplanck]: 3e23,
             [FomeTypes.quantum]: 1e16
         };
-        const toil = createUpgrade<EffectUpgradeOptions<Record<FomeTypes, DecimalSource>>>(() => ({
-            visibility() { return unref(this.bought) || (unref(title.bought) && unref(tower.bought)) },
+        const toil = createUpgrade(() => ({
+            visibility(): boolean { return unref(toil.bought) || (unref(title.bought) && unref(tower.bought)) },
             display: {
                 title: 'Toil',
                 description: 'While in at least one Left timeline, Foam gain is massively increased based on how little of that Foam you have'
@@ -309,13 +308,13 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 resource: noPersist(timecubes),
                 cost: 1e19
             })),
-            effect() {
+            ...effectMixin(() => {
                 return Object.fromEntries((Object.entries(fomeLimits) as [FomeTypes, number][]).map(([type, limit]) => [type,
                     Decimal.minus(Math.E/Math.PI, Decimal.div(unref(fome[type].amount), limit)).pow10().times(15).plus(1)
                 ])) as Record<FomeTypes, Decimal>;
-            }
-        }), effectDecorator) as EffectUpgrade<Record<FomeTypes, Decimal>>;
-        const a = createUpgrade(upgrade => ({
+            })
+        }));
+        const a = createUpgrade(() => ({
             visibility() { return false },
             display: {
                 description: "X"
@@ -325,7 +324,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 cost: Decimal.dInf
             }))
         }));
-        const b = createUpgrade(upgrade => ({
+        const b = createUpgrade(() => ({
             visibility() { return false },
             display: {
                 description: "X"
@@ -335,7 +334,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 cost: Decimal.dInf
             }))
         }));
-        const c = createUpgrade(upgrade => ({
+        const c = createUpgrade(() => ({
             visibility() { return false },
             display: {
                 description: "X"
@@ -345,7 +344,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 cost: Decimal.dInf
             }))
         }));
-        const d = createUpgrade(upgrade => ({
+        const d = createUpgrade(() => ({
             visibility() { return false },
             display: {
                 description: "X"
@@ -355,7 +354,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 cost: Decimal.dInf
             }))
         }));
-        const e = createUpgrade(upgrade => ({
+        const e = createUpgrade(() => ({
             visibility() { return false },
             display: {
                 description: "X"
@@ -390,47 +389,47 @@ const layer = createLayer(id, function (this: BaseLayer) {
             title: timecubes.displayName,
             modifier: productionModifiers,
             base: 1,
-            baseText: jsx(() => <>[{acceleron.name}] Gain per Loop</>)
+            baseText: () => <>[{acceleron.name}] Gain per Loop</>
         }]
     );
 
-    const header = jsx(() => (
+    const header = () => (
         <MainDisplay resource={timecubes} modal={modifierModal}/>
-    ));
+    );
 
     const tabs = createTabFamily(({
         cubes: () => ({
             display: "Time Cubes",
             tab: createTab(() => ({
-                display: jsx(() => (
+                display: () => (
                     <>
                         {render(header)}
                         <TimecubeUpgrades upgrades={Object.values(upgrades)} />
                     </>
-                ))
+                )
             }))
         }),
         squares: () => ({
             display: "Time Squares",
             tab: createTab(() => ({
-                display: jsx(() => (
+                display: () => (
                     <>
                         {render(header)}
                         {render(unref(timesquares.display))}
                     </>
-                ))
+                )
             }))
         }),
         lines: () => ({
             display: "Timelines",
             visibility: noPersist(upgrades.tactics.bought),
             tab: createTab(() => ({
-                display: jsx(() => (
+                display: () => (
                     <>
                         {render(header)}
                         {render(unref(timelines.display))}
                     </>
-                ))
+                )
             }))
         })
     }));
@@ -445,14 +444,14 @@ const layer = createLayer(id, function (this: BaseLayer) {
         upgrades,
         hotkeys,
         tabs,
-        display: jsx(() => (
+        display: () => (
             <>
                 {unref(upgrades.tesselate.bought)
                     ? render(tabs)
                     : render(unref(tabs.tabs.cubes.tab))
                 }
             </>
-        )),
+        ),
 
         timesquares,
         timelines,

@@ -8,23 +8,22 @@
         :style="[ { '--fill-percent': `${format(unref(fillPercent))}%` } ]"
         @click="removeFromQueue"
     >
-        <span v-if="isResearch"><component :is="coerceComponent(unref(name) ?? '')" /></span>
+        <span v-if="isResearch"><component :is="render(unref(name) ?? '')" /></span>
         <span v-else>Research Slot {{unref(index) + 1}}</span>
     </button>
 </template>
 
 <script setup lang="ts">
-import { CoercableComponent } from 'features/feature';
 import Decimal from 'lib/break_eternity';
 import { format } from 'util/break_eternity';
-import { coerceComponent } from 'util/vue';
+import { render, Renderable } from 'util/vue';
 import { computed, unref } from 'vue';
 import { removeResearchFromQueue } from './coreResearch';
-import { GenericResearch } from './research';
+import { Research } from './research';
 
 const props = defineProps<{
-    node?: GenericResearch;
-    name?: CoercableComponent;
+    node?: Research;
+    name?: Renderable;
     index: number;
 }>();
 

@@ -6,7 +6,7 @@
                     <Spacer height="30px" />
                     <Row v-for="row in research">
                         <template v-for="node in row">
-                            <component v-if="isVisible(node.visibility)" :is="render(node)" />
+                            <component v-if="isVisible(node.visibility ?? true)" :is="render(node)" />
                         </template>
                     </Row>
                     <Spacer height="30px" />
@@ -26,10 +26,10 @@ import { Link } from 'features/links/links';
 import Links from 'features/links/Links.vue';
 import { render } from 'util/vue';
 import { computed, ComputedRef, unref } from 'vue';
-import { GenericResearch } from './research';
+import { Research } from './research';
 
 const props = defineProps<{
-    research: GenericResearch[][];
+    research: Research[][];
 }>();
 
 const links: ComputedRef<Link[]> = computed(() => 
@@ -38,7 +38,7 @@ const links: ComputedRef<Link[]> = computed(() =>
                         ?.map(prerequisite => ({
                             startNode: { id: node.id },
                             endNode: { id: prerequisite.id },
-                            stroke: isVisible(node.visibility)
+                            stroke: isVisible(node.visibility ?? true)
                                     ? 'var(--locked)'
                                     : unref(prerequisite.researched)
                                         ? 'var(--feature-background)'

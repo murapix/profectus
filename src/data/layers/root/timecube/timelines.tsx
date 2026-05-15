@@ -2,7 +2,6 @@ import Modal from "components/modals/Modal.vue";
 import Column from "components/layout/Column.vue";
 import Spacer from "components/layout/Spacer.vue";
 import { createClickable } from "features/clickables/clickable";
-import { jsx } from "features/feature";
 import { createReset } from "features/reset";
 import { BaseLayer, createLayer } from "game/layers";
 import { createExponentialModifier, createMultiplicativeModifier, createSequentialModifier } from "game/modifiers";
@@ -18,7 +17,7 @@ import skyrmion from "../skyrmion/skyrmion";
 import TimelineBuffs from "./TimelineBuffs.vue";
 import TimelineNerfs from "./TimelineNerfs.vue";
 import timecube from "./timecube";
-import { GenericTimeline, createTimeline } from "./timeline";
+import { Timeline, createTimeline } from "./timeline";
 import { Sides } from "./timesquares";
 import entangled from "../entangled/entangled";
 
@@ -40,25 +39,25 @@ const layer = createLayer(id, function (this: BaseLayer) {
         bottomRight: createTimeline({sides: [Sides.BOTTOM, Sides.RIGHT]})
     };
 
-    const timelineSides: Record<Sides, GenericTimeline[]> = {
+    const timelineSides = {
         [Sides.FRONT]: [timelines.topFront, timelines.frontLeft, timelines.frontRight, timelines.bottomFront],
         [Sides.RIGHT]: [timelines.topRight, timelines.frontRight, timelines.backRight, timelines.bottomRight],
         [Sides.TOP]: [timelines.topLeft, timelines.topFront, timelines.topBack, timelines.topRight],
         [Sides.BACK]: [timelines.topBack, timelines.backLeft, timelines.backRight, timelines.bottomBack],
         [Sides.LEFT]: [timelines.topLeft, timelines.frontLeft, timelines.backLeft, timelines.bottomLeft],
         [Sides.BOTTOM]: [timelines.bottomLeft, timelines.bottomFront, timelines.bottomBack, timelines.bottomRight]
-    }
+    } satisfies Record<Sides, Timeline[]>
 
     const activeDepths = Object.fromEntries(
         Object.entries(timelineSides).map(
-            ([side, timelines]) => [side, computed(() => (timelines as GenericTimeline[]).filter(
+            ([side, timelines]) => [side, computed(() => timelines.filter(
                 timeline => unref(timeline.active)
             ).length)]
         )
     ) as Record<Sides, ComputedRef<number>>;
     const nextDepths = Object.fromEntries(
         Object.entries(timelineSides).map(
-            ([side, timelines]) => [side, computed(() => (timelines as GenericTimeline[]).filter(
+            ([side, timelines]) => [side, computed(() => timelines.filter(
                 timeline => unref(timeline.next)
             ).length)]
         )
@@ -123,7 +122,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
     };
     const scores = Object.fromEntries(
         Object.entries(timelineSides).map(
-            ([side, timelines]) => [side, computed(() => (timelines as GenericTimeline[]).reduce(
+            ([side, timelines]) => [side, computed(() => timelines.reduce(
                 (sum, timeline) => Decimal.add(unref(timeline.score), 1).log10().dividedBy(10).plus(sum), Decimal.dZero)
             )]
         )
@@ -164,7 +163,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 .reduce((pions, spinors) => pions.plus(spinors))
                 .dividedBy(10)
             },
-            description: jsx(() => <>1/10th of the magnitude of {unref(skyrmion.pion.pions.displayName)} and {unref(skyrmion.spinor.spinors.displayName)}</>)
+            description: () => <>1/10th of the magnitude of {unref(skyrmion.pion.pions.displayName)} and {unref(skyrmion.spinor.spinors.displayName)}</>
         })),
         createMultiplicativeModifier(() => ({
             multiplier() { return [FomeTypes.protoversal, FomeTypes.infinitesimal, FomeTypes.subspatial, FomeTypes.subplanck, FomeTypes.quantum]
@@ -172,23 +171,23 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 .reduce((sum, magnitude) => sum.plus(magnitude), Decimal.dZero)
                 .dividedBy(50)
             },
-            description: jsx(() => <>1/50th of the magnitude of all types of Foam</>)
+            description: () => <>1/50th of the magnitude of all types of Foam</>
         })),
         createMultiplicativeModifier(() => ({
             multiplier() { return Decimal.add(unref(acceleron.accelerons), 1).log10() },
-            description: jsx(() => <>The magnitude of {unref(acceleron.accelerons.displayName)}</>)
+            description: () => <>The magnitude of {unref(acceleron.accelerons.displayName)}</>
         })),
         createMultiplicativeModifier(() => ({
             multiplier() { return Decimal.add(unref(inflaton.buildings.buildings.storage.effect), 10).log10().log10().times(5) },
-            description: jsx(() => <>5x the magnitude<sup>2</sup> of Stored {unref(inflaton.inflatons.displayName)}</>)
+            description: () => <>5x the magnitude<sup>2</sup> of Stored {unref(inflaton.inflatons.displayName)}</>
         })),
         createMultiplicativeModifier(() => ({
             multiplier() { return Decimal.add(unref(timecube.timecubes), 1).log10() },
-            description: jsx(() => <>The magnitude of {unref(timecube.timecubes.displayName)}</>)
+            description: () => <>The magnitude of {unref(timecube.timecubes.displayName)}</>
         })),
         createExponentialModifier(() => ({
             exponent() { return Object.values(timelines).filter(timeline => unref(timeline.active)).length / 2 },
-            description: jsx(() => <>Number of active Timelines</>)
+            description: () => <>Number of active Timelines</>
         }))
     ]);
     const currentScore: ComputedRef<DecimalSource> = computed(() => currentScoreModifiers.apply(1e-4));
@@ -265,7 +264,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
     );
 
     const showInfo = ref(false);
-    const infoModal = jsx(() => (
+    const infoModal = () => (
         <>
             <button class="button"
                     onClick={() => showInfo.value = true}
@@ -284,7 +283,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 }}
             />
         </>
-    ));
+    );
 
     return {
         timelines,
@@ -294,7 +293,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         depths: activeDepths,
         scoreMultipliers: sidedScoreMulti,
         inTimeline,
-        display: jsx(() => (
+        display: () => (
             <>
                 {render(enterTimeline)}
                 {render(infoModal)}
@@ -312,7 +311,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 <Spacer />
                 Current Score: {format(unref(currentScore))}{render(modifiersModal)}
             </>
-        ))
+        )
     }
 });
 

@@ -1,116 +1,92 @@
-import { GenericDecorator, GenericEffectFeature } from "features/decorators/common";
-import { CoercableComponent, Component, GatherProps, GenericComponent, OptionsFunc, Replace, Visibility, getUniqueID } from "features/feature";
 import { Resource } from "features/resources/resource";
 import Formula, { calculateCost } from "game/formulas/formulas";
 import { FormulaSource } from "game/formulas/types";
 import { Persistent, persistent } from "game/persistence";
-import { Requirements, requirementsMet } from "game/requirements";
+import { displayRequirements, Requirements, requirementsMet } from "game/requirements";
 import Decimal, { DecimalSource } from "lib/break_eternity";
-import { Computable, GetComputableType, GetComputableTypeWithDefault, ProcessedComputable, processComputable } from "util/computed";
 import { createLazyProxy } from "util/proxies";
-import { Ref, computed, unref } from "vue";
+import { MaybeRef, MaybeRefOrGetter, Ref, computed, unref } from "vue";
 import ResearchComponent from "../inflaton/Research.vue";
-import { GenericRepeatableResearch } from "./repeatableDecorator";
+import { isJSXElement, Renderable, VueFeature, vueFeatureMixin, VueFeatureOptions } from "util/vue";
+import { Visibility } from "features/feature";
+import { processGetter } from "util/computed";
 
 export const ResearchType = Symbol("Research");
 
-export interface ResearchOptions {
-    visibility?: Computable<Visibility | boolean>;
-    prerequisites?: GenericResearch[];
+export interface ResearchOptions extends VueFeatureOptions {
+    prerequisites?: Research[];
     requirements: Requirements;
-    display: Computable<CoercableComponent
+    display: MaybeRefOrGetter<Renderable>
         | {
-            title: CoercableComponent;
-            description: CoercableComponent;
-            effect?: CoercableComponent;
-        }
-    >;
-    canResearch?: Computable<boolean>;
+            title: MaybeRefOrGetter<Renderable>;
+            description: MaybeRefOrGetter<Renderable>;
+            effect?: MaybeRefOrGetter<Renderable>;
+    };
+    canResearch?: MaybeRefOrGetter<boolean>;
     onResearch?: VoidFunction;
     research: (force: boolean) => void;
     isResearching: () => boolean;
 }
 
-export interface BaseResearch {
-    id: string;
+export interface Research extends VueFeature {
+    prerequisites?: Research[];
+    requirements: Requirements;
+    display: MaybeRef<Renderable>;
+    canResearch: MaybeRef<boolean>;
     progress: Persistent<DecimalSource>;
     progressPercentage: Ref<DecimalSource>;
     researched: Ref<boolean>;
     research: (force: boolean) => void;
-    isResearching: Computable<boolean>;
-    type: typeof ResearchType;
-    [Component]: GenericComponent;
-    [GatherProps]: () => Record<string, unknown>;
+    isResearching: MaybeRef<boolean>;
 }
 
-export type Research<T extends ResearchOptions> = Replace<
-    T & BaseResearch,
-    {
-        visibility: GetComputableTypeWithDefault<T["visibility"], Visibility.Visible>;
-        display: GetComputableType<T["display"]>;
-        isResearching: GetComputableType<T["isResearching"]>;
-    }
->;
-
-export type GenericResearch = Replace<
-    Research<ResearchOptions>,
-    {
-        visibility: ProcessedComputable<Visibility | boolean>;
-        isResearching: ProcessedComputable<boolean>;
-    }
->;
-
 export function createResearch<T extends ResearchOptions>(
-    optionsFunc: OptionsFunc<T, BaseResearch, GenericResearch>,
-    ...decorators: GenericDecorator[]
-): Research<T> {
+    optionsFunc: () => T
+) {
     const progress = persistent<DecimalSource>(0);
-    const decoratedData = decorators.reduce((current, next) => Object.assign(current, next.getPersistentData?.()), {});
-    return createLazyProxy<Research<T>, Research<T>>(feature => {
-        const research = optionsFunc.call(feature, feature);
+    return createLazyProxy(() => {
+        const options = optionsFunc();
+        const {
+            visibility: _visibility,
+            canResearch: _canResearch,
+            prerequisites,
+            requirements,
+            display: _display,
+            isResearching: _isResearching,
+            research: _research,
+            ...props
+        } = options;
 
-        research.id = getUniqueID("research-");
-        research.type = ResearchType;
-        research[Component] = ResearchComponent as GenericComponent;
-
-        for (const decorator of decorators) {
-            decorator.preConstruct?.(research);
-        }
-
-        research.progress = progress;
-        Object.assign(research, decoratedData);
-
-        processComputable(research as T, "canResearch");
-        const canResearch = research.canResearch;
-        research.canResearch = computed(() => {
-            if (canResearch != null) {
-                if (!unref(canResearch)) {
+        const canResearch = computed(() => {
+            if (_canResearch != null) {
+                if (!unref(_canResearch)) {
                     return false;
                 }
             }
-            return research.prerequisites?.every(research => unref(research.researched)) ?? true;
-        });
+            return prerequisites?.every(research => unref(research.researched)) ?? true;
+        })
+        
+        const visibility = (() => {
+            const processedVisibility = processGetter(_visibility);
+            const visibility = computed(() => {
+                if (unref(researched)) return Visibility.Visible;
+                if (prerequisites?.every(research => unref(research.researched) || unref(canResearch)) ?? true) {
+                    return unref(processedVisibility) ?? Visibility.Visible;
+                }
+                return Visibility.None;
+            });
+            return visibility;
+        })();
 
-        processComputable(research as T, "visibility");
-        const visibility = research.visibility as ProcessedComputable<Visibility>;
-        research.visibility = computed(() => {
-            if (unref(research.researched)) return Visibility.Visible;
-            if (research.prerequisites?.every(research => unref(research.researched) || unref(research.canResearch)) ?? true) {
-                return unref(visibility) ?? Visibility.Visible;
-            }
-            return Visibility.None;
-        });
+        const researched = computed(() => requirementsMet(requirements));
 
-        processComputable(research as T, "display");
-        processComputable(research as T, "isResearching");
-
-        research.progressPercentage = computed(() => {
-            if (Array.isArray(research.requirements)) {
+        const progressPercentage = computed(() => {
+            if (Array.isArray(requirements)) {
                 let cost = Decimal.dZero;
                 let current = Decimal.dZero;
-                for (const requirement of research.requirements) {
+                for (const requirement of requirements) {
                     if (!('cost' in requirement && 'resource' in requirement)) continue;
-                    const reqCost = requirement.cost as Formula<[FormulaSource] | FormulaSource[]> | ProcessedComputable<DecimalSource>
+                    const reqCost = requirement.cost as Formula<[FormulaSource] | FormulaSource[]> | MaybeRef<DecimalSource>
                     const reqResource = requirement.resource as Resource<DecimalSource>;
                     cost = cost.plus(reqCost instanceof Formula
                         ? calculateCost(reqCost, 1, false, 0)
@@ -121,53 +97,65 @@ export function createResearch<T extends ResearchOptions>(
                 return cost.gte(0) ? cost.div(current) : 0;
             }
             else {
-                if (!('cost' in research.requirements && 'resource' in research.requirements)) return 0;
-                const cost = research.requirements.cost as Formula<[FormulaSource] | FormulaSource[]> | ProcessedComputable<DecimalSource>;
-                const resource = research.requirements.resource as Resource<DecimalSource>;
+                if (!('cost' in requirements && 'resource' in requirements)) return 0;
+                const cost = requirements.cost as Formula<[FormulaSource] | FormulaSource[]> | MaybeRef<DecimalSource>;
+                const resource = requirements.resource as Resource<DecimalSource>;
                 return Decimal.div(unref(resource), (cost instanceof Formula ? calculateCost(cost, 1, false, 0) : unref(cost)));
             }
-        })
-        research.researched = computed(() => requirementsMet(research.requirements));
+        });
 
-        for (const decorator of decorators) {
-            decorator.postConstruct?.(research);
+        const display = (() => {
+            const processedDisplay = processGetter(_display);
+            return computed(() => {
+                const currentDisplay = unref(processedDisplay);
+                if (isJSXElement(currentDisplay)) return currentDisplay;
+                if (typeof currentDisplay === 'string') return currentDisplay;
+
+                const Title = <h3>{currentDisplay.title}</h3>
+                const Description = <>{currentDisplay.description}</>;
+                const Effect = <>{currentDisplay.effect}</>;
+                return <>
+                    <span>{ Title }</span>
+                    <span>{ Description }</span>
+                    { currentDisplay.effect ? <span>Currently: { Effect }</span> : undefined }
+                    { displayRequirements(requirements) }
+                </>
+            });
+        })();
+
+        const isResearching = processGetter(_isResearching);
+
+        const research = {
+            ...props,
+            progress,
+            canResearch,
+            progressPercentage,
+            isResearching,
+            researched,
+            requirements,
+            display,
+            research: _research,
+            ...vueFeatureMixin("research", {
+                ...options,
+                visibility
+            }, () => <ResearchComponent
+                visibility={visibility}
+                display={unref(display)}
+                id={research.id}
+                requirements={requirements}
+                canResearch={canResearch}
+                isResearching={isResearching}
+                progress={progress}
+                progressPercentage={progressPercentage}
+                research={_research}
+                researched={researched}
+            />)
         }
 
-        const decoratedProps = decorators.reduce((current, next) => Object.assign(current, next.getGatheredProps?.(research)), {});
-        research[GatherProps] = function (this: GenericResearch) {
-            const {
-                visibility,
-                display,
-                id,
-                requirements,
-                canResearch,
-                research,
-                isResearching,
-                progress,
-                progressPercentage,
-                researched
-            } = this;
-            return {
-                visibility,
-                display,
-                id,
-                requirements,
-                canResearch,
-                research,
-                isResearching,
-                progress,
-                progressPercentage,
-                researched,
-                ...decoratedProps
-            }
-        }
-
-        return research as Research<T>;
+        return research;
     })
 }
 
-export type EffectResearch<T = unknown> = GenericResearch & GenericEffectFeature<T>;
-
-export function getResearchEffect<T = unknown>(research: EffectResearch<T> | GenericRepeatableResearch<T>, defaultValue: T): T {
+export function getResearchEffect<T = unknown>(research: Research & { effect: MaybeRef<T> }, defaultValue: T): T {
     return unref(research.researched) ? unref(research.effect) : defaultValue;
 }

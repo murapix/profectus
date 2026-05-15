@@ -1,23 +1,20 @@
 import Spacer from "components/layout/Spacer.vue";
-import { root } from "data/projEntry";
+import { inAbyss, root } from "data/projEntry";
 import { createClickable } from "features/clickables/clickable";
-import { effectDecorator } from "features/decorators/common";
-import { jsx } from "features/feature";
 import { createHotkey } from "features/hotkey";
 import MainDisplay from "features/resources/MainDisplay.vue";
 import { Resource, createResource } from "features/resources/resource";
 import { createTab } from "features/tabs/tab";
 import { createTabFamily } from "features/tabs/tabFamily";
-import { EffectUpgrade, EffectUpgradeOptions, createUpgrade } from "features/upgrades/upgrade";
-import { BaseLayer, createLayer } from "game/layers";
+import { createLayer } from "game/layers";
 import { createMultiplicativeModifier, createSequentialModifier } from "game/modifiers";
 import { noPersist, persistent } from "game/persistence";
 import { createCostRequirement, displayRequirements, requirementsMet } from "game/requirements";
 import Decimal, { DecimalSource } from "lib/break_eternity";
 import { formatSmall, formatWhole } from "util/break_eternity";
 import { createModifierModal } from "util/util";
-import { render, renderRow } from "util/vue";
-import { ComputedRef, Ref, computed, unref } from "vue";
+import { render, Renderable, renderRow } from "util/vue";
+import { ComputedRef, Ref, computed, nextTick, unref } from "vue";
 import acceleron, { id as acceleronId } from "../acceleron/acceleron";
 import entangled from "../entangled/entangled";
 import fome, { FomeTypes } from "../fome/fome";
@@ -28,10 +25,11 @@ import buildings from "./buildings";
 import core from "./coreResearch";
 import { formatRoman } from "./repeatableDecorator";
 import { getResearchEffect } from "./research";
-import abyss from "../skyrmion/abyss";
+import { createUpgrade } from "features/clickables/upgrade";
+import { effectMixin } from "mixins/effects";
 
 export const id = "inflaton";
-const layer = createLayer(id, function (this: BaseLayer) {
+const layer = createLayer(id, () => {
     const name = "Inflatons";
     const theme = {
         "--feature-background": "#ff5e13",
@@ -53,13 +51,13 @@ const layer = createLayer(id, function (this: BaseLayer) {
     }));
     const conversion = createClickable(() => ({
         canClick: () => requirementsMet(requirement),
-        display: jsx(() => (
+        display: () => (
             <>
                 1 {unref(inflatons.singularName)}<br />
                 <br />
                 {displayRequirements(requirement)}
             </>
-        )),
+        ),
         onClick() {
             inflatons.value = Decimal.dOne;
             if (unref(entangled.milestones[1].earned)) return;
@@ -74,7 +72,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
     }));
 
     const inflate = createClickable(() => ({
-        display: jsx(() => unref(inflating) ? <>DISPERSE</> : <>INFLATE</>),
+        display: () => unref(inflating) ? <>DISPERSE</> : <>INFLATE</>,
         onClick() {
             if (unref(inflating)) endInflation();
             else startInflation();
@@ -106,7 +104,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
     const allFomeNerf = computed(() => unref(inflatonNerf).dividedBy(getResearchEffect(core.research.fomeGain, 1))
                                                           .dividedBy(getResearchEffect(core.research.moreFomeGain, 1))
                                                           .dividedBy(getResearchEffect(core.research.evenMoreFomeGain, 1))
-                                                          .dividedBy(getResearchEffect(core.repeatables.fome, 1))
+                                                          .dividedBy(getResearchEffect<DecimalSource>(core.repeatables.fome, 1))
                                                           .clampMin(1)
     );
     const skyrmionNerf = computed(() => {
@@ -137,22 +135,22 @@ const layer = createLayer(id, function (this: BaseLayer) {
         createMultiplicativeModifier(() => ({
             multiplier: core.research.fomeGain.effect,
             enabled: core.research.fomeGain.researched,
-            description: jsx(() => <>[{name}] Counter-Inflational Cycles</>)
+            description: () => <>[{name}] Counter-Inflational Cycles</>
         })),
         createMultiplicativeModifier(() => ({
             multiplier: core.research.moreFomeGain.effect,
             enabled: core.research.moreFomeGain.researched,
-            description: jsx(() => <>[{name}] Scatter-Field Repulsion</>)
+            description: () => <>[{name}] Scatter-Field Repulsion</>
         })),
         createMultiplicativeModifier(() => ({
             multiplier: core.research.evenMoreFomeGain.effect,
             enabled: core.research.evenMoreFomeGain.researched,
-            description: jsx(() => <>[{name}] Scalar Flux Reduction</>)
+            description: () => <>[{name}] Scalar Flux Reduction</>
         })),
         createMultiplicativeModifier(() => ({
             multiplier: core.repeatables.fome.effect,
             enabled: () => Decimal.gt(unref(core.repeatables.fome.amount), 0),
-            description: jsx(() => <>[{name}] Repeatable: Inflational Dynamics {formatRoman(unref(core.repeatables.fome.amount))}</>)
+            description: () => <>[{name}] Repeatable: Inflational Dynamics {formatRoman(unref(core.repeatables.fome.amount))}</>
         }))
     ]);
     const fomeBonus = computed(() => {
@@ -171,11 +169,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 description: '<br />Allow the creation of Subspatial Structures<br />'
             },
             requirements: createCostRequirement(() => ({
-                cost: () => entangled.isFirstBranch(id) ? 5e5 : 1e59,
+                cost: (): number => entangled.isFirstBranch(id) ? 5e5 : 1e59,
                 resource: fome[FomeTypes.quantum].amount
             })),
-            visibility() {
-                if (unref(this.bought)) return true;
+            visibility(): boolean {
+                if (unref(subspaceBuildings.bought)) return true;
                 if (unref(entangled.milestones[1].earned)) return true;
                 if (unref(entangled.branchOrder) === '' || entangled.isFirstBranch(id)) {
                     return Decimal.gte(unref(buildings.maxSize), 6);
@@ -192,14 +190,14 @@ const layer = createLayer(id, function (this: BaseLayer) {
                 description: `<br />Stabilization isn't enough. Maybe the constant bubbling of the quantum field may hold the secret to sustaining inflation<br />`
             },
             requirements: createCostRequirement(() => ({
-                cost: () => entangled.isFirstBranch(id) ? 1e6 : 2e59,
+                cost: (): number => entangled.isFirstBranch(id) ? 1e6 : 2e59,
                 resource: fome[FomeTypes.quantum].amount
             })),
-            visibility() {
-                if (unref(this.bought)) return true;
+            visibility(): boolean {
+                if (unref(research.bought)) return true;
                 if (unref(entangled.milestones[1].earned)) return true;
                 if (!unref(subspaceBuildings.bought)) return false;
-                if ((unref(entangled.branchOrder) === '' || entangled.isFirstBranch(id)) && !unref(abyss.challenge.active)) {
+                if ((unref(entangled.branchOrder) === '' || entangled.isFirstBranch(id)) && !unref(inAbyss)) {
                     return Decimal.gte(unref(buildings.maxSize), 6.3);
                 }
                 else {
@@ -208,32 +206,32 @@ const layer = createLayer(id, function (this: BaseLayer) {
             },
             style: { width: '250px' }
         }));
-        const moreFome = createUpgrade<EffectUpgradeOptions<DecimalSource>>(() => ({
+        const moreFome = createUpgrade(() => ({
             display: {
                 title: 'Dynamic Inflational Formation',
                 description: `<br />Generate more Foam based on the size of your universe<br />`
             },
             requirements: createCostRequirement(() => ({
-                cost: () => entangled.isFirstBranch(id) ? 1e18 : 1e61,
+                cost: (): number => entangled.isFirstBranch(id) ? 1e18 : 1e61,
                 resource: fome[FomeTypes.quantum].amount
             })),
-            visibility() {
-                return unref(this.bought) || unref(core.research.upgrades.researched);
+            visibility(): boolean {
+                return unref(moreFome.bought) || unref(core.research.upgrades.researched);
             },
-            effect: noPersist(buildings.maxSize),
+            ...effectMixin((): DecimalSource => unref(buildings.maxSize)),
             style: { width: '250px' }
-        }), effectDecorator) as EffectUpgrade<DecimalSource>;
+        }));
         const skyrmionUpgrades = createUpgrade(() => ({
             display: {
                 title: 'Micro-Inflational Subsystems',
                 description: `<br />Gain a new Pion and Spinor Upgrade<br />`
             },
             requirements: createCostRequirement(() => ({
-                cost: () => entangled.isFirstBranch(id) ? 1e20 : 1e63,
+                cost: (): number => entangled.isFirstBranch(id) ? 1e20 : 1e63,
                 resource: fome[FomeTypes.quantum].amount
             })),
-            visibility() {
-                return unref(this.bought) || unref(core.research.upgrades.researched);
+            visibility(): boolean {
+                return unref(skyrmionUpgrades.bought) || unref(core.research.upgrades.researched);
             },
             style: { width: '250px' }
         }));
@@ -246,7 +244,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
     })();
 
     
-    this.on("preUpdate", () => {
+    layer.on("preUpdate", () => {
         if (!unref(inflating)) return;
 
         for (const [resource, nerf] of [
@@ -270,7 +268,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             endInflation();
         }
     });
-    this.on("postUpdate", diff => {
+    layer.on("postUpdate", (diff: number) => {
         let shouldInflate = false;
         if (unref(inflating)) shouldInflate = true;
         if (unref(core.research.autofillStorage.researched) && Decimal.lt(unref(inflatons), unref(buildings.buildings.storage.effect))) shouldInflate = true;
@@ -295,13 +293,13 @@ const layer = createLayer(id, function (this: BaseLayer) {
     const fomeModifierModal = createModifierModal(
         () => `${unref(inflatons.singularName)} Resonance`,
         () => [{
-            title: () => `Maximum Potential ${unref(abyss.challenge.active) ? 'Abyssal ' : ''}Foam Gain`,
+            title: () => `Maximum Potential ${unref(inAbyss) ? 'Abyssal ' : ''}Foam Gain`,
             modifier: fomeModifiers
         }],
         "12px"
     );
 
-    const header = jsx(() => (<>
+    const header = () => (<>
         <MainDisplay resource={inflatons} stickyStyle={{background: 'unset'}} />
         <div style={{marginTop: '-20px', fontSize: '12px'}}>
             {unref(inflating)
@@ -319,7 +317,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             ? <div>
                 You have managed to stabilize the universe at a diameter of {formatLength(unref(buildings.maxSize))}
                 {unref(inflating) && Decimal.lt(unref(buildings.currentSize), unref(buildings.maxSize)) ? <> ({formatLength(unref(buildings.currentSize))})</> : undefined}
-                {unref(abyss.challenge.active)
+                {unref(inAbyss)
                     ? <><br/>The thin boundaries of this reality are causing Foam gain to be reduced to {formatSmall(Decimal.add(unref(buildings.maxSize), 1).reciprocate().times(100))}%</>
                     : undefined
                 }
@@ -327,12 +325,12 @@ const layer = createLayer(id, function (this: BaseLayer) {
             : undefined
         }
         <Spacer />
-    </>));
+    </>);
     const tabs = createTabFamily(({
         buildings: () => ({
             display: "Structures",
             tab: createTab(() => ({
-                display: jsx(() => (
+                display: (): Renderable => (
                     <>
                         {render(header)}
                         {Decimal.gt(unref(inflatons), 0)
@@ -344,18 +342,18 @@ const layer = createLayer(id, function (this: BaseLayer) {
                             : undefined
                         }
                     </>
-                ))
+                )
             }))
         }),
         research: () => ({
             display: "Research",
             tab: createTab(() => ({
-                display: jsx(() => (
+                display: (): Renderable => (
                     <>
                         {render(header)}
                         {render(core.display)}
                     </>
-                ))
+                )
             }))
         })
     }))
@@ -371,14 +369,14 @@ const layer = createLayer(id, function (this: BaseLayer) {
         upgrades,
         hotkeys,
         tabs,
-        display: jsx(() => (
+        display: () => (
             <>
                 {unref(upgrades.research.bought)
                     ? render(tabs)
                     : render(unref(tabs.tabs.buildings.tab))
                 }
             </>
-        )),
+        ),
 
         buildings,
         coreResearch: core

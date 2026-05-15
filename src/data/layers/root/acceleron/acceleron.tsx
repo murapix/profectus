@@ -1,10 +1,8 @@
 import Spacer from "components/layout/Spacer.vue";
 import { createResetButton } from "data/common";
-import { root } from "data/projEntry";
-import { BaseAchievement, createAchievement } from "features/achievements/achievement";
+import { inAbyss, root } from "data/projEntry";
+import { Achievement, createAchievement } from "features/achievements/achievement";
 import { createCumulativeConversion } from "features/conversion";
-import { effectDecorator } from "features/decorators/common";
-import { StyleValue, jsx } from "features/feature";
 import { createHotkey } from "features/hotkey";
 import { createReset } from "features/reset";
 import MainDisplay from "features/resources/MainDisplay.vue";
@@ -12,30 +10,30 @@ import NamedResource from "features/resources/NamedResource.vue";
 import { createResource, trackBest, trackTotal } from "features/resources/resource";
 import { createTab } from "features/tabs/tab";
 import { createTabFamily } from "features/tabs/tabFamily";
-import { addTooltip } from "features/tooltips/tooltip";
-import { EffectUpgrade, EffectUpgradeOptions, GenericUpgrade, createUpgrade, getUpgradeEffect } from "features/upgrades/upgrade";
-import { BaseLayer, createLayer } from "game/layers";
+import { createLayer } from "game/layers";
 import { createMultiplicativeModifier, createSequentialModifier } from "game/modifiers";
 import { noPersist, persistent } from "game/persistence";
 import { createCostRequirement, displayRequirements } from "game/requirements";
 import Decimal, { DecimalSource } from "lib/break_eternity";
 import { format, formatTime, formatWhole } from "util/break_eternity";
 import { createModifierModal } from "util/util";
-import { render, renderRow } from "util/vue";
-import { ComputedRef, Ref, computed, nextTick, unref } from "vue";
-import UpgradeRing from "../acceleron/UpgradeRing.vue";
+import { render, Renderable, renderRow } from "util/vue";
+import { CSSProperties, ComputedRef, Ref, StyleValue, computed, nextTick, unref } from "vue";
+import UpgradeRing from "./upgradeRing/UpgradeRing.vue";
 import entangled from "../entangled/entangled";
 import fome, { FomeTypes } from "../fome/fome";
 import inflaton, { id as inflatonId } from "../inflaton/inflaton";
 import skyrmion from "../skyrmion/skyrmion";
 import timecube from "../timecube/timecube";
 import { Sides } from "../timecube/timesquares";
-import entropy from "./entropy";
-import loops from "./loops";
-import abyss from "../skyrmion/abyss";
+import entropy from "./enhancements/entropy";
+import loops from "./loops/loops";
+import { addTooltip } from "wrappers/tooltips/tooltip";
+import { createUpgrade, getUpgradeEffect } from "features/clickables/upgrade";
+import { effectMixin } from "mixins/effects";
 
 export const id = "acceleron";
-const layer = createLayer(id, function (this: BaseLayer) {
+const layer = createLayer(id, () => {
     const name = "Accelerons";
     const theme = {
         "--feature-background": "#0f52ba"
@@ -56,37 +54,37 @@ const layer = createLayer(id, function (this: BaseLayer) {
         createMultiplicativeModifier(() => ({
             multiplier: upgrades.translation.effect,
             enabled: noPersist(upgrades.translation.bought),
-            description: jsx(() => <>[{name}] Quantum Translation</>)
+            description: () => <>[{name}] Quantum Translation</>
         })),
         createMultiplicativeModifier(() => ({
             multiplier: upgrades.fluctuation.effect,
             enabled: noPersist(upgrades.fluctuation.bought),
-            description: jsx(() => <>[{name}] Temporal Fluctuation</>)
+            description: () => <>[{name}] Temporal Fluctuation</>
         })),
         createMultiplicativeModifier(() => ({
             multiplier: loops.averageLoopValues[loops.loops.tempAcceleron.id],
             enabled: noPersist(loops.loops.tempAcceleron.built),
-            description: jsx(() => <>[{name}] Entropic Loop #5</>)
+            description: () => <>[{name}] Entropic Loop #5</>
         })),
         createMultiplicativeModifier(() => ({
-            multiplier: entropy.enhancements.contraction.effect,
+            multiplier: entropy.enhancements.contraction.effect!,
             enabled: noPersist(entropy.enhancements.contraction.bought),
-            description: jsx(() => <>[{entropy.name}] Entropic Contraction</>)
+            description: () => <>[{entropy.name}] Entropic Contraction</>
         })),
         createMultiplicativeModifier(() => ({
-            multiplier: entropy.enhancements.inversion.effect,
+            multiplier: entropy.enhancements.inversion.effect!,
             enabled: noPersist(entropy.enhancements.inversion.bought),
-            description: jsx(() => <>[{entropy.name}] Entropic Inversion</>)
+            description: () => <>[{entropy.name}] Entropic Inversion</>
         })),
         createMultiplicativeModifier(() => ({
-            multiplier: entropy.enhancements.rotation.effect,
+            multiplier: entropy.enhancements.rotation.effect!,
             enabled: noPersist(entropy.enhancements.rotation.bought),
-            description: jsx(() => <>[{entropy.name}] Entropic Rotation</>)
+            description: () => <>[{entropy.name}] Entropic Rotation</>
         }))
     ]);
     const conversion = createCumulativeConversion(() => ({
-        formula: fome => fome.dividedBy(computed(() => (unref(entangled.branchOrder) === '' || entangled.isFirstBranch(id)) ? 1e9 : 1e71))
-                             .pow(computed(() => (unref(entangled.branchOrder) === '' || entangled.isFirstBranch(id)) && !unref(abyss.challenge.active) ? 0.1 : 0.05))
+        formula: fome => fome.dividedBy(computed((): number => (unref(entangled.branchOrder) === '' || entangled.isFirstBranch(id)) ? 1e9 : 1e71))
+                             .pow(computed((): number => (unref(entangled.branchOrder) === '' || entangled.isFirstBranch(id)) && !unref(inAbyss) ? 0.1 : 0.05))
                              .times(computed(() => acceleronGainModifiers.apply(1))),
         baseResource: noPersist(fome[FomeTypes.quantum].amount),
         gainResource: noPersist(accelerons),
@@ -155,45 +153,45 @@ const layer = createLayer(id, function (this: BaseLayer) {
     });
     const timeModifiers = createSequentialModifier(() => [
         createMultiplicativeModifier(() => ({
-            multiplier: () => Decimal.sqr(unref(upgrades.fluctuation.effect)).reciprocate(),
-            enabled: noPersist(abyss.challenge.active),
-            description: jsx(() => <>[{name}] Abyssal Interference</>)
+            multiplier: () => Decimal.sqr(unref(upgrades.fluctuation.effect!)).reciprocate(),
+            enabled: inAbyss,
+            description: () => <>[{name}] Abyssal Interference</>
         })),
         createMultiplicativeModifier(() => ({
-            multiplier: (timecube.upgrades.time as EffectUpgrade<DecimalSource>).effect,
+            multiplier: timecube.upgrades.time.effect,
             enabled: noPersist(timecube.upgrades.time.bought),
-            description: jsx(() => <>[{timecube.name}] Time</>)
+            description: () => <>[{timecube.name}] Time</>
         })),
         createMultiplicativeModifier(() => ({
-            multiplier: entropy.enhancements.dilation.effect,
+            multiplier: entropy.enhancements.dilation.effect!,
             enabled: noPersist(entropy.enhancements.dilation.bought),
-            description: jsx(() => <>[{name}] Entropic Dilation</>)
+            description: () => <>[{name}] Entropic Dilation</>
         })),
         createMultiplicativeModifier(() => ({
             multiplier: timecube.getTimesquareEffect(Sides.BACK),
             enabled: () => Decimal.gt(unref(timecube.timesquares.squares[Sides.BACK].square.amount), 0),
-            description: jsx(() => <>[{timecube.name}] Back Time Squares ({formatWhole(unref(timecube.timesquares.squares[Sides.BACK].square.amount))})</>)
+            description: () => <>[{timecube.name}] Back Time Squares ({formatWhole(unref(timecube.timesquares.squares[Sides.BACK].square.amount))})</>
         })),
         createMultiplicativeModifier(() => ({
             multiplier: 2,
             enabled: timecube.upgrades.tour.bought,
-            description: jsx(() => <>[{timecube.name}] Tour</>)
+            description: () => <>[{timecube.name}] Tour</>
         })),
         createMultiplicativeModifier(() => ({
             multiplier: () => Decimal.reciprocate(unref(timecube.timelines.nerfs[Sides.BACK])),
             enabled: () => unref(timecube.timelines.depths[Sides.BACK]) > 0,
-            description: jsx(() => <>[{timecube.name}] Active Back Timeline Effect</>)
+            description: () => <>[{timecube.name}] Active Back Timeline Effect</>
         })),
         createMultiplicativeModifier(() => ({
             multiplier: timecube.timelines.buffs[Sides.BACK],
             enabled: () => unref(timecube.timelines.scores[Sides.BACK]).gt(0),
-            description: jsx(() => <>[{timecube.name}] Passive Back Timeline Bonus</>)
+            description: () => <>[{timecube.name}] Passive Back Timeline Bonus</>
         })),
     ]);
     const timeMult: ComputedRef<Decimal> = computed(() => new Decimal(timeModifiers.apply(unref(timeInput))));
 
     const time = persistent<DecimalSource>(0);
-    this.on("preUpdate", (diff) => {
+    layer.on("preUpdate", (diff: number) => {
         if (!unref(loops.isBuilding)) time.value = Decimal.add(unref(time), diff);
     });
 
@@ -202,253 +200,254 @@ const layer = createLayer(id, function (this: BaseLayer) {
         fontSize: '48px',
         fontWeight: 'normal'
     } as StyleValue
-    const achievementStyle = (feature: BaseAchievement) => computed(() => ({
+    const achievementStyle = (feature: Achievement) => ({
         background: 'var(--quarter-transparent)',
         border: `solid ${unref(feature.earned) ? 'var(--bought)' : 'var(--feature-background)'} 2px`,
         borderRadius: 0,
         color: unref(feature.earned) ? 'var(--bought)' : 'var(--feature-foreground)',
-    }));
-    const achievements = {
-        protoversal: createAchievement(feature => ({ // keep protoversal fome upgrades and boosts
-            display: jsx(() => <span style={achievementTextStyle}>P</span>),
+    });
+    const achievements = (() => {
+        const protoversal = createAchievement(() => ({ // keep protoversal fome upgrades and boosts
+            display: () => <span style={achievementTextStyle}>P</span>,
             requirements: createCostRequirement(() => ({
                 resource: noPersist(totalAcceleronResource),
                 cost: 1
             })),
             small: true,
-            style: achievementStyle(feature),
+            style: (): CSSProperties => achievementStyle(protoversal),
             tooltip: {
                 requirement: <>1 Acceleron</>,
                 effect: <>Keep Protoversal Boosts and Size Upgrades on Acceleron reset<br />
                           Keep Foam Achievements on Acceleron reset</>
             }
-        })),
-        infinitesimal: createAchievement(feature => ({ // keep infinitesimal fome upgrades and boosts
-            display: jsx(() => <span style={achievementTextStyle}>I</span>),
+        }));
+        const infinitesimal = createAchievement(() => ({ // keep infinitesimal fome upgrades and boosts
+            display: () => <span style={achievementTextStyle}>I</span>,
             requirements: createCostRequirement(() => ({
                 resource: noPersist(totalAcceleronResource),
                 cost: 2
             })),
             small: true,
-            style: achievementStyle(feature),
+            style: (): CSSProperties => achievementStyle(infinitesimal),
             tooltip: {
                 requirement: <NamedResource resource={noPersist(accelerons)} override={2} />,
                 effect: <>Keep Infinitesimal Boosts and Size Upgrades on Acceleron reset</>
             }
-        })),
-        subspatial: createAchievement(feature => ({ // keep subspatial fome upgrades and boosts
-            display: jsx(() => <span style={achievementTextStyle}>Ss</span>),
+        }));
+        const subspatial = createAchievement(() => ({ // keep subspatial fome upgrades and boosts
+            display: () => <span style={achievementTextStyle}>Ss</span>,
             requirements: createCostRequirement(() => ({
                 resource: noPersist(totalAcceleronResource),
                 cost: 3
             })),
             small: true,
-            style: achievementStyle(feature),
+            style: (): CSSProperties => achievementStyle(subspatial),
             tooltip: {
                 requirement: <NamedResource resource={noPersist(accelerons)} override={3} />,
                 effect: <>Keep Subspatial Boosts and Size Upgrades on Acceleron reset</>
             }
-        })),
-        skyrmion: createAchievement(feature => ({ // start with 10 skyrmions
-            display: jsx(() => <span style={achievementTextStyle}>S</span>),
+        }));
+        const skyrmion = createAchievement(() => ({ // start with 10 skyrmions
+            display: () => <span style={achievementTextStyle}>S</span>,
             requirements: createCostRequirement(() => ({
                 resource: noPersist(totalAcceleronResource),
                 cost: 5
             })),
             small: true,
-            style: achievementStyle(feature),
+            style: (): CSSProperties => achievementStyle(skyrmion),
             tooltip: {
                 requirement: <NamedResource resource={noPersist(accelerons)} override={5} />,
                 effect: <>Start with 10 Skyrmions on Acceleron reset</>
             }
-        })),
-        subplanck: createAchievement(feature => ({ // keep subplanck fome upgrades and boosts
-            display: jsx(() => <span style={achievementTextStyle}>Sp</span>),
+        }));
+        const subplanck = createAchievement(() => ({ // keep subplanck fome upgrades and boosts
+            display: () => <span style={achievementTextStyle}>Sp</span>,
             requirements: createCostRequirement(() => ({
                 resource: noPersist(totalAcceleronResource),
                 cost: 10
             })),
             small: true,
-            style: achievementStyle(feature),
+            style: (): CSSProperties => achievementStyle(subplanck),
             tooltip: {
                 requirement: <NamedResource resource={noPersist(accelerons)} override={10} />,
                 effect: <>Keep Subplanck Boosts and Size Upgrades on Acceleron reset</>
             }
-        })),
-        quantum: createAchievement(feature => ({ // keep quantum fome upgrades and boosts
-            display: jsx(() => <span style={achievementTextStyle}>Q</span>),
+        }));
+        const quantum = createAchievement(() => ({ // keep quantum fome upgrades and boosts
+            display: () => <span style={achievementTextStyle}>Q</span>,
             requirements: createCostRequirement(() => ({
                 resource: noPersist(totalAcceleronResource),
                 cost: 25
             })),
             small: true,
-            style: achievementStyle(feature),
+            style: (): CSSProperties => achievementStyle(quantum),
             tooltip: {
                 requirement: <NamedResource resource={noPersist(accelerons)} override={25} />,
                 effect: <>Keep Quantum Boosts and Size Upgrades on Acceleron reset</>
             }
-        }))
-    }
+        }));
+        return { protoversal, infinitesimal, subspatial, skyrmion, subplanck, quantum };
+    })();
     for (const achievement of Object.values(achievements)) {
-        addTooltip(achievement, {
-            display: jsx(() => (<><h3>{achievement.tooltip.requirement}</h3><br />{achievement.tooltip.effect}</>))
-        });
+        addTooltip(achievement, () => ({
+            display: <><h3>{achievement.tooltip.requirement}</h3><br />{achievement.tooltip.effect}</>
+        }));
     }
 
 
     const upgrades = (() => {
-        const acceleration = createUpgrade<EffectUpgradeOptions>(upgrade => ({
-            visibility() { return unref(this.bought) || Decimal.gte(unref(totalAccelerons), 4) || Decimal.gte(unref(entangled.strings), 1) },
-            display: jsx(() => (
+        const acceleration = createUpgrade(() => ({
+            visibility(): boolean { return unref(acceleration.bought) || Decimal.gte(unref(totalAccelerons), 4) || Decimal.gte(unref(entangled.strings), 1) },
+            display: (): Renderable => (
                 <>
                     <h3>Minute Acceleration</h3><br /><br />
                     Time speed massively multiplies Foam generation<br /><br />
-                    Currently: {format(getUpgradeEffect(upgrade as EffectUpgrade, undefined, true))}×<br />
-                    {displayRequirements((upgrade as GenericUpgrade).requirements)}
+                    Currently: {format(getUpgradeEffect(acceleration, undefined, true))}×<br />
+                    {displayRequirements(acceleration.requirements)}
                 </>
-            )),
-            effect() { return unref(timeMult).abs().sqrt().times(1000) },
+            ),
+            ...effectMixin(() => unref(timeMult).abs().sqrt().times(1000) ),
             requirements: createCostRequirement(() => ({
                 cost: 1,
                 resource: noPersist(accelerons)
             }))
-        }), effectDecorator) as EffectUpgrade<Decimal>;
-        const translation = createUpgrade<EffectUpgradeOptions>(upgrade => ({
-            visibility() { return unref(this.bought) || unref(acceleration.bought) },
-            display: jsx(() => (
+        }));
+        const translation = createUpgrade(() => ({
+            visibility(): boolean { return unref(translation.bought) || unref(acceleration.bought) },
+            display: (): Renderable => (
                 <>
                     <h3>Quantum Translation</h3><br /><br />
                     Acceleron gain is multiplied based on the number of Foam re-formations<br /><br />
-                    Currently: {format(getUpgradeEffect(upgrade as EffectUpgrade, undefined, true))}×<br />
-                    {displayRequirements((upgrade as GenericUpgrade).requirements)}
+                    Currently: {format(getUpgradeEffect(translation, undefined, true))}×<br />
+                    {displayRequirements(translation.requirements)}
                 </>
-            )),
-            effect() { return Object.values(FomeTypes).map(fomeType => unref(fome[fomeType].upgrades.reform.amount)).reduce((a: Decimal,b) => a.plus(b), Decimal.dZero).pow(0.75) },
+            ),
+            ...effectMixin(() => Object.values(FomeTypes).map(fomeType => unref(fome[fomeType].upgrades.reform.amount)).reduce((a: Decimal,b) => a.plus(b), Decimal.dZero).pow(0.75) ),
             requirements: createCostRequirement(() => ({
                 cost: 5,
                 resource: noPersist(accelerons)
             }))
-        }), effectDecorator) as EffectUpgrade<Decimal>;
-        const skyrmion = createUpgrade(upgrade => ({
-            visibility() { return unref(this.bought) || unref(acceleration.bought) },
-            display: jsx(() => (
+        }));
+        const skyrmion = createUpgrade(() => ({
+            visibility(): boolean { return unref(skyrmion.bought) || unref(acceleration.bought) },
+            display: (): Renderable => (
                 <>
                     <h3>Superpositional Acceleration</h3><br /><br />
                     Gain a new Pion upgrade<br />
                     Gain a new Spinor upgrade<br /><br />
                     <br />
-                    {displayRequirements((upgrade as GenericUpgrade).requirements)}
+                    {displayRequirements(skyrmion.requirements)}
                 </>
-            )),
+            ),
             requirements: createCostRequirement(() => ({
                 cost: 50,
                 resource: noPersist(accelerons)
             }))
-        })) as GenericUpgrade;
-        const superstructures = createUpgrade(upgrade => ({
-            visibility() { return unref(this.bought) || unref(skyrmion.bought) },
-            display: jsx(() => (
+        }));
+        const superstructures = createUpgrade(() => ({
+            visibility(): boolean { return unref(superstructures.bought) || unref(skyrmion.bought) },
+            display: (): Renderable => (
                 <>
                     <h3>Quasi-temporal Superstructures</h3><br /><br />
                     Consume the past to build the future<br /><br /><br />
                     <br />
-                    {displayRequirements((upgrade as GenericUpgrade).requirements)}
+                    {displayRequirements(superstructures.requirements)}
                 </>
-            )),
+            ),
             requirements: createCostRequirement(() => ({
                 cost: 100,
                 resource: noPersist(accelerons)
             }))
-        })) as GenericUpgrade;
-        const fluctuation = createUpgrade<EffectUpgradeOptions>(upgrade => ({
-            visibility() { return unref(this.bought) || unref(loops.loops.acceleron.built) },
-            display: jsx(() => (
+        }));
+        const fluctuation = createUpgrade(() => ({
+            visibility(): boolean { return unref(fluctuation.bought) || unref(loops.loops.acceleron.built) },
+            display: (): Renderable => (
                 <>
                     <h3>Temporal Fluctuation</h3><br /><br />
                     Acceleron gain is multiplied by the number of completed Entropic Loops<br /><br />
-                    Currently: {formatWhole(getUpgradeEffect(upgrade as EffectUpgrade, undefined, true))}×<br />
-                    {displayRequirements((upgrade as GenericUpgrade).requirements)}
+                    Currently: {formatWhole(getUpgradeEffect(fluctuation, undefined, true))}×<br />
+                    {displayRequirements(fluctuation.requirements)}
                 </>
-            )),
-            effect() { return unref(loops.numBuiltLoops) + 1 },
+            ),
+            ...effectMixin(() => unref(loops.numBuiltLoops) + 1),
             requirements: createCostRequirement(() => ({
                 cost: 250,
                 resource: noPersist(accelerons)
             }))
-        }), effectDecorator) as EffectUpgrade<number>;
-        const expansion = createUpgrade(upgrade => ({
-            visibility() { return unref(this.bought) || unref(loops.loops.instantProd.built) },
-            display: jsx(() => (
+        }));
+        const expansion = createUpgrade(() => ({
+            visibility(): boolean { return unref(expansion.bought) || unref(loops.loops.instantProd.built) },
+            display: (): Renderable => (
                 <>
                     <h3>Unstable Expansion</h3><br /><br />
                     Unlock Entropic Enhancements<br /><br /><br />
                     <br />
-                    {displayRequirements((upgrade as GenericUpgrade).requirements)}
+                    {displayRequirements(expansion.requirements)}
                 </>
-            )),
+            ),
             requirements: createCostRequirement(() => ({
                 cost: 450,
                 resource: noPersist(accelerons)
             }))
-        })) as GenericUpgrade;
-        const conversion = createUpgrade<EffectUpgradeOptions>(upgrade => ({
-            visibility() { return unref(this.bought) || unref(loops.loops.timecube.built) },
-            display: jsx(() => (
+        }));
+        const conversion = createUpgrade(() => ({
+            visibility(): boolean { return unref(conversion.bought) || unref(loops.loops.timecube.built) },
+            display: (): Renderable => (
                 <>
                     <h3>Stability Conversion</h3><br /><br />
                     Each Entropic Loop multiplies Time Cube gain<br /><br />
-                    Currently: {formatWhole(getUpgradeEffect(upgrade as EffectUpgrade, undefined, true))}×<br />
-                    {displayRequirements((upgrade as GenericUpgrade).requirements)}
+                    Currently: {formatWhole(getUpgradeEffect(conversion, undefined, true))}×<br />
+                    {displayRequirements(conversion.requirements)}
                 </>
-            )),
-            effect() { return unref(loops.numBuiltLoops) + 1 },
+            ),
+            ...effectMixin(() => unref(loops.numBuiltLoops) + 1 ),
             requirements: createCostRequirement(() => ({
                 cost: 150000,
                 resource: noPersist(accelerons)
             }))
-        }), effectDecorator) as EffectUpgrade<number>;
-        const alacrity = createUpgrade<EffectUpgradeOptions>(upgrade => ({
-            visibility() { return unref(this.bought) || unref(conversion.bought) },
-            display: jsx(() => (
+        }));
+        const alacrity = createUpgrade(() => ({
+            visibility(): boolean { return unref(alacrity.bought) || unref(conversion.bought) },
+            display: (): Renderable => (
                 <>
                     <h3>Subspatial Alacrity</h3><br /><br />
-                    Increase {unref(fome.subspatial.amount.singularName)} gain by {formatWhole(getUpgradeEffect(upgrade as EffectUpgrade, undefined, true))}×<br /><br />
+                    Increase {unref(fome.subspatial.amount.singularName)} gain by {formatWhole(getUpgradeEffect(alacrity, undefined, true))}×<br /><br />
                     <br />
-                    {displayRequirements((upgrade as GenericUpgrade).requirements)}
+                    {displayRequirements(alacrity.requirements)}
                 </>
-            )),
+            ),
             effect: 1e4,
             requirements: createCostRequirement(() => ({
                 cost: 2e6,
                 resource: noPersist(accelerons)
             }))
-        })) as EffectUpgrade<DecimalSource>;
-        const tetration = createUpgrade(upgrade => ({
-            visibility() { return unref(this.bought) || unref(alacrity.bought) },
-            display: jsx(() => (
+        }));
+        const tetration = createUpgrade(() => ({
+            visibility(): boolean { return unref(tetration.bought) || unref(alacrity.bought) },
+            display: (): Renderable => (
                 <>
                     <h3>Cubic Tetration</h3><br /><br />
                     Remove the ability to Acceleron reset<br />
                     Unlock two additional Entropic Loops<br /><br />
                     <br />
-                    {displayRequirements((upgrade as GenericUpgrade).requirements)}
+                    {displayRequirements(tetration.requirements)}
                 </>
-            )),
+            ),
             requirements: createCostRequirement(() => ({
                 cost: 5e10,
                 resource: noPersist(accelerons)
             }))
-        })) as GenericUpgrade;
-        const mastery = createUpgrade(upgrade => ({
-            visibility() { return unref(this.bought) || unref(tetration.bought) },
-            display: jsx(() => (
+        }));
+        const mastery = createUpgrade(() => ({
+            visibility(): boolean { return unref(mastery.bought) || unref(tetration.bought) },
+            display: (): Renderable => (
                 <>
                     <h3>Temporal Mastery</h3><br /><br />
                     Unlock {(entangled.isFirstBranch(id) || Decimal.gt(unref(entangled.strings), 0)) ? unref(inflaton.inflatons.displayName) : unref(entangled.strings.displayName)}<br /><br /><br />
                     <br />
-                    {displayRequirements((upgrade as GenericUpgrade).requirements)}
+                    {displayRequirements(mastery.requirements)}
                 </>
-            )),
+            ),
             requirements: [
                 createCostRequirement(() => ({
                     cost: 6,
@@ -463,7 +462,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                     resource: noPersist(accelerons)
                 }))
             ]
-        })) as GenericUpgrade;
+        }));
 
         return {
             acceleration, translation, skyrmion, superstructures, fluctuation,
@@ -490,7 +489,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             enabled: () => unref(unlocked) && !unref(upgrades.tetration.bought),
             key: "a",
             description: "Form your Quantum Foam into Accelerons",
-            onPress: resetButton.onClick
+            onPress: resetButton.onClick!
         })),
         switchTab: createHotkey(() => ({
             enabled: unlocked,
@@ -506,27 +505,27 @@ const layer = createLayer(id, function (this: BaseLayer) {
             title: () => `${unref(accelerons.singularName)} Gain`,
             modifier: acceleronGainModifiers,
             base: 1,
-            baseText: jsx(() => <>Base Gain Multiplier</>)
+            baseText: () => <>Base Gain Multiplier</>
         },
         {
             title: "Time Speed",
             modifier: timeModifiers,
             base: timeInput,
-            baseText: jsx(() => <>[{name}] Best Accelerons ({formatWhole(unref(bestAccelerons))})</>)
+            baseText: () => <>[{name}] Best Accelerons ({formatWhole(unref(bestAccelerons))})</>
         }]
     );
 
-    const header = jsx(() => (
+    const header = () => (
         <>
-            <MainDisplay resource={accelerons} effect={jsx(() => <>which are causing time to go {format(unref(timeMult))}× faster{render(modifiersModal)}<br />
-            For every second in real time, <pre style={{display: 'inline'}}>{formatTime(unref(timeMult))}</pre> passes</>)} />
+            <MainDisplay resource={accelerons} effect={() => <>which are causing time to go {format(unref(timeMult))}× faster{render(modifiersModal)}<br />
+            For every second in real time, <pre style={{display: 'inline'}}>{formatTime(unref(timeMult))}</pre> passes</>} />
         </>
-    ));
+    );
     const tabs = createTabFamily({
         loops: () => ({
             display: "Entropic Loops",
             tab: createTab(() => ({
-                display: jsx(() => (
+                display: () => (
                     <>
                         {render(header)}
                         {unref(upgrades.tetration.bought) ? <Spacer height="70px" /> : render(resetButton)}
@@ -538,18 +537,18 @@ const layer = createLayer(id, function (this: BaseLayer) {
                         <Spacer />
                         {renderRow(...Object.values(achievements))}
                     </>
-                ))
+                )
             }))
         }),
         enhancements: () => ({
             display: "Entropic Enhancements",
             tab: createTab(() => ({
-                display: jsx(() => (
+                display: () => (
                     <>
                         {render(header)}
                         {render(entropy.display)}
                     </>
-                ))
+                )
             }))
         })
     })
@@ -567,14 +566,14 @@ const layer = createLayer(id, function (this: BaseLayer) {
         achievements,
         tabs,
         hotkeys,
-        display: jsx(() => (
+        display: () => (
             <>
                 {unref(upgrades.expansion.bought)
                     ? render(tabs)
                     : render(unref(tabs.tabs.loops.tab))
                 }
             </>
-        )),
+        ),
         unlocked,
 
         loops,

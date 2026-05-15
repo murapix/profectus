@@ -1,17 +1,16 @@
 import Spacer from "components/layout/Spacer.vue";
-import { CoercableComponent, Visibility, jsx } from "features/feature";
+import { Visibility } from "features/feature";
 import Resource from "features/resources/Resource.vue";
 import { createResource, displayResource } from "features/resources/resource";
-import { BaseLayer, createLayer } from "game/layers";
+import { createLayer } from "game/layers";
 import { createMultiplicativeModifier, createSequentialModifier } from "game/modifiers";
 import { noPersist } from "game/persistence";
 import { createCostRequirement, requirementsMet } from "game/requirements";
 import Decimal, { DecimalSource } from "lib/break_eternity";
 import { format, formatSmall } from "util/break_eternity";
-import { Computable } from "util/computed";
 import { createModifierModal } from "util/util";
-import { render } from "util/vue";
-import { ComputedRef, computed, unref } from "vue";
+import { render, Renderable } from "util/vue";
+import { ComputedRef, MaybeRefOrGetter, computed, unref } from "vue";
 import acceleron from "../acceleron/acceleron";
 import { getFomeBoost } from "../fome/boost";
 import fome, { FomeTypes } from "../fome/fome";
@@ -23,10 +22,13 @@ import skyrmion from "./skyrmion";
 import spinor from "./spinor";
 import settings from "game/settings";
 import entangled from "../entangled/entangled";
-import loops from "../acceleron/loops";
+import loops from "../acceleron/loops/loops";
+import { JSX } from "vue/jsx-runtime";
+import { MaybeGetter } from "util/computed";
+import { inAbyss } from "data/projEntry";
 
 const id = "pion";
-const layer = createLayer(id, function (this: BaseLayer) {
+const layer = createLayer(id, () => {
     const name = "Pions";
     
     const pions = createResource<DecimalSource>(0, { displayName: name, singularName: "Pion", small: true, abyssal: true });
@@ -35,12 +37,12 @@ const layer = createLayer(id, function (this: BaseLayer) {
         createMultiplicativeModifier(() => ({
             multiplier: spinor.upgrades.gamma.effect,
             enabled: () => Decimal.gt(unref(spinor.upgrades.gamma.totalAmount), 0),
-            description: jsx(() => (<>[{skyrmion.name}] {unref(skyrmion.spinor.spinors.singularName)} Upgrade γ ({format(unref(spinor.upgrades.gamma.totalAmount))})</>))
+            description: () => <>[{skyrmion.name}] {unref(skyrmion.spinor.spinors.singularName)} Upgrade γ ({format(unref(spinor.upgrades.gamma.totalAmount))})</>
         })),
         createMultiplicativeModifier(() => ({
             multiplier: spinor.upgrades.mu.effect,
             enabled: () => Decimal.gt(unref(spinor.upgrades.mu.totalAmount), 0),
-            description: jsx(() => (<>[{skyrmion.name}] {unref(skyrmion.spinor.spinors.singularName)} Upgrade μ ({format(unref(spinor.upgrades.mu.totalAmount))})</>))
+            description: () => <>[{skyrmion.name}] {unref(skyrmion.spinor.spinors.singularName)} Upgrade μ ({format(unref(spinor.upgrades.mu.totalAmount))})</>
         }))
     ]);
     const production = computed(() => productionModifiers.apply(unref(skyrmion.totalSkyrmions).times(0.01)));
@@ -53,13 +55,13 @@ const layer = createLayer(id, function (this: BaseLayer) {
     const upgradeCount = computed(() => Object.values(upgrades).map(upgrade => unref(upgrade.amount)).reduce((a: Decimal, b) => a.plus(b), Decimal.dZero));
     const effectiveUpgradeCount: ComputedRef<Decimal> = computed(() => unref(upgradeCount).minus(getFomeBoost(FomeTypes.subspatial, 2)));
     const costNerf = computed(() => {
-        const amount = unref(abyss.challenge.active) ? unref(abyss.upgradeCount) : unref(spinor.upgradeCount);
+        const amount = unref(inAbyss) ? unref(abyss.upgradeCount) : unref(spinor.upgradeCount);
         const base = amount.times(0.2).times(unref(spinor.upgrades.beta.effect)).plus(1).clampMin(1);
         const exponent = amount.times(0.25).times(getFomeBoost(FomeTypes.quantum, 2)).clampMin(0);
         return base.pow(exponent);
     });
     const nextCostNerf = computed(() => {
-        const amount = unref(abyss.challenge.active) ? unref(abyss.nextUpgradeCount) : unref(spinor.upgradeCount).plus(1);
+        const amount = unref(inAbyss) ? unref(abyss.nextUpgradeCount) : unref(spinor.upgradeCount).plus(1);
         const beta = unref(spinor.upgrades.beta.isHovered) ? unref(spinor.upgrades.beta.nextEffect)! : unref(spinor.upgrades.beta.effect);
         const base = amount.times(0.2).times(beta).plus(1).clampMin(1);
         const exponent = amount.times(0.25).times(getFomeBoost(FomeTypes.quantum, 2)).clampMin(0);
@@ -114,7 +116,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         });
         const delta = createUpgrade({
             visibility: [
-                () => unref(abyss.challenge.active),
+                inAbyss,
                 () => Decimal.gte(unref(entangled.strings), 1),
                 () => unref(entangled.branchOrder) !== '',
                 () => Decimal.gt(unref(fome[FomeTypes.protoversal].boosts[1].total), 0)
@@ -134,7 +136,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         });
         const epsilon = createUpgrade({
             visibility: [
-                () => unref(abyss.challenge.active),
+                inAbyss,
                 () => Decimal.gte(unref(entangled.strings), 1),
                 () => unref(entangled.branchOrder) !== '',
                 () => Decimal.gt(unref(fome[FomeTypes.infinitesimal].upgrades.reform.amount), 0)
@@ -154,7 +156,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         });
         const zeta = createUpgrade({
             visibility: [
-                () => unref(abyss.challenge.active),
+                inAbyss,
                 () => Decimal.gte(unref(entangled.strings), 1),
                 () => unref(entangled.branchOrder) !== '',
                 () => Decimal.gt(unref(fome[FomeTypes.subspatial].upgrades.reform.amount), 0)
@@ -174,7 +176,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         });
         const eta = createUpgrade({
             visibility: [
-                () => unref(abyss.challenge.active),
+                inAbyss,
                 () => Decimal.gte(unref(entangled.strings), 1),
                 () => unref(entangled.branchOrder) !== '',
                 () => Decimal.gt(unref(fome[FomeTypes.protoversal].upgrades.reform.amount), 1)
@@ -195,7 +197,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         });
         const theta = createUpgrade({
             visibility: [
-                () => unref(abyss.challenge.active),
+                inAbyss,
                 () => Decimal.gte(unref(entangled.strings), 1),
                 () => unref(entangled.branchOrder) !== '',
                 () => Decimal.gt(unref(fome[FomeTypes.subplanck].upgrades.reform.amount), 0)
@@ -215,7 +217,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         });
         const iota = createUpgrade({
             visibility: [
-                () => unref(abyss.challenge.active),
+                inAbyss,
                 () => Decimal.gte(unref(entangled.strings), 1),
                 () => unref(entangled.branchOrder) !== '',
                 () => Decimal.gt(unref(fome[FomeTypes.protoversal].upgrades.reform.amount), 2)
@@ -235,7 +237,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         });
         const kappa = createUpgrade({
             visibility: [
-                () => unref(abyss.challenge.active),
+                inAbyss,
                 () => Decimal.gte(unref(entangled.strings), 1),
                 () => unref(entangled.branchOrder) !== '',
                 () => Decimal.gt(unref(fome[FomeTypes.infinitesimal].upgrades.reform.amount), 1)
@@ -255,7 +257,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         });
         const lambda = createUpgrade({
             visibility: [
-                () => unref(abyss.challenge.active),
+                inAbyss,
                 () => Decimal.gte(unref(entangled.strings), 1),
                 () => unref(acceleron.upgrades.skyrmion.bought)
             ],
@@ -273,7 +275,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         });
         const mu = createUpgrade({
             visibility: [
-                () => unref(abyss.challenge.active),
+                inAbyss,
                 () => Decimal.gte(unref(entangled.strings), 1),
                 () => unref(inflaton.upgrades.skyrmionUpgrades.bought)
             ],
@@ -290,7 +292,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             effect: amount => Decimal.clamp(unref(inflaton.inflatons), 1, unref(inflaton.buildings.buildings.storage.effect)).plus(9).log10().log10().times(0.02).plus(1).pow(amount)
         });
         const nu = createUpgrade({
-            visibility: () => unref(abyss.challenge.active) || unref(skyrmion.upgrades.nu.bought),
+            visibility: () => unref(inAbyss) || unref(skyrmion.upgrades.nu.bought),
             cost(amount) {
                 return amount.pow_base(150).times(1e50);
             },
@@ -302,7 +304,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             effect: amount => Decimal.clampMin(unref(pions), 0).plus(1).log10().times(amount).times(0.00025).plus(1)
         });
         const xi = createUpgrade({
-            visibility: () => unref(abyss.challenge.active) || unref(skyrmion.upgrades.xi.bought),
+            visibility: () => unref(inAbyss) || unref(skyrmion.upgrades.xi.bought),
             cost(amount) {
                 return amount.pow_base(135).times(1e50);
             },
@@ -314,7 +316,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             effect: amount => Decimal.pow(0.95, amount)
         });
         const pi = createUpgrade({
-            visibility: () => unref(abyss.challenge.active) || unref(skyrmion.upgrades.pi.bought),
+            visibility: () => unref(inAbyss) || unref(skyrmion.upgrades.pi.bought),
             cost(amount) {
                 return amount.pow_base(160).times(1e50);
             },
@@ -326,7 +328,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             effect: amount => Decimal.times(amount, 0.05).times(unref(acceleron.loops.numBuiltLoops)).plus(1)
         });
         const rho = createUpgrade({
-            visibility: () => unref(abyss.challenge.active) || unref(skyrmion.upgrades.rho.bought),
+            visibility: () => unref(inAbyss) || unref(skyrmion.upgrades.rho.bought),
             cost(amount) {
                 return amount.pow_base(175).times(1e50);
             },
@@ -349,14 +351,14 @@ const layer = createLayer(id, function (this: BaseLayer) {
             title: pions.displayName,
             modifier: productionModifiers,
             base: () => unref(skyrmion.totalSkyrmions).times(0.01),
-            baseText: jsx(() => <>[{skyrmion.name}] Total {unref(skyrmion.skyrmions.displayName)}</>)
+            baseText: () => <>[{skyrmion.name}] Total {unref(skyrmion.skyrmions.displayName)}</>
         }]
     );
 
     const showNext = computed(() => {
         if (!settings.showNextValues) return false;
         if (Object.values(spinor.upgrades).some(upgrade => unref(upgrade.isHovered))) return true;
-        if (!unref(abyss.challenge.active)) return false;
+        if (!unref(inAbyss)) return false;
         return Object.values(upgrades).some(upgrade => unref(upgrade.isHovered));
     });
     return {
@@ -364,7 +366,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         pions,
         upgradeCount: effectiveUpgradeCount,
         upgrades,
-        display: jsx(() => (
+        display: () => (
             <div class="table" style="width: 600px; align-items: flex-end">
                 <div class="col" style="align-items: flex-end">
                     <div>You have <Resource resource={pions} color="var(--feature-background)" tag="h3" includeName={true} /> (+{displayResource(pions, production.value)}/s){render(modifierModal)}</div>
@@ -375,20 +377,20 @@ const layer = createLayer(id, function (this: BaseLayer) {
                     <Pion />
                 </div>
             </div>
-        ))
+        )
     }
 
     interface PionRepeatableData {
-        visibility?: Computable<Visibility | boolean> | Computable<Visibility | boolean>[];
+        visibility?: MaybeRefOrGetter<Visibility | boolean> | MaybeRefOrGetter<Visibility | boolean>[];
         cost(amount: Decimal): Decimal;
-        shouldAutobuy: Computable<boolean>;
+        shouldAutobuy: MaybeRefOrGetter<boolean>;
         display: {
             name: string;
             description: JSX.Element;
-            effect?(effect: DecimalSource, nextEffect?: DecimalSource): CoercableComponent;
+            effect?(effect: DecimalSource, nextEffect?: DecimalSource): Renderable;
         };
         effect?(amount: DecimalSource): DecimalSource;
-        bonusAmount?: Computable<DecimalSource>;
+        bonusAmount?: MaybeRefOrGetter<DecimalSource>;
     }
 
     function createUpgrade(
@@ -409,7 +411,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             }))
         });
         skyrmion.on("update", () => {
-            if (unref(abyss.challenge.active)) {
+            if (unref(inAbyss)) {
                 if (!unref(fome.achievements.abyssalAutobuy.earned)) return;
             }
             if (unref(shouldAutobuy) && requirementsMet(repeatable.requirements)) {

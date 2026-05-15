@@ -1,64 +1,67 @@
 import projInfo from "data/projInfo.json";
-import { BonusAmountFeatureOptions, GenericBonusAmountFeature, bonusAmountDecorator } from "features/decorators/bonusDecorator";
-import { EffectFeatureOptions, GenericEffectFeature, effectDecorator } from "features/decorators/common";
-import { CoercableComponent, OptionsFunc, Visibility, jsx } from "features/feature";
-import { BaseRepeatable, GenericRepeatable, RepeatableOptions, createRepeatable } from "features/repeatable";
+import { Visibility } from "features/feature";
 import { Resource } from "features/resources/resource";
-import { noPersist } from "game/persistence";
+import { noPersist, persistent } from "game/persistence";
 import { createBooleanRequirement, createCostRequirement, displayRequirements } from "game/requirements";
 import Decimal, { DecimalSource } from "lib/break_eternity";
 import { format } from "util/break_eternity";
-import { Computable, ProcessedComputable } from "util/computed";
-import { coerceComponent } from "util/vue";
-import { computed, unref } from "vue";
+import { computed, MaybeRef, MaybeRefOrGetter, Ref, ref, unref } from "vue";
 import { getResearchEffect } from "../inflaton/research";
 import skyrmion from "../skyrmion/skyrmion";
 import buildings from "./buildings";
 import core from "./coreResearch";
 import { createMultiplicativeModifier, createSequentialModifier } from "game/modifiers";
+import { render, Renderable } from "util/vue";
+import { createRepeatable, Repeatable } from "features/clickables/repeatable";
+import { createLazyProxy } from "util/proxies";
 
 export interface BuildingData<T = DecimalSource> {
     effect: (amount: DecimalSource) => T;
     cost: {
-        free?: Computable<boolean>;
+        free?: MaybeRefOrGetter<boolean>;
         resource: Resource<DecimalSource>;
-        multiplier: ProcessedComputable<DecimalSource>;
-        base: ProcessedComputable<DecimalSource>;
+        multiplier: MaybeRef<DecimalSource>;
+        base: MaybeRef<DecimalSource>;
     }
     display: {
-        visibility?: Computable<Visibility | boolean>;
-        title: CoercableComponent;
-        description: CoercableComponent;
-        effect: CoercableComponent;
+        visibility?: MaybeRefOrGetter<Visibility | boolean>;
+        title: Renderable;
+        description: Renderable;
+        effect: MaybeRef<Renderable>;
     },
     size?: DecimalSource;
 }
 
-export interface BuildingOptions<T = DecimalSource> extends RepeatableOptions, EffectFeatureOptions<T>, BonusAmountFeatureOptions {}
-export type GenericBuilding<T = DecimalSource> = GenericRepeatable & GenericEffectFeature<T> & GenericBonusAmountFeature & { size?: DecimalSource };
+export type Building<T = DecimalSource> = Repeatable & {
+    effect: MaybeRef<T>,
+    bonusAmount: MaybeRef<DecimalSource>,
+    totalAmount: Ref<DecimalSource>,
+    size?: DecimalSource
+};
 
 export function createBuilding<T = DecimalSource>(
-    optionsFunc: OptionsFunc<BuildingData<T>, BaseRepeatable, GenericBuilding<T>>
-): GenericBuilding<T> {
-    return createRepeatable<BuildingOptions<T>>(repeatable => {
-        const { effect, cost, display, size } = optionsFunc.call(repeatable, repeatable);
+    optionsFunc: () => BuildingData<T>
+): Building<T> {
+    return createLazyProxy(() => {
+        const options = optionsFunc();
+        const { effect, cost, display, size } = options;
         cost.free ??= core.research.autobuild.researched;
-        return {
-            bonusAmount() { return Decimal.times(unref(this.amount), unref(skyrmion.spinor.upgrades.rho.effect)); },
+
+        const repeatable = createRepeatable(() => ({
             visibility: display.visibility,
             requirements: [
                 createBooleanRequirement(canBuild(size ?? 1)),
                 createCostRequirement(() => ({
-                    cost() {
+                    cost(): Decimal {
                         const multiplier = unref(cost.multiplier);
                         const base = new Decimal(unref(cost.base));
-                        const amount = Decimal.div(unref(repeatable.amount), getResearchEffect(core.repeatables.buildingCost, 1))
+                        const amount = Decimal.div(unref(building.amount), getResearchEffect<DecimalSource>(core.repeatables.buildingCost, 1))
                                               .div(unref(skyrmion.pion.upgrades.rho.effect));
                         const size = unref(buildingSize);
                         if (unref(core.research.autobuild.researched)) {
                             return base.pow(amount).times(multiplier);
                         }
-                        return base.pow(size).minus(1).times(multiplier).times(base.pow(amount)).dividedBy(base.minus(1));
+                        return base.pow(size).minus(1).times(multiplier).times(base.pow(amount)).dividedBy(base.minus(1))
                     },
                     resource: noPersist(cost.resource),
                     requiresPay: () => !unref(cost.free),
@@ -67,32 +70,34 @@ export function createBuilding<T = DecimalSource>(
                     showCurrent: true
                 }))
             ],
-            onClick() {
-                repeatable.amount.value = unref(buildingSize).minus(1).plus(unref(repeatable.amount));
-            },
-            effect() {
-                return effect(effectiveAmount(this as GenericBuilding))
-            },
-            display: jsx(() => {
-                const Title = coerceComponent(display.title, "h3");
-                const Description = coerceComponent(display.description);
-                const Effect = coerceComponent(display.effect);
-                const building = repeatable as GenericBuilding;
+            onClick: () => building.amount.value = unref(buildingSize).minus(1).plus(unref(building.amount)),
+            display: () => {
+                const Title = <h3>{render(display.title)}</h3>;
+                const Description = render(display.description);
+                const Effect = render(unref(display.effect));
                 
                 return <span>
-                    <div><Title /></div>
-                    <Description />
+                    <div>{Title}</div>
+                    {Description}
                     <div><br /><b>Size:</b> {formatLength(Decimal.times(unref(building.amount), building.size ?? 1), 0, projInfo.defaultDigitsShown)}
                         {Decimal.gt(unref(building.bonusAmount), 0) ? <> + {formatLength(Decimal.times(unref(building.bonusAmount), building.size ?? 1), 0, projInfo.defaultDigitsShown)}</> : undefined}
                     </div>
-                    <div><br /><b>Currently:</b> <Effect/></div>
+                    <div><br /><b>Currently:</b> {Effect}</div>
                     <div><br />{displayRequirements(building.requirements)}</div>
                 </span>
-            }),
-            style: buildingStyle,
+            },
+            style: buildingStyle
+        }));
+        const building = {
+            ...repeatable,
+            bonusAmount: computed((): Decimal => Decimal.times(unref(building.amount), unref(skyrmion.spinor.upgrades.rho.effect))),
+            totalAmount: computed((): Decimal => Decimal.add(unref(building.amount), unref(building.bonusAmount))),
+            effect: computed((): T => effect(effectiveAmount(building as Building<T>))),
             size
-        }
-    }, effectDecorator, bonusAmountDecorator) as GenericBuilding<T>;
+        } satisfies Building<T>;
+        
+        return building;
+    });
 }
 
 const buildingStyle = computed(() => ({
@@ -124,7 +129,7 @@ function canBuild(sizeMultiplier: DecimalSource) {
     return computed(() => Decimal.minus(unref(buildings.maxSize), unref(buildings.usedSize)).gte(unref(buildingSize).times(sizeMultiplier)));
 } 
 
-function effectiveAmount(building: GenericBuilding): Decimal {
+function effectiveAmount<T>(building: Building<T>): Decimal {
     return Decimal.times(unref(building.totalAmount), building.size ?? 1)
                   .times(getResearchEffect(core.research.biggerBuildings, { size: 1, effect: 1 }).effect)
                   .times(unref(core.repeatables.buildingSize.effect).effect)

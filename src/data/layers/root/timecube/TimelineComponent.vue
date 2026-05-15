@@ -18,16 +18,16 @@
 <script setup lang="tsx">
 import Decimal, { format } from 'util/break_eternity';
 import { computed, unref } from 'vue';
-import { GenericTimeline } from './timeline';
+import { Timeline } from './timeline';
 import timelines from './timelines';
 
 const props = defineProps<{
-    id: GenericTimeline["id"];
-    sides: GenericTimeline["sides"];
-    active: GenericTimeline["active"];
-    next: GenericTimeline["next"];
-    score: GenericTimeline["score"];
-    onClick: GenericTimeline["onClick"];
+    id: Timeline["id"];
+    sides: Timeline["sides"];
+    active: Timeline["active"];
+    next: Timeline["next"];
+    score: Timeline["score"];
+    onClick: Timeline["onClick"];
 }>();
 
 const sideNames = props.sides.map(side => side[0].toUpperCase() + side.slice(1));

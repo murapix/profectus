@@ -4,7 +4,7 @@ import { Player } from "game/player";
 import Decimal, {  } from "util/bignum";
 import { render } from "util/vue";
 
-import { computed, Ref, StyleValue, unref } from "vue";
+import { computed, ref, Ref, StyleValue, unref } from "vue";
 
 import skyrmion from "./layers/root/skyrmion/skyrmion";
 import fome from "./layers/root/fome/fome";
@@ -22,13 +22,14 @@ import { TabFamily, createTabFamily } from "features/tabs/tabFamily";
 const id = "root";
 type layer = Layer & { unlocked?: Ref<boolean> }
 const rootLayers = [skyrmion, fome, acceleron, timecube, inflaton, entangled] as layer[];
-    
+
+export const inAbyss = ref(false);
 export const root = createLayer(id, () => {
     const tabs: TabFamily = createTabFamily(Object.fromEntries(rootLayers.map(layer => 
         [layer.name, () => ({
             display: layer.name,
             tab: createTab(() => ({
-                style: computed(() => ((unref(abyss.challenge.active) ? abyss.theme : layer.theme) ?? {}) as StyleValue),
+                style: () => ((unref(inAbyss) ? abyss.theme : layer.theme) ?? {}),
                 display: () => (<><div>{render(unref(layer.display))}</div></>)
             })),
             visibility: 'unlocked' in layer ? () => unref(layer.unlocked ?? true) : true

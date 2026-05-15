@@ -1,26 +1,21 @@
 import Spacer from "components/layout/Spacer.vue";
-import { root } from "data/projEntry";
-import { GenericAchievement, createAchievement } from "features/achievements/achievement";
-import { GenericEffectFeature } from "features/decorators/common";
-import { StyleValue, jsx } from "features/feature";
-import { GenericHotkey, createHotkey } from "features/hotkey";
-import { GenericRepeatable } from "features/repeatable";
+import { inAbyss, root } from "data/projEntry";
+import { Achievement, createAchievement } from "features/achievements/achievement";
+import { createHotkey, Hotkey } from "features/hotkey";
 import Resource from "features/resources/Resource.vue";
 import { createTab } from "features/tabs/tab";
 import { createTabFamily } from "features/tabs/tabFamily";
-import { addTooltip } from "features/tooltips/tooltip";
-import { EffectUpgrade, GenericUpgrade, getUpgradeEffect } from "features/upgrades/upgrade";
-import { BaseLayer, createLayer } from "game/layers";
+import { createLayer } from "game/layers";
 import { Modifier, createMultiplicativeModifier } from "game/modifiers";
 import { noPersist } from "game/persistence";
 import { createBooleanRequirement, displayRequirements } from "game/requirements";
 import Decimal, { DecimalSource } from "lib/break_eternity";
 import { format, formatWhole } from "util/break_eternity";
 import { WithRequired } from "util/common";
-import { render, renderRowJSX } from "util/vue";
-import { ComputedRef, Ref, computed, unref } from "vue";
+import { render, Renderable, renderRow } from "util/vue";
+import { CSSProperties, ComputedRef, Ref, computed, unref } from "vue";
 import acceleron, {id as acceleronId} from "../acceleron/acceleron";
-import entropy from "../acceleron/entropy";
+import entropy from "../acceleron/enhancements/entropy";
 import entangled from "../entangled/entangled";
 import Fome from "../fome/Fome.vue";
 import FomeBoost from "../fome/FomeBoost.vue";
@@ -34,8 +29,9 @@ import protoversal from "./protoversal";
 import quantum from "./quantum";
 import subplanck from "./subplanck";
 import subspatial from "./subspatial";
-import abyss from "../skyrmion/abyss";
 import Modal from "components/modals/Modal.vue";
+import { getUpgradeEffect, Upgrade } from "features/clickables/upgrade";
+import { addTooltip } from "wrappers/tooltips/tooltip";
 
 export enum FomeTypes {
     protoversal = "protoversal",
@@ -51,11 +47,6 @@ export enum FomeDims {
     depth = "depth"
 }
 
-export type FomeUpgrade = GenericRepeatable & GenericEffectFeature<DecimalSource>;
-export type FomeUpgrades = Record<FomeDims, FomeUpgrade>
-                         & { condense: GenericUpgrade }
-                         & { reform: FomeUpgrade };
-
 export function onDimRepeatable(type: FomeTypes) {
     const index = layer[type].boosts.index;
     const boost = layer[type].boosts[unref(index)].amount;
@@ -70,7 +61,7 @@ export function getDimDisplay(fomeType: FomeTypes, dim: FomeDims) {
         case FomeDims.width: dimName = "Width"; break;
         case FomeDims.depth: dimName = "Depth"; break;
     }
-    return jsx(() => (
+    return (): Renderable => (
         <>
             <h3>Enlarge {unref(layer[fomeType].amount.displayName)} {dimName} by 1m</h3><br />
             <br />
@@ -78,11 +69,11 @@ export function getDimDisplay(fomeType: FomeTypes, dim: FomeDims) {
             <br />
             {displayRequirements(layer[fomeType].upgrades[dim].requirements)}
         </>
-    ));
+    );
 }
 
 export function getReformDisplay(fomeType: FomeTypes) {
-    return jsx(() => (
+    return (): Renderable => (
         <>
             <h3>Re-form your {unref(layer[fomeType].amount.displayName)}</h3><br />
             <br />
@@ -90,18 +81,18 @@ export function getReformDisplay(fomeType: FomeTypes) {
             <br />
             {displayRequirements(layer[fomeType].upgrades.reform.requirements)}
         </>
-    ));
+    );
 }
 
 const id = "fome";
-const layer = createLayer(id, function (this: BaseLayer) {
+const layer = createLayer(id, () => {
     const name = "Quantum Foam";
     const theme = {
         "--feature-background": "#ffffff",
         "--bought": "#929aa9"
     };
 
-    const unlocked: Ref<boolean> = computed(() => unref(entangled.milestones[1].earned) || unref(skyrmion.upgrades.fome.bought));
+    const unlocked = computed((): boolean => unref(entangled.milestones[1].earned) || unref(skyrmion.upgrades.fome.bought));
 
     const highestFome = computed(() => {
         if (Decimal.gt(unref(quantum.upgrades.reform.amount), 0)) return FomeTypes.quantum;
@@ -114,48 +105,48 @@ const layer = createLayer(id, function (this: BaseLayer) {
     const generalProductionModifiers: WithRequired<Modifier, "description">[] = [
         createMultiplicativeModifier(() => ({
             multiplier: () => Decimal.add(unref(inflaton.buildings.maxSize), 1).reciprocate(),
-            enabled: noPersist(abyss.challenge.active),
-            description: jsx(() => (<>[{inflaton.name}] Abyssal Dispersion</>))
+            enabled: inAbyss,
+            description: () => <>[{inflaton.name}] Abyssal Dispersion</>
         })),
         createMultiplicativeModifier(() => ({
             multiplier: skyrmion.spinor.upgrades.eta.effect,
             enabled: () => Decimal.gt(unref(skyrmion.spinor.upgrades.eta.totalAmount), 0),
-            description: jsx(() => (<>[{skyrmion.name}] {unref(skyrmion.spinor.spinors.singularName)} Upgrade η ({formatWhole(unref(skyrmion.spinor.upgrades.eta.totalAmount))})</>))
+            description: () => <>[{skyrmion.name}] {unref(skyrmion.spinor.spinors.singularName)} Upgrade η ({formatWhole(unref(skyrmion.spinor.upgrades.eta.totalAmount))})</>
         })),
         createMultiplicativeModifier(() => ({
-            multiplier: (acceleron.upgrades.acceleration as EffectUpgrade<DecimalSource>).effect,
+            multiplier: acceleron.upgrades.acceleration.effect,
             enabled: noPersist(acceleron.upgrades.acceleration.bought),
-            description: jsx(() => (<>[{acceleron.name}] Minute Acceleration</>))
+            description: () => <>[{acceleron.name}] Minute Acceleration</>
         })),
         createMultiplicativeModifier(() => ({
             multiplier: acceleron.loops.averageLoopValues[acceleron.loops.loops.tempFome.id],
             enabled: noPersist(acceleron.loops.loops.tempFome.built),
-            description: jsx(() => (<>[{acceleron.name}] Entropic Loop #4</>))
+            description: () => <>[{acceleron.name}] Entropic Loop #4</>
         })),
         createMultiplicativeModifier(() => ({
-            multiplier: entropy.enhancements.formation.effect as Ref<DecimalSource>,
+            multiplier: entropy.enhancements.formation.effect!,
             enabled: noPersist(entropy.enhancements.formation.bought),
-            description: jsx(() => (<>[{acceleron.name}] Entropic Formation</>))
+            description: () => <>[{acceleron.name}] Entropic Formation</>
         })),
         createMultiplicativeModifier(() => ({
             multiplier: inflaton.fomeBonus,
             enabled: () => unref(inflaton.coreResearch.research.fomeGain.researched),
-            description: jsx(() => (<>[{inflaton.name}] Inflaton Resonance</>))
+            description: () => <>[{inflaton.name}] Inflaton Resonance</>
         })),
         createMultiplicativeModifier(() => ({
             multiplier: inflaton.upgrades.moreFome.effect,
             enabled: noPersist(inflaton.upgrades.moreFome.bought),
-            description: jsx(() => (<>[{inflaton.name}] Dynamic Inflational Formation</>))
+            description: () => <>[{inflaton.name}] Dynamic Inflational Formation</>
         })),
         createMultiplicativeModifier(() => ({
             multiplier: quantum.boosts[1].effect,
             enabled: () => Decimal.gt(unref(quantum.boosts[1].total), 0),
-            description: jsx(() => (<>[{name}] Quantum Boost 1 ({formatWhole(unref(quantum.boosts[1].total))})</>))
+            description: () => <>[{name}] Quantum Boost 1 ({formatWhole(unref(quantum.boosts[1].total))})</>
         })),
         createMultiplicativeModifier(() => ({
             multiplier: quantum.boosts[3].effect,
             enabled: () => Decimal.gt(unref(quantum.boosts[3].total), 0),
-            description: jsx(() => (<>[{name}] Quantum Boost 3 ({formatWhole(unref(quantum.boosts[3].total))})</>))
+            description: () => <>[{name}] Quantum Boost 3 ({formatWhole(unref(quantum.boosts[3].total))})</>
         }))
     ];
 
@@ -163,12 +154,12 @@ const layer = createLayer(id, function (this: BaseLayer) {
         createMultiplicativeModifier(() => ({
             multiplier: timelines.buffs[Sides.RIGHT],
             enabled: noPersist(timecube.upgrades.tactics.bought),
-            description: jsx(() => (<>[{timecube.name}] Passive Right Timeline Bonus</>))
+            description: () => <>[{timecube.name}] Passive Right Timeline Bonus</>
         })),
         createMultiplicativeModifier(() => ({
             multiplier: () => Decimal.reciprocate(unref(timelines.nerfs[Sides.RIGHT])),
             enabled: noPersist(timecube.upgrades.tactics.bought),
-            description: jsx(() => (<>[{timecube.name}] Active Right Timeline Effect</>))
+            description: () => <>[{timecube.name}] Active Right Timeline Effect</>
         }))
     ];
 
@@ -178,18 +169,18 @@ const layer = createLayer(id, function (this: BaseLayer) {
         fontSize: '48px',
         fontWeight: 'normal',
         color: 'var(--feature-foreground)'
-    } as StyleValue
+    } satisfies CSSProperties
     const achievements = {
         [FomeTypes.protoversal]: createAchievement(() => ({
-            display: jsx(() => <span style={achievementStyle}>P<sup style={{fontWeight: 'normal'}}>2</sup></span>),
-            requirements: createBooleanRequirement(() => Decimal.gte(unref(protoversal.upgrades.reform.amount), 2)),
+            display: () => <span style={achievementStyle}>P<sup style={{fontWeight: 'normal'}}>2</sup></span>,
+            requirements: createBooleanRequirement((): boolean => Decimal.gte(unref(protoversal.upgrades.reform.amount), 2)),
             tooltip: {
                 requirement: <>Re-form your Protoversal Foam</>,
                 effect: <>Unlock the Pion and Spinor Buy All hotkey (see Info at top right)<br />Automatically enlarge your Protoversal Foam</>
             }
         })),
         [FomeTypes.infinitesimal]: createAchievement(() => ({
-            display: jsx(() => <><span style={achievementStyle}>P<sup style={{fontWeight: 'normal'}}>3</sup></span></>),
+            display: () => <span style={achievementStyle}>P<sup style={{fontWeight: 'normal'}}>3</sup></span>,
             requirements: createBooleanRequirement(() => Decimal.gte(unref(protoversal.upgrades.reform.amount), 3)),
             tooltip: {
                 requirement: <>Obtain Protoversal Foam<sup>3</sup></>,
@@ -197,7 +188,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             }
         })),
         [FomeTypes.subspatial]: createAchievement(() => ({
-            display: jsx(() => <><span style={achievementStyle}>P<sup style={{fontWeight: 'normal'}}>4</sup></span></>),
+            display: () => <span style={achievementStyle}>P<sup style={{fontWeight: 'normal'}}>4</sup></span>,
             requirements: createBooleanRequirement(() => Decimal.gte(unref(protoversal.upgrades.reform.amount), 4)),
             tooltip: {
                 requirement: <>Obtain Protoversal Foam<sup>4</sup></>,
@@ -205,7 +196,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             }
         })),
         [FomeTypes.subplanck]: createAchievement(() => ({
-            display: jsx(() => <><span style={achievementStyle}>P<sup style={{fontWeight: 'normal'}}>5</sup></span></>),
+            display: () => <span style={achievementStyle}>P<sup style={{fontWeight: 'normal'}}>5</sup></span>,
             requirements: createBooleanRequirement(() => Decimal.gte(unref(protoversal.upgrades.reform.amount), 5)),
             tooltip: {
                 requirement: <>Obtain Protoversal Foam<sup>5</sup></>,
@@ -213,7 +204,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             }
         })),
         [FomeTypes.quantum]: createAchievement(() => ({
-            display: jsx(() => <><span style={achievementStyle}>P<sup style={{fontWeight: 'normal'}}>6</sup></span></>),
+            display: () => <span style={achievementStyle}>P<sup style={{fontWeight: 'normal'}}>6</sup></span>,
             requirements: createBooleanRequirement(() => Decimal.gte(unref(protoversal.upgrades.reform.amount), 6)),
             tooltip: {
                 requirement: <>Obtain Protoversal Foam<sup>6</sup></>,
@@ -221,7 +212,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             }
         })),
         reform: createAchievement(() => ({
-            display: jsx(() => <><span style={achievementStyle}>Q<sup style={{fontWeight: 'normal'}}>2</sup></span></>),
+            display: () => <span style={achievementStyle}>Q<sup style={{fontWeight: 'normal'}}>2</sup></span>,
             requirements: createBooleanRequirement(() => Decimal.gte(unref(quantum.upgrades.reform.amount), 2)),
             tooltip: {
                 requirement: <>Re-form your Quantum Foam</>,
@@ -229,27 +220,27 @@ const layer = createLayer(id, function (this: BaseLayer) {
             }
         })),
         abyssalAutobuy: createAchievement(() => ({
-            visibility: noPersist(abyss.challenge.active),
-            display: jsx(() => <><span style={achievementStyle}>QB<sup style={{fontWeight: 'normal'}}>4</sup></span></>),
+            visibility: inAbyss,
+            display: () => <><span style={achievementStyle}>QB<sup style={{fontWeight: 'normal'}}>4</sup></span></>,
             requirements: [
                 createBooleanRequirement(() => Decimal.gte(unref(quantum.boosts[5].amount), 4)),
-                createBooleanRequirement(noPersist(abyss.challenge.active))
+                createBooleanRequirement(inAbyss)
             ],
             tooltip: {
                 requirement: <>Gain 4 levels in every Abyssal Quantum Boost</>,
                 effect: <>Pion and Spinor upgrade automation is functional once more</>
             }
         }))
-    } satisfies Record<string, GenericAchievement & { tooltip: { requirement: JSX.Element, effect: JSX.Element } }>;
+    } satisfies Record<string, Achievement>;
     for (const achievement of Object.values(achievements)) {
-        addTooltip(achievement, {
-            display: jsx(() => (<><h3>{achievement.tooltip.requirement}</h3><br />{achievement.tooltip.effect}</>))
-        });
+        addTooltip(achievement, () => ({
+            display: <><h3>{achievement.tooltip.requirement}</h3><br />{achievement.tooltip.effect}</>
+        }));
     }
 
-    const hotkeys: Record<string, GenericHotkey> = {
+    const hotkeys = {
         buyAll: createHotkey(() => ({
-            enabled() {
+            enabled(): boolean {
                 if (!unref(unlocked)) return false;
                 if (Object.values(achievements).every(achievement => unref(achievement.earned))) return false;
                 return Decimal.gt(unref(inflaton.inflatons), 0) || unref(acceleron.achievements.protoversal.earned)
@@ -259,8 +250,8 @@ const layer = createLayer(id, function (this: BaseLayer) {
             onPress() {
                 for (const fome of [protoversal, infinitesimal, subspatial, subplanck, quantum]) {
                     fome.upgrades.condense.purchase();
-                    for (const upgrade of [...Object.values(FomeDims), 'reform']) {
-                        (fome.upgrades[upgrade as keyof FomeUpgrades] as FomeUpgrade).onClick();
+                    for (const upgrade of [FomeDims.height, FomeDims.width, FomeDims.depth, 'reform']) {
+                        fome.upgrades[upgrade as FomeDims.height | FomeDims.width | FomeDims.depth | 'reform'].onClick();
                     }
                 }
             }
@@ -271,7 +262,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             description: "Move to Foam",
             onPress() { root.tabs.selected.value = name; }
         }))
-    }
+    } satisfies Record<string, Hotkey>;
 
     const showBranchChoice = computed(() => {
         if (unref(entangled.milestones[1].earned)) return false;
@@ -282,7 +273,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         main: () => ({
             display: "Foam",
             tab: createTab(() => ({
-                display: jsx(() => (
+                display: () => (
                     <>
                         <Modal
                             modelValue={unref(showBranchChoice)}
@@ -293,20 +284,20 @@ const layer = createLayer(id, function (this: BaseLayer) {
                                     <div style={{textAlign: 'center'}}>
                                         As you condense the foam bubbling around you, a pair of particles appear out of the volatile layers, similar in composition yet opposing in purpose.<br/>
                                         The pair dance around each other as you watch, intrinsically tied together yet kept apart by forces beyond your control.<br/><br/>
-                                        One of <span style={{color: acceleron.theme["--feature-background"]}}>Time</span>, one of <span style={{color: inflaton.theme["--feature-background"]}}>Space</span><br/><br/>
+                                        One of <span style={{color: unref(acceleron.theme!)["--feature-background"]}}>Time</span>, one of <span style={{color: unref(inflaton.theme!)["--feature-background"]}}>Space</span><br/><br/>
                                         Reaching for one causes the other to drift away - it seems you will need to make a choice of which to take.<br/>The other, though, does not seem too much further out of reach.
                                     </div>
                                 ),
                                 footer: () => (
                                     <div style={{textAlign: 'center', display: 'flex', justifyContent: 'center'}}>
                                         <button class="feature clickable can" style={{
-                                            backgroundColor: acceleron.theme["--feature-background"],
+                                            backgroundColor: unref(acceleron.theme!)["--feature-background"],
                                             width: '150px',
                                             height: '60px'
                                         }} onClick={() => entangled.branchOrder.value = acceleronId}>Accelerons</button>
                                         <Spacer width='150px' style={{margin: 0}}/>
                                         <button class="feature clickable can" style={{
-                                            backgroundColor: inflaton.theme["--feature-background"],
+                                            backgroundColor: unref(inflaton.theme!)["--feature-background"],
                                             width: '150px',
                                             height: '60px'
                                         }} onClick={() => entangled.branchOrder.value = inflatonId}>Inflatons</button>
@@ -325,14 +316,14 @@ const layer = createLayer(id, function (this: BaseLayer) {
                         <Spacer />
                         <Fome />
                         <Spacer height="8px" />
-                        {renderRowJSX(...Object.values(achievements))}
+                        {renderRow(...Object.values(achievements))}
                     </>
-                ))
+                )
             }))
         }),
         boosts: () => ({
             display: "Boosts",
-            tab: createTab(() => ({ display: jsx(() => (<FomeBoost />)) }))
+            tab: createTab(() => ({ display: () => <FomeBoost /> }))
         })
     });
 
@@ -345,14 +336,14 @@ const layer = createLayer(id, function (this: BaseLayer) {
         globalBoostBonus,
         achievements,
         hotkeys,
-        display: jsx(() => (
+        display: () => (
             <>
                 {Decimal.gt(unref(protoversal.boosts[1].total), 0)
                     ? render(tabs)
                     : render(unref(tabs.tabs.main.tab))
                 }
             </>
-        )),
+        ),
         tabs,
 
         [FomeTypes.protoversal]: protoversal,

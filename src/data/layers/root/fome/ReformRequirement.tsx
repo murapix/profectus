@@ -1,76 +1,75 @@
-import { OptionsFunc, Replace, Visibility } from "features/feature";
+import { Visibility } from "features/feature";
 import Formula, { calculateCost } from "game/formulas/formulas";
 import { GenericFormula } from "game/formulas/types";
-import { Requirement } from "game/requirements";
 import Decimal, { DecimalSource, formatWhole } from "util/bignum";
-import { Computable, ProcessedComputable, processComputable } from "util/computed";
 import { createLazyProxy } from "util/proxies";
-import { computed, unref } from "vue";
+import { computed, MaybeRef, unref } from "vue";
 import fome, { FomeTypes } from "./fome";
+import { MaybeGetter, processGetter } from "util/computed";
+import { Requirement } from "game/requirements";
+import { SkipPersistence } from "game/persistence";
 
 export interface ReformRequirementOptions {
-    fomeType: Computable<FomeTypes>;
-    cost: Computable<DecimalSource> | GenericFormula;
+    fomeType: MaybeGetter<FomeTypes>;
+    cost: MaybeGetter<DecimalSource> | GenericFormula;
 }
 
-export type ReformRequirement = Replace<
-    Requirement & ReformRequirementOptions,
-    {
-        fomeType: ProcessedComputable<FomeTypes>;
-        cost: ProcessedComputable<DecimalSource> | GenericFormula;
-    }
->;
+export interface ReformRequirement extends Requirement {
+    fomeType: MaybeRef<FomeTypes>;
+    cost: MaybeRef<DecimalSource> | GenericFormula;
+}
 
 export function createReformRequirement<T extends ReformRequirementOptions>(
-    optionsFunc: OptionsFunc<T>
-): ReformRequirement {
-    return createLazyProxy(feature => {
-        const req = optionsFunc.call(feature, feature) as T & Partial<Requirement>;
+    optionsFunc: () => T
+) {
+    return createLazyProxy(() => {
+        const options = optionsFunc();
+        
+        const fomeType = processGetter(options.fomeType);
+        const cost = processGetter(options.cost);
 
-        processComputable(req as T, "fomeType");
-
-        req.partialDisplay = amount => (
-            <span
-                style={
-                    unref(req.requirementMet as ProcessedComputable<boolean>)
-                        ? ""
-                        : "color: var(--danger)"
-                }
-            >
-                {unref(fome[unref(req.fomeType as ProcessedComputable<FomeTypes>)].amount.displayName)}
+        const requirementMet = (
+            cost instanceof Formula
+            ? computed((): boolean => Decimal.gte(
+                fome[unref(fomeType)].upgrades.reform.amount.value,
+                cost.evaluate()
+            ))
+            : computed((): boolean => Decimal.gte(
+                fome[unref(fomeType)].upgrades.reform.amount.value,
+                unref(cost as MaybeRef<DecimalSource>)
+            ))
+        );
+        const partialDisplay = (amount?: DecimalSource) => (
+            <span style={ unref(requirementMet) ? "" : "color: var(--danger)" }>
+                {unref(fome[unref(fomeType)].amount.displayName)}
                 <sup>{formatWhole(Decimal.floor(
-                    req.cost instanceof Formula
-                        ? calculateCost(req.cost, amount ?? 1, false)
-                        : unref(req.cost as ProcessedComputable<DecimalSource>)
+                    cost instanceof Formula
+                        ? calculateCost(cost, amount ?? 1, false)
+                        : unref(cost as MaybeRef<DecimalSource>)
                 ))}</sup>
             </span>
         );
-        req.display = amount => (
+        const display = (amount?: DecimalSource) => (
             <div>
-                Requires: {unref(fome[unref(req.fomeType as ProcessedComputable<FomeTypes>)].amount.displayName)}
+                Requires: {unref(fome[unref(fomeType)].amount.displayName)}
                 <sup>{formatWhole(Decimal.floor(
-                    req.cost instanceof Formula
-                        ? calculateCost(req.cost, amount ?? 1, false)
-                        : unref(req.cost as ProcessedComputable<DecimalSource>)
+                    cost instanceof Formula
+                        ? calculateCost(cost, amount ?? 1, false)
+                        : unref(cost as MaybeRef<DecimalSource>)
                 ))}</sup>
             </div>
         );
+        const requirement = {
+            visibility: Visibility.Visible,
+            cost,
+            fomeType,
+            requiresPay: false,
+            requirementMet,
+            partialDisplay,
+            display,
+            [SkipPersistence]: true
+        } satisfies ReformRequirement;
 
-        req.visibility = Visibility.Visible;
-        req.requiresPay = false;
-        processComputable(req as T, "cost");
-        
-        req.requirementMet = computed(() => {
-            if (req.cost instanceof Formula) {
-                return Decimal.gte(fome[unref(req.fomeType as ProcessedComputable<FomeTypes>)].upgrades.reform.amount.value, req.cost.evaluate());
-            } else {
-                return Decimal.gte(
-                    fome[unref(req.fomeType as ProcessedComputable<FomeTypes>)].upgrades.reform.amount.value,
-                    unref(req.cost as ProcessedComputable<DecimalSource>)
-                );
-            }
-        });
-
-        return req as ReformRequirement;
-    })
+        return requirement;
+    });
 }

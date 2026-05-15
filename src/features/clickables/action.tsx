@@ -96,7 +96,7 @@ export function createAction<T extends ActionOptions>(optionsFunc?: () => T) {
                             ))}
                         </div>
                     ) : null}
-                    {render(_display.description, el => (
+                    {render(_display.description ?? "", el => (
                         <div>{el}</div>
                     ))}
                 </span>

@@ -43,10 +43,10 @@
 import Text from 'components/fields/Text.vue';
 import Row from 'components/layout/Row.vue';
 import Spacer from 'components/layout/Spacer.vue';
-import { GenericUpgrade } from 'features/upgrades/upgrade';
 import { ComputedRef, ref, unref } from 'vue';
-import Preset from '../acceleron/Preset.vue';
+import { Upgrade } from 'features/clickables/upgrade';
 import entropy from './entropy';
+import Preset from './Preset.vue';
 
 type PresetType = {
     id: number;
@@ -55,7 +55,7 @@ type PresetType = {
 }
 
 const props = defineProps<{
-    enhancements: Record<number, GenericUpgrade[]>;
+    enhancements: Record<number, Upgrade[]>;
     presets: PresetType[],
     nextID: ComputedRef<number>
 }>();

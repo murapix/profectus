@@ -29,6 +29,7 @@ const props = defineProps<{
     color?: string;
     classes?: Record<string, boolean>;
     style?: CSSProperties;
+    stickyStyle?: CSSProperties;
     effect?: MaybeGetter<Renderable>;
     modal?: MaybeGetter<Renderable>;
 }>();

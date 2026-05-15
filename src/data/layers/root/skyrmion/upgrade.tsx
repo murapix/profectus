@@ -1,13 +1,14 @@
 import Spacer from "components/layout/Spacer.vue";
-import { Visibility, jsx } from "features/feature";
-import { addTooltip } from "features/tooltips/tooltip";
-import { GenericUpgrade, createUpgrade } from "features/upgrades/upgrade";
+import { createUpgrade } from "features/clickables/upgrade";
+import { Visibility } from "features/feature";
 import { Requirements, displayRequirements } from "game/requirements";
 import { Direction } from "util/common";
-import { Computable } from "util/computed";
+import { MaybeRefOrGetter } from "vue";
+import { JSX } from "vue/jsx-runtime";
+import { addTooltip } from "wrappers/tooltips/tooltip";
 
 export interface SkyrmionUpgradeData {
-    visibility?: Computable<Visibility | boolean>;
+    visibility?: MaybeRefOrGetter<Visibility | boolean>;
     requirements: Requirements;
     display: {
         title: string,
@@ -16,7 +17,7 @@ export interface SkyrmionUpgradeData {
     onPurchase?(): void;
 }
 
-export function createSkyrmionUpgrade(data: SkyrmionUpgradeData): GenericUpgrade {
+export function createSkyrmionUpgrade(data: SkyrmionUpgradeData) {
     const upgrade = createUpgrade(() => ({
         visibility: data.visibility,
         requirements: data.requirements,
@@ -24,16 +25,16 @@ export function createSkyrmionUpgrade(data: SkyrmionUpgradeData): GenericUpgrade
         onPurchase: data.onPurchase
     }));
 
-    addTooltip(upgrade, {
+    addTooltip(upgrade, () => ({
         direction: Direction.Up,
-        display: jsx(() => (
+        display: () => (
             <>
                 {data.display.description}
                 <Spacer />
                 {displayRequirements(data.requirements)}
             </>
-        ))
-    })
+        )
+    }))
 
     return upgrade;
 }

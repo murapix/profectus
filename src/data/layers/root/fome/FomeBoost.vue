@@ -28,11 +28,10 @@
 
 <script setup lang="ts">
 import Spacer from "components/layout/Spacer.vue";
-import { CoercableComponent } from "features/feature";
 import Decimal, { format, formatWhole } from "util/break_eternity";
 import { unref } from "vue";
 import fome, { FomeTypes } from "./fome";
-import abyss from "../skyrmion/abyss";
+import { Renderable } from "util/vue";
 
 const boosts = Object.fromEntries(Object.values(FomeTypes).map(fomeType => 
     [fomeType, Object.fromEntries(
@@ -40,7 +39,7 @@ const boosts = Object.fromEntries(Object.values(FomeTypes).map(fomeType =>
             [id, unref(fome[fomeType].boosts[id as 1|2|3|4|5].display)]
         )
     )]
-)) as Record<FomeTypes, Record<1|2|3|4|5, CoercableComponent>>;
+)) as Record<FomeTypes, Record<1|2|3|4|5, Renderable>>;
 </script>
 
 <style scoped>

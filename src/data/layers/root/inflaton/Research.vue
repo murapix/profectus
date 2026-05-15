@@ -2,14 +2,14 @@
     <button
         :style="[
             {
-                visibility: isHidden(visibility) ? 'hidden' : undefined,
+                visibility: isHidden(visibility ?? true) ? 'hidden' : undefined,
                 '--fill-percent': `${format(unref(fillPercent))}%`
             }
         ]"
         @click="research(false)"
         :class="{
             research: true,
-            hidden: isHidden(visibility),
+            hidden: isHidden(visibility ?? true),
             locked: !unref(canResearch), // unavailable to click
             can: unref(canResearch) && !unref(isResearching) && !unref(researched), // available to click, not in the queue or done
             queued: unref(isResearching), // in queue
@@ -17,7 +17,7 @@
         }"
         :disabled="!unref(canResearch)"
     >
-        <div v-if="!isVisible(visibility)">???</div>
+        <div v-if="!isVisible(visibility ?? true)">???</div>
         <component v-else-if="unref(component)" :is="unref(component)" />
         <Node :id="id" />
     </button>
@@ -25,49 +25,26 @@
 
 <script setup lang="tsx">
 import Node from 'components/Node.vue';
-import { isHidden, isVisible, jsx } from 'features/feature';
-import { displayRequirements } from 'game/requirements';
+import { isHidden, isVisible } from 'features/feature';
 import Decimal from 'lib/break_eternity';
 import { format } from 'util/break_eternity';
-import { coerceComponent, isCoercableComponent } from 'util/vue';
-import { DefineComponent, computed, shallowRef, unref, watchEffect } from 'vue';
-import { GenericResearch } from './research';
+import { DefineComponent, computed, shallowRef, unref } from 'vue';
+import { Research } from './research';
 
 const props = defineProps<{
-    visibility: GenericResearch["visibility"];
-    display: GenericResearch["display"];
-    id: GenericResearch["id"];
-    requirements: GenericResearch["requirements"];
-    canResearch: GenericResearch["canResearch"];
-    isResearching: GenericResearch["isResearching"];
-    progress: GenericResearch["progress"];
-    progressPercentage: GenericResearch["progressPercentage"];
-    researched: GenericResearch["researched"];
-    research: GenericResearch["research"];
+    visibility: Research["visibility"];
+    display: Research["display"];
+    id: Research["id"];
+    requirements: Research["requirements"];
+    canResearch: Research["canResearch"];
+    isResearching: Research["isResearching"];
+    progress: Research["progress"];
+    progressPercentage: Research["progressPercentage"];
+    researched: Research["researched"];
+    research: Research["research"];
 }>();
 
 const component = shallowRef<DefineComponent | string>("");
-watchEffect(() => {
-    const currentDisplay = unref(props.display);
-    if (currentDisplay == null) {
-        component.value = "";
-        return;
-    }
-    if (isCoercableComponent(currentDisplay)) {
-        component.value = coerceComponent(currentDisplay);
-        return;
-    }
-    const Requirements = unref(props.requirements);
-    const Title = coerceComponent(currentDisplay.title ?? "", "h3");
-    const Description = coerceComponent(currentDisplay.description);
-    const EffectDisplay = coerceComponent(currentDisplay.effect ?? "");
-    component.value = coerceComponent(jsx(() => (<>
-                {currentDisplay.title ? <span><Title /></span> : null}
-                <span><Description /></span>
-                {currentDisplay.effect ? <span>Currently: <EffectDisplay /></span> : null}
-                {displayRequirements(Requirements)}
-        </>)));
-});
 
 const fillPercent = computed(() => Decimal.times(unref(props.progressPercentage), 1.1).minus(0.05).times(100));
 </script>

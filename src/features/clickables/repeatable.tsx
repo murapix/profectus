@@ -36,9 +36,9 @@ export interface RepeatableOptions extends ClickableOptions {
               /** A header to appear at the top of the display. */
               title?: MaybeGetter<Renderable>;
               /** The main text that appears in the display. */
-              description: MaybeGetter<Renderable>;
+              description?: MaybeGetter<Renderable>;
               /** A description of the current effect of this repeatable, based off its amount. */
-              effectDisplay?: MaybeGetter<Renderable>;
+              effect?: MaybeGetter<Renderable>;
               /** Whether or not to show the current amount of this repeatable at the bottom of the display. */
               showAmount?: boolean;
           };
@@ -122,7 +122,7 @@ export function createRepeatable<T extends RepeatableOptions>(optionsFunc: () =>
 
         let display;
         if (typeof _display === "object" && !isJSXElement(_display)) {
-            const { title, description, effectDisplay, showAmount } = _display;
+            const { title, description, effect, showAmount } = _display;
 
             display = () => (
                 <span>
@@ -133,7 +133,7 @@ export function createRepeatable<T extends RepeatableOptions>(optionsFunc: () =>
                             ))}
                         </div>
                     )}
-                    {render(description)}
+                    {render(description ?? "")}
                     {showAmount === false ? null : (
                         <div>
                             <br />
@@ -143,10 +143,10 @@ export function createRepeatable<T extends RepeatableOptions>(optionsFunc: () =>
                             ) : undefined}
                         </div>
                     )}
-                    {effectDisplay == null ? null : (
+                    {effect == null ? null : (
                         <div>
                             <br />
-                            Currently: {render(effectDisplay)}
+                            Currently: {render(effect)}
                         </div>
                     )}
                     {unref(repeatable.maxed) ? null : (

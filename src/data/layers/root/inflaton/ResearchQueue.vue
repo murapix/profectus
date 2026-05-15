@@ -16,16 +16,13 @@
 
 <script setup lang="ts">
 import Column from 'components/layout/Column.vue';
-import { isFunction } from 'util/common';
-import { ProcessedComputable } from 'util/computed';
-import { isCoercableComponent } from 'util/vue';
-import { computed, isRef, unref } from 'vue';
+import { computed, isRef, MaybeRef, unref } from 'vue';
 import ResearchQueueSlot from './ResearchQueueSlot.vue';
 import core from './coreResearch';
 
 const props = withDefaults(defineProps<{
-    queue: ProcessedComputable<string[]>;
-    parallel?: ProcessedComputable<number>;
+    queue: MaybeRef<string[]>;
+    parallel?: MaybeRef<number>;
 }>(),
 {
     parallel: 1
@@ -37,10 +34,7 @@ const nodes = computed(() => unref(props.queue).map(id => allResearch.find(node 
 function name(index: number) {
     const node = unref(nodes)[index];
     if (node === undefined) return;
-    if (isCoercableComponent(node.display)) return node.id;
-    if (isRef(node.display)) return node.id;
-    if (isFunction(node.display)) return node.id;
-    return node.display.title;
+    return node.id;
 }
 </script>
 

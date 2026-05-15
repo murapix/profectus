@@ -2,33 +2,34 @@ import Column from "components/layout/Column.vue";
 import Row from "components/layout/Row.vue";
 import Spacer from "components/layout/Spacer.vue";
 import { createClickable } from "features/clickables/clickable";
-import { effectDecorator } from "features/decorators/common";
-import { CoercableComponent, OptionsFunc, Replace, jsx } from "features/feature";
 import { createResource } from "features/resources/resource";
-import { addTooltip } from "features/tooltips/tooltip";
-import { EffectUpgrade, EffectUpgradeOptions, GenericUpgrade, createUpgrade, getUpgradeEffect } from "features/upgrades/upgrade";
 import { BaseLayer, createLayer } from "game/layers";
 import { createMultiplicativeModifier, createSequentialModifier } from "game/modifiers";
-import { noPersist } from "game/persistence";
+import { noPersist, Persistent } from "game/persistence";
 import { Requirement, createBooleanRequirement, createCostRequirement } from "game/requirements";
 import Decimal, { DecimalSource } from "lib/break_eternity";
 import { format, formatSmall, formatWhole } from "util/break_eternity";
-import { Computable, GetComputableType, GetComputableTypeWithDefault, ProcessedComputable, processComputable } from "util/computed";
 import { createModifierModal } from "util/util";
-import { coerceComponent, render } from "util/vue";
-import { ComputedRef, computed, unref, watch } from "vue";
-import fome, { FomeTypes } from "../fome/fome";
-import timecube from "../timecube/timecube";
-import { Sides } from "../timecube/timesquares";
+import { ComputedRef, MaybeRefOrGetter, computed, unref, watch } from "vue";
+import fome, { FomeTypes } from "../../fome/fome";
+import timecube from "../../timecube/timecube";
+import { Sides } from "../../timecube/timesquares";
 import EnhancementTotals from "./EnhancementTotals.vue";
 import Enhancements from "./Enhancements.vue";
 import Presets from "./Presets.vue";
-import acceleron from "./acceleron";
-import loops from "./loops";
+import acceleron from "../acceleron";
+import loops from "../loops/loops";
 import settings from "game/settings";
+import { createUpgrade, getUpgradeEffect, Upgrade } from "features/clickables/upgrade";
+import { render, Renderable, VueFeatureOptions } from "util/vue";
+import { MaybeGetter, processGetter } from "util/computed";
+import { addTooltip } from "wrappers/tooltips/tooltip";
+import { Visibility } from "features/feature";
+import { createLazyProxy } from "util/proxies";
+import { effectMixin } from "mixins/effects";
 
 const id = "entropy";
-const layer = createLayer(id, function (this: BaseLayer) {
+const layer = createLayer(id, () => {
     const name = "Entropy";
 
     const entropy = createResource<DecimalSource>(0, { displayName: name, abyssal: true });
@@ -37,12 +38,12 @@ const layer = createLayer(id, function (this: BaseLayer) {
         createMultiplicativeModifier(() => ({
             multiplier: 2,
             enabled: noPersist(timecube.upgrades.twice.bought),
-            description: jsx(() => <>[{timecube.name}] Twice</>)
+            description: () => <>[{timecube.name}] Twice</>
         })),
         createMultiplicativeModifier(() => ({
             multiplier: 1.5,
             enabled: noPersist(timecube.upgrades.triple.bought),
-            description: jsx(() => <>[{timecube.name}] Triple</>)
+            description: () => <>[{timecube.name}] Triple</>
         }))
     ]);
     const maxEntropy: ComputedRef<DecimalSource> = computed(() => maxEntropyModifiers.apply(unref(loops.numBuiltLoops)));
@@ -76,11 +77,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
     const enhancements = (() => {
         const expansion = createEnhancement<Decimal>(() => ({
             row: 1,
-            visibility: loops.loops.acceleron.built,
+            visibility: noPersist(loops.loops.acceleron.built),
             display: {
                 title: 'Entropic Expansion',
                 description: 'Increase the second Entropic Loop effect based on purchased Entropic Enhancements',
-                effect: effect => `+${format(effect)} minutes`
+                effect: effect => `+${format(effect as Decimal)} minutes`
             },
             effect: () => unref(fibonacciEnhancements).pow(0.9).times(getUpgradeEffect(timecube.upgrades.tilt))
         }));
@@ -107,27 +108,25 @@ const layer = createLayer(id, function (this: BaseLayer) {
             visibility: noPersist(timecube.upgrades.tetrate.bought),
             display: {
                 title: 'Entropic Contraction',
-                description: 'Multiply Acceleron gain based on the number of purchased Entropic Enhancements',
-                effect: effect => `${format(effect)}×`
+                description: 'Multiply Acceleron gain based on the number of purchased Entropic Enhancements'
             },
             effect: () => unref(fibonacciEnhancements).pow(0.9)
         }));
-        const formation: EffectUpgrade<Decimal> = createEnhancement<Decimal>(() => ({
+        const formation = createEnhancement<Decimal>(() => ({
             row: 2,
             visibility: loops.loops.instantProd.built,
             display: {
                 title: 'Entropic Formation',
                 description: 'Increase Foam gain based on best Accelerons'
             },
-            effect: () => fibonacciNumber(Decimal.clampMin(unref(acceleron.bestAccelerons), 0).plus(1).log10().floor()).pow(2.5).plus(1)
+            effect: (): Decimal => fibonacciNumber(Decimal.clampMin(unref(acceleron.bestAccelerons), 0).plus(1).log10().floor()).pow(2.5).plus(1)
         }));
         const development = createEnhancement<Decimal>(() => ({
             row: 2,
             visibility: loops.loops.instantProd.built,
             display: {
                 title: 'Entropic Development',
-                description: 'Decrease Entropic Loop construction cost based on purchased Entropic Enhancements',
-                effect: effect => `${formatSmall(effect)}×`
+                description: 'Decrease Entropic Loop construction cost based on purchased Entropic Enhancements'
             },
             effect: () => unref(fibonacciEnhancements).pow_base(0.7)
         }));
@@ -137,11 +136,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
             display: {
                 title: 'Entropic Acceleration',
                 description: 'Increase the first Entropic Loop effect based on completed Entropic Loops',
-                effect: effect => `+${format(Decimal.times(effect, 100), 1)}% of your Acceleron reset gain`
+                effect: effect => `+${format(Decimal.times(effect as Decimal, 100), 1)}% of your Acceleron reset gain`
             },
             effect: () => Decimal.times(unref(loops.numBuiltLoops), 0.001)
         }));
-        const entrenchment = createEnhancement<Decimal>(() => ({
+        const entrenchment = createEnhancement(() => ({
             row: 2,
             visibility: noPersist(timecube.upgrades.tetrate.bought),
             display: {
@@ -183,18 +182,17 @@ const layer = createLayer(id, function (this: BaseLayer) {
             display: {
                 title: 'Entropic Inversion',
                 description: 'Multiply Acceleron gain based on Quantum Foam',
-                effect: effect => `${format(effect)}×`
             },
             effect: () => Decimal.max(unref(fome[FomeTypes.quantum].amount), 0).plus(1).log10().plus(1)
         }));
-        const tesselation: EffectUpgrade<Decimal> = createEnhancement<Decimal>(() => ({
+        const tesselation = createEnhancement<Decimal>(() => ({
             row: 4,
             visibility: loops.loops.tempFome.built,
             display: {
                 title: 'Entropic Tesselation',
                 description: 'Increase Time Cube gain based on best Accelerons'
             },
-            effect: () => Decimal.max(unref(acceleron.bestAccelerons), 0).plus(1).log10().plus(1)
+            effect: (): Decimal => Decimal.max(unref(acceleron.bestAccelerons), 0).plus(1).log10().plus(1)
         }));
         const amplification = createEnhancement<Decimal>(() => ({
             row: 4,
@@ -202,7 +200,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             display: {
                 title: 'Entropic Amplification',
                 description: 'Skyrmions are cheaper based on best Time Cubes',
-                effect: effect => `/${format(effect.reciprocate())}`
+                effect: effect => `/${format((effect as Decimal).reciprocate())}`
             },
             effect: () => fibonacciNumber(Decimal.max(unref(timecube.bestTimecubes), 0).plus(1).log10().floor()).pow_base(0.9)
         }));
@@ -211,8 +209,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             visibility: loops.loops.tempFome.built,
             display: {
                 title: 'Entropic Rotation',
-                description: 'Multiply Acceleron gain based on best Time Cubes',
-                effect: effect => `${format(effect)}×`
+                description: 'Multiply Acceleron gain based on best Time Cubes'
             },
             effect: () => Decimal.max(unref(timecube.bestTimecubes), 0).plus(1).log10().plus(1)
         }));
@@ -222,11 +219,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
             display: {
                 title: 'Entropic Entitlement',
                 description: 'Each purchased Entropic Enhancement gives 0.1 free levels to each Foam Boost',
-                effect: effect => `${format(effect, 1)} free levels`
+                effect: effect => `${format(effect as Decimal, 1)} free levels`
             },
             effect: () => unref(effectiveEnhancements).times(0.1)
         }));
-        
+
         return {
             expansion, construction, dilation, contraction,
             formation, development, acceleration, entrenchment,
@@ -262,7 +259,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
             title: () => `Maximum ${unref(entropy.singularName)}`,
             modifier: maxEntropyModifiers,
             base: loops.numBuiltLoops,
-            baseText: jsx(() => <>[{acceleron.name}] Entropic Loops</>)
+            baseText: () => <>[{acceleron.name}] Entropic Loops</>
         }]
     );
     
@@ -273,7 +270,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
         enhancements,
         enhancementCounts,
         enhancementLimits,
-        display: jsx(() => (
+        display: () => (
             <>
                 <Spacer />
                 Entropy: {formatWhole(unref(entropy))} / {formatWhole(unref(maxEntropy))}{render(maxEntropyModal)}
@@ -287,7 +284,7 @@ const layer = createLayer(id, function (this: BaseLayer) {
                         enhancements={(Object.keys(enhancementRows) as unknown as EnhancementRow[]).reduce((result, key) => {
                             result[key] = enhancementRows[key].map(upgrade => enhancements[upgrade]);
                             return result;
-                        }, {} as Record<EnhancementRow, GenericUpgrade[]>)}
+                        }, {} as Record<EnhancementRow, Upgrade[]>)}
                         presets={unref(presets)}
                         nextID={nextPresetID}
                     />
@@ -295,90 +292,75 @@ const layer = createLayer(id, function (this: BaseLayer) {
                     <Column><Enhancements rows={(Object.keys(enhancementRows) as unknown as EnhancementRow[]).reduce((result, key) => {
                         result[key] = enhancementRows[key].map(upgrade => enhancements[upgrade]);
                         return result;
-                    }, {} as Record<EnhancementRow, GenericUpgrade[]>)}/>
+                    }, {} as Record<EnhancementRow, Upgrade[]>)}/>
                     </Column>
                     <Spacer width="17px" />
                     <EnhancementTotals />
                 </Row>
             </>
-        ))
+        )
     }
 
-    function createEnhancement<T = unknown, U extends EnhancementOptions<T> = EnhancementOptions<T>>(
-        optionsFunc: OptionsFunc<U, object, GenericEnhancement<T>>
-    ): EffectUpgrade<T> {
-        const enhancement = optionsFunc.call({}, {});
-    
-        processComputable(enhancement as U, "visibility");
-        processComputable(enhancement as U, "effect");
-    
-        const displayFunc = enhancement.display.effect ?? ((effect: T) => `${format(effect as DecimalSource)}×`);
-    
-        const upgrade = createUpgrade<EffectUpgradeOptions<T>>(() => ({
-            requirements: (() => {
-                const requirements = [
-                    createCostRequirement(() => ({
-                        cost: enhancementCost,
-                        resource: noPersist(entropy)
-                    }))
-                ] as Requirement[];
-                if (enhancement.ignoreRowLimit !== true) {
-                    requirements.push(createBooleanRequirement(() => unref(enhancementCounts[enhancement.row]) < unref(enhancementLimits[enhancement.row])));
-                }
-                return requirements;
-            })(),
-            visibility() { return unref(this.bought) || unref(enhancement.visibility as ProcessedComputable<boolean> ?? true); },
-            display: enhancement.display.title,
-            effect: enhancement.effect!
-        }), effectDecorator) as EffectUpgrade<T>;
-    
-        addTooltip(upgrade, {
-            display: jsx(() => {
-                const Description = coerceComponent(enhancement.display.description, "div");
-                const EffectDisplay = enhancement.effect != undefined
-                    ? coerceComponent(jsx(() => <>{displayFunc(unref(upgrade.effect))}</>))
-                    : undefined;
-                
-                return (<>
-                    <Description />
-                    {EffectDisplay ? (
-                        <div>Currently: <EffectDisplay /></div>
+    function createEnhancement<U, T extends EnhancementOptions<U> = EnhancementOptions<U>>(
+        optionsFunc: () => T
+    ) {
+        return createLazyProxy(() => {
+            const options = optionsFunc?.() ?? ({} as T);
+            const {
+                row,
+                display: _display,
+                ignoreRowLimit,
+                visibility: _visibility,
+                effect
+            } = options;
+        
+            const display = _display.effect ?? ((effect: U) => `${format(effect as DecimalSource)}×`);
+            const visibility = processGetter(_visibility);
+        
+            const upgrade = createUpgrade(() => ({
+                requirements: (() => {
+                    const requirements = [
+                        createCostRequirement(() => ({
+                            cost: enhancementCost,
+                            resource: noPersist(entropy)
+                        }))
+                    ] as Requirement[];
+                    if (ignoreRowLimit !== true) {
+                        requirements.push(createBooleanRequirement(() => unref(enhancementCounts[row]) < unref(enhancementLimits[row])));
+                    }
+                    return requirements;
+                })(),
+                visibility(): boolean|Visibility { return unref(upgrade.bought) || unref(visibility ?? true); },
+                display: _display.title,
+                ...effectMixin(effect)
+            }));
+            
+            addTooltip(upgrade, () => ({
+                display: <>
+                    <div>{_display.description}</div>
+                    {effect !== undefined ? (
+                        <div>Currently: {display(unref(effect as U))}</div>
                     ) : undefined}
-                </>)
-            })
+                </>
+            }));
+            return upgrade;
         });
-        return upgrade;
     }
 });
 
 export type EnhancementRow = 1|2|3|4;
 
-export interface EnhancementOptions<T> {
+interface EnhancementOptions<T> extends VueFeatureOptions {
     row: EnhancementRow;
-    visibility?: Computable<boolean>;
+    visibility?: MaybeRefOrGetter<boolean>;
     display: {
-        title: CoercableComponent;
-        description: CoercableComponent;
-        effect?: (effect: T) => CoercableComponent;
+        title: MaybeGetter<Renderable>;
+        description: MaybeGetter<Renderable>;
+        effect?: (effect: T) => Renderable
     };
-    effect?: Computable<T>,
+    effect?: MaybeGetter<T>
     ignoreRowLimit?: boolean;
 }
-
-export type Enhancement<T extends EnhancementOptions<U>, U = unknown> = Replace<
-    T, {
-        visibility: GetComputableTypeWithDefault<T["visibility"], true>;
-        effect: GetComputableType<T["effect"]>;
-    }
->;
-
-export type GenericEnhancement<T> = Replace<
-    Enhancement<EnhancementOptions<T>, T>,
-    {
-        visibility: ProcessedComputable<boolean>;
-        effect: ProcessedComputable<T>;
-    }
->;
 
 const sqrt5 = Decimal.sqrt(5);
 const phi = sqrt5.plus(1).div(2);

@@ -1,12 +1,11 @@
-import { createChallenge } from "features/challenges/challenge";
-import { jsx } from "features/feature";
+import { Challenge, createChallenge } from "features/challenges/challenge";
 import { Resource, createResource } from "features/resources/resource";
-import { BaseLayer, createLayer, layers } from "game/layers";
+import { createLayer, layers } from "game/layers";
 import { persistent } from "game/persistence";
 import { createCostRequirement } from "game/requirements";
 import Decimal, { DecimalSource } from "lib/break_eternity";
 import { clonePersistentData, swapPersistentData } from "util/util";
-import { computed, unref, watch } from "vue";
+import { computed, nextTick, unref, watch } from "vue";
 import acceleron from "../acceleron/acceleron";
 import fome from "../fome/fome";
 import inflaton from "../inflaton/inflaton";
@@ -15,17 +14,19 @@ import AbyssChallenge from "./AbyssChallenge.vue";
 import pion from "./pion";
 import skyrmion from "./skyrmion";
 import spinor from "./spinor";
+import Formula from "game/formulas/formulas";
+import { inAbyss } from "data/projEntry";
 
 const id = "abyss";
-const layer = createLayer(id, function (this: BaseLayer) {
+const layer = createLayer(id, () => {
     const theme = {
         "--feature-background": "#ff0000",
         "--bought": "#971a20"
     };
 
-    const challenge = createChallenge(feature => ({
+    const challenge: Challenge = createChallenge(() => ({
         requirements: createCostRequirement(() => ({
-            cost: () => Decimal.add(unref(feature.completions), 15),
+            cost: Formula.variable(challenge.completions).plus(15),
             resource: upgradeCount,
             requiresPay: false
         })),
@@ -35,12 +36,14 @@ const layer = createLayer(id, function (this: BaseLayer) {
             if (Decimal.lt(unref(fome.protoversal.upgrades.reform.amount), 1)) {
                 fome.protoversal.upgrades.reform.amount.value = 1;
             }
+            inAbyss.value = true;
         },
         onExit() {
             swapPersistentData(layers, swapData);
             if (Decimal.lt(unref(fome.protoversal.upgrades.reform.amount), 1)) {
                 fome.protoversal.upgrades.reform.amount.value = 1;
             }
+            inAbyss.value = false;
         }
     }));
 
@@ -89,11 +92,11 @@ const layer = createLayer(id, function (this: BaseLayer) {
         nextUpgradeCount: nextChallengeUpgradeCount,
         abyssUpgradeCount: upgradeCount,
         swapData,
-        display: jsx(() => (
+        display: () => (
             <>
                 <AbyssChallenge challenge={challenge} />
             </>
-        ))
+        )
     }
 });
 

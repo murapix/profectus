@@ -20,20 +20,20 @@
 </template>
 
 <script setup lang="ts" generic="T">
-import { GenericClickable } from "features/clickables/clickable";
+import { Clickable } from "features/clickables/clickable";
 import { isHidden, isVisible } from "features/feature";
 import Decimal from "lib/break_eternity";
 import { render } from "util/vue";
-import { ComputedRef, computed, ref, unref, watch, watchEffect } from "vue";
+import { ComputedRef, computed, unref } from "vue";
 import Loop from "./Loop.vue";
-import acceleron from "./acceleron";
-import { GenericLoop } from "./loop";
+import acceleron from "../acceleron";
+import { Loop as GenericLoop } from "./loop";
 
 const props = defineProps<{
     radius: number;
     // @ts-ignore
     loops: GenericLoop<T>[];
-    buildButton: GenericClickable;
+    buildButton: Clickable;
 }>();
 
 const size = props.radius * 2;
